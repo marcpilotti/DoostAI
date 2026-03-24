@@ -2,7 +2,8 @@
   "extends": "@doost/config/tsconfig/library",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "jsx": "react-jsx"
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"]

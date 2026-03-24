@@ -1,1 +1,10 @@
 export { analyzeBrand } from "./analyze-brand";
+export { metaDeployCampaign } from "./meta-deploy";
+export { metaPollInsights } from "./meta-insights";
+export { metaRefreshTokens } from "./meta-tokens";
+export { googleCreateAccount } from "./google-account";
+export { googleDeployCampaign } from "./google-deploy";
+export { googlePollMetrics } from "./google-metrics";
+export { linkedinDeployCampaign } from "./linkedin-deploy";
+export { linkedinRefreshTokens } from "./linkedin-tokens";
+export { linkedinPollAnalytics } from "./linkedin-analytics";

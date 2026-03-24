@@ -4,6 +4,15 @@ import { useEffect, useRef } from "react";
 import type { UIMessage } from "ai";
 
 import {
+  AdPreviewTabs,
+  AdPreviewLoading,
+} from "@/components/ads/ad-preview-tabs";
+import {
+  CampaignDeploymentStatus,
+  CampaignDeploymentLoading,
+} from "@/components/ads/campaign-deployment-status";
+import { LinkedInConnect } from "@/components/ads/linkedin-connect";
+import {
   BrandProfileCard,
   BrandProfileLoading,
 } from "@/components/brand/brand-profile-card";
@@ -44,6 +53,61 @@ function ToolInvocation({ part }: { part: ToolPart }) {
       );
     }
     return <BrandProfileLoading />;
+  }
+
+  if (name === "generate_ads") {
+    if (part.state === "output-available" && part.output) {
+      return (
+        <AdPreviewTabs
+          data={part.output as Parameters<typeof AdPreviewTabs>[0]["data"]}
+        />
+      );
+    }
+    return <AdPreviewLoading />;
+  }
+
+  if (name === "connect_linkedin") {
+    if (part.state === "output-available" && part.output) {
+      return (
+        <LinkedInConnect
+          data={part.output as Parameters<typeof LinkedInConnect>[0]["data"]}
+        />
+      );
+    }
+    return (
+      <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#0077b5]" />
+        Förbereder LinkedIn-anslutning...
+      </div>
+    );
+  }
+
+  if (name === "deploy_campaign") {
+    if (part.state === "output-available" && part.output) {
+      return (
+        <CampaignDeploymentStatus
+          data={
+            part.output as Parameters<
+              typeof CampaignDeploymentStatus
+            >[0]["data"]
+          }
+        />
+      );
+    }
+    return <CampaignDeploymentLoading />;
+  }
+
+  if (name === "check_platform_status") {
+    if (part.state === "output-available") {
+      // AI will summarize — no special UI needed
+      return null;
+    }
+    return (
+      <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-indigo-500" />
+        Kontrollerar plattformsanslutningar...
+      </div>
+    );
   }
 
   // Fallback for unknown tools
