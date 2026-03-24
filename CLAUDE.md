@@ -170,7 +170,7 @@ doost/
 - Clerk middleware on all `/api/` and `/(dashboard)/` routes
 - Supabase RLS enforced on every tenant-scoped table
 - Rate limiting via Upstash on public endpoints
-- CORS restricted to doost.ai domains
+- CORS restricted to doost.tech domains
 
 ### Git
 - Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`

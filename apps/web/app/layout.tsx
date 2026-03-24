@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Instrument_Sans, Outfit } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 
+import { PostHogProvider } from "@/lib/posthog/provider";
+
 import "./globals.css";
 
 const outfit = Outfit({
@@ -32,7 +34,7 @@ export default function RootLayout({
         <body
           className={`${outfit.variable} ${instrumentSans.variable} font-sans antialiased`}
         >
-          {children}
+          <PostHogProvider>{children}</PostHogProvider>
         </body>
       </html>
     </ClerkProvider>

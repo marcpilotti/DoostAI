@@ -12,6 +12,7 @@ import {
   CampaignDeploymentLoading,
 } from "@/components/ads/campaign-deployment-status";
 import { LinkedInConnect } from "@/components/ads/linkedin-connect";
+import { UpgradePrompt } from "@/components/ads/upgrade-prompt";
 import {
   BrandProfileCard,
   BrandProfileLoading,
@@ -97,6 +98,30 @@ function ToolInvocation({ part }: { part: ToolPart }) {
     return <CampaignDeploymentLoading />;
   }
 
+  if (name === "check_plan") {
+    if (part.state === "output-available" && part.output) {
+      const result = part.output as { type: string; allowed: boolean; reason?: string; suggestedPlan?: string; currentPlan?: string };
+      if (result.type === "upgrade_required") {
+        return (
+          <UpgradePrompt
+            data={{
+              reason: result.reason ?? "Plangräns nådd.",
+              suggestedPlan: result.suggestedPlan ?? "pro",
+              currentPlan: result.currentPlan ?? "free",
+            }}
+          />
+        );
+      }
+      return null; // OK — AI will proceed
+    }
+    return (
+      <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-indigo-500" />
+        Kontrollerar plangränser...
+      </div>
+    );
+  }
+
   if (name === "check_platform_status") {
     if (part.state === "output-available") {
       // AI will summarize — no special UI needed
@@ -140,15 +165,15 @@ export function ChatMessages({
   }, [messages, isLoading]);
 
   return (
-    <div className="h-full overflow-y-auto px-6 py-6">
+    <div className="h-full overflow-y-auto px-4 py-6 sm:px-6">
       <div className="mx-auto max-w-2xl space-y-6">
         {messages.map((message) => {
           if (message.role === "user") {
             const text = getMessageText(message);
             if (!text) return null;
             return (
-              <div key={message.id} className="flex justify-end">
-                <div className="max-w-[80%] rounded-2xl rounded-br-md bg-primary px-4 py-2.5 text-sm leading-relaxed text-primary-foreground">
+              <div key={message.id} className="animate-message-in flex justify-end">
+                <div className="max-w-[85%] rounded-2xl rounded-br-md bg-primary px-4 py-2.5 text-sm leading-relaxed text-primary-foreground sm:max-w-[80%]">
                   {text}
                 </div>
               </div>
@@ -166,11 +191,11 @@ export function ChatMessages({
           if (!hasContent) return null;
 
           return (
-            <div key={message.id} className="flex items-start gap-3">
+            <div key={message.id} className="animate-message-in flex items-start gap-3">
               <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600">
                 <span className="text-[10px] font-bold text-white">D</span>
               </div>
-              <div className="min-w-0 max-w-[85%] space-y-2">
+              <div className="min-w-0 max-w-[90%] space-y-2 sm:max-w-[85%]">
                 {textParts.map((part, i) =>
                   part.text.trim() ? (
                     <div

@@ -8,30 +8,39 @@ import {
   MessageSquare,
   Settings,
   TrendingUp,
+  X,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/chat", label: "Chat", icon: MessageSquare },
-  { href: "/campaigns", label: "Campaigns", icon: BarChart3 },
-  { href: "/analytics", label: "Analytics", icon: TrendingUp },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/campaigns", label: "Kampanjer", icon: BarChart3 },
+  { href: "/analytics", label: "Analys", icon: TrendingUp },
+  { href: "/settings", label: "Inställningar", icon: Settings },
 ];
 
-export function Sidebar() {
+export function Sidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
   const { user } = useUser();
 
   return (
-    <aside className="flex w-64 flex-col border-r bg-card">
-      <div className="p-6">
-        <Link href="/chat" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <span className="text-sm font-bold text-primary-foreground">D</span>
+    <aside className="flex h-full w-64 flex-col border-r bg-card">
+      <div className="flex items-center justify-between p-6">
+        <Link href="/chat" className="flex items-center gap-2" onClick={onClose}>
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600">
+            <span className="text-sm font-bold text-white">D</span>
           </div>
           <span className="font-heading text-lg font-bold">Doost AI</span>
         </Link>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted md:hidden"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       <nav className="flex-1 space-y-1 px-3">
@@ -42,6 +51,7 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onClose}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                 isActive
@@ -65,7 +75,7 @@ export function Sidebar() {
           />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium">
-              {user?.fullName ?? "Loading..."}
+              {user?.fullName ?? "..."}
             </p>
             <p className="truncate text-xs text-muted-foreground">
               {user?.primaryEmailAddress?.emailAddress}

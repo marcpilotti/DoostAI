@@ -10,6 +10,13 @@ const nextConfig: NextConfig = {
     "@doost/brand",
     "@doost/templates",
   ],
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "creatives.doost.tech" },
+      { protocol: "https", hostname: "*.supabase.co" },
+    ],
+  },
+  serverExternalPackages: ["postgres"],
 };
 
 export default nextConfig;

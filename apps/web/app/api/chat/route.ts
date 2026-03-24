@@ -11,8 +11,12 @@ import {
 import { generateAdCopy } from "@doost/ai";
 import type { BrandContext, Platform } from "@doost/ai";
 import { linkedinGetOAuthUrl } from "@doost/platforms";
-import { adAccounts, db, and, eq } from "@doost/db";
+import { adAccounts, campaigns, organizations, db, and, eq } from "@doost/db";
 import { inngest } from "@/lib/inngest/client";
+import {
+  checkCampaignLimit,
+  checkChannelLimit,
+} from "@/lib/stripe/plan-limits";
 
 export async function POST(req: Request) {
   const { userId } = await auth();
@@ -35,7 +39,7 @@ WORKFLOW:
 3. User picks platforms → call generate_ads with brand data + platforms.
 4. After ad previews → ask: "Hur ser det ut? Vill du ändra något?"
 5. User approves → ask about budget: "Vilken daglig budget vill du sätta? (t.ex. 500 kr/dag)"
-6. User provides budget → call deploy_campaign with platforms, budget, and targeting.
+6. User provides budget → call check_plan first to verify limits. If upgrade needed, show the upgrade prompt. If OK, call deploy_campaign.
 7. Show deployment status. Offer to set up performance monitoring.
 
 If user picks LinkedIn, call connect_linkedin first — LinkedIn requires individual OAuth.
@@ -216,9 +220,74 @@ Keep responses short between tool calls — let the UI components speak.`,
         },
       }),
 
+      check_plan: tool({
+        description:
+          "Check the current plan limits for the organization. Call before deploying to verify the user has capacity for new campaigns.",
+        inputSchema: z.object({
+          orgId: z.string(),
+          requestedPlatforms: z.number().describe("Number of platforms the user wants"),
+        }),
+        execute: async ({
+          orgId,
+          requestedPlatforms,
+        }: {
+          orgId: string;
+          requestedPlatforms: number;
+        }) => {
+          const [org] = await db
+            .select()
+            .from(organizations)
+            .where(eq(organizations.id, orgId))
+            .limit(1);
+
+          const plan = (org?.plan ?? "free") as "free" | "starter" | "pro" | "agency";
+
+          // Count active campaigns
+          const activeCampaigns = await db
+            .select()
+            .from(campaigns)
+            .where(
+              and(
+                eq(campaigns.orgId, orgId),
+                eq(campaigns.status, "live"),
+              ),
+            );
+
+          const campaignCheck = checkCampaignLimit(plan, activeCampaigns.length);
+          const channelCheck = checkChannelLimit(plan, requestedPlatforms);
+
+          if (!campaignCheck.allowed) {
+            return {
+              allowed: false,
+              type: "upgrade_required" as const,
+              reason: campaignCheck.reason,
+              suggestedPlan: campaignCheck.suggestedPlan,
+              currentPlan: plan,
+            };
+          }
+
+          if (!channelCheck.allowed) {
+            return {
+              allowed: false,
+              type: "upgrade_required" as const,
+              reason: channelCheck.reason,
+              suggestedPlan: channelCheck.suggestedPlan,
+              currentPlan: plan,
+            };
+          }
+
+          return {
+            allowed: true,
+            type: "ok" as const,
+            currentPlan: plan,
+            activeCampaigns: activeCampaigns.length,
+          };
+        },
+      }),
+
       deploy_campaign: tool({
         description:
-          "Deploy ad campaigns to specified platforms. Call after user approves ad previews and provides budget.",
+          "Deploy ad campaigns to specified platforms. Call after user approves ad previews and provides budget. ALWAYS call check_plan first.",
         inputSchema: z.object({
           orgId: z.string().describe("The organization ID"),
           campaignName: z.string().describe("Campaign name"),
