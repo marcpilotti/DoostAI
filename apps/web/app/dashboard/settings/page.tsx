@@ -169,7 +169,7 @@ export default function SettingsPage() {
       <div className="grid gap-4 sm:grid-cols-2">
         <SettingsCard title="Fakturering">
           <Button asChild variant="outline" size="sm">
-            <Link href="/settings/billing">
+            <Link href="/dashboard/settings/billing">
               <CreditCard className="mr-2 h-4 w-4" />
               Hantera prenumeration
               <ExternalLink className="ml-2 h-3.5 w-3.5" />

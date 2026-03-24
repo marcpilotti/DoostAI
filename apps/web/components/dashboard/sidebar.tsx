@@ -14,10 +14,10 @@ import {
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/chat", label: "Chat", icon: MessageSquare },
-  { href: "/campaigns", label: "Kampanjer", icon: BarChart3 },
-  { href: "/analytics", label: "Analys", icon: TrendingUp },
-  { href: "/settings", label: "Inställningar", icon: Settings },
+  { href: "/chat", label: "Chat", icon: MessageSquare, external: true },
+  { href: "/dashboard/campaigns", label: "Kampanjer", icon: BarChart3 },
+  { href: "/dashboard/analytics", label: "Analys", icon: TrendingUp },
+  { href: "/dashboard/settings", label: "Inställningar", icon: Settings },
 ];
 
 export function Sidebar({ onClose }: { onClose?: () => void }) {
