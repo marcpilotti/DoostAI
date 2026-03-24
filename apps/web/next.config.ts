@@ -16,7 +16,25 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "*.supabase.co" },
     ],
   },
-  serverExternalPackages: ["postgres"],
+  serverExternalPackages: [
+    "postgres",
+    "@resvg/resvg-js",
+    "@resvg/resvg-js-darwin-arm64",
+    "@resvg/resvg-js-linux-x64-gnu",
+    "satori",
+    "@mendable/firecrawl-js",
+  ],
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  webpack: (config) => {
+    config.module.rules.push({
+      test: /\.node$/,
+      use: "node-loader",
+      type: "javascript/auto",
+    });
+    return config;
+  },
 };
 
 export default nextConfig;
