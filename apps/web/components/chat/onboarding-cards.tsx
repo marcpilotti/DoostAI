@@ -270,7 +270,7 @@ function ConnectorStep({
           <div>
             <div className="text-sm font-semibold">Anslut annonsplattformar</div>
             <div className="text-[11px] text-muted-foreground">
-              Valfritt — du kan skapa annonser utan konto
+              Du kan koppla senare — det går att förhandsvisa utan konto
             </div>
           </div>
         </div>

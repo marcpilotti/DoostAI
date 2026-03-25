@@ -70,9 +70,9 @@ STEP 4: User picks platforms → call generate_ad_copy with brand data and selec
 
 STEP 5: Ad previews appear → say "Vilken variant föredrar du? Klicka 'Välj denna' på den du gillar bäst."
 
-STEP 6: User approves → ask budget: "Vilken daglig budget? (t.ex. 500 kr/dag)"
+STEP 6: User selects a variant or approves ads → IMMEDIATELY call show_campaign_config with the brand name and platform. Do NOT ask text questions about budget. The UI card handles budget, duration, and targeting.
 
-STEP 7: User provides budget → call check_plan, then deploy_campaign.
+STEP 7: User submits campaign config (message starts with "Publicera:") → call check_plan, then deploy_campaign with the budget and targeting from the message.
 
 ABSOLUTE RULES:
 - After analyze_brand, you MUST call show_onboarding. Do NOT write numbered questions. Do NOT ask about logo/font/connectors in text. The UI cards handle all of that.
@@ -257,6 +257,27 @@ ABSOLUTE RULES:
         }),
         execute: async ({ hasLogo, companyName, logos }: { hasLogo: boolean; companyName: string; logos: { primary?: string; icon?: string; dark?: string } }) => {
           return { hasLogo, companyName, logos };
+        },
+      }),
+
+      show_campaign_config: tool({
+        description:
+          "Show campaign configuration card with budget, duration, and targeting options. Call this AFTER the user selects/approves an ad variant. Do NOT ask budget questions in text.",
+        inputSchema: z.object({
+          brandName: z.string().describe("Company name"),
+          platform: z.string().describe("The selected ad platform (e.g. 'meta')"),
+        }),
+        execute: async ({ brandName, platform }: { brandName: string; platform: string }) => {
+          return {
+            brandName,
+            platform,
+            currency: "kr",
+            suggestedBudgets: [
+              { daily: 200, label: "Sparsam", reach: "~1 000–3 000 visningar/dag" },
+              { daily: 500, label: "Rekommenderad", reach: "~3 000–8 000 visningar/dag" },
+              { daily: 1000, label: "Aggressiv", reach: "~8 000–20 000 visningar/dag" },
+            ],
+          };
         },
       }),
 

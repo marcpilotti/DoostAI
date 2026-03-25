@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import type { UIMessage } from "ai";
 
+import { CampaignConfigCard } from "@/components/ads/campaign-config-card";
 import { CopyPreviewCard } from "@/components/ads/copy-preview-card";
 import {
   CampaignDeploymentStatus,
@@ -127,6 +128,27 @@ function ToolInvocation({
           <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-purple-500" />
           Skapar annonsförslag...
         </div>
+      </div>
+    );
+  }
+
+  if (name === "show_campaign_config") {
+    if (part.state === "output-available" && part.output) {
+      return (
+        <CampaignConfigCard
+          data={part.output as Parameters<typeof CampaignConfigCard>[0]["data"]}
+          onSubmit={(config) => {
+            onSendMessage?.(
+              `Publicera: ${config.dailyBudget} ${config.currency}/dag, ${config.duration} dagar, ${config.regions.join(", ")}`,
+            );
+          }}
+        />
+      );
+    }
+    return (
+      <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+        Förbereder kampanjinställningar...
       </div>
     );
   }
