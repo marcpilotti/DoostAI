@@ -49,7 +49,13 @@ export default function Home() {
       ) : (
         <>
           <div className="flex-1 overflow-hidden">
-            <ChatMessages messages={messages} isLoading={isLoading} />
+            <ChatMessages
+              messages={messages}
+              isLoading={isLoading}
+              onSendMessage={(text) => {
+                sendMessage({ text });
+              }}
+            />
           </div>
           <ChatInput
             input={input}

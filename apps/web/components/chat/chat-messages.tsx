@@ -18,6 +18,7 @@ import {
   BrandProfileLoading,
 } from "@/components/brand/brand-profile-card";
 
+import { ChannelPicker } from "./channel-picker";
 import { TypingIndicator } from "./typing-indicator";
 
 function getMessageText(message: UIMessage): string {
@@ -42,7 +43,13 @@ function isToolPart(part: { type: string }): part is ToolPart {
   return part.type === "dynamic-tool" || part.type.startsWith("tool-");
 }
 
-function ToolInvocation({ part }: { part: ToolPart }) {
+function ToolInvocation({
+  part,
+  onSendMessage,
+}: {
+  part: ToolPart;
+  onSendMessage?: (text: string) => void;
+}) {
   const name = part.toolName ?? part.type.replace("tool-", "");
 
   if (name === "analyze_brand") {
@@ -54,6 +61,26 @@ function ToolInvocation({ part }: { part: ToolPart }) {
       );
     }
     return <BrandProfileLoading />;
+  }
+
+  if (name === "show_channel_picker") {
+    if (part.state === "output-available" && part.output) {
+      return (
+        <ChannelPicker
+          data={part.output as Parameters<typeof ChannelPicker>[0]["data"]}
+          onSelect={(channels) => {
+            const labels: Record<string, string> = {
+              meta: "Meta",
+              google: "Google",
+              linkedin: "LinkedIn",
+            };
+            const text = channels.map((c) => labels[c] ?? c).join(", ");
+            onSendMessage?.(`Skapa annonser för ${text}`);
+          }}
+        />
+      );
+    }
+    return null;
   }
 
   if (name === "generate_ads") {
@@ -154,9 +181,11 @@ function ToolInvocation({ part }: { part: ToolPart }) {
 export function ChatMessages({
   messages,
   isLoading,
+  onSendMessage,
 }: {
   messages: UIMessage[];
   isLoading: boolean;
+  onSendMessage?: (text: string) => void;
 }) {
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -207,7 +236,7 @@ export function ChatMessages({
                   ) : null,
                 )}
                 {toolParts.map((part, i) => (
-                  <ToolInvocation key={part.toolCallId ?? `tool-${i}`} part={part} />
+                  <ToolInvocation key={part.toolCallId ?? `tool-${i}`} part={part} onSendMessage={onSendMessage} />
                 ))}
               </div>
             </div>

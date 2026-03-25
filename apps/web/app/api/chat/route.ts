@@ -33,14 +33,18 @@ You speak naturally and concisely. Communicate in both Swedish and English — m
 
 WORKFLOW:
 1. User provides URL → call analyze_brand immediately.
-2. After brand analysis → summarize and ask: "Vilka kanaler vill du annonsera på?"
+2. After brand analysis completes, DO NOT summarize the results or list findings. The UI card already shows everything. Just say ONE short sentence like "Klar! Välj kanaler:" and then call show_channel_picker immediately.
 3. User picks platforms → call generate_ads with brand data + platforms.
 4. After ad previews → ask: "Hur ser det ut? Vill du ändra något?"
 5. User approves → ask about budget: "Vilken daglig budget vill du sätta? (t.ex. 500 kr/dag)"
 6. User provides budget → call check_plan first to verify limits. If upgrade needed, show the upgrade prompt. If OK, call deploy_campaign.
 7. Show deployment status. Offer to set up performance monitoring.
 
-If user picks LinkedIn, call connect_linkedin first — LinkedIn requires individual OAuth.
+CRITICAL RULES:
+- After analyze_brand returns, NEVER repeat/summarize the brand data in text. The card shows it.
+- After analyze_brand returns, ALWAYS call show_channel_picker immediately.
+- Keep ALL text responses to 1-2 sentences max between tool calls.
+- If user picks LinkedIn, call connect_linkedin first — LinkedIn requires individual OAuth.
 If user wants to edit copy, call generate_ads again.
 For deploy_campaign, you MUST pass an orgId. Use "demo-org" if none is available.
 
@@ -167,6 +171,21 @@ Keep responses short between tool calls — let the UI components speak.`,
                 "LinkedIn-integrationen är inte konfigurerad ännu.",
             };
           }
+        },
+      }),
+
+      show_channel_picker: tool({
+        description:
+          "Show channel selection buttons to the user. Call this immediately after brand analysis completes. Do NOT summarize brand data — just call this tool.",
+        inputSchema: z.object({}),
+        execute: async () => {
+          return {
+            channels: [
+              { id: "meta", label: "Meta", description: "Facebook & Instagram" },
+              { id: "google", label: "Google", description: "Sök & Display" },
+              { id: "linkedin", label: "LinkedIn", description: "B2B-fokus" },
+            ],
+          };
         },
       }),
 
