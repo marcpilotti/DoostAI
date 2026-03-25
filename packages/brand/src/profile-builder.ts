@@ -93,18 +93,28 @@ ${context}`,
   });
   await flushTraces();
 
-  // Post-process: prefer scraped CSS colors if AI hallucinated different ones
-  const cssColors = scrapeResult.colors.filter((c) => /^#[0-9a-fA-F]{6}$/.test(c));
+  // Post-process: use UNIQUE CSS colors, never assign same color to multiple roles
+  const cssColors = [...new Set(
+    scrapeResult.colors
+      .filter((c) => /^#[0-9a-fA-F]{6}$/.test(c))
+      .map((c) => c.toLowerCase())
+  )];
   const finalColors = { ...object.colors };
-  if (cssColors.length >= 1 && !cssColors.includes(finalColors.primary.toLowerCase())) {
+
+  // Only override with CSS colors if we have enough DISTINCT ones
+  if (cssColors.length >= 3) {
     finalColors.primary = cssColors[0]!;
-  }
-  if (cssColors.length >= 2 && !cssColors.includes(finalColors.secondary.toLowerCase())) {
     finalColors.secondary = cssColors[1]!;
-  }
-  if (cssColors.length >= 3 && !cssColors.includes(finalColors.accent.toLowerCase())) {
     finalColors.accent = cssColors[2]!;
+  } else if (cssColors.length === 2) {
+    finalColors.primary = cssColors[0]!;
+    finalColors.accent = cssColors[1]!;
+    // Let AI choose secondary
+  } else if (cssColors.length === 1) {
+    finalColors.primary = cssColors[0]!;
+    // Let AI choose secondary + accent (they're usually decent)
   }
+  // If 0 CSS colors, trust the AI entirely
 
   // Post-process: prefer scraped fonts
   const cssFonts = scrapeResult.fonts;
