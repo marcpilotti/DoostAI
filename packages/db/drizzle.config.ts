@@ -8,6 +8,7 @@ export default defineConfig({
   out: "./migrations",
   dialect: "postgresql",
   dbCredentials: {
-    url: process.env.DATABASE_URL!,
+    // Use DIRECT_URL for migrations — PgBouncer doesn't support DDL
+    url: process.env.DIRECT_URL ?? process.env.DATABASE_URL!,
   },
 });
