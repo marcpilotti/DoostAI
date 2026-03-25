@@ -41,7 +41,7 @@ export function ProgressBreadcrumb({
   return (
     <div className="border-b border-border/30 bg-background/90 backdrop-blur-md">
       {/* Desktop */}
-      <div className="mx-auto hidden items-center justify-center gap-1 px-6 py-2 sm:flex">
+      <div className="mx-auto hidden items-center justify-center gap-1 px-6 py-1 sm:flex">
         {STEPS.map((step, i) => {
           const state = getStepState(step.id, currentStep);
           const Icon = step.icon;
