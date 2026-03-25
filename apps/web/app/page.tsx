@@ -67,13 +67,8 @@ export default function Home() {
 
       {isEmpty ? (
         <div className="flex flex-1 flex-col items-center justify-center px-6 pb-8">
-          <h1 className="text-center leading-tight">
-            <span className="block font-sketch text-[44px] text-foreground/80 sm:text-[60px]">
-              Skippa byrån.
-            </span>
-            <span className="mt-1 block font-grotesk text-[26px] font-medium tracking-tight text-[#6366f1] sm:text-[36px]">
-              Bygg din kampanj!
-            </span>
+          <h1 className="text-center font-sketch text-[44px] leading-tight text-foreground/80 sm:text-[60px]">
+            Skippa byrån.
           </h1>
           <div className="mt-8 w-full max-w-2xl">
             <ChatInput
