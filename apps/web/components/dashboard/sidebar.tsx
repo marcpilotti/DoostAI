@@ -28,9 +28,8 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
   return (
     <aside className="flex h-full w-64 flex-col border-r bg-card">
       <div className="flex items-center justify-between p-6">
-        <Link href="/chat" className="flex items-center gap-2" onClick={onClose}>
-          <Image src="/symbol.svg" alt="" width={32} height={32} className="h-8 w-8" aria-hidden />
-          <Image src="/logo.svg" alt="Doost AI" width={100} height={24} className="h-6 w-auto" />
+        <Link href="/chat" className="flex items-center" onClick={onClose}>
+          <Image src="/logo.svg" alt="Doost AI" width={120} height={28} className="h-7 w-auto" />
         </Link>
         {onClose && (
           <button
