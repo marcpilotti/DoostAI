@@ -21,11 +21,9 @@ const brandAnalysisSchema = z.object({
     .describe("Primary target audience description"),
   valuePropositions: z
     .array(z.string())
-    .min(3).max(5)
     .describe("3-5 key value propositions"),
   competitors: z
     .array(z.string())
-    .min(2).max(5)
     .describe("3-5 likely competitors"),
   colors: z.object({
     primary: hexColor.describe("Primary brand color from the website CSS. MUST be from the CSS data if available."),
