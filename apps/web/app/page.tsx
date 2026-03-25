@@ -73,7 +73,7 @@ export default function Home() {
 
       {isEmpty ? (
         <div className="flex flex-1 flex-col items-center justify-center px-6 pb-8">
-          <h1 className="font-display text-center text-[36px] font-bold leading-tight tracking-tight text-foreground sm:text-[42px]">
+          <h1 className="text-center font-mono text-[36px] font-bold leading-tight tracking-tight text-foreground sm:text-[42px]">
             Din AI-marknadsförare
           </h1>
           <div className="mt-8 w-full max-w-2xl">
