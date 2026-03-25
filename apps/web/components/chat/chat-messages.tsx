@@ -20,6 +20,7 @@ import {
 } from "@/components/brand/brand-profile-card";
 
 import { ChannelPicker } from "./channel-picker";
+import { OnboardingCards } from "./onboarding-cards";
 import { TypingIndicator } from "./typing-indicator";
 
 function getMessageText(message: UIMessage): string {
@@ -62,6 +63,26 @@ function ToolInvocation({
       );
     }
     return <BrandProfileLoading />;
+  }
+
+  if (name === "show_onboarding") {
+    if (part.state === "output-available" && part.output) {
+      const output = part.output as { hasLogo: boolean; companyName: string };
+      return (
+        <OnboardingCards
+          data={output}
+          onAllComplete={() => {
+            onSendMessage?.("Onboarding klar");
+          }}
+        />
+      );
+    }
+    return (
+      <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-indigo-500" />
+        Förbereder onboarding...
+      </div>
+    );
   }
 
   if (name === "show_channel_picker") {

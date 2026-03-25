@@ -21,18 +21,31 @@ function hasToolInMessages(
   );
 }
 
+function hasToolPending(messages: UIMessage[], toolName: string): boolean {
+  return messages.some((m) =>
+    m.parts.some((p) => {
+      if (p.type === "dynamic-tool" || (typeof p.type === "string" && p.type.startsWith("tool-"))) {
+        const tp = p as unknown as { toolName?: string; state?: string };
+        return tp.toolName === toolName && tp.state !== "output-available";
+      }
+      return false;
+    }),
+  );
+}
+
 export function useFlowProgress(messages: UIMessage[]): FlowStep {
   return useMemo(() => {
-    if (messages.length === 0) return "url";
+    if (messages.length === 0) return "analys";
 
     const hasBrand = hasToolInMessages(messages, "analyze_brand");
+    const brandPending = hasToolPending(messages, "analyze_brand");
+    const hasOnboarding = hasToolInMessages(messages, "show_onboarding");
     const hasChannels = hasToolInMessages(messages, "show_channel_picker");
     const hasCopy =
       hasToolInMessages(messages, "generate_ad_copy") ||
       hasToolInMessages(messages, "generate_ads");
     const hasDeploy = hasToolInMessages(messages, "deploy_campaign");
 
-    // Check if any deploy result has status "live"
     const isLive = messages.some((m) =>
       m.parts.some((p) => {
         if (p.type === "dynamic-tool" || (typeof p.type === "string" && p.type.startsWith("tool-"))) {
@@ -48,8 +61,9 @@ export function useFlowProgress(messages: UIMessage[]): FlowStep {
     if (isLive) return "live";
     if (hasDeploy) return "publicera";
     if (hasCopy) return "granska";
-    if (hasChannels || hasBrand) return "annonser";
-    if (hasBrand) return "profil";
-    return "url";
+    if (hasChannels) return "skapa";
+    if (hasOnboarding || hasBrand) return "profil";
+    if (brandPending) return "analys";
+    return "analys";
   }, [messages]);
 }

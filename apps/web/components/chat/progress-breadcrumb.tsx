@@ -1,23 +1,22 @@
 "use client";
 
-import { Check, Globe, Palette, PenTool, Rocket, Radio, Eye } from "lucide-react";
+import { Check, Search, UserCircle, PenTool, Eye, Rocket, Radio } from "lucide-react";
 
-export type FlowStep = "url" | "profil" | "annonser" | "granska" | "publicera" | "live";
+export type FlowStep = "analys" | "profil" | "skapa" | "granska" | "publicera" | "live";
 
 type StepConfig = {
   id: FlowStep;
   label: string;
-  shortLabel: string;
   icon: React.ComponentType<{ className?: string }>;
 };
 
 const STEPS: StepConfig[] = [
-  { id: "url", label: "URL", shortLabel: "URL", icon: Globe },
-  { id: "profil", label: "Profil", shortLabel: "Profil", icon: Palette },
-  { id: "annonser", label: "Annonser", shortLabel: "Ads", icon: PenTool },
-  { id: "granska", label: "Granska", shortLabel: "Granska", icon: Eye },
-  { id: "publicera", label: "Publicera", shortLabel: "Pub.", icon: Rocket },
-  { id: "live", label: "Live", shortLabel: "Live", icon: Radio },
+  { id: "analys", label: "Analys", icon: Search },
+  { id: "profil", label: "Profil", icon: UserCircle },
+  { id: "skapa", label: "Skapa", icon: PenTool },
+  { id: "granska", label: "Granska", icon: Eye },
+  { id: "publicera", label: "Publicera", icon: Rocket },
+  { id: "live", label: "Live", icon: Radio },
 ];
 
 function getStepIndex(step: FlowStep): number {
@@ -36,15 +35,13 @@ function getStepState(step: FlowStep, currentStep: FlowStep): StepState {
 
 export function ProgressBreadcrumb({
   currentStep,
-  onStepClick,
 }: {
   currentStep: FlowStep;
-  onStepClick?: (step: FlowStep) => void;
 }) {
   return (
-    <div className="border-b border-border/30 bg-background/80 backdrop-blur-sm">
+    <div className="sticky top-0 z-20 border-b border-border/30 bg-background/90 backdrop-blur-md">
       {/* Desktop */}
-      <div className="mx-auto hidden max-w-2xl items-center justify-between px-6 py-2 sm:flex">
+      <div className="mx-auto hidden items-center justify-center gap-1 px-6 py-2 sm:flex">
         {STEPS.map((step, i) => {
           const state = getStepState(step.id, currentStep);
           const Icon = step.icon;
@@ -52,50 +49,48 @@ export function ProgressBreadcrumb({
             <div key={step.id} className="flex items-center">
               {i > 0 && (
                 <div
-                  className={`mx-2 h-px w-6 transition-colors md:w-10 ${
-                    state === "upcoming" ? "bg-border/40" : "bg-emerald-400"
+                  className={`mx-1.5 h-px w-8 transition-colors duration-500 ${
+                    state === "upcoming" ? "bg-border/30" : "bg-emerald-400/60"
                   }`}
                 />
               )}
-              <button
-                onClick={() => state === "completed" && onStepClick?.(step.id)}
-                disabled={state === "upcoming"}
-                className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-all ${
+              <div
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium transition-all duration-300 ${
                   state === "completed"
-                    ? "cursor-pointer text-emerald-600 hover:bg-emerald-50"
+                    ? "text-emerald-600"
                     : state === "current"
-                      ? "progress-pulse text-indigo-600"
-                      : "cursor-default text-muted-foreground/40"
+                      ? "bg-indigo-50 text-indigo-600"
+                      : "text-muted-foreground/30"
                 }`}
-                title={state === "completed" ? "Klicka för att gå tillbaka" : undefined}
               >
                 {state === "completed" ? (
-                  <Check className="h-3.5 w-3.5" />
+                  <Check className="h-3 w-3" />
                 ) : (
-                  <Icon className="h-3.5 w-3.5" />
+                  <Icon
+                    className={`h-3 w-3 ${state === "current" ? "animate-pulse" : ""}`}
+                  />
                 )}
-                <span className="hidden md:inline">{step.label}</span>
-                <span className="md:hidden">{step.shortLabel}</span>
-              </button>
+                <span>{step.label}</span>
+              </div>
             </div>
           );
         })}
       </div>
 
-      {/* Mobile — dots */}
+      {/* Mobile — compact */}
       <div className="flex flex-col items-center gap-1 py-2 sm:hidden">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {STEPS.map((step) => {
             const state = getStepState(step.id, currentStep);
             return (
               <div
                 key={step.id}
-                className={`h-2 w-2 rounded-full transition-all ${
+                className={`h-1.5 rounded-full transition-all duration-500 ${
                   state === "completed"
-                    ? "bg-emerald-400"
+                    ? "w-4 bg-emerald-400"
                     : state === "current"
-                      ? "progress-pulse h-2.5 w-2.5 bg-indigo-500"
-                      : "bg-border/40"
+                      ? "w-6 bg-indigo-500"
+                      : "w-1.5 bg-border/30"
                 }`}
               />
             );

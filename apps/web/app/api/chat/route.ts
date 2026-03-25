@@ -61,18 +61,12 @@ You speak naturally and concisely. Communicate in both Swedish and English — m
 WORKFLOW:
 1. If the user's message contains ANYTHING that looks like a domain name or URL, IMMEDIATELY call analyze_brand. Do NOT ask for confirmation.
 
-2. After brand analysis completes, check the results and ask follow-up questions ONLY about what's MISSING. Use this checklist format:
+2. After analyze_brand returns, IMMEDIATELY call show_onboarding with:
+   - hasLogo: true/false based on whether logos.primary exists in the result
+   - companyName: the company name from the result
+   Do NOT write any text questions. The onboarding UI handles everything (logo upload, font upload, platform connections) as interactive cards, one step at a time.
 
-   a) If NO logo was found (logos.primary is null/undefined): "Jag hittade ingen logotyp. Kan du ladda upp en? (Du kan också skippa — då använder vi ert företagsnamn i VERSALER.)"
-   b) If industry is vague or missing: "Vilken bransch är ni i? Jag vill säkerställa att annonserna riktas rätt."
-   c) If fonts are generic (e.g. both "Inter"): "Vill du ladda upp en specifik font? (Skippa = vi väljer en som passar.)"
-   d) ALWAYS ask: "Vill du koppla Meta eller Google-konto direkt? (Det går att skapa annonser utan — du kan koppla senare.)"
-
-   Format the questions as a SHORT numbered list. If everything looks good (logo found, clear industry), skip the questions and go directly to step 3.
-
-   If user says "skippa" or similar → proceed without the missing items. Use company name in UPPERCASE as fallback logo text.
-
-3. After questions are answered (or skipped), call show_channel_picker. Say: "Perfekt! Välj kanaler:"
+3. After the user completes onboarding (they will send a message like "Onboarding klar"), call show_channel_picker. Say: "Perfekt! Välj kanaler:"
 
 4. User picks platforms → call generate_ad_copy. This shows full ad previews with brand colors immediately.
 
@@ -83,8 +77,8 @@ WORKFLOW:
 7. User provides budget → call check_plan, then deploy_campaign.
 
 CRITICAL RULES:
-- After analyze_brand, do NOT repeat all the data. The card shows it. ONLY ask about missing items.
-- The follow-up questions should be MAX 3-4 items in a numbered list.
+- After analyze_brand, do NOT repeat all the data. The card shows it. IMMEDIATELY call show_onboarding.
+- Do NOT ask text-based questions about logo, font, or connectors. The onboarding cards handle this.
 - Keep ALL responses short. Let the UI components speak.
 - If user picks LinkedIn, call connect_linkedin first.
 - When showing ad previews, emphasize the user should PICK one variant.
@@ -251,9 +245,21 @@ CRITICAL RULES:
         },
       }),
 
+      show_onboarding: tool({
+        description:
+          "Show sequential onboarding cards after brand analysis. Cards let user upload logo, font, and connect ad platforms — one step at a time. Call this RIGHT AFTER analyze_brand returns.",
+        inputSchema: z.object({
+          hasLogo: z.boolean().describe("Whether the brand analysis found a logo"),
+          companyName: z.string().describe("The company name from brand analysis"),
+        }),
+        execute: async ({ hasLogo, companyName }: { hasLogo: boolean; companyName: string }) => {
+          return { hasLogo, companyName };
+        },
+      }),
+
       show_channel_picker: tool({
         description:
-          "Show channel selection buttons to the user. Call this immediately after brand analysis completes. Do NOT summarize brand data — just call this tool.",
+          "Show channel selection buttons to the user. Call this AFTER onboarding cards are completed (user finishes or skips logo, font, connectors).",
         inputSchema: z.object({}),
         execute: async () => {
           return {

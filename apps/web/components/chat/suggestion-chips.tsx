@@ -9,7 +9,7 @@ type Suggestion = {
 };
 
 const SUGGESTIONS: Record<FlowStep, Suggestion[]> = {
-  url: [
+  analys: [
     { label: "Hur funkar det?", message: "Förklara hur Doost AI fungerar", icon: "💡" },
   ],
   profil: [
@@ -18,7 +18,7 @@ const SUGGESTIONS: Record<FlowStep, Suggestion[]> = {
     { label: "Fel bransch", message: "Branschen stämmer inte", icon: "🏢" },
     { label: "Analysera annan URL", message: "Jag vill analysera en annan hemsida", icon: "🔄" },
   ],
-  annonser: [
+  skapa: [
     { label: "Ser bra ut — publicera!", message: "Annonserna ser bra ut, publicera dem", icon: "🚀" },
     { label: "Kortare rubrik", message: "Gör rubriken kortare och punchigare", icon: "✂️" },
     { label: "Annan mall", message: "Prova en annan mall-stil", icon: "🎨" },
