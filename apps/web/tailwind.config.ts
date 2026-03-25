@@ -21,7 +21,7 @@ const config: Config = {
         sans: ["var(--font-instrument-sans)", "system-ui", "sans-serif"],
         heading: ["var(--font-outfit)", "system-ui", "sans-serif"],
         display: ["var(--font-dm-sans)", "system-ui", "sans-serif"],
-        sketch: ["var(--font-caveat)", "cursive"],
+        sketch: ["var(--font-marker)", "cursive"],
       },
       colors: {
         border: "hsl(var(--border))",
