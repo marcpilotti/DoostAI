@@ -51,23 +51,23 @@ export function routeModel(input: RouterInput): ModelChoice {
     };
   }
 
-  // Hero copy: Sonnet 4.6 (best quality copy)
+  // Hero copy: Opus 4.6 (best creative quality)
   if (input.intent === "copy_generation" && !input.isRegeneration) {
     return {
       provider: "anthropic",
-      modelId: "claude-sonnet-4-6-20250514",
+      modelId: "claude-opus-4-6-20250610",
       reason: "hero_copy",
-      model: anthropic("claude-sonnet-4-6-20250514"),
+      model: anthropic("claude-opus-4-6-20250610"),
     };
   }
 
-  // Variants / regeneration: Sonnet 4.6 (top quality for all variants)
+  // Variants / regeneration: Opus 4.6 (every variant must be top quality)
   if (input.intent === "copy_variant" || input.isRegeneration) {
     return {
       provider: "anthropic",
-      modelId: "claude-sonnet-4-6-20250514",
+      modelId: "claude-opus-4-6-20250610",
       reason: "variants",
-      model: anthropic("claude-sonnet-4-6-20250514"),
+      model: anthropic("claude-opus-4-6-20250610"),
     };
   }
 
