@@ -78,10 +78,13 @@ export default function Home() {
 
       {isEmpty ? (
         <div className="flex flex-1 flex-col items-center justify-center px-6 pb-8">
-          <h1 className="font-display text-center text-[28px] font-bold leading-tight tracking-tight sm:text-[40px]">
-            <span className="text-foreground">Skippa byrån.</span>
-            <br />
-            <span className="text-[#6366f1]">Bygg din kampanj!</span>
+          <h1 className="text-center leading-tight">
+            <span className="block font-sketch text-[38px] text-foreground sm:text-[52px]">
+              Skippa byrån.
+            </span>
+            <span className="block font-display text-[26px] font-bold tracking-tight text-[#6366f1] sm:text-[38px]">
+              Bygg din kampanj!
+            </span>
           </h1>
           <div className="mt-8 w-full max-w-2xl">
             <ChatInput

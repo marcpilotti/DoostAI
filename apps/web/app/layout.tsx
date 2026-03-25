@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DM_Sans, Instrument_Sans, Outfit } from "next/font/google";
+import { Caveat, DM_Sans, Instrument_Sans, Outfit } from "next/font/google";
 import { PostHogProvider } from "@/lib/posthog/provider";
 import { QueryProvider } from "@/lib/query-provider";
 
@@ -21,6 +21,13 @@ const dmSans = DM_Sans({
   subsets: ["latin"],
   variable: "--font-dm-sans",
   weight: ["700", "800"],
+  display: "swap",
+});
+
+const caveat = Caveat({
+  subsets: ["latin"],
+  variable: "--font-caveat",
+  weight: ["700"],
   display: "swap",
 });
 
@@ -46,7 +53,7 @@ export default function RootLayout({
   return (
     <html lang="sv">
       <body
-        className={`${outfit.variable} ${instrumentSans.variable} ${dmSans.variable} font-sans antialiased`}
+        className={`${outfit.variable} ${instrumentSans.variable} ${dmSans.variable} ${caveat.variable} font-sans antialiased`}
       >
         <QueryProvider>
           <PostHogProvider>{children}</PostHogProvider>
