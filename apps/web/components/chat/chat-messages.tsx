@@ -3,10 +3,6 @@
 import { useEffect, useRef } from "react";
 import type { UIMessage } from "ai";
 
-import {
-  AdPreviewTabs,
-  AdPreviewLoading,
-} from "@/components/ads/ad-preview-tabs";
 import { CopyPreviewCard } from "@/components/ads/copy-preview-card";
 import {
   CampaignDeploymentStatus,
@@ -107,23 +103,31 @@ function ToolInvocation({
 
   if (name === "generate_ad_copy" || name === "generate_ads") {
     if (part.state === "output-available" && part.output) {
-      const output = part.output as Record<string, unknown>;
-      // If output has "copies" field, it's the new copy-first format
-      if ("copies" in output) {
-        return (
-          <CopyPreviewCard
-            data={output as Parameters<typeof CopyPreviewCard>[0]["data"]}
-          />
-        );
-      }
-      // Legacy format with "ads" field → full ad preview
       return (
-        <AdPreviewTabs
-          data={output as Parameters<typeof AdPreviewTabs>[0]["data"]}
+        <CopyPreviewCard
+          data={part.output as Parameters<typeof CopyPreviewCard>[0]["data"]}
         />
       );
     }
-    return <AdPreviewLoading />;
+    return (
+      <div className="mt-3 animate-pulse rounded-2xl border border-border/40 bg-white/70 p-5 backdrop-blur-sm">
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-pink-200 to-purple-200" />
+          <div className="space-y-1">
+            <div className="h-3 w-28 rounded bg-muted/60" />
+            <div className="h-2 w-40 rounded bg-muted/40" />
+          </div>
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="aspect-[4/5] rounded-xl bg-muted/30" />
+          <div className="aspect-[4/5] rounded-xl bg-muted/30" />
+        </div>
+        <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-purple-500" />
+          Skapar annonsförslag...
+        </div>
+      </div>
+    );
   }
 
   if (name === "connect_linkedin") {

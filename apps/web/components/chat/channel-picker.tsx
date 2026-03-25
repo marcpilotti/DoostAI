@@ -29,7 +29,7 @@ const PLATFORM_CONFIG: Record<
     ),
   },
   google: {
-    color: "#4285F4",
+    color: "#ffffff",
     bg: "from-[#4285F4]/5 to-[#34A853]/5",
     borderActive: "border-[#4285F4]/60 ring-[#4285F4]/20",
     features: ["Sök", "Display", "YouTube"],
@@ -111,9 +111,9 @@ export function ChannelPicker({
               )}
 
               <div
-                className={`flex h-12 w-12 items-center justify-center rounded-xl text-white shadow-sm transition-transform duration-200 group-hover:scale-105 ${
+                className={`flex h-12 w-12 items-center justify-center rounded-xl shadow-sm transition-transform duration-200 group-hover:scale-105 ${
                   isSelected ? "shadow-md" : ""
-                }`}
+                } ${config?.color === "#ffffff" ? "border border-border/40 text-inherit" : "text-white"}`}
                 style={{ backgroundColor: config?.color ?? "#6366f1" }}
               >
                 {config?.icon}
