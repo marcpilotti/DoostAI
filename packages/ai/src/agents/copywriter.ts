@@ -3,6 +3,7 @@ import { openai } from "@ai-sdk/openai";
 import { generateObject } from "ai";
 import { z } from "zod";
 
+import { buildCopyKey, getCachedCopy, setCachedCopy } from "../cache";
 import { googleSearchCopy, linkedinCopy, metaAdCopy } from "../prompts/ad-copy";
 import { createTrace, flushTraces, traceGeneration } from "../tracing";
 import type {
@@ -179,6 +180,8 @@ export async function generateAdCopy(
 ): Promise<AdCopyResult[]> {
   const numVariants = options.variants ?? 3;
   const opts: CopyOptions = { ...options, objective };
+  const skipCache = options.skipCache ?? false;
+  const brandProfileId = options.brandProfileId ?? brand.name;
 
   const variants: CopyVariant[] = ["hero", "variant_a", "variant_b"].slice(
     0,
@@ -187,12 +190,40 @@ export async function generateAdCopy(
 
   const results: AdCopyResult[] = [];
 
-  // Hero variant: Claude Sonnet (quality)
-  results.push(
-    await generateSingleVariant(platform, brand, opts, "hero", false),
-  );
+  // --- Hero variant: check cache first ---
+  const cacheKey = buildCopyKey(brandProfileId, platform, objective, opts.tone);
+  let cacheHit = false;
 
-  // Additional variants: GPT-4o (speed) — run in parallel
+  if (!skipCache) {
+    const cached = await getCachedCopy(cacheKey);
+    if (cached) {
+      cacheHit = true;
+      const trace = createTrace(`copywriter/${platform}/hero-cached`, {
+        platform,
+        cacheHit: true,
+        cacheKey,
+      });
+      traceGeneration(trace, {
+        name: `${platform}-hero-cached`,
+        model: "cache",
+        input: cacheKey,
+        output: cached,
+        latencyMs: 0,
+      });
+      results.push(cached);
+    }
+  }
+
+  // Generate hero if not cached
+  if (!cacheHit) {
+    const hero = await generateSingleVariant(platform, brand, opts, "hero", false);
+    results.push(hero);
+
+    // Cache hero copy (1 hour TTL) — variants are NEVER cached for diversity
+    await setCachedCopy(cacheKey, hero, 3600, brandProfileId);
+  }
+
+  // Additional variants: GPT-4o (speed) — NEVER cached
   const additional = variants.slice(1);
   if (additional.length > 0) {
     const parallel = await Promise.all(

@@ -28,6 +28,8 @@ export type CopyOptions = {
   tone?: string;
   language?: string;
   variants?: number;
+  skipCache?: boolean;
+  brandProfileId?: string;
 };
 
 export const CHAR_LIMITS = {
