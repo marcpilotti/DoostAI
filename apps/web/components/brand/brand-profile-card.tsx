@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Building2,
   ExternalLink,
   Globe,
   MapPin,
+  Pencil,
   TrendingUp,
   Upload,
   Users,
@@ -103,11 +104,21 @@ function ColorSwatch({
 
 export function BrandProfileCard({ data }: { data: BrandProfileData }) {
   const [colors, setColors] = useState(data.colors);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const originalColors = data.colors;
+
+  // Listen for logo selection from onboarding cards
+  useEffect(() => {
+    function handleLogoSelected(e: Event) {
+      const detail = (e as CustomEvent<{ url: string }>).detail;
+      if (detail?.url) setLogoUrl(detail.url);
+    }
+    window.addEventListener("doost:logo-selected", handleLogoSelected);
+    return () => window.removeEventListener("doost:logo-selected", handleLogoSelected);
+  }, []);
 
   function updateColor(role: keyof typeof colors, newColor: string) {
     setColors((prev) => ({ ...prev, [role]: newColor }));
-    // TODO: persist to DB via server action
   }
 
   return (
@@ -122,24 +133,51 @@ export function BrandProfileCard({ data }: { data: BrandProfileData }) {
         </div>
       </div>
 
-      {/* Company header */}
-      <div className="mb-4">
-        <h3 className="font-heading text-xl font-semibold">{data.name}</h3>
-        <a
-          href={data.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-        >
-          {data.url.replace(/^https?:\/\//, "")}
-          <ExternalLink className="h-2.5 w-2.5" />
-        </a>
-        {data.description && (
-          <p className="mt-2 text-sm leading-relaxed text-foreground/70">
-            {data.description}
-          </p>
-        )}
+      {/* Company header with logo */}
+      <div className="mb-4 flex items-start gap-3">
+        {logoUrl ? (
+          <label className="group relative shrink-0 cursor-pointer">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={logoUrl}
+              alt={data.name}
+              className="h-12 w-12 rounded-xl border border-border/30 bg-white object-contain p-1 shadow-sm"
+            />
+            <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+              <Pencil className="h-3.5 w-3.5 text-white" />
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const url = URL.createObjectURL(file);
+                  setLogoUrl(url);
+                }
+              }}
+            />
+          </label>
+        ) : null}
+        <div>
+          <h3 className="font-heading text-xl font-semibold">{data.name}</h3>
+          <a
+            href={data.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+          >
+            {data.url.replace(/^https?:\/\//, "")}
+            <ExternalLink className="h-2.5 w-2.5" />
+          </a>
+        </div>
       </div>
+      {data.description && (
+        <p className="mb-4 text-sm leading-relaxed text-foreground/70">
+          {data.description}
+        </p>
+      )}
 
       {/* Data grid */}
       <div className="mb-4 grid grid-cols-2 gap-2">

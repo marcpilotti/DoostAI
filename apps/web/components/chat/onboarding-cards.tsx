@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Image, Type, Plug, Upload } from "lucide-react";
+import { ArrowRight, Check, Image, Type, Plug, Upload } from "lucide-react";
 
 type OnboardingStep = "logo" | "font" | "connectors" | "done";
 
@@ -25,7 +25,13 @@ function StepCard({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ── Logo Step: show scraped logos + upload option ────────────────
+function emitLogoSelected(url: string) {
+  window.dispatchEvent(
+    new CustomEvent("doost:logo-selected", { detail: { url } }),
+  );
+}
+
+// ── Logo Step ───────────────────────────────────────────────────
 function LogoStep({
   companyName,
   logos,
@@ -36,9 +42,8 @@ function LogoStep({
   onComplete: (skipped: boolean) => void;
 }) {
   const [selected, setSelected] = useState<string | null>(null);
-  const [customUploaded, setCustomUploaded] = useState(false);
+  const [customUrl, setCustomUrl] = useState<string | null>(null);
 
-  // Collect all found logos with labels
   const foundLogos: { url: string; label: string }[] = [];
   if (logos.primary) foundLogos.push({ url: logos.primary, label: "Primär" });
   if (logos.dark) foundLogos.push({ url: logos.dark, label: "Alternativ" });
@@ -46,19 +51,29 @@ function LogoStep({
     foundLogos.push({ url: logos.icon, label: "Ikon" });
 
   const hasFoundLogos = foundLogos.length > 0;
+  const hasSelection = selected !== null || customUrl !== null;
 
   function handleSelect(url: string) {
     setSelected(url);
-    setCustomUploaded(false);
-    setTimeout(() => onComplete(false), 400);
+    setCustomUrl(null);
+    emitLogoSelected(url);
   }
 
   function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    if (e.target.files?.[0]) {
-      setCustomUploaded(true);
-      setSelected(null);
-      setTimeout(() => onComplete(false), 400);
-    }
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setCustomUrl(url);
+    setSelected(null);
+    emitLogoSelected(url);
+  }
+
+  function handleContinue() {
+    onComplete(false);
+  }
+
+  function handleSkip() {
+    onComplete(true);
   }
 
   return (
@@ -73,7 +88,7 @@ function LogoStep({
             <div className="text-[11px] text-muted-foreground">
               {hasFoundLogos
                 ? "Vi hittade dessa loggor — välj en eller ladda upp din egen"
-                : "Vi hittade ingen logga — ladda upp en"}
+                : "Vi hittade ingen logga — ladda upp en eller gå vidare"}
             </div>
           </div>
         </div>
@@ -96,7 +111,6 @@ function LogoStep({
                     <Check className="h-3 w-3" strokeWidth={3} />
                   </div>
                 )}
-                {/* Checkerboard background for transparency */}
                 <div
                   className="flex h-16 w-full items-center justify-center rounded-lg p-2"
                   style={{
@@ -119,25 +133,20 @@ function LogoStep({
                 <span className="text-[10px] font-medium text-muted-foreground">
                   {logo.label}
                 </span>
-                {selected !== logo.url && (
-                  <span className="text-[10px] font-medium text-indigo-400 opacity-0 transition-opacity group-hover:opacity-100">
-                    Välj denna
-                  </span>
-                )}
               </button>
             ))}
           </div>
         )}
 
         {/* Upload own logo */}
-        {!customUploaded ? (
+        {!customUrl ? (
           <label className="flex cursor-pointer items-center gap-3 rounded-xl border-2 border-dashed border-border/60 bg-muted/10 px-4 py-3 transition-colors hover:border-indigo-300 hover:bg-indigo-50/30">
             <Upload className="h-5 w-5 text-muted-foreground/40" />
             <div>
               <span className="text-xs font-medium text-muted-foreground">
                 {hasFoundLogos
                   ? "Eller ladda upp en egen logga istället"
-                  : "Dra och släpp eller klicka för att ladda upp"}
+                  : "Klicka för att ladda upp logga"}
               </span>
               <span className="block text-[10px] text-muted-foreground/50">
                 PNG, SVG eller JPG (max 2MB)
@@ -151,23 +160,31 @@ function LogoStep({
             />
           </label>
         ) : (
-          <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3">
-            <Check className="h-4 w-4 text-emerald-500" />
-            <span className="text-sm text-emerald-700">
-              Egen logga uppladdad!
-            </span>
+          <div className="flex items-center gap-3 rounded-xl bg-emerald-50 px-4 py-3">
+            <Check className="h-4 w-4 shrink-0 text-emerald-500" />
+            <span className="text-sm text-emerald-700">Egen logga uppladdad!</span>
+            <label className="ml-auto cursor-pointer text-[10px] font-medium text-emerald-600 underline hover:text-emerald-800">
+              Byt
+              <input type="file" accept="image/*" className="hidden" onChange={handleUpload} />
+            </label>
           </div>
         )}
       </div>
 
-      <div className="border-t px-5 py-3">
+      {/* Action footer */}
+      <div className="flex items-center justify-between border-t border-border/30 px-5 py-3">
         <button
-          onClick={() => onComplete(true)}
-          className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+          onClick={handleSkip}
+          className="rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground"
         >
-          Skippa — använd{" "}
-          <span className="font-semibold">{companyName.toUpperCase()}</span> som
-          text istället
+          Hoppa över
+        </button>
+        <button
+          onClick={handleContinue}
+          className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"
+        >
+          {hasSelection ? "Ser bra ut" : "Fortsätt utan logga"}
+          <ArrowRight className="h-3.5 w-3.5" />
         </button>
       </div>
     </StepCard>
@@ -223,12 +240,14 @@ function FontStep({
         )}
       </div>
 
-      <div className="border-t px-5 py-3">
+      <div className="flex items-center justify-between border-t border-border/30 px-5 py-3">
+        <span className="text-[10px] text-muted-foreground/50">Steg 2 av 3</span>
         <button
           onClick={() => onComplete(true)}
-          className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+          className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"
         >
-          Skippa — vi väljer en font som passar
+          {uploaded ? "Fortsätt" : "Hoppa över"}
+          <ArrowRight className="h-3.5 w-3.5" />
         </button>
       </div>
     </StepCard>
@@ -284,12 +303,14 @@ function ConnectorStep({
         </div>
       </div>
 
-      <div className="border-t px-5 py-3">
+      <div className="flex items-center justify-between border-t border-border/30 px-5 py-3">
+        <span className="text-[10px] text-muted-foreground/50">Steg 3 av 3</span>
         <button
           onClick={() => onComplete(true)}
-          className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+          className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"
         >
-          Hoppa över — jag kopplar senare
+          Fortsätt
+          <ArrowRight className="h-3.5 w-3.5" />
         </button>
       </div>
     </StepCard>
@@ -304,7 +325,6 @@ export function OnboardingCards({
   data: OnboardingData;
   onAllComplete: () => void;
 }) {
-  // Always start at logo — even if logos were found, user should confirm/pick
   const [currentStep, setCurrentStep] = useState<OnboardingStep>("logo");
 
   function advance(from: OnboardingStep) {
