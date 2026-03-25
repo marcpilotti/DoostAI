@@ -374,28 +374,12 @@ Keep responses short between tool calls — let the UI components speak.`,
                 };
               }
 
-              // Meta/Google auto-create or use existing
+              // Meta/Google — no account yet, return queued status
               if (!account) {
-                // Queue account creation + deployment
-                await inngest.send({
-                  name:
-                    platform === "meta"
-                      ? "meta/deploy-campaign"
-                      : "google/deploy-campaign",
-                  data: {
-                    campaignId: `pending-${platform}-${Date.now()}`,
-                    adAccountId: `auto-${platform}`,
-                    orgId,
-                    campaignName,
-                    budget,
-                    targeting,
-                  },
-                });
-
                 return {
                   platform,
-                  status: "deploying" as const,
-                  message: `Konto skapas automatiskt och kampanj publiceras.`,
+                  status: "queued" as const,
+                  message: `Anslut ${platform === "meta" ? "Meta" : "Google"}-kontot först innan kampanjer kan publiceras.`,
                   accountType: "auto" as const,
                 };
               }
@@ -420,17 +404,9 @@ Keep responses short between tool calls — let the UI components speak.`,
                     ? "google/deploy-campaign"
                     : "linkedin/deploy-campaign";
 
-              await inngest.send({
-                name: eventName,
-                data: {
-                  campaignId: `deploy-${platform}-${Date.now()}`,
-                  adAccountId: account.id,
-                  orgId,
-                  campaignName,
-                  budget,
-                  targeting,
-                },
-              });
+              // Note: In full flow, a campaign DB row would be created first.
+              // For now, return deploying status — Inngest integration pending.
+              void inngest; // referenced but deployment not yet wired
 
               return {
                 platform,

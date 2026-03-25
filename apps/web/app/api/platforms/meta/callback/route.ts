@@ -27,7 +27,14 @@ export async function GET(req: Request) {
     redirect("/chat?meta_error=missing_code");
   }
 
-  const { orgId } = JSON.parse(atob(state)) as { orgId: string };
+  let orgId: string;
+  try {
+    const parsed = JSON.parse(atob(state)) as { orgId?: string };
+    if (!parsed.orgId) throw new Error("Missing orgId");
+    orgId = parsed.orgId;
+  } catch {
+    redirect("/chat?meta_error=invalid_state");
+  }
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const redirectUri = `${appUrl}/api/platforms/meta/callback`;
 

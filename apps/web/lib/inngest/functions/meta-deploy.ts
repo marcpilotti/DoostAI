@@ -1,5 +1,5 @@
-import { MetaAdsClient, deployCampaign } from "@doost/platforms";
-import { campaigns, db, eq } from "@doost/db";
+import { MetaAdsClient, deployCampaign, decryptToken } from "@doost/platforms";
+import { adAccounts, campaigns, db, eq, and } from "@doost/db";
 
 import { inngest } from "../client";
 
@@ -10,16 +10,10 @@ export const metaDeployCampaign = inngest.createFunction(
     triggers: [{ event: "meta/deploy-campaign" }],
   },
   async ({ event, step }) => {
-    const {
-      campaignId,
-      adAccountId,
-      accessToken,
-      businessManagerId,
-    } = event.data as {
+    const { campaignId, adAccountId, orgId } = event.data as {
       campaignId: string;
       adAccountId: string;
-      accessToken: string;
-      businessManagerId: string;
+      orgId?: string;
     };
 
     // 1. Get campaign data from DB
@@ -33,12 +27,33 @@ export const metaDeployCampaign = inngest.createFunction(
       return row;
     });
 
-    // 2. Deploy to Meta
+    // 2. Get ad account credentials from DB
+    const account = await step.run("get-account", async () => {
+      const [row] = await db
+        .select()
+        .from(adAccounts)
+        .where(
+          and(
+            eq(adAccounts.platform, "meta"),
+            orgId ? eq(adAccounts.orgId, orgId) : eq(adAccounts.id, adAccountId),
+          ),
+        )
+        .limit(1);
+      if (!row) throw new Error("No Meta ad account found");
+      return row;
+    });
+
+    // 3. Decrypt token and deploy
     const result = await step.run("deploy-to-meta", async () => {
-      const client = new MetaAdsClient(accessToken, businessManagerId);
+      if (!account.accessTokenEncrypted || !account.tokenIv) {
+        throw new Error("No access token stored for Meta account");
+      }
+      const token = decryptToken(account.accessTokenEncrypted, account.tokenIv);
+      const bmId = (account.metadata as { businessManagerId?: string })?.businessManagerId ?? "";
+      const client = new MetaAdsClient(token, bmId);
 
       return deployCampaign(client, {
-        adAccountId,
+        adAccountId: account.platformAccountId,
         name: campaign.name,
         objective: campaign.objective ?? "traffic",
         dailyBudget: campaign.budget?.daily ?? 100,
@@ -47,11 +62,11 @@ export const metaDeployCampaign = inngest.createFunction(
           ageMin: campaign.targeting?.ageRange?.min,
           ageMax: campaign.targeting?.ageRange?.max,
         },
-        creatives: [], // populated from ad_creatives in real flow
+        creatives: [],
       });
     });
 
-    // 3. Update campaign with platform IDs
+    // 4. Update campaign with platform IDs
     await step.run("update-campaign", async () => {
       await db
         .update(campaigns)
