@@ -106,6 +106,7 @@ function ToolInvocation({
       return (
         <CopyPreviewCard
           data={part.output as Parameters<typeof CopyPreviewCard>[0]["data"]}
+          onSendMessage={onSendMessage}
         />
       );
     }
