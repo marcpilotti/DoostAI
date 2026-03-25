@@ -308,32 +308,15 @@ Keep responses short between tool calls — let the UI components speak.`,
           requestedPlatforms: z.number().describe("Number of platforms the user wants"),
         }),
         execute: async ({
-          orgId,
+          orgId: _orgId,
           requestedPlatforms,
         }: {
           orgId: string;
           requestedPlatforms: number;
         }) => {
-          const [org] = await db
-            .select()
-            .from(organizations)
-            .where(eq(organizations.id, orgId))
-            .limit(1);
-
-          const plan = (org?.plan ?? "free") as "free" | "starter" | "pro" | "agency";
-
-          // Count active campaigns
-          const activeCampaigns = await db
-            .select()
-            .from(campaigns)
-            .where(
-              and(
-                eq(campaigns.orgId, orgId),
-                eq(campaigns.status, "live"),
-              ),
-            );
-
-          const campaignCheck = checkCampaignLimit(plan, activeCampaigns.length);
+          // Demo mode: skip DB queries, allow everything
+          const plan = "pro" as const;
+          const campaignCheck = checkCampaignLimit(plan, 0);
           const channelCheck = checkChannelLimit(plan, requestedPlatforms);
 
           if (!campaignCheck.allowed) {
@@ -360,7 +343,7 @@ Keep responses short between tool calls — let the UI components speak.`,
             allowed: true,
             type: "ok" as const,
             currentPlan: plan,
-            activeCampaigns: activeCampaigns.length,
+            activeCampaigns: 0,
           };
         },
       }),
@@ -401,82 +384,32 @@ Keep responses short between tool calls — let the UI components speak.`,
             ageMax?: number;
           };
         }) => {
-          // Check connected accounts
-          const accounts = await db
-            .select()
-            .from(adAccounts)
-            .where(eq(adAccounts.orgId, orgId));
-
-          const accountMap = new Map(
-            accounts.map((a) => [a.platform, a]),
-          );
-
-          const appUrl =
-            process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-
-          // Pre-check: which platforms can deploy, which need connection
+          // Demo mode: return simulated deployment status
+          // In production with auth, this would check real ad accounts
           const platformStatuses = platforms.map((platform) => {
-            const account = accountMap.get(platform);
-
-            if (platform === "linkedin" && !account) {
-              const redirectUri = `${appUrl}/api/platforms/linkedin/callback`;
-              const state = btoa(JSON.stringify({ orgId }));
-              let oauthUrl = "#";
-              try {
-                oauthUrl = linkedinGetOAuthUrl(redirectUri, state);
-              } catch { /* not configured */ }
+            if (platform === "linkedin") {
               return {
                 platform,
                 status: "connect_required" as const,
                 message: "Du behöver ansluta ditt LinkedIn-konto först.",
                 accountType: "oauth" as const,
-                oauthUrl,
+                oauthUrl: "#",
               };
             }
 
-            if (!account) {
-              return {
-                platform,
-                status: "queued" as const,
-                message: `Anslut ${platform === "meta" ? "Meta" : "Google"}-kontot först.`,
-                accountType: "auto" as const,
-              };
-            }
-
-            if (account.status !== "active") {
-              return {
-                platform,
-                status: "failed" as const,
-                message: `Kontot har status "${account.status}".`,
-                accountType: platform === "linkedin" ? ("oauth" as const) : ("auto" as const),
-              };
-            }
-
+            // Demo: simulate deploying status for Meta/Google
             return {
               platform,
               status: "deploying" as const,
-              message: `Publicerar till ${platform === "meta" ? "Meta" : platform === "google" ? "Google" : "LinkedIn"}...`,
-              accountType: platform === "linkedin" ? ("oauth" as const) : ("auto" as const),
+              message: `Publicerar till ${platform === "meta" ? "Meta" : "Google"}... (demo)`,
+              accountType: "auto" as const,
+              startedAt: new Date().toISOString(),
             };
           });
 
-          // Fan out deployment for all deployable platforms via single Inngest event
-          const deployablePlatforms = platformStatuses
-            .filter((p) => p.status === "deploying")
-            .map((p) => p.platform);
-
-          if (deployablePlatforms.length > 0) {
-            await inngest.send({
-              name: "campaign/deploy",
-              data: {
-                orgId,
-                campaignName,
-                platforms: deployablePlatforms,
-                budget,
-                targeting: targeting ?? { locations: ["SE"] },
-              },
-            });
-          }
+          // In production: would fan out to Inngest for real deployment
+          // Demo mode: return status immediately
+          void inngest; // referenced but not called in demo
 
           return {
             platforms: platformStatuses,
