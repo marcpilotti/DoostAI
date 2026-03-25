@@ -6,7 +6,9 @@ import { useChat } from "@ai-sdk/react";
 import { ChatHeader } from "@/components/chat/chat-header";
 import { ChatInput } from "@/components/chat/chat-input";
 import { ChatMessages } from "@/components/chat/chat-messages";
+import { ProgressBreadcrumb } from "@/components/chat/progress-breadcrumb";
 import { SuggestionChips } from "@/components/chat/suggestion-chips";
+import { useFlowProgress } from "@/hooks/use-flow-progress";
 
 function getSuggestions(messages: Array<{ role: string; parts: Array<{ type: string; [key: string]: unknown }> }>): string[] {
   if (messages.length === 0) return [];
@@ -56,6 +58,7 @@ export default function Home() {
   });
 
   const isLoading = status === "submitted" || status === "streaming";
+  const flowStep = useFlowProgress(messages);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,6 +73,8 @@ export default function Home() {
   return (
     <div className="flex h-screen flex-col bg-background">
       <ChatHeader />
+
+      {!isEmpty && <ProgressBreadcrumb currentStep={flowStep} />}
 
       {isEmpty ? (
         <div className="flex flex-1 flex-col items-center justify-center px-6 pb-8">
