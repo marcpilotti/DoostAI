@@ -1,5 +1,13 @@
 # CLAUDE.md — Doost AI
 
+## Required reading
+
+Before starting ANY task, also read these files in the project root:
+- **PIPELINE.md** — The exact flow of the system (8 stages)
+- **LIVING-PROFILE.md** — How the customer profile works (the soul of the product)
+
+These three files together (CLAUDE.md + PIPELINE.md + LIVING-PROFILE.md) define the entire product.
+
 ## Identity
 
 Doost AI is a conversational AI marketing platform. Users paste a company URL, we scrape their brand identity, enrich with company data, and generate ready-to-publish ad campaigns for Meta, Google, and LinkedIn — all through a chat interface.
@@ -54,6 +62,13 @@ doost/
 │   │   │   ├── chat/           # Chat UI components
 │   │   │   ├── ads/            # Ad preview components
 │   │   │   ├── brand/          # Brand profile components
+│   │   │   ├── profile/        # Customer profile components
+│   │   │   │   ├── IdentityCard.tsx
+│   │   │   │   ├── SocialPresence.tsx
+│   │   │   │   ├── CompetitorRadar.tsx
+│   │   │   │   ├── ReadinessScore.tsx
+│   │   │   │   ├── ProfileCompletion.tsx
+│   │   │   │   └── LiveProfileView.tsx
 │   │   │   └── ui/             # shadcn/ui components
 │   │   └── lib/
 │   │       ├── ai/             # AI client setup
@@ -114,6 +129,17 @@ doost/
 │   │   ├── google/
 │   │   ├── linkedin/
 │   │   └── renderer.ts
+│   ├── intelligence/           # Customer intelligence system
+│   │   ├── social-detection.ts # Find social accounts
+│   │   ├── google-reviews.ts   # Fetch Google Business Profile
+│   │   ├── competitor-radar.ts # Meta Ad Library + competitor analysis
+│   │   ├── website-audit.ts    # PageSpeed + pixel detection + content scan
+│   │   ├── behavior-tracker.ts # Learn from chat behavior
+│   │   └── industry-intel.ts   # Cross-customer industry patterns
+│   ├── triggers/               # Proactive notification system
+│   │   ├── definitions.ts      # All trigger definitions
+│   │   ├── engine.ts           # Trigger evaluation engine
+│   │   └── notifications.ts    # Notification delivery (chat + email)
 │   └── config/                 # Shared configs
 │       ├── tsconfig.json
 │       ├── eslint.config.js
@@ -225,4 +251,8 @@ pnpm typecheck              # TypeScript check all packages
 # Build
 pnpm build                  # Build all apps
 pnpm clean                  # Clean all build artifacts
+
+# Intelligence
+pnpm intelligence:refresh    # Manually refresh all intelligence data for all orgs
+pnpm triggers:run            # Manually run all triggers
 ```

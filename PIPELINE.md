@@ -72,12 +72,15 @@ const BLOCKED_DOMAINS = [
 URL detected in Stage 1. Chat tool `analyze_brand` is called.
 
 ### Execution
-Run Firecrawl and company enrichment in PARALLEL using `Promise.allSettled()`:
+Run 5 intelligence jobs in PARALLEL using `Promise.allSettled()`:
 
 ```typescript
-const [scrapeResult, enrichmentResult] = await Promise.allSettled([
-  scrapeBrand(url),            // Firecrawl Branding API
-  enrichCompany(domain)         // Roaring.io or Clearbit
+const [scrape, enrichment, social, googleReviews, pageSpeed] = await Promise.allSettled([
+  scrapeBrand(url),                    // Firecrawl Branding API
+  enrichCompany(domain),               // Roaring.io or Clearbit
+  detectSocialPresence(url, name),     // Scan for social accounts
+  getGooglePresence(name, city),       // Google Business Profile
+  auditWebsite(url),                   // PageSpeed + pixel detection
 ])
 ```
 
@@ -139,14 +142,28 @@ brand_profiles.enrichment_status = 'complete' | 'partial' | 'pending'
 - Log to Langfuse: `scrape_duration_ms`, `enrichment_duration_ms`, `total_analysis_duration_ms`
 
 ### Exit condition
-Firecrawl scrape data is available. Enrichment is available OR scheduled for retry.
+Firecrawl scrape data available. Other 4 jobs (enrichment, social, Google reviews, PageSpeed) either completed or scheduled for retry.
 
 ---
 
-## Stage 3: Profile assembly
+## Stage 3: Profile assembly (4 progressive phases)
 
 ### Trigger
-Scrape data (and optionally enrichment data) available from Stage 2.
+Scrape data (and optionally enrichment/social/reviews/audit data) available from Stage 2.
+
+### Progressive rendering (LIVING-PROFILE.md spec)
+The profile renders in 4 phases — users see value immediately, more detail arrives over seconds:
+
+- **Phase 1 (at +2s)**: Identity card — name, URL, industry, employees, colors, fonts, logos
+- **Phase 2 (at +3s)**: Social & online presence — social accounts, Google reviews, tracking pixels, mobile score
+- **Phase 3 (at +5s)**: Competitor radar — competitor ads, activity level, gap opportunities
+- **Phase 4 (at +1s after Phase 3)**: Marketing readiness score — overall 0-100 score, breakdown, critical issues
+
+### Question flow (streamlined from LIVING-PROFILE.md)
+Instead of asking 5+ questions, the AI presents inferred targeting as a confirmation card:
+"Stämmer det här? Målgrupp: X, Mål: Y, Kanaler: Z. [Stämmer! / Jag vill ändra]"
+If user confirms → proceed to ad generation. Maximum 1 click.
+Only ask budget range as a separate question.
 
 ### Execution
 Pass all data to Claude Haiku for structured profile assembly:
@@ -541,6 +558,14 @@ User approves creatives (explicitly says "publicera" or clicks publish chip).
 
 ### Trigger
 User approves creatives from Stage 6.
+
+### 3-Level Progressive Registration (from LIVING-PROFILE.md)
+
+**Level 0 (anonymous):** Can paste URL, see full profile (all 4 phases), see competitor analysis, see readiness score, generate ad previews. Data stored in Redis guest session (7 day TTL).
+
+**Level 1 (email only):** Triggers when user wants to save profile or leave the page. Clerk email/Google/Microsoft sign-up. Saves profile permanently. Can export profile as PDF. Gets weekly marketing tips.
+
+**Level 2 (card on file):** Triggers ONLY when user clicks "Publicera". Stripe SetupIntent (no charge). 14-day free trial starts. We cover up to 1,000 kr in ad spend during trial.
 
 ### Pre-deployment: Budget and targeting
 
