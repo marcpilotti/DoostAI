@@ -69,7 +69,10 @@ export async function buildBrandProfile(
     schema: brandAnalysisSchema,
     prompt: `Analyze this company's brand identity from their website data. Extract structured brand information.
 
-If color data is available from CSS, prefer those exact colors. If fonts are detected, use those exact names. Infer everything else from the website content.
+CRITICAL:
+- For "industry": Determine the ACTUAL industry from the website content. Examples: "Fintech", "E-handel", "SaaS", "Restaurang", "Fastigheter", "Hälsa & Träning", "Bygg & Konstruktion", "Utbildning", "Juridik", "Marknadsföring", "Konsult", etc. Be SPECIFIC — never default to "Dataprogrammering" or generic "IT".
+- If color data is available from CSS, prefer those exact colors. If fonts are detected, use those exact names.
+- Infer brand voice, target audience, and value propositions from the actual website content.
 
 ${context}`,
   });

@@ -59,7 +59,7 @@ export function ProgressBreadcrumb({
                   state === "completed"
                     ? "text-emerald-600"
                     : state === "current"
-                      ? "bg-indigo-50 text-indigo-600"
+                      ? "text-indigo-600"
                       : "text-muted-foreground/30"
                 }`}
               >

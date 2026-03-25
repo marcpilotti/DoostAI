@@ -150,26 +150,17 @@ function enrichFromMock(domain: string): CompanyEnrichment | null {
     return MOCK_COMPANIES[normalized];
   }
 
-  // Generate plausible mock data for unknown Swedish domains
+  // Unknown domain — return minimal data, let AI determine industry from website content
   const name = normalized.split(".")[0]!;
   const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
 
   return {
     name: `${capitalized} AB`,
     orgNumber: `5592${Math.floor(10 + Math.random() * 90)}-${Math.floor(1000 + Math.random() * 9000)}`,
-    industry: "Dataprogrammering",
-    industryCodes: ["62010"],
+    // industry intentionally omitted — AI will infer from website content
     employeeCount: Math.floor(10 + Math.random() * 200),
     revenue: `${Math.floor(5 + Math.random() * 100)} MSEK`,
     location: "Stockholm",
-    address: {
-      street: "Kungsgatan 1",
-      city: "Stockholm",
-      zip: "111 43",
-      country: "SE",
-    },
-    ceo: `${capitalized} Grundare`,
-    creditRating: "AA",
   };
 }
 
