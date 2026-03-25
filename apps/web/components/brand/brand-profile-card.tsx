@@ -7,6 +7,7 @@ import {
   Globe,
   MapPin,
   TrendingUp,
+  Upload,
   Users,
 } from "lucide-react";
 
@@ -175,6 +176,22 @@ export function BrandProfileCard({ data }: { data: BrandProfileData }) {
           <ColorSwatch color={colors.secondary} label="Sekundär" role="secondary" originalColor={originalColors.secondary} onColorChange={(c) => updateColor("secondary", c)} />
           <ColorSwatch color={colors.accent} label="Accent" role="accent" originalColor={originalColors.accent} onColorChange={(c) => updateColor("accent", c)} />
         </div>
+        {/* PDF brand guidelines upload */}
+        <label className="mt-2 flex cursor-pointer items-center gap-1.5 text-[10px] text-muted-foreground/50 transition-colors hover:text-muted-foreground">
+          <Upload className="h-3 w-3" />
+          Ladda upp varumärkesguide (PDF)
+          <input
+            type="file"
+            accept=".pdf"
+            className="hidden"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              // TODO: upload to /api/brand/extract-colors and update colors
+              alert("PDF-uppladdning kommer snart!");
+            }}
+          />
+        </label>
       </div>
 
       {/* Fonts */}
