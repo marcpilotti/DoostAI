@@ -64,11 +64,11 @@ export default function Home() {
 
       {isEmpty ? (
         <div className="flex flex-1 flex-col items-center justify-center px-6 pb-8">
-          <h1 className="text-center font-sketch text-[44px] leading-tight text-foreground/80 sm:text-[60px]">
+          <h1 className="text-center font-sketch text-[48px] leading-[1.05] tracking-[-0.02em] text-foreground sm:text-[64px]">
             Skippa byrån.
           </h1>
-          <p className="mx-auto mt-3 max-w-sm text-center text-sm text-muted-foreground/70">
-            Klistra in din företags-URL så bygger vi din reklamkampanj på sekunder.
+          <p className="mx-auto mt-4 max-w-xs text-center text-base text-muted-foreground">
+            Klistra in din URL. Vi sköter resten.
           </p>
           <div className="mt-6 w-full max-w-2xl">
             <ChatInput

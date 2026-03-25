@@ -82,10 +82,9 @@ export function LinkedInAdPreview({ data }: { data: LinkedInAdData }) {
           </div>
         </div>
         <button
-          className="ml-3 shrink-0 rounded-full border-2 px-5 py-1.5 text-sm font-semibold"
+          className="ml-3 shrink-0 rounded-full px-5 py-1.5 text-sm font-semibold text-white"
           style={{
-            borderColor: data.primaryColor,
-            color: data.primaryColor,
+            backgroundColor: data.primaryColor,
           }}
         >
           <EditableText

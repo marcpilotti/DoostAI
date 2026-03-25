@@ -86,6 +86,41 @@
   animation: message-in 0.3s ease-out both;
 }
 
+/* Shimmer loading animation */
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+.animate-shimmer {
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Card materialize — premium tool card entrance */
+@keyframes card-materialize {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+.animate-card-in {
+  animation: card-materialize 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-message-in,
+  .animate-shimmer,
+  .animate-card-in {
+    animation: none !important;
+  }
+}
+
 /* Rainbow glow under chat input */
 .rainbow-glow {
   position: relative;

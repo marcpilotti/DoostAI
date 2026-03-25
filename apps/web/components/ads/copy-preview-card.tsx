@@ -6,6 +6,7 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   MoreHorizontal,
   ThumbsUp,
   MessageCircle,
@@ -56,7 +57,7 @@ type CopyPreviewData = {
   renderingImages?: boolean;
 };
 
-type AdFormat = "instagram" | "facebook";
+type AdFormat = "instagram" | "facebook" | "story";
 type EditMode = null | "ai" | "manual";
 
 function getGradient(primary?: string, accent?: string): string {
@@ -288,6 +289,81 @@ function FacebookPreview({
   );
 }
 
+// ── Story / Reel Preview ────────────────────────────────────────
+function StoryPreview({
+  copy,
+  brand,
+  bgImage,
+  isSelected,
+  isLoser,
+  onPick,
+}: {
+  copy: CopyData;
+  brand: BrandData;
+  bgImage?: string;
+  isSelected: boolean;
+  isLoser: boolean;
+  onPick: () => void;
+}) {
+  const gradient = getGradient(brand.colors.primary, brand.colors.accent);
+
+  return (
+    <button
+      onClick={onPick}
+      disabled={isSelected}
+      className={`group relative mx-auto w-[200px] overflow-hidden rounded-[20px] border-2 text-left transition-all duration-300 ${
+        isSelected
+          ? "border-emerald-400 shadow-lg ring-2 ring-emerald-200"
+          : isLoser
+            ? "border-border/20 opacity-40 hover:opacity-60"
+            : "border-border/40 hover:border-indigo-300 hover:shadow-md"
+      }`}
+    >
+      {isSelected && (
+        <div className="absolute left-1/2 top-0 z-10 -translate-x-1/2">
+          <span className="flex items-center gap-1 rounded-b-lg bg-emerald-500 px-3 py-1 text-[10px] font-semibold text-white shadow-sm">
+            <Check className="h-3 w-3" strokeWidth={3} /> Vald
+          </span>
+        </div>
+      )}
+
+      <div
+        className="flex aspect-[9/16] flex-col items-center justify-between p-4 text-center"
+        style={{ background: bgImage ? `url(${bgImage}) center/cover` : gradient }}
+      >
+        {/* Top: brand + avatar */}
+        <div className="flex w-full items-center gap-2">
+          <div
+            className="flex h-8 w-8 items-center justify-center rounded-full text-[9px] font-bold text-white ring-2 ring-white/40"
+            style={{ backgroundColor: brand.colors.primary }}
+          >
+            {brand.name[0]}
+          </div>
+          <span className="text-[10px] font-semibold text-white drop-shadow">{brand.name}</span>
+        </div>
+
+        {/* Center: headline */}
+        <div className="space-y-2">
+          <div className="text-base font-bold leading-tight text-white drop-shadow-md">
+            {copy.headline}
+          </div>
+        </div>
+
+        {/* Bottom: CTA swipe-up */}
+        <div className="flex flex-col items-center gap-1">
+          <ChevronUp className="h-4 w-4 text-white/80 animate-bounce" />
+          <div
+            className="rounded-full px-5 py-1.5 text-[10px] font-semibold text-white shadow-sm"
+            style={{ backgroundColor: "rgba(255,255,255,0.25)", backdropFilter: "blur(8px)" }}
+          >
+            {copy.cta}
+          </div>
+        </div>
+      </div>
+    </button>
+  );
+}
+
 // ── AI Prompt Suggestions ───────────────────────────────────────
 const AI_PROMPTS = [
   { icon: Zap, label: "Kortare & punchigare", prompt: "Gör rubriken kortare och mer slagkraftig" },
@@ -315,7 +391,7 @@ export function CopyPreviewCard({
   const variants = data.copies.slice(0, 2);
   if (!data.brand || variants.length === 0) return null;
 
-  const Preview = format === "instagram" ? InstagramPreview : FacebookPreview;
+  const Preview = format === "story" ? StoryPreview : format === "instagram" ? InstagramPreview : FacebookPreview;
 
   function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -372,6 +448,20 @@ export function CopyPreviewCard({
             <path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.563V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z" />
           </svg>
           Facebook Annons
+        </button>
+        <button
+          onClick={() => { setFormat("story"); setSelectedId(null); setMobileIndex(0); }}
+          className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+            format === "story"
+              ? "bg-white text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="5" y="2" width="14" height="20" rx="3" />
+            <circle cx="12" cy="18" r="1" fill="currentColor" stroke="none" />
+          </svg>
+          Story / Reel
         </button>
       </div>
 

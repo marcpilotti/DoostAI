@@ -2,6 +2,8 @@
 
 import { lazy, Suspense, useEffect, useRef } from "react";
 import type { UIMessage } from "ai";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 import {
   BrandProfileLoading,
@@ -288,14 +290,16 @@ export function ChatMessages({
           return (
             <div key={message.id} className="animate-message-in flex items-start gap-2.5">
               <img src="/symbol.svg" alt="" width={28} height={28} className="mt-0.5 h-7 w-7 shrink-0" aria-hidden />
-              <div className="min-w-0 max-w-full space-y-1.5">
+              <div className="relative min-w-0 max-w-full space-y-1.5 pl-3 before:absolute before:left-0 before:top-1 before:bottom-1 before:w-0.5 before:rounded-full before:bg-gradient-to-b before:from-indigo-400/30 before:to-transparent">
                 {textParts.map((part, i) =>
                   part.text.trim() ? (
                     <div
                       key={i}
-                      className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90"
+                      className="prose prose-sm prose-neutral max-w-none text-foreground/90 [&_p]:leading-relaxed [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0.5 [&_strong]:font-semibold [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mt-3 [&_h3]:mb-1"
                     >
-                      {part.text}
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {part.text}
+                      </ReactMarkdown>
                     </div>
                   ) : null,
                 )}
