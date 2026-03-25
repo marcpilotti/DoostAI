@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Instrument_Sans, Outfit } from "next/font/google";
+import { Instrument_Sans, Outfit, Signika } from "next/font/google";
 import { PostHogProvider } from "@/lib/posthog/provider";
 import { QueryProvider } from "@/lib/query-provider";
 
@@ -14,6 +14,13 @@ const outfit = Outfit({
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
   variable: "--font-instrument-sans",
+  display: "swap",
+});
+
+const signika = Signika({
+  subsets: ["latin"],
+  variable: "--font-signika",
+  weight: ["700"],
   display: "swap",
 });
 
@@ -39,7 +46,7 @@ export default function RootLayout({
   return (
     <html lang="sv">
       <body
-        className={`${outfit.variable} ${instrumentSans.variable} font-sans antialiased`}
+        className={`${outfit.variable} ${instrumentSans.variable} ${signika.variable} font-sans antialiased`}
       >
         <QueryProvider>
           <PostHogProvider>{children}</PostHogProvider>

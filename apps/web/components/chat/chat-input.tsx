@@ -65,7 +65,7 @@ export function ChatInput({
             value={input}
             onChange={(e) => onInputChange(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Skriv ett meddelande..."
+            placeholder="Börja med att skriva in ditt företags URL här..."
             rows={1}
             className="max-h-[200px] w-full resize-none rounded-xl bg-white px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60"
           />

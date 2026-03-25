@@ -20,6 +20,7 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-instrument-sans)", "system-ui", "sans-serif"],
         heading: ["var(--font-outfit)", "system-ui", "sans-serif"],
+        display: ["var(--font-signika)", "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

@@ -73,14 +73,9 @@ export default function Home() {
 
       {isEmpty ? (
         <div className="flex flex-1 flex-col items-center justify-center px-6 pb-8">
-          <h1 className="font-heading text-center text-[38px] font-light leading-tight tracking-tight text-foreground">
-            Hur kan vi hjälpa dig med
-            <br />
-            din marknadsföring?
+          <h1 className="font-display text-center text-[36px] font-bold leading-tight tracking-tight text-foreground sm:text-[42px]">
+            Din AI-marknadsförare
           </h1>
-          <p className="mt-3 text-center text-base text-muted-foreground">
-            Börja med att skriva in ditt företags URL
-          </p>
           <div className="mt-8 w-full max-w-2xl">
             <ChatInput
               input={input}
