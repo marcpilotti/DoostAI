@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    font-size: 80%;
+  }
+
   :root {
     --background: 0 0% 100%;
     --foreground: 221 54% 13%;
