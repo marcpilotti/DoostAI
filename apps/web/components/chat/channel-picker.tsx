@@ -53,6 +53,39 @@ const PLATFORM_CONFIG: Record<
       </svg>
     ),
   },
+  tiktok: {
+    color: "#000000",
+    bg: "from-[#000000]/5 to-[#69C9D0]/10",
+    borderActive: "border-[#000000]/60 ring-[#69C9D0]/20",
+    features: ["In-Feed", "TopView", "Spark Ads"],
+    icon: (
+      <svg className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 0 0-.79-.05A6.34 6.34 0 0 0 3.15 15.2a6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.34-6.34V8.73a8.19 8.19 0 0 0 4.76 1.52v-3.4a4.85 4.85 0 0 1-1-.16z" />
+      </svg>
+    ),
+  },
+  snapchat: {
+    color: "#FFFC00",
+    bg: "from-[#FFFC00]/5 to-[#FFFC00]/10",
+    borderActive: "border-[#FFFC00]/60 ring-[#FFFC00]/20",
+    features: ["Snap Ads", "Story Ads", "AR Lens"],
+    icon: (
+      <svg className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12.206.793c.99 0 4.347.276 5.93 3.821.529 1.193.403 3.219.299 4.847l-.003.06c-.012.18-.022.345-.03.51.075.045.203.09.401.09.3-.016.659-.12.922-.238.38-.168.735-.145.984.068.275.236.39.6.293.93-.106.38-.446.71-.84.94-.23.13-.492.23-.758.31-.082.024-.164.04-.245.066a.83.83 0 0 0-.06.018c-.108.045-.18.12-.18.21 0 .04.012.08.03.12l.07.13c.47.89.955 1.42 1.518 1.86.328.256.674.45 1.05.615.395.18.59.455.59.72 0 .18-.074.36-.219.51-.324.33-.947.5-1.5.585-.19.03-.36.06-.51.12-.15.06-.24.15-.3.27-.075.15-.15.39-.21.555-.06.17-.18.36-.39.45a1.44 1.44 0 0 1-.57.12c-.21 0-.48-.06-.78-.18a4.87 4.87 0 0 0-.72-.21c-.15-.03-.3-.045-.45-.045-.27 0-.54.045-.81.12-.42.12-.69.225-1.17.45-1.005.465-1.53.705-2.34.705h-.03c-.81 0-1.335-.24-2.34-.705-.48-.225-.75-.33-1.17-.45-.27-.075-.54-.12-.81-.12-.15 0-.3.015-.45.045-.27.045-.51.12-.72.21-.3.12-.57.18-.78.18-.21 0-.42-.04-.57-.12-.21-.09-.33-.28-.39-.45-.06-.165-.135-.405-.21-.555-.06-.12-.15-.21-.3-.27-.15-.06-.32-.09-.51-.12-.555-.09-1.176-.255-1.5-.585A.68.68 0 0 1 1 16.56c0-.27.18-.54.59-.72.39-.18.72-.36 1.05-.615.555-.435 1.035-.96 1.5-1.845l.06-.12c.03-.06.045-.12.045-.18 0-.09-.075-.165-.18-.21a2.86 2.86 0 0 0-.06-.018 3.85 3.85 0 0 1-.243-.066c-.27-.084-.528-.18-.758-.31-.396-.225-.735-.555-.84-.94-.097-.33.018-.694.293-.93.249-.21.594-.24.984-.068.263.12.623.222.922.238.195 0 .33-.045.4-.09a9.87 9.87 0 0 1-.03-.51l-.002-.06c-.105-1.63-.23-3.655.299-4.847C7.85 1.069 11.216.793 12.206.793z" />
+      </svg>
+    ),
+  },
+  pinterest: {
+    color: "#E60023",
+    bg: "from-[#E60023]/5 to-[#E60023]/10",
+    borderActive: "border-[#E60023]/60 ring-[#E60023]/20",
+    features: ["Pins", "Shopping", "Idea Ads"],
+    icon: (
+      <svg className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 0C5.373 0 0 5.372 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 0 1 .083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12 0-6.628-5.373-12-12-12z" />
+      </svg>
+    ),
+  },
 };
 
 export function ChannelPicker({
@@ -62,16 +95,7 @@ export function ChannelPicker({
   data: ChannelPickerData;
   onSelect?: (channels: string[]) => void;
 }) {
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-
-  function toggle(id: string) {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
+  const [selected, setSelected] = useState<string | null>(null);
 
   return (
     <div className="animate-message-in mt-3 overflow-hidden rounded-2xl border border-border/40 bg-white/70 backdrop-blur-sm">
@@ -80,22 +104,22 @@ export function ChannelPicker({
           <Megaphone className="h-4 w-4 text-indigo-500" />
         </div>
         <div>
-          <div className="text-sm font-semibold">Välj annonskanaler</div>
+          <div className="text-sm font-semibold">Välj annonskanal</div>
           <div className="text-[11px] text-muted-foreground">
-            Välj en eller flera plattformar
+            Välj en plattform att skapa annons för
           </div>
         </div>
       </div>
 
-      <div className="grid gap-3 p-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3">
         {data.channels.map((ch) => {
-          const isSelected = selected.has(ch.id);
+          const isSelected = selected === ch.id;
           const config = PLATFORM_CONFIG[ch.id];
           return (
             <button
               key={ch.id}
-              onClick={() => toggle(ch.id)}
-              className={`group relative flex flex-col items-center gap-3 rounded-xl border-2 px-4 py-5 text-center transition-all duration-200 ${
+              onClick={() => setSelected(ch.id)}
+              className={`group relative flex flex-col items-center gap-3 rounded-xl border-2 px-3 py-4 text-center transition-all duration-200 ${
                 isSelected
                   ? `bg-gradient-to-b ${config?.bg} ${config?.borderActive} shadow-md ring-2`
                   : "border-border/50 bg-white hover:border-border hover:shadow-sm"
@@ -104,24 +128,24 @@ export function ChannelPicker({
               {isSelected && (
                 <div
                   className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full text-white shadow-sm"
-                  style={{ backgroundColor: config?.color }}
+                  style={{ backgroundColor: config?.color === "#ffffff" || config?.color === "#FFFC00" ? "#4285F4" : config?.color }}
                 >
                   <Check className="h-3 w-3" strokeWidth={3} />
                 </div>
               )}
 
               <div
-                className={`flex h-12 w-12 items-center justify-center rounded-xl shadow-sm transition-transform duration-200 group-hover:scale-105 ${
+                className={`flex h-11 w-11 items-center justify-center rounded-xl shadow-sm transition-transform duration-200 group-hover:scale-105 ${
                   isSelected ? "shadow-md" : ""
-                } ${config?.color === "#ffffff" ? "border border-border/40 text-inherit" : "text-white"}`}
+                } ${config?.color === "#ffffff" ? "border border-border/40 text-inherit" : config?.color === "#FFFC00" ? "border border-border/40 text-black" : "text-white"}`}
                 style={{ backgroundColor: config?.color ?? "#6366f1" }}
               >
                 {config?.icon}
               </div>
 
               <div>
-                <div className="text-sm font-semibold">{ch.label}</div>
-                <div className="text-[11px] text-muted-foreground">
+                <div className="text-xs font-semibold">{ch.label}</div>
+                <div className="text-[10px] text-muted-foreground">
                   {ch.description}
                 </div>
               </div>
@@ -131,7 +155,7 @@ export function ChannelPicker({
                   {config.features.map((f) => (
                     <span
                       key={f}
-                      className="rounded-full bg-muted/50 px-2 py-0.5 text-[9px] font-medium text-muted-foreground"
+                      className="rounded-full bg-muted/50 px-1.5 py-0.5 text-[8px] font-medium text-muted-foreground"
                     >
                       {f}
                     </span>
@@ -143,13 +167,13 @@ export function ChannelPicker({
         })}
       </div>
 
-      {selected.size > 0 && (
+      {selected && (
         <div className="border-t border-border/30 px-5 py-3">
           <button
-            onClick={() => onSelect?.([...selected])}
+            onClick={() => onSelect?.([selected])}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"
           >
-            Skapa annonser för {selected.size} {selected.size === 1 ? "kanal" : "kanaler"}
+            Skapa annons
             <ArrowRight className="h-4 w-4" />
           </button>
         </div>

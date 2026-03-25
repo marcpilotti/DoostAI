@@ -70,7 +70,7 @@ STEP 4: User picks platforms → call generate_ad_copy with brand data and selec
 
 STEP 5: Ad previews appear → say "Vilken variant föredrar du? Klicka 'Välj denna' på den du gillar bäst."
 
-STEP 6: User selects a variant or approves ads → IMMEDIATELY call show_campaign_config with the brand name and platform. Do NOT ask text questions about budget. The UI card handles budget, duration, and targeting.
+STEP 6: User clicks "Gå vidare" or says they want to proceed → IMMEDIATELY call show_campaign_config with the brand name and platform. Do NOT ask text questions about budget. The UI card handles budget, duration, and targeting.
 
 STEP 7: User submits campaign config (message starts with "Publicera:") → call check_plan, then deploy_campaign with the budget and targeting from the message.
 
@@ -291,6 +291,9 @@ ABSOLUTE RULES:
               { id: "meta", label: "Meta", description: "Facebook & Instagram" },
               { id: "google", label: "Google", description: "Sök & Display" },
               { id: "linkedin", label: "LinkedIn", description: "B2B-fokus" },
+              { id: "tiktok", label: "TikTok", description: "Kortvideo & Gen Z" },
+              { id: "snapchat", label: "Snapchat", description: "AR & Story Ads" },
+              { id: "pinterest", label: "Pinterest", description: "Shopping & Inspiration" },
             ],
           };
         },

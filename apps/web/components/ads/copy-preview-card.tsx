@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import {
+  ArrowRight,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -522,9 +523,18 @@ export function CopyPreviewCard({
       )}
 
       {selectedId && (
-        <div className="border-t border-border/30 bg-emerald-50/50 px-5 py-2.5 text-center text-[11px] font-medium text-emerald-600">
-          <Check className="mr-1 inline h-3 w-3" />
-          Variant vald — skriv din budget för att gå vidare
+        <div className="flex items-center justify-between border-t border-border/30 bg-emerald-50/30 px-5 py-3">
+          <span className="flex items-center gap-1 text-[11px] font-medium text-emerald-600">
+            <Check className="h-3 w-3" />
+            Variant vald
+          </span>
+          <button
+            onClick={() => onSendMessage?.("Gå vidare till kampanjinställningar")}
+            className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"
+          >
+            Gå vidare
+            <ArrowRight className="h-3.5 w-3.5" />
+          </button>
         </div>
       )}
     </div>
