@@ -91,7 +91,7 @@ export default function Home() {
               }}
             />
           </div>
-          <div className="mx-auto w-full max-w-xl px-4 sm:px-6">
+          <div className="mx-auto w-full max-w-lg px-3 sm:px-4">
             {!isLoading && messages.length > 0 && !input && (
               <SuggestionChips
                 suggestions={getSuggestionsForStep(flowStep)}

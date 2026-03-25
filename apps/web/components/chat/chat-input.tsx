@@ -48,13 +48,13 @@ export function ChatInput({
   };
 
   return (
-    <div className="px-3 pb-4 pt-2 sm:px-6 sm:pb-6">
+    <div className="px-3 pb-3 pt-1 sm:px-4 sm:pb-4">
       <form
         ref={formRef}
         onSubmit={onSubmit}
-        className="rainbow-glow mx-auto max-w-xl"
+        className="rainbow-glow mx-auto max-w-lg"
       >
-        <div className="rounded-2xl border border-border/40 bg-white/60 p-2 shadow-sm backdrop-blur-xl">
+        <div className="rounded-xl border border-border/40 bg-white/60 p-1.5 shadow-sm backdrop-blur-xl">
           {urlHint && (
             <div className="mb-1 px-3 text-[11px] text-indigo-500">
               Tryck Enter för att analysera <span className="font-medium">{urlHint}</span>
@@ -67,7 +67,7 @@ export function ChatInput({
             onKeyDown={handleKeyDown}
             placeholder="Börja med att skriva in ditt företags URL här..."
             rows={1}
-            className="max-h-[200px] w-full resize-none rounded-xl bg-white px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60"
+            className="max-h-[150px] w-full resize-none rounded-lg bg-white px-3 py-2 text-xs outline-none placeholder:text-muted-foreground/60"
           />
           <div className="flex items-center justify-between px-1 pt-1">
             <div className="flex gap-0.5">
