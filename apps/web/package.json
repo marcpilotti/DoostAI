@@ -25,6 +25,7 @@
     "ai": "^6.0.138",
     "class-variance-authority": "^0.7",
     "clsx": "^2",
+    "cmdk": "^1.1.1",
     "inngest": "^4.0.5",
     "lucide-react": "^0.400",
     "next": "^15",

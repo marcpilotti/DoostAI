@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans, Instrument_Sans, Outfit, Permanent_Marker, Space_Grotesk } from "next/font/google";
+import { CommandPalette } from "@/components/command-palette";
 import { PostHogProvider } from "@/lib/posthog/provider";
 import { QueryProvider } from "@/lib/query-provider";
 
@@ -63,7 +64,10 @@ export default function RootLayout({
         className={`${outfit.variable} ${instrumentSans.variable} ${dmSans.variable} ${marker.variable} ${spaceGrotesk.variable} font-sans antialiased`}
       >
         <QueryProvider>
-          <PostHogProvider>{children}</PostHogProvider>
+          <PostHogProvider>
+            {children}
+            <CommandPalette />
+          </PostHogProvider>
         </QueryProvider>
       </body>
     </html>
