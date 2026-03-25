@@ -2,6 +2,7 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { generateObject } from "ai";
 import { z } from "zod";
 
+import { createTrace, traceGeneration, flushTraces } from "@doost/ai";
 import type { BrandProfile, BrandScrapeResult, CompanyEnrichment } from "./types";
 
 const brandAnalysisSchema = z.object({
@@ -64,6 +65,9 @@ export async function buildBrandProfile(
     .filter(Boolean)
     .join("\n");
 
+  const trace = createTrace("build-brand-profile", { url: scrapeResult.url });
+  const start = Date.now();
+
   const { object } = await generateObject({
     model: anthropic("claude-haiku-4-5-20251001"),
     schema: brandAnalysisSchema,
@@ -76,6 +80,15 @@ CRITICAL:
 
 ${context}`,
   });
+
+  traceGeneration(trace, {
+    name: "brand-analysis",
+    model: "claude-haiku-4-5-20251001",
+    input: context.slice(0, 500),
+    output: object,
+    latencyMs: Date.now() - start,
+  });
+  await flushTraces();
 
   const primaryLogo =
     scrapeResult.logoUrls[0] ?? scrapeResult.ogImage ?? undefined;

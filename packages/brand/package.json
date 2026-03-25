@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.64",
+    "@doost/ai": "workspace:*",
     "@mendable/firecrawl-js": "^4.17.0",
     "ai": "^6.0.138",
     "dotenv": "^17.3.1",

@@ -87,8 +87,8 @@ export async function setCachedCopy(
       await redis.sadd(setKey, cacheKey);
       await redis.expire(setKey, ttlSeconds + 3600); // slightly longer TTL
     }
-  } catch {
-    // Cache write failure is non-critical
+  } catch (err) {
+    console.warn("[cache] Write failure:", err instanceof Error ? err.message : err);
   }
 }
 

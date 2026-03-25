@@ -27,7 +27,16 @@ Generated: 2026-03-25
 
 ## Auto-fixed issues (🔧)
 
-None in this audit run — report only.
+1. 🔧 **Created 17 missing directories** with placeholder files (route groups, API routes, component dirs, package sub-dirs, packages/intelligence, packages/triggers)
+2. 🔧 **Migrated 7 missing tables** from reference/schema.ts to live schema: social_presence, google_reviews, competitor_tracking, competitor_ads, behavior_signals, profile_triggers, website_audits
+3. 🔧 **Added 9 missing brand_profiles fields**: toneFormality, toneWarmth, toneUrgency, toneDescription, enrichmentStatus, performanceProfile, behaviorProfile, profileCompleteness, socialPresenceScore, marketingReadinessScore
+4. 🔧 **Added all indexes and Drizzle relations** for 7 new tables + updated org/brandProfile relations
+5. 🔧 **Fixed health endpoint** to check DB connectivity (SELECT 1) and Redis (PING)
+6. 🔧 **Added Langfuse tracing** to buildBrandProfile generateObject call
+7. 🔧 **Fixed Promise.all → Promise.allSettled** in Inngest analyze-brand function
+8. 🔧 **Added React.lazy** for 8 heavy chat components (CopyPreviewCard, CampaignConfigCard, etc.) with Suspense
+9. 🔧 **Added logging to empty catch blocks** in cache write failures
+10. 🔧 **Added @doost/ai dependency** to @doost/brand for tracing imports
 
 ---
 

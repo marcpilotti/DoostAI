@@ -17,15 +17,21 @@ export const analyzeBrand = inngest.createFunction(
   async ({ event, step }) => {
     const { url, orgId } = event.data as { url: string; orgId: string };
 
-    // Step 1: Scrape + enrich in parallel
-    const [scrapeResult, enrichment] = await step.run(
+    // Step 1: Scrape + enrich in parallel (allSettled for resilience)
+    const { scrapeResult, enrichment } = await step.run(
       "scrape-and-enrich",
       async () => {
-        const [scrape, enrich] = await Promise.all([
+        const [scrapeSettled, enrichSettled] = await Promise.allSettled([
           scrapeBrand(url),
           enrichCompany(url),
         ]);
-        return [scrape, enrich] as const;
+        if (scrapeSettled.status === "rejected") {
+          throw new Error(`Scrape failed: ${scrapeSettled.reason}`);
+        }
+        return {
+          scrapeResult: scrapeSettled.value,
+          enrichment: enrichSettled.status === "fulfilled" ? enrichSettled.value : null,
+        };
       },
     );
 

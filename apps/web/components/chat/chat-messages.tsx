@@ -1,24 +1,23 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { lazy, Suspense, useEffect, useRef } from "react";
 import type { UIMessage } from "ai";
 
-import { CampaignConfigCard } from "@/components/ads/campaign-config-card";
-import { CopyPreviewCard } from "@/components/ads/copy-preview-card";
 import {
-  CampaignDeploymentStatus,
-  CampaignDeploymentLoading,
-} from "@/components/ads/campaign-deployment-status";
-import { LinkedInConnect } from "@/components/ads/linkedin-connect";
-import { UpgradePrompt } from "@/components/ads/upgrade-prompt";
-import {
-  BrandProfileCard,
   BrandProfileLoading,
 } from "@/components/brand/brand-profile-card";
 
-import { ChannelPicker } from "./channel-picker";
-import { OnboardingCards } from "./onboarding-cards";
 import { TypingIndicator } from "./typing-indicator";
+
+// Lazy-load heavy components — only loaded when their tool results render
+const CampaignConfigCard = lazy(() => import("@/components/ads/campaign-config-card").then(m => ({ default: m.CampaignConfigCard })));
+const CopyPreviewCard = lazy(() => import("@/components/ads/copy-preview-card").then(m => ({ default: m.CopyPreviewCard })));
+const CampaignDeploymentStatus = lazy(() => import("@/components/ads/campaign-deployment-status").then(m => ({ default: m.CampaignDeploymentStatus })));
+const LinkedInConnect = lazy(() => import("@/components/ads/linkedin-connect").then(m => ({ default: m.LinkedInConnect })));
+const UpgradePrompt = lazy(() => import("@/components/ads/upgrade-prompt").then(m => ({ default: m.UpgradePrompt })));
+const BrandProfileCard = lazy(() => import("@/components/brand/brand-profile-card").then(m => ({ default: m.BrandProfileCard })));
+const ChannelPicker = lazy(() => import("./channel-picker").then(m => ({ default: m.ChannelPicker })));
+const OnboardingCards = lazy(() => import("./onboarding-cards").then(m => ({ default: m.OnboardingCards })));
 
 function getMessageText(message: UIMessage): string {
   return message.parts
@@ -181,7 +180,12 @@ function ToolInvocation({
         />
       );
     }
-    return <CampaignDeploymentLoading />;
+    return (
+      <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+        Publicerar kampanj...
+      </div>
+    );
   }
 
   if (name === "check_plan") {
@@ -293,7 +297,9 @@ export function ChatMessages({
                   ) : null,
                 )}
                 {toolParts.map((part, i) => (
-                  <ToolInvocation key={part.toolCallId ?? `tool-${i}`} part={part} onSendMessage={onSendMessage} />
+                  <Suspense key={part.toolCallId ?? `tool-${i}`} fallback={<div className="h-8" />}>
+                    <ToolInvocation part={part} onSendMessage={onSendMessage} />
+                  </Suspense>
                 ))}
               </div>
             </div>
