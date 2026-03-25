@@ -101,3 +101,5 @@ export function LinkedInAdPreview({ data }: { data: LinkedInAdData }) {
     </div>
   );
 }
+
+export default LinkedInAdPreview;

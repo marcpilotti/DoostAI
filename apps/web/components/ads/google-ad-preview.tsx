@@ -71,3 +71,5 @@ export function GoogleAdPreview({ data }: { data: GoogleAdData }) {
     </div>
   );
 }
+
+export default GoogleAdPreview;

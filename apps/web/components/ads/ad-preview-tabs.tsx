@@ -1,11 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { Pencil, Palette, RectangleHorizontal, Rocket } from "lucide-react";
 
-import { GoogleAdPreview } from "./google-ad-preview";
-import { LinkedInAdPreview } from "./linkedin-ad-preview";
-import { MetaAdPreview } from "./meta-ad-preview";
+import { AdPreviewSkeleton } from "./ad-preview-skeleton";
+
+// Lazy-load each preview as a separate chunk
+const MetaAdPreview = lazy(
+  () => import(/* webpackChunkName: "meta-preview" */ "./meta-ad-preview"),
+);
+const GoogleAdPreview = lazy(
+  () => import(/* webpackChunkName: "google-preview" */ "./google-ad-preview"),
+);
+const LinkedInAdPreview = lazy(
+  () => import(/* webpackChunkName: "linkedin-preview" */ "./linkedin-ad-preview"),
+);
+
+// Preload on hover
+const preloaders: Record<string, () => void> = {
+  meta: () => { import("./meta-ad-preview"); },
+  google: () => { import("./google-ad-preview"); },
+  linkedin: () => { import("./linkedin-ad-preview"); },
+};
 
 type AdData = {
   platform: string;
@@ -57,6 +73,7 @@ export function AdPreviewTabs({ data }: { data: AdPreviewData }) {
           <button
             key={platform}
             onClick={() => setActiveTab(platform)}
+            onMouseEnter={() => preloaders[platform]?.()}
             className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
               activeTab === platform
                 ? "bg-white text-foreground shadow-sm"
@@ -68,8 +85,9 @@ export function AdPreviewTabs({ data }: { data: AdPreviewData }) {
         ))}
       </div>
 
-      {/* Preview */}
+      {/* Preview — lazy loaded with Suspense */}
       <div className="flex justify-center">
+        <Suspense fallback={<AdPreviewSkeleton platform={activeTab} />}>
         {activeAd && activeTab === "meta" && (
           <MetaAdPreview
             data={{
@@ -106,6 +124,7 @@ export function AdPreviewTabs({ data }: { data: AdPreviewData }) {
             }}
           />
         )}
+        </Suspense>
       </div>
 
       {/* Action buttons */}
@@ -140,21 +159,7 @@ export function AdPreviewLoading() {
         ))}
       </div>
       <div className="flex justify-center">
-        <div className="w-full max-w-[400px] space-y-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-          <div className="flex items-center gap-2.5">
-            <div className="h-10 w-10 animate-pulse rounded-full bg-muted/60" />
-            <div className="space-y-1.5">
-              <div className="h-3 w-24 animate-pulse rounded bg-muted/60" />
-              <div className="h-2 w-16 animate-pulse rounded bg-muted/40" />
-            </div>
-          </div>
-          <div className="h-3 w-full animate-pulse rounded bg-muted/40" />
-          <div className="aspect-square w-full animate-pulse rounded bg-muted/30" />
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-20 animate-pulse rounded bg-muted/40" />
-            <div className="ml-auto h-8 w-24 animate-pulse rounded bg-muted/50" />
-          </div>
-        </div>
+        <AdPreviewSkeleton platform="meta" />
       </div>
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />

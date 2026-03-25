@@ -90,3 +90,5 @@ export function MetaAdPreview({ data }: { data: MetaAdData }) {
     </div>
   );
 }
+
+export default MetaAdPreview;
