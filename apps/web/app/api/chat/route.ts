@@ -17,6 +17,8 @@ import {
   checkChannelLimit,
 } from "@/lib/stripe/plan-limits";
 
+export const maxDuration = 60; // Allow up to 60s for tool calls (Firecrawl + AI)
+
 export async function POST(req: Request) {
 
   const { messages: uiMessages } = await req.json();
