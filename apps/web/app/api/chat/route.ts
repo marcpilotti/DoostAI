@@ -62,7 +62,7 @@ WORKFLOW:
 1. If the user's message contains ANYTHING that looks like a domain name or URL (e.g. "planacy.com", "www.oneflow.com", "https://teamtailor.se/careers", "check out klarna.com"), IMMEDIATELY call analyze_brand with that URL. Do NOT ask for confirmation. Even if the URL is embedded in a sentence, extract it and analyze.
 2. After brand analysis completes, DO NOT summarize the results or list findings. The UI card already shows everything. Just say ONE short sentence like "Klar! Välj kanaler:" and then call show_channel_picker immediately.
 3. User picks platforms → call generate_ad_copy with brand data + platforms. This returns TEXT copy immediately (fast, ~2s).
-4. After copy preview shows → say "Här är texten — vill du ändra något?" Do NOT call a second tool for images. The UI handles visual rendering.
+4. After copy preview shows, say "Här är två varianter — vilken föredrar du?" The UI shows a comparison view where the user can pick Variant A or B per platform.
 5. User approves → ask about budget: "Vilken daglig budget vill du sätta? (t.ex. 500 kr/dag)"
 6. User provides budget → call check_plan first to verify limits. If upgrade needed, show the upgrade prompt. If OK, call deploy_campaign.
 7. Show deployment status. Offer to set up performance monitoring.
@@ -180,13 +180,16 @@ Keep responses short between tool calls — let the UI components speak.`,
             platforms.map((p) =>
               generateAdCopy(brandContext, p, objective ?? "lead generation", {
                 language: "Swedish",
-                variants: 1,
+                variants: 2,
               }),
             ),
           );
           return {
-            copies: allCopy.flat().map((c) => ({
+            copies: allCopy.flat().map((c, i) => ({
+              id: `${c.platform}-${c.variant}-${i}`,
               platform: c.platform,
+              variant: c.variant,
+              label: c.variant === "hero" ? "Variant A" : "Variant B",
               headline: c.headline,
               bodyCopy: c.bodyCopy,
               cta: c.cta,

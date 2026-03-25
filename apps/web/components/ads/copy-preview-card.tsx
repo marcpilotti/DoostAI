@@ -2,8 +2,13 @@
 
 import { useState } from "react";
 
+import { VariantComparison } from "./variant-comparison";
+
 type CopyData = {
+  id?: string;
   platform: string;
+  variant?: string;
+  label?: string;
   headline: string;
   bodyCopy: string;
   cta: string;
@@ -45,7 +50,9 @@ export function CopyPreviewCard({ data }: { data: CopyPreviewData }) {
     data.copies.some((c) => c.platform === p),
   );
   const [activeTab, setActiveTab] = useState(available[0] ?? "meta");
-  const activeCopy = data.copies.find((c) => c.platform === activeTab);
+  const platformCopies = data.copies.filter((c) => c.platform === activeTab);
+  const activeCopy = platformCopies[0];
+  const hasVariants = platformCopies.length >= 2;
   const limits = CHAR_LIMITS[activeTab];
 
   return (
@@ -67,8 +74,25 @@ export function CopyPreviewCard({ data }: { data: CopyPreviewData }) {
         ))}
       </div>
 
-      {/* Copy content */}
-      {activeCopy && (
+      {/* Variant comparison mode */}
+      {hasVariants && (
+        <VariantComparison
+          variants={platformCopies.map((c) => ({
+            id: c.id ?? `${c.platform}-${c.variant ?? "hero"}`,
+            label: c.label ?? (c.variant === "hero" ? "Variant A" : "Variant B"),
+            headline: c.headline,
+            bodyCopy: c.bodyCopy,
+            cta: c.cta,
+            headlines: c.headlines,
+            descriptions: c.descriptions,
+          }))}
+          platform={activeTab}
+          onSelect={() => {}}
+        />
+      )}
+
+      {/* Single copy view (fallback when only 1 variant) */}
+      {!hasVariants && activeCopy && (
         <div className="rounded-xl border border-border/40 bg-white/60 p-4 backdrop-blur-sm">
           {activeTab === "google" && activeCopy.headlines ? (
             <>
