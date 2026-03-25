@@ -6,7 +6,6 @@ import { useChat } from "@ai-sdk/react";
 import { ChatHeader } from "@/components/chat/chat-header";
 import { ChatInput } from "@/components/chat/chat-input";
 import { ChatMessages } from "@/components/chat/chat-messages";
-import { ProgressBreadcrumb } from "@/components/chat/progress-breadcrumb";
 import { SuggestionChips, getSuggestionsForStep } from "@/components/chat/suggestion-chips";
 import { useFlowProgress } from "@/hooks/use-flow-progress";
 
@@ -61,10 +60,7 @@ export default function Home() {
 
   return (
     <div className="flex h-screen flex-col bg-background">
-      <div className="shrink-0">
-        <ChatHeader />
-        {!isEmpty && <ProgressBreadcrumb currentStep={flowStep} />}
-      </div>
+      <ChatHeader />
 
       {isEmpty ? (
         <div className="flex flex-1 flex-col items-center justify-center px-6 pb-8">

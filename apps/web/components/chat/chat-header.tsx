@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { LogIn } from "lucide-react";
 
 export function ChatHeader() {
   return (
@@ -11,6 +12,10 @@ export function ChatHeader() {
           Beta
         </span>
       </div>
+      <button className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground">
+        <LogIn className="h-3.5 w-3.5" />
+        Logga in
+      </button>
     </header>
   );
 }
