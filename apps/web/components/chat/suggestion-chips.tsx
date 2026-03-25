@@ -9,9 +9,7 @@ type Suggestion = {
 };
 
 const SUGGESTIONS: Record<FlowStep, Suggestion[]> = {
-  analys: [
-    { label: "Hur funkar det?", message: "Förklara hur Doost AI fungerar", icon: "💡" },
-  ],
+  analys: [],
   profil: [
     { label: "Ser bra ut!", message: "Profilen ser bra ut, generera annonser", icon: "✅" },
     { label: "Ändra färger", message: "Jag vill ändra varumärkesfärgerna", icon: "🎨" },
