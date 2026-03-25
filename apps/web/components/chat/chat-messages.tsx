@@ -232,9 +232,7 @@ export function ChatMessages({
 
           return (
             <div key={message.id} className="animate-message-in flex items-start gap-3">
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600">
-                <span className="text-[10px] font-bold text-white">D</span>
-              </div>
+              <img src="/symbol.svg" alt="" width={28} height={28} className="h-7 w-7 shrink-0" aria-hidden />
               <div className="min-w-0 max-w-[90%] space-y-2 sm:max-w-[85%]">
                 {textParts.map((part, i) =>
                   part.text.trim() ? (

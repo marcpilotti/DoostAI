@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton, useUser } from "@clerk/nextjs";
@@ -28,10 +29,8 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
     <aside className="flex h-full w-64 flex-col border-r bg-card">
       <div className="flex items-center justify-between p-6">
         <Link href="/chat" className="flex items-center gap-2" onClick={onClose}>
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600">
-            <span className="text-sm font-bold text-white">D</span>
-          </div>
-          <span className="font-heading text-lg font-bold">Doost AI</span>
+          <Image src="/symbol.svg" alt="" width={32} height={32} className="h-8 w-8" aria-hidden />
+          <Image src="/logo.svg" alt="Doost AI" width={100} height={24} className="h-6 w-auto" />
         </Link>
         {onClose && (
           <button

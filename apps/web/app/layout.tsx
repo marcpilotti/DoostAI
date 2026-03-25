@@ -20,6 +20,15 @@ const instrumentSans = Instrument_Sans({
 export const metadata: Metadata = {
   title: "Doost AI",
   description: "AI-powered marketing campaigns",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/symbol.png",
+  },
+  openGraph: {
+    title: "Doost AI",
+    description: "AI-powered marketing campaigns for Nordic businesses",
+    images: ["/logo.png"],
+  },
 };
 
 export default function RootLayout({
