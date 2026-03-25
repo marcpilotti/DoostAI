@@ -67,7 +67,7 @@ export function ChatInput({
             onKeyDown={handleKeyDown}
             placeholder="Börja med att skriva in ditt företags URL här..."
             rows={1}
-            className="max-h-[200px] w-full resize-none rounded-xl bg-white px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60"
+            className="max-h-[200px] w-full resize-none rounded-xl bg-transparent px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60"
           />
           <div className="flex items-center justify-between px-1 pt-1">
             <div className="flex gap-0.5">

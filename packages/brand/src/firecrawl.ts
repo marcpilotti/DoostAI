@@ -40,14 +40,18 @@ export async function scrapeBrand(url: string): Promise<BrandScrapeResult> {
     fonts = extractFontsFromHtml(html);
   }
 
-  // Extract logos: prefer Firecrawl branding, then images, then og:image
+  // Extract logos: prefer Firecrawl branding, then og:image (skip tiny favicons)
   const logoUrls: string[] = [];
   if (branding?.logo) logoUrls.push(branding.logo);
   if (metadata.favicon) {
-    try {
-      logoUrls.push(new URL(metadata.favicon, normalizedUrl).href);
-    } catch {
-      // skip invalid
+    const fav = metadata.favicon.toLowerCase();
+    // Only include favicon if it's not a tiny .ico file
+    if (!fav.endsWith(".ico") && !fav.includes("/favicon")) {
+      try {
+        logoUrls.push(new URL(metadata.favicon, normalizedUrl).href);
+      } catch {
+        // skip invalid
+      }
     }
   }
   if (metadata.ogImage) logoUrls.push(metadata.ogImage);

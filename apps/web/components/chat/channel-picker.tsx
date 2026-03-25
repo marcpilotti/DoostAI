@@ -7,6 +7,7 @@ type Channel = {
   id: string;
   label: string;
   description: string;
+  supported?: boolean;
 };
 
 type ChannelPickerData = {
@@ -95,7 +96,16 @@ export function ChannelPicker({
   data: ChannelPickerData;
   onSelect?: (channels: string[]) => void;
 }) {
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  function toggle(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   return (
     <div className="animate-message-in mt-3 overflow-hidden rounded-2xl border border-border/40 bg-white/70 backdrop-blur-sm">
@@ -104,27 +114,36 @@ export function ChannelPicker({
           <Megaphone className="h-4 w-4 text-indigo-500" />
         </div>
         <div>
-          <div className="text-sm font-semibold">Välj annonskanal</div>
+          <div className="text-sm font-semibold">Välj annonskanaler</div>
           <div className="text-[11px] text-muted-foreground">
-            Välj en plattform att skapa annons för
+            Välj en eller flera plattformar
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3">
         {data.channels.map((ch) => {
-          const isSelected = selected === ch.id;
+          const isSelected = selected.has(ch.id);
           const config = PLATFORM_CONFIG[ch.id];
+          const isSupported = ch.supported !== false;
           return (
             <button
               key={ch.id}
-              onClick={() => setSelected(ch.id)}
+              disabled={!isSupported}
+              onClick={() => isSupported && toggle(ch.id)}
               className={`group relative flex flex-col items-center gap-3 rounded-xl border-2 px-3 py-4 text-center transition-all duration-200 ${
-                isSelected
-                  ? `bg-gradient-to-b ${config?.bg} ${config?.borderActive} shadow-md ring-2`
-                  : "border-border/50 bg-white hover:border-border hover:shadow-sm"
+                !isSupported
+                  ? "cursor-not-allowed border-border/30 bg-muted/10 opacity-50"
+                  : isSelected
+                    ? `bg-gradient-to-b ${config?.bg} ${config?.borderActive} shadow-md ring-2`
+                    : "border-border/50 bg-white hover:border-border hover:shadow-sm"
               }`}
             >
+              {!isSupported && (
+                <span className="absolute -top-2 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full bg-muted px-2 py-0.5 text-[8px] font-semibold text-muted-foreground">
+                  Kommer snart
+                </span>
+              )}
               {isSelected && (
                 <div
                   className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full text-white shadow-sm"
@@ -167,13 +186,13 @@ export function ChannelPicker({
         })}
       </div>
 
-      {selected && (
+      {selected.size > 0 && (
         <div className="border-t border-border/30 px-5 py-3">
           <button
-            onClick={() => onSelect?.([selected])}
+            onClick={() => onSelect?.([...selected])}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"
           >
-            Skapa annons
+            Skapa annons{selected.size > 1 ? "er" : ""}
             <ArrowRight className="h-4 w-4" />
           </button>
         </div>

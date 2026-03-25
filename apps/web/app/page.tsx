@@ -67,7 +67,10 @@ export default function Home() {
           <h1 className="text-center font-sketch text-[44px] leading-tight text-foreground/80 sm:text-[60px]">
             Skippa byrån.
           </h1>
-          <div className="mt-8 w-full max-w-2xl">
+          <p className="mx-auto mt-3 max-w-sm text-center text-sm text-muted-foreground/70">
+            Klistra in din företags-URL så bygger vi din reklamkampanj på sekunder.
+          </p>
+          <div className="mt-6 w-full max-w-2xl">
             <ChatInput
               input={input}
               onInputChange={setInput}

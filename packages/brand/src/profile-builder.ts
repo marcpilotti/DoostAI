@@ -42,11 +42,22 @@ export async function buildBrandProfile(
   scrapeResult: BrandScrapeResult,
   enrichment?: CompanyEnrichment,
 ): Promise<BrandProfile> {
-  // Put hard facts first, website content last — AI prioritizes early context
+  // A.4: Filter generic Roaring industries that mislead the AI
+  const GENERIC_INDUSTRIES = new Set([
+    "Dataprogrammering",
+    "Annan IT-verksamhet",
+    "Databehandling",
+    "Konsultverksamhet avseende informationsteknik",
+    "Utgivning av programvara",
+  ]);
+  const enrichedIndustry = enrichment?.industry && !GENERIC_INDUSTRIES.has(enrichment.industry)
+    ? enrichment.industry
+    : undefined;
+
   const context = [
     `== HARD FACTS (use these directly) ==`,
     enrichment?.name && `Company name: ${enrichment.name}`,
-    enrichment?.industry && `Industry (from registry): ${enrichment.industry}`,
+    enrichedIndustry && `Industry (from registry): ${enrichedIndustry}`,
     enrichment?.location && `Location: ${enrichment.location}`,
     scrapeResult.colors.length > 0 &&
       `Colors found in CSS (USE THESE EXACT HEX VALUES): ${scrapeResult.colors.join(", ")}`,

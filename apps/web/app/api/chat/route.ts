@@ -288,12 +288,12 @@ ABSOLUTE RULES:
         execute: async () => {
           return {
             channels: [
-              { id: "meta", label: "Meta", description: "Facebook & Instagram" },
-              { id: "google", label: "Google", description: "Sök & Display" },
-              { id: "linkedin", label: "LinkedIn", description: "B2B-fokus" },
-              { id: "tiktok", label: "TikTok", description: "Kortvideo & Gen Z" },
-              { id: "snapchat", label: "Snapchat", description: "AR & Story Ads" },
-              { id: "pinterest", label: "Pinterest", description: "Shopping & Inspiration" },
+              { id: "meta", label: "Meta", description: "Facebook & Instagram", supported: true },
+              { id: "google", label: "Google", description: "Sök & Display", supported: true },
+              { id: "linkedin", label: "LinkedIn", description: "B2B-fokus", supported: true },
+              { id: "tiktok", label: "TikTok", description: "Kortvideo & Gen Z", supported: false },
+              { id: "snapchat", label: "Snapchat", description: "AR & Story Ads", supported: false },
+              { id: "pinterest", label: "Pinterest", description: "Shopping & Inspiration", supported: false },
             ],
           };
         },

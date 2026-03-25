@@ -257,15 +257,15 @@ export function ChatMessages({
   }, [messages, isLoading]);
 
   return (
-    <div className="h-full overflow-y-auto px-4 py-6 sm:px-6">
-      <div className="mx-auto max-w-2xl space-y-6">
+    <div className="h-full overflow-y-auto px-4 pt-8 pb-24 sm:px-6">
+      <div className="mx-auto max-w-2xl space-y-5">
         {messages.map((message) => {
           if (message.role === "user") {
             const text = getMessageText(message);
             if (!text) return null;
             return (
               <div key={message.id} className="animate-message-in flex items-start justify-end gap-2">
-                <div className="max-w-[85%] rounded-2xl rounded-br-md border border-indigo-100 bg-indigo-50/80 px-4 py-2.5 text-sm leading-relaxed text-foreground sm:max-w-[80%]">
+                <div className="max-w-[72%] rounded-2xl rounded-br-md border border-indigo-100 bg-indigo-50/80 px-4 py-2.5 text-sm leading-relaxed text-foreground sm:max-w-[60%]">
                   {text}
                 </div>
                 <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[10px] font-semibold text-indigo-600">
@@ -286,9 +286,9 @@ export function ChatMessages({
           if (!hasContent) return null;
 
           return (
-            <div key={message.id} className="animate-message-in flex items-start gap-3">
-              <img src="/symbol.svg" alt="" width={28} height={28} className="h-7 w-7 shrink-0" aria-hidden />
-              <div className="min-w-0 max-w-[90%] space-y-2 sm:max-w-[85%]">
+            <div key={message.id} className="animate-message-in flex items-start gap-2.5">
+              <img src="/symbol.svg" alt="" width={28} height={28} className="mt-0.5 h-7 w-7 shrink-0" aria-hidden />
+              <div className="min-w-0 max-w-full space-y-1.5">
                 {textParts.map((part, i) =>
                   part.text.trim() ? (
                     <div

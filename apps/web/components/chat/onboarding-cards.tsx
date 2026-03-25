@@ -200,7 +200,21 @@ function FontStep({
 }: {
   onComplete: (skipped: boolean) => void;
 }) {
-  const [uploaded, setUploaded] = useState(false);
+  const [fontName, setFontName] = useState<string | null>(null);
+
+  async function handleFontUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const buffer = await file.arrayBuffer();
+      const font = new FontFace("CustomBrandFont", buffer);
+      await font.load();
+      document.fonts.add(font);
+      setFontName(file.name.replace(/\.(ttf|otf|woff2?)$/i, ""));
+    } catch {
+      setFontName(file.name.replace(/\.(ttf|otf|woff2?)$/i, ""));
+    }
+  }
 
   return (
     <StepCard>
@@ -217,7 +231,7 @@ function FontStep({
           </div>
         </div>
 
-        {!uploaded ? (
+        {!fontName ? (
           <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed border-border/60 bg-muted/20 px-6 py-6 transition-colors hover:border-purple-300 hover:bg-purple-50/30">
             <Type className="h-6 w-6 text-muted-foreground/40" />
             <span className="text-sm font-medium text-muted-foreground">
@@ -227,18 +241,21 @@ function FontStep({
               type="file"
               accept=".ttf,.otf,.woff,.woff2"
               className="hidden"
-              onChange={(e) => {
-                if (e.target.files?.[0]) {
-                  setUploaded(true);
-                  setTimeout(() => onComplete(false), 500);
-                }
-              }}
+              onChange={handleFontUpload}
             />
           </label>
         ) : (
-          <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3">
-            <Check className="h-4 w-4 text-emerald-500" />
-            <span className="text-sm text-emerald-700">Font uppladdad!</span>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 rounded-xl bg-indigo-50 px-4 py-3">
+              <Check className="h-4 w-4 text-indigo-500" />
+              <span className="text-sm text-indigo-700">{fontName}</span>
+            </div>
+            <div
+              className="rounded-xl border border-border/30 bg-white px-4 py-3 text-center text-lg"
+              style={{ fontFamily: "CustomBrandFont, sans-serif" }}
+            >
+              Aa Bb Cc Dd 123 — Förhandsvisning
+            </div>
           </div>
         )}
       </div>
@@ -246,10 +263,10 @@ function FontStep({
       <div className="flex items-center justify-between border-t border-border/30 px-5 py-3">
         <span className="text-[10px] text-muted-foreground/50">Steg 2 av 3</span>
         <button
-          onClick={() => onComplete(true)}
+          onClick={() => onComplete(fontName ? false : true)}
           className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"
         >
-          {uploaded ? "Fortsätt" : "Hoppa över"}
+          {fontName ? "Fortsätt" : "Hoppa över"}
           <ArrowRight className="h-3.5 w-3.5" />
         </button>
       </div>
