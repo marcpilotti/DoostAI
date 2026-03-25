@@ -6,14 +6,6 @@ import satori from "satori";
 
 import type { AdContent, BrandInput, Template } from "./types";
 
-export function renderTemplate(
-  template: Template,
-  brand: BrandInput,
-  content: AdContent,
-) {
-  return template.render(brand, content);
-}
-
 // Load bundled Inter TTF fonts
 const fontsDir = join(__dirname, "..", "fonts");
 

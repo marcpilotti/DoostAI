@@ -60,8 +60,8 @@ if [ -f "$SCRIPT_DIR/CLAUDE.md" ]; then
     echo "  ✅ CLAUDE.md copied"
 fi
 
-if [ -f "$SCRIPT_DIR/env.example" ]; then
-    cp "$SCRIPT_DIR/env.example" ./.env.example
+if [ -f "$SCRIPT_DIR/.env.example" ]; then
+    cp "$SCRIPT_DIR/.env.example" ./.env.example
     echo "  ✅ .env.example copied"
 fi
 
