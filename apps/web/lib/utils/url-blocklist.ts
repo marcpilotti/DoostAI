@@ -11,9 +11,17 @@ const URL_REGEX =
 export function extractUrl(text: string): string | null {
   const match = text.match(URL_REGEX);
   if (!match) return null;
-  const domain = match[0].replace(/^https?:\/\//, "").replace(/^www\./, "");
+  const raw = match[0];
+  const domain = raw.replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0]!.toLowerCase();
   if (BLOCKED_DOMAINS.some((d) => domain.endsWith(d))) return null;
-  return match[0];
+  // Always return with https://
+  return raw.startsWith("http") ? raw : `https://${raw}`;
+}
+
+export function extractDomain(text: string): string | null {
+  const url = extractUrl(text);
+  if (!url) return null;
+  return url.replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0]!.toLowerCase();
 }
 
 export function isBlockedDomain(domain: string): boolean {

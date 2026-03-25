@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowUp, Image, Mic, Paperclip } from "lucide-react";
+
+import { extractDomain } from "@/lib/utils/url-blocklist";
 
 export function ChatInput({
   input,
@@ -16,12 +18,23 @@ export function ChatInput({
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const [urlHint, setUrlHint] = useState<string | null>(null);
 
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.style.height = "auto";
       textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`;
+    }
+  }, [input]);
+
+  // Detect URL in input and show hint
+  useEffect(() => {
+    const domain = extractDomain(input);
+    if (domain) {
+      setUrlHint(domain);
+    } else {
+      setUrlHint(null);
     }
   }, [input]);
 
@@ -42,6 +55,11 @@ export function ChatInput({
         className="rainbow-glow mx-auto max-w-2xl"
       >
         <div className="rounded-2xl border border-border/40 bg-white/60 p-2 shadow-sm backdrop-blur-xl">
+          {urlHint && (
+            <div className="mb-1 px-3 text-[11px] text-indigo-500">
+              Tryck Enter för att analysera <span className="font-medium">{urlHint}</span>
+            </div>
+          )}
           <textarea
             ref={textareaRef}
             value={input}
