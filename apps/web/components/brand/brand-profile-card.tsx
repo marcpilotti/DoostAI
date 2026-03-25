@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Building2,
   ExternalLink,
@@ -8,6 +9,8 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
+
+import { ColorEditor } from "./color-editor";
 
 type BrandColors = {
   primary: string;
@@ -54,23 +57,57 @@ function DataField({
   );
 }
 
-function ColorSwatch({ color, label }: { color: string; label: string }) {
+function ColorSwatch({
+  color,
+  label,
+  role,
+  originalColor,
+  onColorChange,
+}: {
+  color: string;
+  label: string;
+  role: string;
+  originalColor: string;
+  onColorChange?: (newColor: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
   return (
-    <div className="flex items-center gap-2">
-      <div
-        className="h-5 w-5 rounded-full border border-black/5 shadow-sm"
-        style={{ backgroundColor: color }}
-      />
-      <div>
-        <div className="text-[10px] text-muted-foreground/70">{label}</div>
-        <div className="font-mono text-xs text-foreground/80">{color}</div>
-      </div>
+    <div className="relative">
+      <button
+        onClick={() => onColorChange && setOpen(!open)}
+        className="flex items-center gap-2 rounded-lg px-1 py-0.5 transition-colors hover:bg-muted/40"
+      >
+        <div
+          className="h-5 w-5 rounded-full border border-black/5 shadow-sm"
+          style={{ backgroundColor: color }}
+        />
+        <div className="text-left">
+          <div className="text-[10px] text-muted-foreground/70">{label}</div>
+          <div className="font-mono text-xs text-foreground/80">{color}</div>
+        </div>
+      </button>
+      {open && onColorChange && (
+        <ColorEditor
+          role={role}
+          currentColor={color}
+          originalColor={originalColor}
+          onColorChange={onColorChange}
+          onClose={() => setOpen(false)}
+        />
+      )}
     </div>
   );
 }
 
 export function BrandProfileCard({ data }: { data: BrandProfileData }) {
-  const colors = data.colors;
+  const [colors, setColors] = useState(data.colors);
+  const originalColors = data.colors;
+
+  function updateColor(role: keyof typeof colors, newColor: string) {
+    setColors((prev) => ({ ...prev, [role]: newColor }));
+    // TODO: persist to DB via server action
+  }
 
   return (
     <div className="brand-card-glow relative mt-1 overflow-hidden rounded-2xl border border-white/30 bg-white/50 p-5 shadow-sm backdrop-blur-xl">
@@ -134,9 +171,9 @@ export function BrandProfileCard({ data }: { data: BrandProfileData }) {
           Varumärkesfärger
         </div>
         <div className="grid grid-cols-3 gap-3">
-          <ColorSwatch color={colors.primary} label="Primär" />
-          <ColorSwatch color={colors.secondary} label="Sekundär" />
-          <ColorSwatch color={colors.accent} label="Accent" />
+          <ColorSwatch color={colors.primary} label="Primär" role="primary" originalColor={originalColors.primary} onColorChange={(c) => updateColor("primary", c)} />
+          <ColorSwatch color={colors.secondary} label="Sekundär" role="secondary" originalColor={originalColors.secondary} onColorChange={(c) => updateColor("secondary", c)} />
+          <ColorSwatch color={colors.accent} label="Accent" role="accent" originalColor={originalColors.accent} onColorChange={(c) => updateColor("accent", c)} />
         </div>
       </div>
 
