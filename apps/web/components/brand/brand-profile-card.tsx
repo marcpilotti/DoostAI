@@ -272,6 +272,7 @@ export function BrandProfileCard({
                   className={`h-14 w-14 rounded-xl border-2 bg-white object-contain p-1.5 shadow-sm transition-all ${
                     approved.logo === "approved" ? "border-emerald-300" : "border-border/30"
                   }`}
+                  onError={() => setLogoUrl(null)}
                 />
                 <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/30 opacity-0 transition-opacity group-hover:opacity-100">
                   <Pencil className="h-3.5 w-3.5 text-white" />

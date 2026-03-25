@@ -89,7 +89,7 @@ RULES (follow exactly):
 1. COLORS: You MUST use the exact hex colors from "Colors found in CSS". Pick the most prominent non-white/non-black color as primary. If no CSS colors, use the most visible color from the page content.
 2. FONTS: You MUST use the exact font names from "Fonts found in CSS". If none found, return "Inter" as default.
 3. INDUSTRY: Determine from website content. Use specific Swedish terms: "Fintech", "E-handel", "SaaS", "Rekrytering", "Fastigheter", "Hälsa & Träning", "Juridik", "Marknadsföring", "Logistik", "Utbildning", "Restaurang", "Bygg", "Konsult", etc. NEVER use "Dataprogrammering" or generic "IT".
-4. NAME: Return the company name WITHOUT suffix (no AB, Inc, Ltd, GmbH).
+4. NAME: Return the OFFICIAL company name as it appears on the website, with correct spacing and capitalization. Example: "Lyvia Group" not "Lyviagroup", "HubSpot" not "Hubspot". Remove legal suffixes (AB, Inc, Ltd, GmbH) but keep the brand spelling exactly as the company uses it. Look at the page title, logo text, and headings for the correct form.
 5. DESCRIPTION: One sentence in Swedish describing what the company does.
 
 ${context}`,
@@ -139,9 +139,9 @@ ${context}`,
 
   return {
     url: scrapeResult.url,
-    name: enrichment?.name ?? object.name,
+    name: object.name, // AI reads actual website branding — more accurate than registry
     description: object.description,
-    industry: enrichment?.industry ?? object.industry,
+    industry: enrichedIndustry ?? object.industry,
     industryCodes: enrichment?.industryCodes,
     employeeCount: enrichment?.employeeCount,
     revenue: enrichment?.revenue,
