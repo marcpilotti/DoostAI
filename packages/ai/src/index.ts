@@ -11,3 +11,12 @@ export type {
   Platform,
 } from "./types";
 export { CHAR_LIMITS } from "./types";
+export {
+  classifyIntent,
+  estimateCost,
+  estimateTokens,
+  routeModel,
+  traceRouting,
+} from "./router";
+export type { ModelChoice, ModelIntent } from "./router";
+export { getCostSummary, trackCost } from "./cost";

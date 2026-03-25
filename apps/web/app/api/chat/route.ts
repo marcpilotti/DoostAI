@@ -1,4 +1,3 @@
-import { anthropic } from "@ai-sdk/anthropic";
 import { convertToModelMessages, stepCountIs, streamText, tool } from "ai";
 import { z } from "zod";
 
@@ -7,7 +6,14 @@ import {
   enrichCompany,
   scrapeBrand,
 } from "@doost/brand";
-import { generateAdCopy } from "@doost/ai";
+import {
+  generateAdCopy,
+  classifyIntent,
+  estimateTokens,
+  routeModel,
+  trackCost,
+  traceRouting,
+} from "@doost/ai";
 import type { BrandContext, Platform } from "@doost/ai";
 import { linkedinGetOAuthUrl } from "@doost/platforms";
 import { adAccounts, campaigns, organizations, db, and, eq } from "@doost/db";
@@ -24,8 +30,29 @@ export async function POST(req: Request) {
   const { messages: uiMessages } = await req.json();
   const messages = await convertToModelMessages(uiMessages);
 
+  // Extract last user message for intent classification
+  const lastUserMsg = [...uiMessages]
+    .reverse()
+    .find((m: { role: string }) => m.role === "user");
+  const lastText =
+    lastUserMsg?.parts
+      ?.filter((p: { type: string }) => p.type === "text")
+      .map((p: { text: string }) => p.text)
+      .join("") ?? "";
+
+  // Route to cheapest sufficient model
+  const intent = classifyIntent(lastText, true);
+  const routeStart = Date.now();
+  const { model, modelId, reason } = routeModel({
+    messageTokens: estimateTokens(lastText),
+    intent,
+    requiresTools: true, // chat route always has tools
+    isRegeneration: intent === "copy_variant",
+  });
+  traceRouting({ provider: "anthropic", modelId, reason, model }, Date.now() - routeStart);
+
   const result = streamText({
-    model: anthropic("claude-sonnet-4-20250514"),
+    model,
     stopWhen: stepCountIs(5),
     system: `You are Doost AI, a friendly and knowledgeable marketing assistant. You help companies create and manage ad campaigns across Meta, Google, and LinkedIn.
 
