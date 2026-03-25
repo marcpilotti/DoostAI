@@ -5,14 +5,18 @@ import {
   ArrowRight,
   Building2,
   Check,
+  ChevronDown,
   ExternalLink,
   FileText,
+  Globe,
+  ImageIcon,
   MapPin,
   Palette,
   Pencil,
+  Sparkles,
   Type,
   Upload,
-  ImageIcon,
+  X,
 } from "lucide-react";
 
 import { ColorEditor } from "./color-editor";
@@ -47,48 +51,119 @@ function stripSuffix(name: string): string {
   return name.replace(/\s+(AB|HB|KB|Inc\.?|Ltd\.?|LLC|GmbH|Corp\.?|Co\.?)$/i, "").trim();
 }
 
-function ColorDot({
+// ── Approvable Field ────────────────────────────────────────────
+// Each field can be: pending (just scraped) → approved (green check) → editing
+type FieldState = "pending" | "approved" | "editing";
+
+function ApprovableField({
+  icon: Icon,
+  label,
+  value,
+  onApprove,
+  onEdit,
+  state,
+  children,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: string;
+  onApprove: () => void;
+  onEdit: () => void;
+  state: FieldState;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div
+      className={`group relative rounded-xl border px-3 py-2.5 transition-all duration-300 ${
+        state === "approved"
+          ? "border-emerald-200 bg-emerald-50/30"
+          : state === "editing"
+            ? "border-indigo-300 bg-indigo-50/20 ring-1 ring-indigo-200"
+            : "border-border/40 bg-white/50 hover:border-border/60"
+      }`}
+    >
+      <div className="flex items-center gap-2">
+        <Icon className={`h-3.5 w-3.5 shrink-0 ${state === "approved" ? "text-emerald-500" : "text-muted-foreground/50"}`} />
+        <div className="min-w-0 flex-1">
+          <div className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/50">{label}</div>
+          <div className="truncate text-sm font-medium text-foreground">{value}</div>
+        </div>
+        {state === "approved" ? (
+          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 shadow-sm">
+            <Check className="h-3 w-3 text-white" strokeWidth={3} />
+          </div>
+        ) : state === "editing" ? (
+          <button onClick={onApprove} className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500 text-white shadow-sm hover:bg-indigo-600">
+            <Check className="h-3 w-3" strokeWidth={3} />
+          </button>
+        ) : (
+          <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+            <button onClick={onApprove} className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 transition-colors hover:bg-emerald-100" title="Godkänn">
+              <Check className="h-3 w-3" strokeWidth={2.5} />
+            </button>
+            <button onClick={onEdit} className="flex h-6 w-6 items-center justify-center rounded-lg bg-muted/40 text-muted-foreground transition-colors hover:bg-muted/60" title="Ändra">
+              <Pencil className="h-3 w-3" />
+            </button>
+          </div>
+        )}
+      </div>
+      {state === "editing" && children}
+    </div>
+  );
+}
+
+// ── Color Swatch with approve ───────────────────────────────────
+function ColorSwatch({
   color,
   label,
+  approved,
+  onApprove,
   role,
   originalColor,
   onColorChange,
 }: {
   color: string;
   label: string;
+  approved: boolean;
+  onApprove: () => void;
   role: string;
   originalColor: string;
-  onColorChange?: (c: string) => void;
+  onColorChange: (c: string) => void;
 }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="relative">
       <button
-        onClick={() => onColorChange && setOpen(!open)}
-        className="group flex flex-col items-center gap-1.5"
+        onClick={() => {
+          if (approved) setOpen(!open);
+          else onApprove();
+        }}
+        className="group flex flex-col items-center gap-1"
       >
-        <div
-          className="h-9 w-9 rounded-full border-2 border-white shadow-sm transition-transform group-hover:scale-110"
-          style={{ backgroundColor: color }}
-        />
-        <span className="text-[10px] font-medium text-muted-foreground">{label}</span>
+        <div className="relative">
+          <div
+            className={`h-10 w-10 rounded-full border-2 shadow-sm transition-all ${
+              approved ? "border-emerald-400 ring-2 ring-emerald-200" : "border-white hover:scale-105"
+            }`}
+            style={{ backgroundColor: color }}
+          />
+          {approved && (
+            <div className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
+              <Check className="h-2.5 w-2.5" strokeWidth={3} />
+            </div>
+          )}
+        </div>
+        <span className="font-mono text-[9px] text-muted-foreground">{color}</span>
+        <span className="text-[9px] text-muted-foreground/50">{label}</span>
       </button>
-      {open && onColorChange && (
+      {open && (
         <ColorEditor role={role} currentColor={color} originalColor={originalColor} onColorChange={onColorChange} onClose={() => setOpen(false)} />
       )}
     </div>
   );
 }
 
-function getCompletionScore(data: BrandProfileData, logoUrl: string | null): number {
-  let score = 0;
-  if (logoUrl) score += 25;
-  if (data.colors?.primary && data.colors.primary !== "#2f3640" && data.colors.primary !== "#333333") score += 25;
-  if (data.description && data.description.length > 50) score += 25;
-  if (data.valuePropositions && data.valuePropositions.length >= 3) score += 25;
-  return score;
-}
-
+// ── Main Component ──────────────────────────────────────────────
 export function BrandProfileCard({
   data,
   onComplete,
@@ -99,8 +174,16 @@ export function BrandProfileCard({
   const [colors, setColors] = useState(data.colors);
   const [logoUrl, setLogoUrl] = useState<string | null>(data.logos?.primary ?? data.logos?.icon ?? null);
   const [fontFile, setFontFile] = useState<string | null>(null);
-  const [pdfFile, setPdfFile] = useState<string | null>(null);
   const originalColors = data.colors;
+
+  // Field approval states
+  const [approved, setApproved] = useState<Record<string, FieldState>>({
+    name: "pending",
+    industry: "pending",
+    location: "pending",
+    colors: "pending",
+    logo: logoUrl ? "pending" : "pending",
+  });
 
   useEffect(() => {
     function handleLogo(e: Event) {
@@ -110,6 +193,14 @@ export function BrandProfileCard({
     window.addEventListener("doost:logo-selected", handleLogo);
     return () => window.removeEventListener("doost:logo-selected", handleLogo);
   }, []);
+
+  function approve(field: string) {
+    setApproved((prev) => ({ ...prev, [field]: "approved" }));
+  }
+
+  function startEdit(field: string) {
+    setApproved((prev) => ({ ...prev, [field]: "editing" }));
+  }
 
   function updateColor(role: keyof typeof colors, c: string) {
     setColors((prev) => ({ ...prev, [role]: c }));
@@ -121,127 +212,232 @@ export function BrandProfileCard({
       const u = URL.createObjectURL(f);
       setLogoUrl(u);
       window.dispatchEvent(new CustomEvent("doost:logo-selected", { detail: { url: u } }));
+      approve("logo");
     }
   }
 
   const name = stripSuffix(data.name);
   const domain = data.url.replace(/^https?:\/\//, "").replace(/\/$/, "");
-  const completion = getCompletionScore(data, logoUrl);
+  const approvedCount = Object.values(approved).filter((s) => s === "approved").length;
+  const totalFields = Object.keys(approved).length;
+  const allApproved = approvedCount === totalFields;
 
   return (
-    <div className="animate-message-in mt-3 overflow-hidden rounded-2xl border border-border/40 bg-white/70 backdrop-blur-sm">
-      {/* Header — B.1: gradient icon */}
-      <div className="flex items-center gap-2 border-b border-border/30 px-5 py-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500">
-          <Palette className="h-4 w-4 text-white" />
+    <div className="animate-card-in mt-3 overflow-hidden rounded-2xl border border-border/30 bg-white/80 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] backdrop-blur-xl">
+      {/* Header */}
+      <div className="flex items-center gap-3 px-5 py-3">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-sm">
+          <Sparkles className="h-4 w-4 text-white" />
         </div>
         <div className="flex-1">
-          <div className="text-sm font-semibold">Varumärkesprofil</div>
-          <div className="text-[11px] text-muted-foreground">
-            Analyserad från {domain}
+          <div className="text-sm font-semibold tracking-tight">Varumärkesprofil</div>
+          <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+            <Globe className="h-2.5 w-2.5" />
+            {domain}
+            {data._analysisMs && <span className="text-muted-foreground/30"> · {(data._analysisMs / 1000).toFixed(1)}s</span>}
           </div>
         </div>
-        {/* A.9: Completion bar */}
+        {/* Approval progress */}
         <div className="flex items-center gap-2">
-          <div className="h-1.5 w-16 overflow-hidden rounded-full bg-muted/40">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-400 transition-all duration-500"
-              style={{ width: `${completion}%` }}
-            />
+          <div className="flex gap-0.5">
+            {Object.entries(approved).map(([key, state]) => (
+              <div
+                key={key}
+                className={`h-1.5 w-3 rounded-full transition-all duration-500 ${
+                  state === "approved" ? "bg-emerald-400" : "bg-muted/40"
+                }`}
+              />
+            ))}
           </div>
-          <span className="text-[10px] font-medium text-muted-foreground">{completion}%</span>
+          <span className="text-[10px] font-medium text-muted-foreground">
+            {approvedCount}/{totalFields}
+          </span>
         </div>
       </div>
 
-      {/* Company info — B.4: more breathing room */}
-      <div className="px-5 pt-4">
-        <div className="flex items-center gap-3">
-          {/* Logo — B.10: stronger empty state */}
+      {/* Divider with gradient accent */}
+      <div className="h-px bg-gradient-to-r from-transparent via-border/40 to-transparent" />
+
+      {/* Logo + Name section */}
+      <div className="px-5 pt-4 pb-3">
+        <div className="flex items-center gap-4">
           <label className="group relative shrink-0 cursor-pointer">
             {logoUrl ? (
               <>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={logoUrl} alt={name} className="h-12 w-12 rounded-xl border border-border/30 bg-white object-contain p-1.5" />
+                <img
+                  src={logoUrl}
+                  alt={name}
+                  className={`h-14 w-14 rounded-xl border-2 bg-white object-contain p-1.5 shadow-sm transition-all ${
+                    approved.logo === "approved" ? "border-emerald-300" : "border-border/30"
+                  }`}
+                />
                 <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/30 opacity-0 transition-opacity group-hover:opacity-100">
-                  <Pencil className="h-3 w-3 text-white" />
+                  <Pencil className="h-3.5 w-3.5 text-white" />
                 </div>
+                {approved.logo === "approved" && (
+                  <div className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
+                    <Check className="h-3 w-3" strokeWidth={3} />
+                  </div>
+                )}
               </>
             ) : (
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl border-2 border-dashed border-border/50 bg-muted/20 transition-colors group-hover:border-indigo-300 group-hover:bg-indigo-50/30">
-                <ImageIcon className="h-5 w-5 text-muted-foreground/50" />
+              <div className="flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-xl border-2 border-dashed border-border/50 bg-muted/10 transition-all group-hover:border-indigo-300 group-hover:bg-indigo-50/20">
+                <ImageIcon className="h-5 w-5 text-muted-foreground/30" />
+                <span className="text-[7px] text-muted-foreground/40">Logga</span>
               </div>
             )}
             <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
           </label>
 
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 space-y-1">
+            {/* Name field — approvable */}
             <div className="flex items-center gap-2">
-              <h3 className="truncate text-base font-semibold">{name}</h3>
-              <a href={data.url.startsWith("http") ? data.url : `https://${data.url}`} target="_blank" rel="noopener noreferrer" className="shrink-0 text-muted-foreground/40 hover:text-muted-foreground">
+              <h3 className="truncate text-lg font-semibold tracking-tight">{name}</h3>
+              {approved.name === "approved" ? (
+                <div className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 shadow-sm">
+                  <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />
+                </div>
+              ) : (
+                <button
+                  onClick={() => approve("name")}
+                  className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-50 text-emerald-500 opacity-0 transition-all hover:bg-emerald-100 group-hover:opacity-100"
+                >
+                  <Check className="h-3 w-3" strokeWidth={2.5} />
+                </button>
+              )}
+              <a href={data.url.startsWith("http") ? data.url : `https://${data.url}`} target="_blank" rel="noopener noreferrer" className="ml-auto shrink-0 text-muted-foreground/30 transition-colors hover:text-muted-foreground">
                 <ExternalLink className="h-3 w-3" />
               </a>
             </div>
-            {/* B.4: mt-1.5 + h-3 icons */}
-            <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
-              {data.industry && (
-                <span className="flex items-center gap-1">
-                  <Building2 className="h-3 w-3" />
-                  {data.industry}
-                </span>
-              )}
-              {data.location && (
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-3 w-3" />
-                  {data.location}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Brand colors — B.3: container, B.5: stronger label, B.6: bigger dots, B.9: padding */}
-        <div className="mt-4 rounded-xl border border-border/30 bg-muted/10 px-4 py-3">
-          <div className="mb-3 flex items-center gap-1.5 text-xs font-semibold text-foreground/70">
-            <Palette className="h-3.5 w-3.5" />
-            Varumärkesfärger
-          </div>
-          <div className="flex items-end gap-5">
-            <ColorDot color={colors.primary} label="Primär" role="primary" originalColor={originalColors.primary} onColorChange={(c) => updateColor("primary", c)} />
-            <ColorDot color={colors.secondary} label="Sekundär" role="secondary" originalColor={originalColors.secondary} onColorChange={(c) => updateColor("secondary", c)} />
-            <ColorDot color={colors.accent} label="Accent" role="accent" originalColor={originalColors.accent} onColorChange={(c) => updateColor("accent", c)} />
-            <span className="mb-2 ml-auto text-[10px] text-muted-foreground/50">Klicka för att ändra</span>
           </div>
         </div>
       </div>
 
-      {/* Upload actions — B.2: unified hover, B.7: CTA button, B.8: py-3 */}
-      <div className="flex items-center justify-between border-t border-border/30 px-5 py-3 mt-4">
-        <div className="flex items-center gap-2">
-          <label className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-border/40 bg-white px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground transition-all hover:border-indigo-200 hover:bg-muted/40 hover:text-foreground">
-            <Upload className="h-3 w-3" />
-            {logoUrl ? "Byt logga" : "Logga"}
-            <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-          </label>
-          <label className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-border/40 bg-white px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground transition-all hover:border-indigo-200 hover:bg-muted/40 hover:text-foreground">
-            <Type className="h-3 w-3" />
-            {fontFile ? <><Check className="h-2.5 w-2.5 text-emerald-500" />{fontFile}</> : "Font"}
-            <input type="file" accept=".ttf,.otf,.woff,.woff2" className="hidden" onChange={(e) => { if (e.target.files?.[0]) setFontFile(e.target.files[0].name); }} />
-          </label>
-          <label className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-border/40 bg-white px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground transition-all hover:border-indigo-200 hover:bg-muted/40 hover:text-foreground">
-            <FileText className="h-3 w-3" />
-            {pdfFile ? <><Check className="h-2.5 w-2.5 text-emerald-500" />PDF</> : "Guide"}
-            <input type="file" accept=".pdf" className="hidden" onChange={(e) => { if (e.target.files?.[0]) setPdfFile(e.target.files[0].name); }} />
-          </label>
-        </div>
-        {onComplete && (
-          <button
-            onClick={onComplete}
-            className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"
-          >
-            Ser bra ut
-            <ArrowRight className="h-3.5 w-3.5" />
-          </button>
+      {/* Approvable fields grid */}
+      <div className="grid grid-cols-2 gap-2 px-5 pb-3">
+        {data.industry && (
+          <ApprovableField
+            icon={Building2}
+            label="Bransch"
+            value={data.industry}
+            state={approved.industry ?? "pending"}
+            onApprove={() => approve("industry")}
+            onEdit={() => startEdit("industry")}
+          />
         )}
+        {data.location && (
+          <ApprovableField
+            icon={MapPin}
+            label="Plats"
+            value={data.location}
+            state={approved.location ?? "pending"}
+            onApprove={() => approve("location")}
+            onEdit={() => startEdit("location")}
+          />
+        )}
+      </div>
+
+      {/* Colors section — approvable */}
+      <div className="px-5 pb-4">
+        <div
+          className={`rounded-xl border p-4 transition-all duration-300 ${
+            approved.colors === "approved"
+              ? "border-emerald-200 bg-emerald-50/20"
+              : "border-border/30 bg-muted/5"
+          }`}
+        >
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-[11px] font-semibold text-foreground/60">
+              <Palette className="h-3.5 w-3.5" />
+              Varumärkesfärger
+            </div>
+            {approved.colors !== "approved" ? (
+              <button
+                onClick={() => approve("colors")}
+                className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-medium text-emerald-600 transition-colors hover:bg-emerald-100"
+              >
+                <Check className="h-2.5 w-2.5" />
+                Godkänn
+              </button>
+            ) : (
+              <div className="flex items-center gap-1 text-[9px] font-medium text-emerald-600">
+                <Check className="h-2.5 w-2.5" />
+                Godkänd
+              </div>
+            )}
+          </div>
+          <div className="flex items-center justify-center gap-6">
+            <ColorSwatch
+              color={colors.primary} label="Primär" role="primary"
+              approved={approved.colors === "approved"}
+              onApprove={() => approve("colors")}
+              originalColor={originalColors.primary}
+              onColorChange={(c) => updateColor("primary", c)}
+            />
+            <ColorSwatch
+              color={colors.secondary} label="Sekundär" role="secondary"
+              approved={approved.colors === "approved"}
+              onApprove={() => approve("colors")}
+              originalColor={originalColors.secondary}
+              onColorChange={(c) => updateColor("secondary", c)}
+            />
+            <ColorSwatch
+              color={colors.accent} label="Accent" role="accent"
+              approved={approved.colors === "approved"}
+              onApprove={() => approve("colors")}
+              originalColor={originalColors.accent}
+              onColorChange={(c) => updateColor("accent", c)}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Upload row */}
+      <div className="flex items-center gap-2 border-t border-border/20 bg-muted/5 px-5 py-2">
+        <label className="flex cursor-pointer items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium text-muted-foreground/60 transition-colors hover:bg-white hover:text-foreground hover:shadow-sm">
+          <Upload className="h-3 w-3" />
+          {logoUrl ? "Byt logga" : "Logga"}
+          <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+        </label>
+        <label className="flex cursor-pointer items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium text-muted-foreground/60 transition-colors hover:bg-white hover:text-foreground hover:shadow-sm">
+          <Type className="h-3 w-3" />
+          {fontFile ?? "Font"}
+          <input type="file" accept=".ttf,.otf,.woff,.woff2" className="hidden" onChange={(e) => { if (e.target.files?.[0]) setFontFile(e.target.files[0].name); }} />
+        </label>
+        <label className="flex cursor-pointer items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium text-muted-foreground/60 transition-colors hover:bg-white hover:text-foreground hover:shadow-sm">
+          <FileText className="h-3 w-3" />
+          Varumärkesguide
+          <input type="file" accept=".pdf" className="hidden" onChange={() => {}} />
+        </label>
+      </div>
+
+      {/* Footer CTA */}
+      <div className="flex items-center justify-between border-t border-border/20 px-5 py-3">
+        <span className="text-[10px] text-muted-foreground/40">
+          {allApproved ? "Alla fält godkända" : `Godkänn alla fält genom att hovra och klicka ✓`}
+        </span>
+        <button
+          onClick={() => {
+            // Auto-approve all remaining
+            setApproved((prev) => {
+              const next = { ...prev };
+              for (const key of Object.keys(next)) {
+                if (next[key] !== "approved") next[key] = "approved";
+              }
+              return next;
+            });
+            setTimeout(() => onComplete?.(), 400);
+          }}
+          className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold shadow-sm transition-all ${
+            allApproved
+              ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 hover:shadow-md"
+              : "bg-gradient-to-r from-indigo-500 to-indigo-600 text-white hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"
+          }`}
+        >
+          {allApproved ? "Allt ser bra ut" : "Godkänn alla & fortsätt"}
+          <ArrowRight className="h-3.5 w-3.5" />
+        </button>
       </div>
     </div>
   );
@@ -249,32 +445,29 @@ export function BrandProfileCard({
 
 export function BrandProfileLoading() {
   return (
-    <div className="animate-message-in mt-3 overflow-hidden rounded-2xl border border-border/40 bg-white/70 backdrop-blur-sm">
-      <div className="flex items-center gap-2 border-b border-border/30 px-5 py-3">
-        <div className="h-8 w-8 animate-shimmer rounded-lg bg-gradient-to-r from-muted via-muted/50 to-muted bg-[length:200%_100%]" />
-        <div className="space-y-1">
-          <div className="h-3.5 w-28 animate-shimmer rounded bg-gradient-to-r from-muted via-muted/50 to-muted bg-[length:200%_100%]" />
-          <div className="h-2.5 w-40 animate-shimmer rounded bg-gradient-to-r from-muted/60 via-muted/30 to-muted/60 bg-[length:200%_100%]" />
+    <div className="animate-card-in mt-3 overflow-hidden rounded-2xl border border-border/30 bg-white/80 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] backdrop-blur-xl">
+      <div className="flex items-center gap-3 px-5 py-3">
+        <div className="h-9 w-9 animate-shimmer rounded-xl bg-gradient-to-r from-indigo-100 via-purple-50 to-indigo-100 bg-[length:200%_100%]" />
+        <div className="space-y-1.5">
+          <div className="h-3.5 w-32 animate-shimmer rounded-md bg-gradient-to-r from-muted via-muted/50 to-muted bg-[length:200%_100%]" />
+          <div className="h-2.5 w-24 animate-shimmer rounded-md bg-gradient-to-r from-muted/60 via-muted/30 to-muted/60 bg-[length:200%_100%]" />
         </div>
       </div>
+      <div className="h-px bg-gradient-to-r from-transparent via-border/40 to-transparent" />
       <div className="px-5 py-4">
-        <div className="flex items-center gap-3">
-          <div className="h-12 w-12 animate-shimmer rounded-xl bg-gradient-to-r from-muted via-muted/50 to-muted bg-[length:200%_100%]" />
-          <div className="space-y-1.5">
-            <div className="h-4 w-32 animate-shimmer rounded bg-gradient-to-r from-muted via-muted/50 to-muted bg-[length:200%_100%]" />
-            <div className="h-3 w-40 animate-shimmer rounded bg-gradient-to-r from-muted/60 via-muted/30 to-muted/60 bg-[length:200%_100%]" />
+        <div className="flex items-center gap-4">
+          <div className="h-14 w-14 animate-shimmer rounded-xl bg-gradient-to-r from-muted via-muted/50 to-muted bg-[length:200%_100%]" />
+          <div className="space-y-2">
+            <div className="h-5 w-36 animate-shimmer rounded-md bg-gradient-to-r from-muted via-muted/50 to-muted bg-[length:200%_100%]" />
+            <div className="h-3 w-28 animate-shimmer rounded bg-gradient-to-r from-muted/60 via-muted/30 to-muted/60 bg-[length:200%_100%]" />
           </div>
         </div>
-        <div className="mt-4 rounded-xl border border-border/30 bg-muted/10 p-4">
-          <div className="flex gap-5">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="flex flex-col items-center gap-1.5">
-                <div className="h-9 w-9 animate-shimmer rounded-full bg-gradient-to-r from-muted via-muted/50 to-muted bg-[length:200%_100%]" style={{ animationDelay: `${i * 150}ms` }} />
-                <div className="h-2.5 w-8 animate-shimmer rounded bg-gradient-to-r from-muted/40 via-muted/20 to-muted/40 bg-[length:200%_100%]" />
-              </div>
-            ))}
-          </div>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          {[0, 1].map((i) => (
+            <div key={i} className="h-14 animate-shimmer rounded-xl bg-gradient-to-r from-muted/30 via-muted/15 to-muted/30 bg-[length:200%_100%]" style={{ animationDelay: `${i * 100}ms` }} />
+          ))}
         </div>
+        <div className="mt-3 h-24 animate-shimmer rounded-xl bg-gradient-to-r from-muted/20 via-muted/10 to-muted/20 bg-[length:200%_100%]" />
       </div>
     </div>
   );
