@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 
 import { ChatHeader } from "@/components/chat/chat-header";
@@ -13,11 +13,38 @@ import { useFlowProgress } from "@/hooks/use-flow-progress";
 export default function Home() {
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
   const { messages, sendMessage, status } = useChat({
     onError: (err) => {
       setError(err.message ?? "Något gick fel. Försök igen.");
     },
   });
+
+  // Handle OAuth callback query params
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("linkedin_connected") === "true") {
+      setToast("LinkedIn anslutet! Ditt konto är redo att användas.");
+      window.history.replaceState({}, "", "/");
+    }
+    if (params.get("meta_connected") === "true") {
+      setToast("Meta anslutet!");
+      window.history.replaceState({}, "", "/");
+    }
+    if (params.get("google_connected") === "true") {
+      setToast("Google Ads anslutet!");
+      window.history.replaceState({}, "", "/");
+    }
+  }, []);
+
+  // Auto-dismiss toast
+  useEffect(() => {
+    if (toast) {
+      const t = setTimeout(() => setToast(null), 5000);
+      return () => clearTimeout(t);
+    }
+  }, [toast]);
 
   const isLoading = status === "submitted" || status === "streaming";
   const flowStep = useFlowProgress(messages);
@@ -88,12 +115,13 @@ export default function Home() {
       {error && (
         <div className="mx-auto mb-4 flex max-w-2xl items-center gap-2 rounded-lg bg-destructive/10 px-4 py-2 text-sm text-destructive">
           <span className="flex-1">{error}</span>
-          <button
-            onClick={() => setError(null)}
-            className="text-xs font-medium underline"
-          >
-            Stäng
-          </button>
+          <button onClick={() => setError(null)} className="text-xs font-medium underline">Stäng</button>
+        </div>
+      )}
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 animate-message-in rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-medium text-emerald-700 shadow-lg">
+          {toast}
         </div>
       )}
     </div>

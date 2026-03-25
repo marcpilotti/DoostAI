@@ -37,22 +37,3 @@ export function LinkedInConnect({ data }: { data: LinkedInConnectData }) {
   );
 }
 
-export function LinkedInConnected() {
-  return (
-    <div className="mt-1 rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4">
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500">
-          <Linkedin className="h-5 w-5 text-white" />
-        </div>
-        <div>
-          <h4 className="text-sm font-semibold text-foreground">
-            LinkedIn anslutet
-          </h4>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            Ditt LinkedIn-konto är kopplat och redo att användas.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
