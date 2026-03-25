@@ -116,7 +116,7 @@ export default function Home() {
       )}
 
       {toast && (
-        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 animate-message-in rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-medium text-emerald-700 shadow-lg">
+        <div className="fixed bottom-6 left-1/2 z-50 mx-4 max-w-[calc(100vw-2rem)] -translate-x-1/2 animate-message-in rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-medium text-emerald-700 shadow-lg">
           {toast}
         </div>
       )}

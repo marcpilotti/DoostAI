@@ -54,7 +54,7 @@ function DataField({
         <Icon className="h-3 w-3" />
         {label}
       </div>
-      <div className="mt-0.5 text-sm font-medium text-foreground">{value}</div>
+      <div className="mt-0.5 truncate text-sm font-medium text-foreground">{value}</div>
     </div>
   );
 }

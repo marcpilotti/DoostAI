@@ -48,7 +48,7 @@ export function ChatInput({
   };
 
   return (
-    <div className="px-6 pb-6 pt-2">
+    <div className="px-3 pb-4 pt-2 sm:px-6 sm:pb-6">
       <form
         ref={formRef}
         onSubmit={onSubmit}
@@ -73,13 +73,13 @@ export function ChatInput({
             <div className="flex gap-0.5">
               <button
                 type="button"
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground/50 transition-colors hover:text-muted-foreground"
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground/50 transition-colors hover:text-muted-foreground"
               >
                 <Image className="h-4 w-4" />
               </button>
               <button
                 type="button"
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground/50 transition-colors hover:text-muted-foreground"
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground/50 transition-colors hover:text-muted-foreground"
               >
                 <Paperclip className="h-4 w-4" />
               </button>
@@ -87,14 +87,14 @@ export function ChatInput({
             <div className="flex items-center gap-0.5">
               <button
                 type="button"
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground/50 transition-colors hover:text-muted-foreground"
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground/50 transition-colors hover:text-muted-foreground"
               >
                 <Mic className="h-4 w-4" />
               </button>
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-[#6366f1] text-white shadow-sm transition-all hover:bg-[#5558e6] disabled:opacity-30 disabled:shadow-none"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#6366f1] text-white shadow-sm transition-all hover:bg-[#5558e6] disabled:opacity-30 disabled:shadow-none"
               >
                 <ArrowUp className="h-4 w-4" strokeWidth={2.5} />
               </button>
