@@ -1,23 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Image, Type, Plug } from "lucide-react";
+import { Check, Image, Type, Plug, Upload } from "lucide-react";
 
 type OnboardingStep = "logo" | "font" | "connectors" | "done";
+
+type LogoData = {
+  primary?: string;
+  icon?: string;
+  dark?: string;
+};
 
 type OnboardingData = {
   hasLogo: boolean;
   companyName: string;
+  logos: LogoData;
 };
 
-function StepCard({
-  children,
-  isCompleted,
-}: {
-  children: React.ReactNode;
-  isCompleted: boolean;
-}) {
-  if (isCompleted) return null;
+function StepCard({ children }: { children: React.ReactNode }) {
   return (
     <div className="animate-message-in mt-3 overflow-hidden rounded-2xl border border-border/40 bg-white/70 backdrop-blur-sm">
       {children}
@@ -25,55 +25,137 @@ function StepCard({
   );
 }
 
+// ── Logo Step: show scraped logos + upload option ────────────────
 function LogoStep({
   companyName,
+  logos,
   onComplete,
 }: {
   companyName: string;
+  logos: LogoData;
   onComplete: (skipped: boolean) => void;
 }) {
-  const [uploaded, setUploaded] = useState(false);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [customUploaded, setCustomUploaded] = useState(false);
+
+  // Collect all found logos with labels
+  const foundLogos: { url: string; label: string }[] = [];
+  if (logos.primary) foundLogos.push({ url: logos.primary, label: "Primär" });
+  if (logos.dark) foundLogos.push({ url: logos.dark, label: "Alternativ" });
+  if (logos.icon && logos.icon !== logos.primary)
+    foundLogos.push({ url: logos.icon, label: "Ikon" });
+
+  const hasFoundLogos = foundLogos.length > 0;
+
+  function handleSelect(url: string) {
+    setSelected(url);
+    setCustomUploaded(false);
+    setTimeout(() => onComplete(false), 400);
+  }
+
+  function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.files?.[0]) {
+      setCustomUploaded(true);
+      setSelected(null);
+      setTimeout(() => onComplete(false), 400);
+    }
+  }
 
   return (
-    <StepCard isCompleted={false}>
+    <StepCard>
       <div className="p-5">
-        <div className="mb-3 flex items-center gap-2">
+        <div className="mb-4 flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50">
             <Image className="h-4 w-4 text-indigo-500" />
           </div>
           <div>
             <div className="text-sm font-semibold">Logotyp</div>
             <div className="text-[11px] text-muted-foreground">
-              Vi hittade ingen logga automatiskt
+              {hasFoundLogos
+                ? "Vi hittade dessa loggor — välj en eller ladda upp din egen"
+                : "Vi hittade ingen logga — ladda upp en"}
             </div>
           </div>
         </div>
 
-        {!uploaded ? (
-          <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed border-border/60 bg-muted/20 px-6 py-8 transition-colors hover:border-indigo-300 hover:bg-indigo-50/30">
-            <Image className="h-8 w-8 text-muted-foreground/40" />
-            <span className="text-sm font-medium text-muted-foreground">
-              Dra och släpp eller klicka för att ladda upp
-            </span>
-            <span className="text-[10px] text-muted-foreground/50">
-              PNG, SVG eller JPG (max 2MB)
-            </span>
+        {/* Scraped logos */}
+        {hasFoundLogos && (
+          <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {foundLogos.map((logo) => (
+              <button
+                key={logo.url}
+                onClick={() => handleSelect(logo.url)}
+                className={`group relative flex flex-col items-center gap-2 rounded-xl border-2 p-3 transition-all ${
+                  selected === logo.url
+                    ? "border-emerald-400 bg-emerald-50/50 shadow-sm ring-1 ring-emerald-200"
+                    : "border-border/50 bg-white hover:border-indigo-300 hover:shadow-sm"
+                }`}
+              >
+                {selected === logo.url && (
+                  <div className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
+                    <Check className="h-3 w-3" strokeWidth={3} />
+                  </div>
+                )}
+                {/* Checkerboard background for transparency */}
+                <div
+                  className="flex h-16 w-full items-center justify-center rounded-lg p-2"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%)",
+                    backgroundSize: "10px 10px",
+                    backgroundPosition: "0 0, 0 5px, 5px -5px, -5px 0px",
+                  }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={logo.url}
+                    alt={`${companyName} ${logo.label}`}
+                    className="max-h-14 max-w-full object-contain"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                </div>
+                <span className="text-[10px] font-medium text-muted-foreground">
+                  {logo.label}
+                </span>
+                {selected !== logo.url && (
+                  <span className="text-[10px] font-medium text-indigo-400 opacity-0 transition-opacity group-hover:opacity-100">
+                    Välj denna
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Upload own logo */}
+        {!customUploaded ? (
+          <label className="flex cursor-pointer items-center gap-3 rounded-xl border-2 border-dashed border-border/60 bg-muted/10 px-4 py-3 transition-colors hover:border-indigo-300 hover:bg-indigo-50/30">
+            <Upload className="h-5 w-5 text-muted-foreground/40" />
+            <div>
+              <span className="text-xs font-medium text-muted-foreground">
+                {hasFoundLogos
+                  ? "Eller ladda upp en egen logga istället"
+                  : "Dra och släpp eller klicka för att ladda upp"}
+              </span>
+              <span className="block text-[10px] text-muted-foreground/50">
+                PNG, SVG eller JPG (max 2MB)
+              </span>
+            </div>
             <input
               type="file"
               accept="image/*"
               className="hidden"
-              onChange={(e) => {
-                if (e.target.files?.[0]) {
-                  setUploaded(true);
-                  setTimeout(() => onComplete(false), 500);
-                }
-              }}
+              onChange={handleUpload}
             />
           </label>
         ) : (
           <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3">
             <Check className="h-4 w-4 text-emerald-500" />
-            <span className="text-sm text-emerald-700">Logga uppladdad!</span>
+            <span className="text-sm text-emerald-700">
+              Egen logga uppladdad!
+            </span>
           </div>
         )}
       </div>
@@ -83,13 +165,16 @@ function LogoStep({
           onClick={() => onComplete(true)}
           className="text-xs text-muted-foreground transition-colors hover:text-foreground"
         >
-          Skippa — använd <span className="font-semibold">{companyName.toUpperCase()}</span> som text istället
+          Skippa — använd{" "}
+          <span className="font-semibold">{companyName.toUpperCase()}</span> som
+          text istället
         </button>
       </div>
     </StepCard>
   );
 }
 
+// ── Font Step ───────────────────────────────────────────────────
 function FontStep({
   onComplete,
 }: {
@@ -98,7 +183,7 @@ function FontStep({
   const [uploaded, setUploaded] = useState(false);
 
   return (
-    <StepCard isCompleted={false}>
+    <StepCard>
       <div className="p-5">
         <div className="mb-3 flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-50">
@@ -150,13 +235,14 @@ function FontStep({
   );
 }
 
+// ── Connector Step ──────────────────────────────────────────────
 function ConnectorStep({
   onComplete,
 }: {
   onComplete: (skipped: boolean) => void;
 }) {
   return (
-    <StepCard isCompleted={false}>
+    <StepCard>
       <div className="p-5">
         <div className="mb-3 flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50">
@@ -210,6 +296,7 @@ function ConnectorStep({
   );
 }
 
+// ── Main Component ──────────────────────────────────────────────
 export function OnboardingCards({
   data,
   onAllComplete,
@@ -217,9 +304,8 @@ export function OnboardingCards({
   data: OnboardingData;
   onAllComplete: () => void;
 }) {
-  const [currentStep, setCurrentStep] = useState<OnboardingStep>(
-    data.hasLogo ? "font" : "logo",
-  );
+  // Always start at logo — even if logos were found, user should confirm/pick
+  const [currentStep, setCurrentStep] = useState<OnboardingStep>("logo");
 
   function advance(from: OnboardingStep) {
     if (from === "logo") {
@@ -237,6 +323,7 @@ export function OnboardingCards({
       {currentStep === "logo" && (
         <LogoStep
           companyName={data.companyName}
+          logos={data.logos ?? {}}
           onComplete={() => advance("logo")}
         />
       )}

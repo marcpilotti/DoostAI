@@ -63,7 +63,7 @@ function ToolInvocation({
 
   if (name === "show_onboarding") {
     if (part.state === "output-available" && part.output) {
-      const output = part.output as { hasLogo: boolean; companyName: string };
+      const output = part.output as { hasLogo: boolean; companyName: string; logos: { primary?: string; icon?: string; dark?: string } };
       return (
         <OnboardingCards
           data={output}

@@ -62,7 +62,7 @@ WORKFLOW — follow these steps IN ORDER, do NOT skip or combine steps:
 
 STEP 1: User sends a URL or domain → call analyze_brand immediately. No confirmation needed.
 
-STEP 2: analyze_brand returns → your ONLY action is to call show_onboarding. Pass hasLogo (check if logos.primary exists) and companyName. Write a SHORT one-line intro like "Här är din profil! Fyll i det som saknas:" — then call the tool. NEVER ask text questions about logo, font, or platforms. NEVER call show_channel_picker here.
+STEP 2: analyze_brand returns → your ONLY action is to call show_onboarding. Pass hasLogo (check if logos.primary exists), companyName, and logos (the full logos object from the result: primary, icon, dark). Write a SHORT one-line intro like "Här är din profil! Fyll i det som saknas:" — then call the tool. NEVER ask text questions about logo, font, or platforms. NEVER call show_channel_picker here.
 
 STEP 3: User sends "Onboarding klar" → call show_channel_picker. Say "Perfekt! Välj kanaler:"
 
@@ -245,13 +245,18 @@ ABSOLUTE RULES:
 
       show_onboarding: tool({
         description:
-          "Show sequential onboarding cards after brand analysis. Cards let user upload logo, font, and connect ad platforms — one step at a time. Call this RIGHT AFTER analyze_brand returns.",
+          "Show sequential onboarding cards after brand analysis. Cards let user pick from scraped logos, upload font, and connect ad platforms — one step at a time. Call this RIGHT AFTER analyze_brand returns.",
         inputSchema: z.object({
           hasLogo: z.boolean().describe("Whether the brand analysis found a logo"),
           companyName: z.string().describe("The company name from brand analysis"),
+          logos: z.object({
+            primary: z.string().optional().describe("Primary logo URL from scrape"),
+            icon: z.string().optional().describe("Icon/favicon URL from scrape"),
+            dark: z.string().optional().describe("Dark/alternative logo URL from scrape"),
+          }).describe("Logo URLs found during brand analysis"),
         }),
-        execute: async ({ hasLogo, companyName }: { hasLogo: boolean; companyName: string }) => {
-          return { hasLogo, companyName };
+        execute: async ({ hasLogo, companyName, logos }: { hasLogo: boolean; companyName: string; logos: { primary?: string; icon?: string; dark?: string } }) => {
+          return { hasLogo, companyName, logos };
         },
       }),
 
