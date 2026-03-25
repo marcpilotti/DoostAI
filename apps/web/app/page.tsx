@@ -67,11 +67,11 @@ export default function Home() {
       </div>
 
       {isEmpty ? (
-        <div className="flex flex-1 flex-col items-center justify-center px-6 pb-8">
-          <h1 className="text-center font-sketch text-[44px] leading-tight text-foreground/80 sm:text-[60px]">
+        <div className="flex flex-1 flex-col items-center justify-center px-6 pb-6">
+          <h1 className="text-center font-sketch text-[32px] leading-tight text-foreground/80 sm:text-[42px]">
             Skippa byrån.
           </h1>
-          <div className="mt-8 w-full max-w-xl">
+          <div className="mt-6 w-full max-w-xl">
             <ChatInput
               input={input}
               onInputChange={setInput}
