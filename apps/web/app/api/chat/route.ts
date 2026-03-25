@@ -384,78 +384,72 @@ Keep responses short between tool calls — let the UI components speak.`,
           const appUrl =
             process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
-          const results = await Promise.all(
-            platforms.map(async (platform) => {
-              const account = accountMap.get(platform);
+          // Pre-check: which platforms can deploy, which need connection
+          const platformStatuses = platforms.map((platform) => {
+            const account = accountMap.get(platform);
 
-              // LinkedIn requires OAuth
-              if (platform === "linkedin" && !account) {
-                const redirectUri = `${appUrl}/api/platforms/linkedin/callback`;
-                const state = btoa(JSON.stringify({ orgId }));
-                let oauthUrl = "#";
-                try {
-                  oauthUrl = linkedinGetOAuthUrl(redirectUri, state);
-                } catch {
-                  // LinkedIn not configured
-                }
-                return {
-                  platform,
-                  status: "connect_required" as const,
-                  message:
-                    "Du behöver ansluta ditt LinkedIn-konto först.",
-                  accountType: "oauth" as const,
-                  oauthUrl,
-                };
-              }
-
-              // Meta/Google — no account yet, return queued status
-              if (!account) {
-                return {
-                  platform,
-                  status: "queued" as const,
-                  message: `Anslut ${platform === "meta" ? "Meta" : "Google"}-kontot först innan kampanjer kan publiceras.`,
-                  accountType: "auto" as const,
-                };
-              }
-
-              if (account.status !== "active") {
-                return {
-                  platform,
-                  status: "failed" as const,
-                  message: `Kontot har status "${account.status}". Kontrollera anslutningen.`,
-                  accountType:
-                    platform === "linkedin"
-                      ? ("oauth" as const)
-                      : ("auto" as const),
-                };
-              }
-
-              // Queue deployment
-              const eventName =
-                platform === "meta"
-                  ? "meta/deploy-campaign"
-                  : platform === "google"
-                    ? "google/deploy-campaign"
-                    : "linkedin/deploy-campaign";
-
-              // Note: In full flow, a campaign DB row would be created first.
-              // For now, return deploying status — Inngest integration pending.
-              void inngest; // referenced but deployment not yet wired
-
+            if (platform === "linkedin" && !account) {
+              const redirectUri = `${appUrl}/api/platforms/linkedin/callback`;
+              const state = btoa(JSON.stringify({ orgId }));
+              let oauthUrl = "#";
+              try {
+                oauthUrl = linkedinGetOAuthUrl(redirectUri, state);
+              } catch { /* not configured */ }
               return {
                 platform,
-                status: "deploying" as const,
-                message: `Kampanjen publiceras till ${platform === "meta" ? "Meta" : platform === "google" ? "Google" : "LinkedIn"}.`,
-                accountType:
-                  platform === "linkedin"
-                    ? ("oauth" as const)
-                    : ("auto" as const),
+                status: "connect_required" as const,
+                message: "Du behöver ansluta ditt LinkedIn-konto först.",
+                accountType: "oauth" as const,
+                oauthUrl,
               };
-            }),
-          );
+            }
+
+            if (!account) {
+              return {
+                platform,
+                status: "queued" as const,
+                message: `Anslut ${platform === "meta" ? "Meta" : "Google"}-kontot först.`,
+                accountType: "auto" as const,
+              };
+            }
+
+            if (account.status !== "active") {
+              return {
+                platform,
+                status: "failed" as const,
+                message: `Kontot har status "${account.status}".`,
+                accountType: platform === "linkedin" ? ("oauth" as const) : ("auto" as const),
+              };
+            }
+
+            return {
+              platform,
+              status: "deploying" as const,
+              message: `Publicerar till ${platform === "meta" ? "Meta" : platform === "google" ? "Google" : "LinkedIn"}...`,
+              accountType: platform === "linkedin" ? ("oauth" as const) : ("auto" as const),
+            };
+          });
+
+          // Fan out deployment for all deployable platforms via single Inngest event
+          const deployablePlatforms = platformStatuses
+            .filter((p) => p.status === "deploying")
+            .map((p) => p.platform);
+
+          if (deployablePlatforms.length > 0) {
+            await inngest.send({
+              name: "campaign/deploy",
+              data: {
+                orgId,
+                campaignName,
+                platforms: deployablePlatforms,
+                budget,
+                targeting: targeting ?? { locations: ["SE"] },
+              },
+            });
+          }
 
           return {
-            platforms: results,
+            platforms: platformStatuses,
             budget,
             campaignName,
           };

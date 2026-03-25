@@ -13,3 +13,4 @@ export { optimizerAnalyze } from "./optimizer-analyze";
 export { weeklyDigest } from "./weekly-digest";
 export { embeddingsUpdate } from "./embeddings-update";
 export { creativesPreRender } from "./creatives-pre-render";
+export { campaignDeploy } from "./campaign-deploy";

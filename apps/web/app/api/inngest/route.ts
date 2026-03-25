@@ -4,6 +4,7 @@ import { inngest } from "@/lib/inngest/client";
 import {
   analyzeBrand,
   brandRetryEnrichment,
+  campaignDeploy,
   creativesPreRender,
   embeddingsUpdate,
   googleCreateAccount,
@@ -24,6 +25,7 @@ export const { GET, POST, PUT } = serve({
   functions: [
     analyzeBrand,
     brandRetryEnrichment,
+    campaignDeploy,
     creativesPreRender,
     metaDeployCampaign,
     metaPollInsights,
