@@ -1,5 +1,4 @@
 import { anthropic } from "@ai-sdk/anthropic";
-import { auth } from "@clerk/nextjs/server";
 import { stepCountIs, streamText, tool } from "ai";
 import { z } from "zod";
 
@@ -19,10 +18,6 @@ import {
 } from "@/lib/stripe/plan-limits";
 
 export async function POST(req: Request) {
-  const { userId } = await auth();
-  if (!userId) {
-    return new Response("Unauthorized", { status: 401 });
-  }
 
   const { messages } = await req.json();
 

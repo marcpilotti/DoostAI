@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Instrument_Sans, Outfit } from "next/font/google";
-import { ClerkProvider } from "@clerk/nextjs";
-
 import { PostHogProvider } from "@/lib/posthog/provider";
 
 import "./globals.css";
@@ -29,14 +27,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body
-          className={`${outfit.variable} ${instrumentSans.variable} font-sans antialiased`}
-        >
-          <PostHogProvider>{children}</PostHogProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="en">
+      <body
+        className={`${outfit.variable} ${instrumentSans.variable} font-sans antialiased`}
+      >
+        <PostHogProvider>{children}</PostHogProvider>
+      </body>
+    </html>
   );
 }

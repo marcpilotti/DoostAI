@@ -7,7 +7,7 @@ import { ChatHeader } from "@/components/chat/chat-header";
 import { ChatInput } from "@/components/chat/chat-input";
 import { ChatMessages } from "@/components/chat/chat-messages";
 
-export default function ChatPage() {
+export default function Home() {
   const [input, setInput] = useState("");
   const { messages, sendMessage, status } = useChat();
 
@@ -24,7 +24,7 @@ export default function ChatPage() {
   const isEmpty = messages.length === 0;
 
   return (
-    <div className="flex h-full flex-col bg-background">
+    <div className="flex h-screen flex-col bg-background">
       <ChatHeader />
 
       {isEmpty ? (
