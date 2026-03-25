@@ -7,6 +7,7 @@ import {
   AdPreviewTabs,
   AdPreviewLoading,
 } from "@/components/ads/ad-preview-tabs";
+import { CopyPreviewCard } from "@/components/ads/copy-preview-card";
 import {
   CampaignDeploymentStatus,
   CampaignDeploymentLoading,
@@ -83,11 +84,21 @@ function ToolInvocation({
     return null;
   }
 
-  if (name === "generate_ads") {
+  if (name === "generate_ad_copy" || name === "generate_ads") {
     if (part.state === "output-available" && part.output) {
+      const output = part.output as Record<string, unknown>;
+      // If output has "copies" field, it's the new copy-first format
+      if ("copies" in output) {
+        return (
+          <CopyPreviewCard
+            data={output as Parameters<typeof CopyPreviewCard>[0]["data"]}
+          />
+        );
+      }
+      // Legacy format with "ads" field → full ad preview
       return (
         <AdPreviewTabs
-          data={part.output as Parameters<typeof AdPreviewTabs>[0]["data"]}
+          data={output as Parameters<typeof AdPreviewTabs>[0]["data"]}
         />
       );
     }

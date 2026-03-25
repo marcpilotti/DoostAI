@@ -34,8 +34,8 @@ You speak naturally and concisely. Communicate in both Swedish and English — m
 WORKFLOW:
 1. User provides URL → call analyze_brand immediately.
 2. After brand analysis completes, DO NOT summarize the results or list findings. The UI card already shows everything. Just say ONE short sentence like "Klar! Välj kanaler:" and then call show_channel_picker immediately.
-3. User picks platforms → call generate_ads with brand data + platforms.
-4. After ad previews → ask: "Hur ser det ut? Vill du ändra något?"
+3. User picks platforms → call generate_ad_copy with brand data + platforms. This returns TEXT copy immediately (fast, ~2s).
+4. After copy preview shows → say "Här är texten — vill du ändra något?" Do NOT call a second tool for images. The UI handles visual rendering.
 5. User approves → ask about budget: "Vilken daglig budget vill du sätta? (t.ex. 500 kr/dag)"
 6. User provides budget → call check_plan first to verify limits. If upgrade needed, show the upgrade prompt. If OK, call deploy_campaign.
 7. Show deployment status. Offer to set up performance monitoring.
@@ -56,23 +56,49 @@ Keep responses short between tool calls — let the UI components speak.`,
           url: z.string().describe("The company website URL or domain name"),
         }),
         execute: async ({ url }: { url: string }) => {
-          const [scrapeResult, enrichment] = await Promise.all([
+          const start = Date.now();
+
+          // Run scrape + enrich in parallel with allSettled for resilience
+          const [scrapeSettled, enrichSettled] = await Promise.allSettled([
             scrapeBrand(url),
             enrichCompany(url),
           ]);
+
+          if (scrapeSettled.status === "rejected") {
+            throw new Error(`Failed to scrape website: ${scrapeSettled.reason}`);
+          }
+
+          const scrapeResult = scrapeSettled.value;
+          const enrichment =
+            enrichSettled.status === "fulfilled"
+              ? enrichSettled.value
+              : null;
+
+          if (enrichSettled.status === "rejected") {
+            console.warn(
+              `Enrichment failed for ${url}: ${enrichSettled.reason}`,
+            );
+          }
+
           const profile = await buildBrandProfile(
             scrapeResult,
             enrichment ?? undefined,
           );
+
+          const durationMs = Date.now() - start;
           const { rawScrapeData: _s, rawEnrichmentData: _e, ...clean } =
             profile;
-          return clean;
+          return {
+            ...clean,
+            _analysisMs: durationMs,
+            _enrichmentStatus: enrichment ? "complete" : "partial",
+          };
         },
       }),
 
-      generate_ads: tool({
+      generate_ad_copy: tool({
         description:
-          "Generate ad creatives for specified platforms using the brand profile.",
+          "Generate ad copy text for specified platforms (fast, no images). Call this when user picks platforms. Returns copy immediately for preview.",
         inputSchema: z.object({
           brand: z.object({
             name: z.string(),
@@ -124,9 +150,8 @@ Keep responses short between tool calls — let the UI components speak.`,
             ),
           );
           return {
-            ads: allCopy.flat().map((c) => ({
+            copies: allCopy.flat().map((c) => ({
               platform: c.platform,
-              variant: c.variant,
               headline: c.headline,
               bodyCopy: c.bodyCopy,
               cta: c.cta,
@@ -141,6 +166,7 @@ Keep responses short between tool calls — let the UI components speak.`,
               industry: brand.industry,
             },
             platforms,
+            renderingImages: true,
           };
         },
       }),

@@ -29,6 +29,8 @@ type BrandProfileData = {
   fonts: { heading: string; body: string };
   brandVoice: string;
   targetAudience: string;
+  _analysisMs?: number;
+  _enrichmentStatus?: string;
   valuePropositions: string[];
 };
 
@@ -153,6 +155,14 @@ export function BrandProfileCard({ data }: { data: BrandProfileData }) {
           </span>
         </span>
       </div>
+
+      {/* Analysis timing */}
+      {data._analysisMs && (
+        <div className="mt-3 text-[10px] text-muted-foreground/40">
+          Analyserad på {(data._analysisMs / 1000).toFixed(1)}s
+          {data._enrichmentStatus === "partial" && " (utan företagsdata)"}
+        </div>
+      )}
     </div>
   );
 }
