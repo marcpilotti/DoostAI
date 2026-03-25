@@ -328,4 +328,146 @@ inngest.send({
 
 ---
 
-*Sections 2 (UX/Design) and 3 (USP/Innovation) will be appended when the design audit completes.*
+# SECTION 2: UX/UI Design Audit
+
+## 2.1 — Chat Interface
+
+**Current state:** Functional but generic — a competent shadcn/ui implementation indistinguishable from any SaaS starter kit. The rainbow glow, animate-message-in, and frosted glass cards are good touches. But the AI avatar has no state differentiation, markdown renders as raw text, no timestamps, user bubbles feel like comment boxes.
+
+**Critical fixes:**
+1. **Add react-markdown** — AI generates Swedish text with `**bold**`, numbered lists, headers. Currently renders as raw asterisks. One component change for massive quality uplift.
+2. **AI avatar states** — pulsing gradient ring during "thinking", static after response
+3. **User bubbles** — gradient background (`linear-gradient(135deg, #eef2ff, #e0e7ff)`) with `border-radius: 18px 18px 4px 18px`
+4. **AI messages** — subtle left-accent line (`2px gradient indigo→transparent, opacity 0.3`)
+5. **Empty state hero** — full opacity (currently 80%), `text-[52px]` (currently 44px), subtitle `text-base` (currently `text-sm text-muted-foreground/70` = nearly invisible)
+6. **Rainbow glow** — only animate to full opacity on focus, subtle at rest
+
+## 2.2 — Brand Profile Card
+
+**Current state:** Single flat reveal, all-or-nothing. The completion score is crude (4 fields × 25%). No progressive phases despite PIPELINE.md specifying +2s/+3s/+5s/+6s reveal.
+
+**4-phase progressive reveal:**
+- Phase 1 (+0ms): Identity — name, URL, colors, industry
+- Phase 2 (+800ms): Social presence — platforms found, follower counts
+- Phase 3 (+2000ms): Competitor radar — 3 competitors with ad activity
+- Phase 4 (+2600ms): Readiness score — animated 0→score counter with cubic ease-out
+
+Each phase enters with `translateY(20px) → 0` + `blur(4px) → 0` at `cubic-bezier(0.16, 1, 0.3, 1)`.
+
+## 2.3 — Ad Previews
+
+**Pixel-level issues:**
+- Meta: profile avatar should show actual logo, not letter initial. Missing "i" icon, page category label. ThumbsUp icon shape is wrong (Lucide vs Meta's actual thumb)
+- Google: missing Ad Strength indicator, rating stars, sitelinks from brand data
+- LinkedIn: CTA should be filled button, not outlined. Missing "Follow" button
+- **Missing entirely:** Story/Reel format (40% of Meta spend). Add 9:16 aspect ratio preview with full-bleed gradient and swipe-up CTA
+
+## 2.4 — Dashboard/Analytics
+
+**Design for SME owners who don't understand ROAS:**
+- Replace "CTR" → "Andel som klickar", "CPC" → "Kostnad per klick", "ROAS" → "Avkastning"
+- Every metric card needs a **verdict** ("Bra!", "Okej", "Kan bli bättre") and industry percentile
+- AI weekly summary: "Din bästa annons den här veckan var X — den klickades 47% mer"
+- Campaign list: progress bar with actual days, spend in kronor, not abstract percentages
+
+## 2.5 — Onboarding (First 60 Seconds)
+
+**Current flow is backwards** — onboarding (logo/font/connectors) fires AFTER the profile card. The font upload step confuses 95% of SME owners who don't have .ttf files. Connector buttons don't work (no onClick handlers).
+
+**Revised "wow" timeline:**
+- 0s: "Skippa byrån." + URL input
+- 3s: Input border shimmer animation while scraping
+- 5s: Phase 1 brand card slides up (THEIR colors, THEIR logo) — the "holy shit" moment
+- 7s: Phase 2 — social presence discovered
+- 9s: Phase 3 — competitors identified
+- 11s: Phase 4 — readiness score animates
+- 15s: One question: "Vad är er målsättning?" with 4 chips
+- 30s: Channel picker → ad generation begins
+
+**Kill the blocking 3-step onboarding.** Logo: pull from scrape, editable in card. Font: skip for MVP. Connectors: ambient step later, not blocking.
+
+## 2.6 — Design System
+
+**Issues found:**
+- `animate-shimmer` referenced everywhere but **keyframe never defined** — all loading states are broken (static, not animating)
+- `--brand-blue` and `--brand-teal` defined but orphaned
+- Primary disappears in dark mode (becomes near-white)
+- No semantic color tokens (uses raw Tailwind emerald/amber/blue directly)
+
+**Missing animation:**
+```css
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+.animate-shimmer { animation: shimmer 1.5s ease-in-out infinite; }
+```
+
+---
+
+# SECTION 3: Technical USP & Innovation Proposals
+
+## 3.1 — AI Intelligence Differentiation
+
+| Proposal | What | Effort | Impact |
+|----------|------|--------|--------|
+| **Creative DNA Engine** | Vector embeddings of ad creatives + performance → few-shot examples in copy generation. Uses pgvector (already in Supabase). | M | **XL** |
+| **Predictive Performance Scoring** | "This ad will likely achieve 0.8–1.2% CTR" before running it. Confidence intervals from historical data per industry/platform. | L | L (grows to XL at scale) |
+| **Auto A/B Testing** | Launch every campaign with 2 variants. Z-test for significance at 95% confidence. Auto-pause loser. Zero user input required. | **S** | L |
+| **Natural Language Analytics** | "Vilken vecka gick det bäst?" → structured query → inline chart in chat. Extends chat-first philosophy to analytics. | M | M |
+
+## 3.2 — Real-time & Proactive
+
+| Proposal | What | Effort | Impact |
+|----------|------|--------|--------|
+| **Competitor Alerts** | Weekly Meta Ad Library polling. When 3+ new ads detected from competitor → chat notification + "Generate response campaign" CTA. | M | L |
+| **Morning Brief** | Monday 08:00: 3 numbers + 1 action + 1 insight. Chat message + email via Resend. The #1 weekly retention driver. | **S** | **M** |
+| **Auto Budget Reallocation** | When one channel outperforms, auto-shift budget. "Approve this change" button in trigger notification. | M | L |
+
+## 3.3 — Creative Generation
+
+| Proposal | What | Effort | Impact |
+|----------|------|--------|--------|
+| **Brand Consistency Checker** | Color distance check (CIEDE2000 deltaE < 10), logo presence validation before any creative ships. | **S** | M |
+| **Dynamic Creative Optimization** | Generate 8 permutations (2 headlines × 2 bodies × 2 CTAs). Use Meta's `asset_feed_spec` — it handles rotation natively. Parameter change, not infrastructure. | **S** | **L** |
+| **Template Marketplace** | 20-30 templates per platform with benchmark CTR data. Organized by industry × objective. | L | M |
+
+## 3.4 — Data Flywheel
+
+| Proposal | What | Effort | Impact |
+|----------|------|--------|--------|
+| **Cross-Customer Intelligence** | Weekly aggregation of creative_performance by industry/platform → industry_benchmarks table. New customers get instant priors. The genuine moat. | M | **XL** (compounds) |
+| **Churn Prediction** | Logistic regression on session frequency + campaign activity + trigger response rate. Score > 0.7 → proactive intervention. | S | M |
+
+## 3.5 — Integrations
+
+| Proposal | What | Effort | Impact |
+|----------|------|--------|--------|
+| **Pixel Installation Wizard** | Detect missing pixels (already done), generate personalized `<script>` tag + CMS-specific instructions. Closes the ROAS tracking loop. | **S** | **XL** |
+| **Slack Integration** | Morning briefs + competitor alerts + performance drops delivered to Slack. OAuth webhook. | S | M |
+
+## 3.6 — Pricing Innovation
+
+| Proposal | What | Effort | Impact |
+|----------|------|--------|--------|
+| **Performance-Based Tier** | 0% monthly fee + 3% of managed ad spend. Aligns incentives. 500 kr/day = 450 kr/month (≈ Starter plan). Zero-friction entry. | L | **XL** |
+| **Agency White-Label** | Subdomain, custom branding, client management, reseller margin. | XL | L |
+
+---
+
+# Competitive Moat Analysis
+
+**The genuine moat is NOT the pipeline, chat interface, or templates.** Those are replicable in weeks.
+
+**The moat is the Living Profile.** After 90 days of use, Doost knows:
+- Your Creative DNA (which headlines/colors/CTAs convert for YOU)
+- Your behavioral preferences (tone, control level, platform preference)
+- Your competitive landscape (who's running what)
+- Your industry position (percentile vs. peers)
+
+**Starting over at a competitor means losing all of that.** This data compounds and is non-portable. No competitor offers this at the SME price point.
+
+vs. **Smartly.io**: Enterprise-only (€2,000+), no AI copy, complex UI, weeks to learn. Doost wins on accessibility + intelligence.
+vs. **AdCreative.ai**: Image generation only, no deployment, no monitoring. Doost wins on end-to-end pipeline.
+vs. **Pencil**: D2C video focus, requires existing performance data. Doost wins on SME accessibility + full pipeline.
+vs. **Canva**: Design tool, no AI, no deployment, no intelligence. Minimal overlap.
