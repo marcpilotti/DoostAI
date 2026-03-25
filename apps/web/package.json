@@ -22,6 +22,7 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@sentry/nextjs": "^10.45.0",
     "@tanstack/react-query": "^5.95.2",
+    "@xstate/react": "^6.1.0",
     "ai": "^6.0.138",
     "class-variance-authority": "^0.7",
     "clsx": "^2",
@@ -34,6 +35,7 @@
     "react-dom": "^19",
     "stripe": "^20.4.1",
     "tailwind-merge": "^2",
+    "xstate": "^5.29.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {

@@ -20,3 +20,14 @@ export {
 } from "./router";
 export type { ModelChoice, ModelIntent } from "./router";
 export { getCostSummary, trackCost } from "./cost";
+export {
+  canTransition,
+  getAvailableEvents,
+  getNextState,
+} from "./machines/campaign-machine";
+export type { CampaignEvent, CampaignState } from "./machines/campaign-machine";
+export {
+  getCampaignHistory,
+  replayCampaignState,
+  transitionCampaign,
+} from "./services/campaign-state";
