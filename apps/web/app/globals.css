@@ -197,3 +197,13 @@
   background: var(--color);
   animation: confetti-burst 1s ease-out forwards;
 }
+
+/* Editable text save flash */
+@keyframes editable-flash {
+  0% { background-color: rgba(16, 185, 129, 0.15); }
+  100% { background-color: transparent; }
+}
+.editable-saved {
+  animation: editable-flash 0.5s ease-out;
+  border-radius: 2px;
+}

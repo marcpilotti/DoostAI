@@ -2,6 +2,8 @@
 
 import { MoreHorizontal, ThumbsUp, MessageCircle, Repeat2, Send } from "lucide-react";
 
+import { EditableText } from "./editable-text";
+
 type LinkedInAdData = {
   brandName: string;
   brandUrl: string;
@@ -10,6 +12,7 @@ type LinkedInAdData = {
   bodyCopy: string;
   cta: string;
   employeeCount?: number;
+  onEdit?: (field: string, value: string) => void;
 };
 
 export function LinkedInAdPreview({ data }: { data: LinkedInAdData }) {
@@ -45,7 +48,13 @@ export function LinkedInAdPreview({ data }: { data: LinkedInAdData }) {
 
       {/* Post text */}
       <div className="px-4 pb-3">
-        <p className="text-sm leading-snug">{data.bodyCopy}</p>
+        <p className="text-sm leading-snug">
+          <EditableText
+            value={data.bodyCopy}
+            maxLength={150}
+            onSave={(v) => data.onEdit?.("bodyCopy", v)}
+          />
+        </p>
       </div>
 
       {/* Creative image */}
@@ -56,7 +65,11 @@ export function LinkedInAdPreview({ data }: { data: LinkedInAdData }) {
         }}
       >
         <span className="text-xl font-bold leading-tight text-white">
-          {data.headline}
+          <EditableText
+            value={data.headline}
+            maxLength={70}
+            onSave={(v) => data.onEdit?.("headline", v)}
+          />
         </span>
       </div>
 
@@ -75,7 +88,11 @@ export function LinkedInAdPreview({ data }: { data: LinkedInAdData }) {
             color: data.primaryColor,
           }}
         >
-          {data.cta}
+          <EditableText
+            value={data.cta}
+            maxLength={20}
+            onSave={(v) => data.onEdit?.("cta", v)}
+          />
         </button>
       </div>
 

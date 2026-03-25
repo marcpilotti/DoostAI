@@ -2,6 +2,8 @@
 
 import { MessageCircle, MoreHorizontal, Share2, ThumbsUp } from "lucide-react";
 
+import { EditableText } from "./editable-text";
+
 type MetaAdData = {
   brandName: string;
   brandUrl: string;
@@ -9,6 +11,7 @@ type MetaAdData = {
   headline: string;
   bodyCopy: string;
   cta: string;
+  onEdit?: (field: string, value: string) => void;
 };
 
 export function MetaAdPreview({ data }: { data: MetaAdData }) {
@@ -41,7 +44,13 @@ export function MetaAdPreview({ data }: { data: MetaAdData }) {
 
       {/* Post text */}
       <div className="px-3 pb-2.5">
-        <p className="text-sm leading-snug">{data.bodyCopy}</p>
+        <p className="text-sm leading-snug">
+          <EditableText
+            value={data.bodyCopy}
+            maxLength={125}
+            onSave={(v) => data.onEdit?.("bodyCopy", v)}
+          />
+        </p>
       </div>
 
       {/* Creative image */}
@@ -52,7 +61,11 @@ export function MetaAdPreview({ data }: { data: MetaAdData }) {
         }}
       >
         <span className="text-2xl font-bold leading-tight text-white">
-          {data.headline}
+          <EditableText
+            value={data.headline}
+            maxLength={40}
+            onSave={(v) => data.onEdit?.("headline", v)}
+          />
         </span>
       </div>
 
@@ -64,12 +77,16 @@ export function MetaAdPreview({ data }: { data: MetaAdData }) {
           </div>
           <div className="truncate text-sm font-semibold">{data.headline}</div>
         </div>
-        <button
+        <div
           className="ml-3 shrink-0 rounded-md px-4 py-2 text-sm font-semibold text-white"
           style={{ backgroundColor: data.primaryColor }}
         >
-          {data.cta}
-        </button>
+          <EditableText
+            value={data.cta}
+            maxLength={20}
+            onSave={(v) => data.onEdit?.("cta", v)}
+          />
+        </div>
       </div>
 
       {/* Engagement bar */}

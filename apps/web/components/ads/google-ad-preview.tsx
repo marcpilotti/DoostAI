@@ -1,5 +1,7 @@
 "use client";
 
+import { EditableText } from "./editable-text";
+
 type GoogleAdData = {
   brandName: string;
   brandUrl: string;
@@ -7,6 +9,7 @@ type GoogleAdData = {
   bodyCopy: string;
   headlines?: string[];
   descriptions?: string[];
+  onEdit?: (field: string, value: string) => void;
 };
 
 export function GoogleAdPreview({ data }: { data: GoogleAdData }) {
@@ -48,13 +51,23 @@ export function GoogleAdPreview({ data }: { data: GoogleAdData }) {
           className="text-xl font-normal leading-tight text-[#1a0dab] hover:underline"
           onClick={(e) => e.preventDefault()}
         >
-          {displayHeadline}
+          <EditableText
+            value={displayHeadline}
+            maxLength={30}
+            onSave={(v) => data.onEdit?.("headline", v)}
+          />
         </a>
       </div>
 
       {/* Description */}
       <div className="mt-1">
-        <p className="text-sm leading-relaxed text-[#4d5156]">{displayDesc}</p>
+        <p className="text-sm leading-relaxed text-[#4d5156]">
+          <EditableText
+            value={displayDesc}
+            maxLength={90}
+            onSave={(v) => data.onEdit?.("bodyCopy", v)}
+          />
+        </p>
       </div>
 
       {/* Sitelink pills */}
