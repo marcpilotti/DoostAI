@@ -55,9 +55,9 @@ export function routeModel(input: RouterInput): ModelChoice {
   if (input.intent === "copy_generation" && !input.isRegeneration) {
     return {
       provider: "anthropic",
-      modelId: "claude-opus-4-6-20250610",
+      modelId: "claude-opus-4-6",
       reason: "hero_copy",
-      model: anthropic("claude-opus-4-6-20250610"),
+      model: anthropic("claude-opus-4-6"),
     };
   }
 
@@ -65,9 +65,9 @@ export function routeModel(input: RouterInput): ModelChoice {
   if (input.intent === "copy_variant" || input.isRegeneration) {
     return {
       provider: "anthropic",
-      modelId: "claude-opus-4-6-20250610",
+      modelId: "claude-opus-4-6",
       reason: "variants",
-      model: anthropic("claude-opus-4-6-20250610"),
+      model: anthropic("claude-opus-4-6"),
     };
   }
 
@@ -75,9 +75,9 @@ export function routeModel(input: RouterInput): ModelChoice {
   if (input.intent === "analysis") {
     return {
       provider: "anthropic",
-      modelId: "claude-sonnet-4-6-20250514",
+      modelId: "claude-sonnet-4-6",
       reason: "analysis",
-      model: anthropic("claude-sonnet-4-6-20250514"),
+      model: anthropic("claude-sonnet-4-6"),
     };
   }
 
@@ -85,9 +85,9 @@ export function routeModel(input: RouterInput): ModelChoice {
   if (input.intent === "optimization") {
     return {
       provider: "anthropic",
-      modelId: "claude-sonnet-4-6-20250514",
+      modelId: "claude-sonnet-4-6",
       reason: "optimization",
-      model: anthropic("claude-sonnet-4-6-20250514"),
+      model: anthropic("claude-sonnet-4-6"),
     };
   }
 
@@ -95,18 +95,18 @@ export function routeModel(input: RouterInput): ModelChoice {
   if (input.requiresTools) {
     return {
       provider: "anthropic",
-      modelId: "claude-sonnet-4-6-20250514",
+      modelId: "claude-sonnet-4-6",
       reason: "tools_required",
-      model: anthropic("claude-sonnet-4-6-20250514"),
+      model: anthropic("claude-sonnet-4-6"),
     };
   }
 
   // Default: Sonnet 4.6
   return {
     provider: "anthropic",
-    modelId: "claude-sonnet-4-6-20250514",
+    modelId: "claude-sonnet-4-6",
     reason: "default",
-    model: anthropic("claude-sonnet-4-6-20250514"),
+    model: anthropic("claude-sonnet-4-6"),
   };
 }
 

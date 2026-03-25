@@ -89,8 +89,8 @@ async function generateSingleVariant(
   variant: CopyVariant,
   useGpt: boolean,
 ): Promise<AdCopyResult> {
-  const model = anthropic("claude-opus-4-6-20250610");
-  const modelName = "claude-opus-4-6-20250610";
+  const model = anthropic("claude-opus-4-6");
+  const modelName = "claude-opus-4-6";
   const schema = getSchema(platform);
   const prompt = getPrompt(platform, brand, options);
 
