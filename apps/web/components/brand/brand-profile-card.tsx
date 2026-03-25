@@ -181,8 +181,9 @@ export function BrandProfileCard({
     name: "pending",
     industry: "pending",
     location: "pending",
+    logo: "pending",
+    font: "pending",
     colors: "pending",
-    logo: logoUrl ? "pending" : "pending",
   });
 
   useEffect(() => {
@@ -336,6 +337,84 @@ export function BrandProfileCard({
             onEdit={() => startEdit("location")}
           />
         )}
+        {/* Logo field */}
+        <div
+          className={`group relative rounded-xl border px-3 py-2.5 transition-all duration-300 ${
+            approved.logo === "approved"
+              ? "border-emerald-200 bg-emerald-50/30"
+              : "border-border/40 bg-white/50 hover:border-border/60"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <ImageIcon className={`h-3.5 w-3.5 shrink-0 ${approved.logo === "approved" ? "text-emerald-500" : "text-muted-foreground/50"}`} />
+            <div className="min-w-0 flex-1">
+              <div className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/50">Logotyp</div>
+              <div className="truncate text-sm font-medium text-foreground">
+                {logoUrl ? "Uppladdad" : "Saknas"}
+              </div>
+            </div>
+            {approved.logo === "approved" ? (
+              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 shadow-sm">
+                <Check className="h-3 w-3 text-white" strokeWidth={3} />
+              </div>
+            ) : (
+              <label className="flex cursor-pointer gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                {logoUrl && (
+                  <button onClick={() => approve("logo")} className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 transition-colors hover:bg-emerald-100">
+                    <Check className="h-3 w-3" strokeWidth={2.5} />
+                  </button>
+                )}
+                <div className="flex h-6 items-center justify-center rounded-lg bg-muted/40 px-2 text-[9px] font-medium text-muted-foreground transition-colors hover:bg-muted/60">
+                  <Upload className="mr-1 h-2.5 w-2.5" />
+                  Ladda upp
+                </div>
+                <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+              </label>
+            )}
+          </div>
+        </div>
+
+        {/* Font field */}
+        <div
+          className={`group relative rounded-xl border px-3 py-2.5 transition-all duration-300 ${
+            approved.font === "approved"
+              ? "border-emerald-200 bg-emerald-50/30"
+              : "border-border/40 bg-white/50 hover:border-border/60"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <Type className={`h-3.5 w-3.5 shrink-0 ${approved.font === "approved" ? "text-emerald-500" : "text-muted-foreground/50"}`} />
+            <div className="min-w-0 flex-1">
+              <div className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/50">Typsnitt</div>
+              <div className="truncate text-sm font-medium text-foreground">
+                {fontFile ?? data.fonts?.heading ?? "Ej valt"}
+              </div>
+            </div>
+            {approved.font === "approved" ? (
+              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 shadow-sm">
+                <Check className="h-3 w-3 text-white" strokeWidth={3} />
+              </div>
+            ) : (
+              <label className="flex cursor-pointer gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                {(fontFile || data.fonts?.heading) && (
+                  <button onClick={() => approve("font")} className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 transition-colors hover:bg-emerald-100">
+                    <Check className="h-3 w-3" strokeWidth={2.5} />
+                  </button>
+                )}
+                <div className="flex h-6 items-center justify-center rounded-lg bg-muted/40 px-2 text-[9px] font-medium text-muted-foreground transition-colors hover:bg-muted/60">
+                  <Upload className="mr-1 h-2.5 w-2.5" />
+                  Ladda upp
+                </div>
+                <input type="file" accept=".ttf,.otf,.woff,.woff2" className="hidden" onChange={(e) => {
+                  if (e.target.files?.[0]) {
+                    setFontFile(e.target.files[0].name.replace(/\.(ttf|otf|woff2?)$/i, ""));
+                    approve("font");
+                  }
+                }} />
+              </label>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Colors section — approvable */}
@@ -391,25 +470,6 @@ export function BrandProfileCard({
             />
           </div>
         </div>
-      </div>
-
-      {/* Upload row */}
-      <div className="flex items-center gap-2 border-t border-border/20 bg-muted/5 px-5 py-2">
-        <label className="flex cursor-pointer items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium text-muted-foreground/60 transition-colors hover:bg-white hover:text-foreground hover:shadow-sm">
-          <Upload className="h-3 w-3" />
-          {logoUrl ? "Byt logga" : "Logga"}
-          <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-        </label>
-        <label className="flex cursor-pointer items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium text-muted-foreground/60 transition-colors hover:bg-white hover:text-foreground hover:shadow-sm">
-          <Type className="h-3 w-3" />
-          {fontFile ?? "Font"}
-          <input type="file" accept=".ttf,.otf,.woff,.woff2" className="hidden" onChange={(e) => { if (e.target.files?.[0]) setFontFile(e.target.files[0].name); }} />
-        </label>
-        <label className="flex cursor-pointer items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium text-muted-foreground/60 transition-colors hover:bg-white hover:text-foreground hover:shadow-sm">
-          <FileText className="h-3 w-3" />
-          Varumärkesguide
-          <input type="file" accept=".pdf" className="hidden" onChange={() => {}} />
-        </label>
       </div>
 
       {/* Footer CTA */}
