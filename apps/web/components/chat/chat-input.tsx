@@ -52,7 +52,7 @@ export function ChatInput({
       <form
         ref={formRef}
         onSubmit={onSubmit}
-        className="rainbow-glow mx-auto max-w-2xl"
+        className="rainbow-glow mx-auto max-w-xl"
       >
         <div className="rounded-2xl border border-border/40 bg-white/60 p-2 shadow-sm backdrop-blur-xl">
           {urlHint && (

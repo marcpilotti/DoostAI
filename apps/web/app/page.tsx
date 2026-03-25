@@ -71,7 +71,7 @@ export default function Home() {
           <h1 className="text-center font-sketch text-[44px] leading-tight text-foreground/80 sm:text-[60px]">
             Skippa byrån.
           </h1>
-          <div className="mt-8 w-full max-w-2xl">
+          <div className="mt-8 w-full max-w-xl">
             <ChatInput
               input={input}
               onInputChange={setInput}
@@ -91,7 +91,7 @@ export default function Home() {
               }}
             />
           </div>
-          <div className="mx-auto w-full max-w-2xl px-4 sm:px-6">
+          <div className="mx-auto w-full max-w-xl px-4 sm:px-6">
             {!isLoading && messages.length > 0 && !input && (
               <SuggestionChips
                 suggestions={getSuggestionsForStep(flowStep)}
@@ -109,7 +109,7 @@ export default function Home() {
       )}
 
       {error && (
-        <div className="mx-auto mb-4 flex max-w-2xl items-center gap-2 rounded-lg bg-destructive/10 px-4 py-2 text-sm text-destructive">
+        <div className="mx-auto mb-4 flex max-w-xl items-center gap-2 rounded-lg bg-destructive/10 px-4 py-2 text-sm text-destructive">
           <span className="flex-1">{error}</span>
           <button onClick={() => setError(null)} className="text-xs font-medium underline">Stäng</button>
         </div>

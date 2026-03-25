@@ -258,7 +258,7 @@ export function ChatMessages({
 
   return (
     <div className="h-full overflow-y-auto px-4 py-6 sm:px-6">
-      <div className="mx-auto max-w-2xl space-y-6">
+      <div className="mx-auto max-w-xl space-y-6">
         {messages.map((message) => {
           if (message.role === "user") {
             const text = getMessageText(message);
