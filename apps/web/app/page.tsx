@@ -6,6 +6,45 @@ import { useChat } from "@ai-sdk/react";
 import { ChatHeader } from "@/components/chat/chat-header";
 import { ChatInput } from "@/components/chat/chat-input";
 import { ChatMessages } from "@/components/chat/chat-messages";
+import { SuggestionChips } from "@/components/chat/suggestion-chips";
+
+function getSuggestions(messages: Array<{ role: string; parts: Array<{ type: string; [key: string]: unknown }> }>): string[] {
+  if (messages.length === 0) return [];
+  const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
+  if (!lastAssistant) return [];
+
+  const hasToolPart = (name: string) =>
+    lastAssistant.parts.some(
+      (p) => (p.type === "dynamic-tool" || p.type.startsWith("tool-")) && (p as unknown as { toolName?: string }).toolName === name,
+    );
+
+  if (hasToolPart("analyze_brand")) {
+    return [];
+  }
+  if (hasToolPart("show_channel_picker")) {
+    return [];
+  }
+  if (hasToolPart("generate_ad_copy") || hasToolPart("generate_ads")) {
+    return ["Ser bra ut — publicera!", "Gör rubriken kortare", "Prova en annan mall", "Mer professionell ton", "Ändra CTA"];
+  }
+  if (hasToolPart("deploy_campaign")) {
+    return ["Hur går mina annonser?", "Skapa ny kampanj", "Pausa alla kampanjer"];
+  }
+
+  const text = lastAssistant.parts
+    .filter((p) => p.type === "text")
+    .map((p) => (p as unknown as { text: string }).text)
+    .join("");
+
+  if (text.includes("kanal") || text.includes("plattform")) {
+    return ["Meta + Google + LinkedIn", "Bara Meta", "Meta + Google", "Bara Google"];
+  }
+  if (text.includes("budget")) {
+    return ["500 kr/dag", "1000 kr/dag", "2000 kr/dag"];
+  }
+
+  return [];
+}
 
 export default function Home() {
   const [input, setInput] = useState("");
@@ -61,6 +100,14 @@ export default function Home() {
                 sendMessage({ text });
               }}
             />
+          </div>
+          <div className="mx-auto w-full max-w-2xl">
+            {!isLoading && messages.length > 0 && (
+              <SuggestionChips
+                suggestions={getSuggestions(messages)}
+                onSelect={(text) => sendMessage({ text })}
+              />
+            )}
           </div>
           <ChatInput
             input={input}

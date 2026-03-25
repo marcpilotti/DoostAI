@@ -78,6 +78,14 @@ Keep responses short between tool calls — let the UI components speak.`,
             console.warn(
               `Enrichment failed for ${url}: ${enrichSettled.reason}`,
             );
+            // Schedule background retry
+            inngest.send({
+              name: "brand/retry-enrichment",
+              data: {
+                brandProfileId: "pending",
+                domain: url.replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0],
+              },
+            }).catch(() => {}); // fire-and-forget
           }
 
           const profile = await buildBrandProfile(

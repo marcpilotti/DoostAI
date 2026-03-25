@@ -8,3 +8,8 @@ export { googlePollMetrics } from "./google-metrics";
 export { linkedinDeployCampaign } from "./linkedin-deploy";
 export { linkedinRefreshTokens } from "./linkedin-tokens";
 export { linkedinPollAnalytics } from "./linkedin-analytics";
+export { brandRetryEnrichment } from "./brand-retry-enrichment";
+export { optimizerAnalyze } from "./optimizer-analyze";
+export { weeklyDigest } from "./weekly-digest";
+export { embeddingsUpdate } from "./embeddings-update";
+export { creativesPreRender } from "./creatives-pre-render";

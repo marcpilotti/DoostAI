@@ -3,6 +3,9 @@ import { serve } from "inngest/next";
 import { inngest } from "@/lib/inngest/client";
 import {
   analyzeBrand,
+  brandRetryEnrichment,
+  creativesPreRender,
+  embeddingsUpdate,
   googleCreateAccount,
   googleDeployCampaign,
   googlePollMetrics,
@@ -12,12 +15,16 @@ import {
   metaDeployCampaign,
   metaPollInsights,
   metaRefreshTokens,
+  optimizerAnalyze,
+  weeklyDigest,
 } from "@/lib/inngest/functions";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
   functions: [
     analyzeBrand,
+    brandRetryEnrichment,
+    creativesPreRender,
     metaDeployCampaign,
     metaPollInsights,
     metaRefreshTokens,
@@ -27,5 +34,8 @@ export const { GET, POST, PUT } = serve({
     linkedinDeployCampaign,
     linkedinRefreshTokens,
     linkedinPollAnalytics,
+    optimizerAnalyze,
+    weeklyDigest,
+    embeddingsUpdate,
   ],
 });
