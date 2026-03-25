@@ -32,7 +32,7 @@ export function UpgradePrompt({ data }: { data: UpgradeData }) {
           </h4>
           <p className="mt-1 text-sm text-muted-foreground">{data.reason}</p>
           <Link
-            href="/settings/billing"
+            href="/dashboard/settings/billing"
             className="mt-3 inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
           >
             Uppgradera till {planName} — €{price}/mån

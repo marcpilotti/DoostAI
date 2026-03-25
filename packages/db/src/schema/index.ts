@@ -140,6 +140,7 @@ export const adAccounts = pgTable(
       businessManagerId?: string;
       mccCustomerId?: string;
       pageId?: string;
+      refreshTokenIv?: string;
     }>(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),

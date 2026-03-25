@@ -109,14 +109,14 @@ export function BrandProfileCard({ data }: { data: BrandProfileData }) {
         {data.employeeCount != null && (
           <DataField
             icon={Users}
-            label="Anst&auml;llda"
+            label="Anställda"
             value={data.employeeCount.toLocaleString("sv-SE")}
           />
         )}
         {data.revenue && (
           <DataField
             icon={TrendingUp}
-            label="Oms&auml;ttning"
+            label="Omsättning"
             value={data.revenue}
           />
         )}
@@ -129,11 +129,11 @@ export function BrandProfileCard({ data }: { data: BrandProfileData }) {
       <div className="mb-4">
         <div className="mb-2 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
           <Globe className="h-3 w-3" />
-          Varum&auml;rkesf&auml;rger
+          Varumärkesfärger
         </div>
         <div className="grid grid-cols-3 gap-3">
-          <ColorSwatch color={colors.primary} label="Prim&auml;r" />
-          <ColorSwatch color={colors.secondary} label="Sekund&auml;r" />
+          <ColorSwatch color={colors.primary} label="Primär" />
+          <ColorSwatch color={colors.secondary} label="Sekundär" />
           <ColorSwatch color={colors.accent} label="Accent" />
         </div>
       </div>
@@ -147,7 +147,7 @@ export function BrandProfileCard({ data }: { data: BrandProfileData }) {
           </span>
         </span>
         <span>
-          Br&ouml;dtext:{" "}
+          Brödtext:{" "}
           <span className="font-medium text-foreground/80">
             {data.fonts.body}
           </span>

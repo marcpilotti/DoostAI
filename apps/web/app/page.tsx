@@ -9,7 +9,12 @@ import { ChatMessages } from "@/components/chat/chat-messages";
 
 export default function Home() {
   const [input, setInput] = useState("");
-  const { messages, sendMessage, status } = useChat();
+  const [error, setError] = useState<string | null>(null);
+  const { messages, sendMessage, status } = useChat({
+    onError: (err) => {
+      setError(err.message ?? "Något gick fel. Försök igen.");
+    },
+  });
 
   const isLoading = status === "submitted" || status === "streaming";
 
@@ -64,6 +69,18 @@ export default function Home() {
             isLoading={isLoading}
           />
         </>
+      )}
+
+      {error && (
+        <div className="mx-auto mb-4 flex max-w-2xl items-center gap-2 rounded-lg bg-destructive/10 px-4 py-2 text-sm text-destructive">
+          <span className="flex-1">{error}</span>
+          <button
+            onClick={() => setError(null)}
+            className="text-xs font-medium underline"
+          >
+            Stäng
+          </button>
+        </div>
       )}
     </div>
   );

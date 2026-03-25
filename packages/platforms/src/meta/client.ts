@@ -51,20 +51,24 @@ export class MetaAdsClient {
     }
 
     const url = new URL(`${META_API_BASE}${path}`);
-    url.searchParams.set("access_token", this.token);
     if (options.params) {
       for (const [k, v] of Object.entries(options.params)) {
         url.searchParams.set(k, v);
       }
     }
 
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${this.token}`,
+    };
+
     const fetchOptions: RequestInit = {
       method: options.method ?? "GET",
+      headers,
     };
 
     if (options.body) {
       fetchOptions.method = "POST";
-      fetchOptions.headers = { "Content-Type": "application/json" };
+      headers["Content-Type"] = "application/json";
       fetchOptions.body = JSON.stringify(options.body);
     }
 

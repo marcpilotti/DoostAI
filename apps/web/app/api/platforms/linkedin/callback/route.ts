@@ -50,6 +50,9 @@ export async function GET(req: Request) {
       refreshTokenEncrypted: refreshEncrypted,
       tokenExpiresAt: expiresAt,
       scopes: ["r_ads", "w_ads", "r_ads_reporting", "w_organization_social"],
+      metadata: {
+        refreshTokenIv: refreshIv,
+      },
     })
     .onConflictDoUpdate({
       target: [

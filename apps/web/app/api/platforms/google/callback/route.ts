@@ -53,6 +53,7 @@ export async function GET(req: Request) {
       scopes: ["https://www.googleapis.com/auth/adwords"],
       metadata: {
         mccCustomerId: process.env.GOOGLE_ADS_MCC_ID,
+        refreshTokenIv: refreshIv,
       },
     })
     .onConflictDoUpdate({

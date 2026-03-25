@@ -166,6 +166,16 @@ export class GoogleAdsClient {
     startDate: string,
     endDate: string,
   ): Promise<Array<Record<string, unknown>>> {
+    // Validate inputs to prevent GAQL injection
+    const safeId = campaignId.replace(/\D/g, "");
+    const safeDateRe = /^\d{4}-\d{2}-\d{2}$/;
+    if (!safeDateRe.test(startDate) || !safeDateRe.test(endDate)) {
+      throw new Error("Invalid date format — expected YYYY-MM-DD");
+    }
+    if (!safeId) {
+      throw new Error("Invalid campaign ID — expected numeric");
+    }
+
     const query = `
       SELECT
         campaign.id,
@@ -178,7 +188,7 @@ export class GoogleAdsClient {
         metrics.ctr,
         metrics.average_cpc
       FROM campaign
-      WHERE campaign.id = ${campaignId}
+      WHERE campaign.id = ${safeId}
         AND segments.date BETWEEN '${startDate}' AND '${endDate}'
     `;
 

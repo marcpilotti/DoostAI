@@ -46,7 +46,6 @@ CRITICAL RULES:
 - Keep ALL text responses to 1-2 sentences max between tool calls.
 - If user picks LinkedIn, call connect_linkedin first — LinkedIn requires individual OAuth.
 If user wants to edit copy, call generate_ads again.
-For deploy_campaign, you MUST pass an orgId. Use "demo-org" if none is available.
 
 Keep responses short between tool calls — let the UI components speak.`,
     tools: {

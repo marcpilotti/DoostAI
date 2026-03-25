@@ -35,16 +35,16 @@ export async function exchangeCode(
     throw new Error("META_APP_ID and META_APP_SECRET must be set");
   }
 
-  const params = new URLSearchParams({
-    client_id: appId,
-    client_secret: appSecret,
-    redirect_uri: redirectUri,
-    code,
+  const res = await fetch(`${META_API_BASE}/oauth/access_token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: appId,
+      client_secret: appSecret,
+      redirect_uri: redirectUri,
+      code,
+    }),
   });
-
-  const res = await fetch(
-    `${META_API_BASE}/oauth/access_token?${params.toString()}`,
-  );
   const data = (await res.json()) as {
     access_token?: string;
     expires_in?: number;
@@ -72,16 +72,16 @@ export async function extendToken(
     throw new Error("META_APP_ID and META_APP_SECRET must be set");
   }
 
-  const params = new URLSearchParams({
-    grant_type: "fb_exchange_token",
-    client_id: appId,
-    client_secret: appSecret,
-    fb_exchange_token: shortLivedToken,
+  const res = await fetch(`${META_API_BASE}/oauth/access_token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "fb_exchange_token",
+      client_id: appId,
+      client_secret: appSecret,
+      fb_exchange_token: shortLivedToken,
+    }),
   });
-
-  const res = await fetch(
-    `${META_API_BASE}/oauth/access_token?${params.toString()}`,
-  );
   const data = (await res.json()) as {
     access_token?: string;
     expires_in?: number;
