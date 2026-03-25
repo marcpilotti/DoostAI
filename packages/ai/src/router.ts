@@ -37,7 +37,7 @@ const MODEL_COSTS: Record<string, { input: number; output: number }> = {
 // --- Router ---
 
 export function routeModel(input: RouterInput): ModelChoice {
-  // Quick chat: Haiku (3x cheaper, 5x faster)
+  // Quick chat: Haiku (fast for simple messages)
   if (
     input.intent === "chat" &&
     input.messageTokens < 50 &&
@@ -51,62 +51,62 @@ export function routeModel(input: RouterInput): ModelChoice {
     };
   }
 
-  // Hero copy: Sonnet (best quality)
+  // Hero copy: Sonnet 4.6 (best quality copy)
   if (input.intent === "copy_generation" && !input.isRegeneration) {
     return {
       provider: "anthropic",
-      modelId: "claude-sonnet-4-20250514",
+      modelId: "claude-sonnet-4-6-20250514",
       reason: "hero_copy",
-      model: anthropic("claude-sonnet-4-20250514"),
+      model: anthropic("claude-sonnet-4-6-20250514"),
     };
   }
 
-  // Variants / regeneration: GPT-4o (fast, good compliance)
+  // Variants / regeneration: Sonnet 4.6 (top quality for all variants)
   if (input.intent === "copy_variant" || input.isRegeneration) {
     return {
-      provider: "openai",
-      modelId: "gpt-4o",
+      provider: "anthropic",
+      modelId: "claude-sonnet-4-6-20250514",
       reason: "variants",
-      model: openai("gpt-4o"),
+      model: anthropic("claude-sonnet-4-6-20250514"),
     };
   }
 
-  // Brand analysis: Sonnet (long context, structured output)
+  // Brand analysis: Sonnet 4.6 (accurate structured output)
   if (input.intent === "analysis") {
     return {
       provider: "anthropic",
-      modelId: "claude-sonnet-4-20250514",
+      modelId: "claude-sonnet-4-6-20250514",
       reason: "analysis",
-      model: anthropic("claude-sonnet-4-20250514"),
+      model: anthropic("claude-sonnet-4-6-20250514"),
     };
   }
 
-  // Optimization: Haiku (structured, low creativity)
+  // Optimization: Sonnet 4.6 (quality recommendations)
   if (input.intent === "optimization") {
     return {
       provider: "anthropic",
-      modelId: "claude-haiku-4-5-20251001",
+      modelId: "claude-sonnet-4-6-20250514",
       reason: "optimization",
-      model: anthropic("claude-haiku-4-5-20251001"),
+      model: anthropic("claude-sonnet-4-6-20250514"),
     };
   }
 
-  // Chat with tools: Sonnet (tool use quality)
+  // Chat with tools: Sonnet 4.6 (tool use quality)
   if (input.requiresTools) {
     return {
       provider: "anthropic",
-      modelId: "claude-sonnet-4-20250514",
+      modelId: "claude-sonnet-4-6-20250514",
       reason: "tools_required",
-      model: anthropic("claude-sonnet-4-20250514"),
+      model: anthropic("claude-sonnet-4-6-20250514"),
     };
   }
 
-  // Default: Sonnet
+  // Default: Sonnet 4.6
   return {
     provider: "anthropic",
-    modelId: "claude-sonnet-4-20250514",
+    modelId: "claude-sonnet-4-6-20250514",
     reason: "default",
-    model: anthropic("claude-sonnet-4-20250514"),
+    model: anthropic("claude-sonnet-4-6-20250514"),
   };
 }
 

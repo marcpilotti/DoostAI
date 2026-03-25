@@ -89,10 +89,8 @@ async function generateSingleVariant(
   variant: CopyVariant,
   useGpt: boolean,
 ): Promise<AdCopyResult> {
-  const model = useGpt
-    ? openai("gpt-4o")
-    : anthropic("claude-sonnet-4-20250514");
-  const modelName = useGpt ? "gpt-4o" : "claude-sonnet-4-20250514";
+  const model = anthropic("claude-sonnet-4-6-20250514");
+  const modelName = "claude-sonnet-4-6-20250514";
   const schema = getSchema(platform);
   const prompt = getPrompt(platform, brand, options);
 
