@@ -5,6 +5,7 @@ import {
 } from "@doost/brand";
 import { brandProfiles, db } from "@doost/db";
 
+import { invalidateBrandCache } from "@/lib/cache/brand-cache";
 import { inngest } from "../client";
 
 export const analyzeBrand = inngest.createFunction(
@@ -65,7 +66,12 @@ export const analyzeBrand = inngest.createFunction(
         .returning({ id: brandProfiles.id });
     });
 
-    // Step 4: Emit completion event
+    // Step 4: Invalidate brand cache for this org
+    await step.run("invalidate-cache", async () => {
+      invalidateBrandCache(orgId);
+    });
+
+    // Step 5: Emit completion event
     await step.sendEvent("brand-complete", {
       name: "brand/complete",
       data: {
