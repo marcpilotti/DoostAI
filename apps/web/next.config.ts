@@ -37,4 +37,19 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Wrap with Sentry if DSN is configured
+let exportedConfig = nextConfig;
+try {
+  if (process.env.SENTRY_DSN && !process.env.SENTRY_DSN.startsWith("https://...")) {
+    const { withSentryConfig } = require("@sentry/nextjs");
+    exportedConfig = withSentryConfig(nextConfig, {
+      silent: true,
+      org: process.env.SENTRY_ORG,
+      project: process.env.SENTRY_PROJECT,
+    });
+  }
+} catch {
+  // @sentry/nextjs not available — skip
+}
+
+export default exportedConfig;

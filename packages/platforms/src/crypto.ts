@@ -2,7 +2,7 @@ import { createCipheriv, createDecipheriv, randomBytes } from "crypto";
 
 const ALGORITHM = "aes-256-gcm";
 const KEY_LENGTH = 32;
-const IV_LENGTH = 16;
+const IV_LENGTH = 12; // NIST recommended for AES-GCM
 const TAG_LENGTH = 16;
 
 function getEncryptionKey(): Buffer {

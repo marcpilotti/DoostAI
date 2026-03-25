@@ -127,5 +127,9 @@ function mapPriceIdToPlan(
   if (priceId === starterPrice) return "starter";
   if (priceId === proPrice) return "pro";
   if (priceId === agencyPrice) return "agency";
+
+  console.warn(
+    `Unknown Stripe price ID: ${priceId}. Check STRIPE_PRICE_STARTER/PRO/AGENCY env vars. Defaulting to free.`,
+  );
   return "free";
 }

@@ -166,7 +166,7 @@ export const campaigns = pgTable(
       .references(() => organizations.id, { onDelete: "cascade" }),
     brandProfileId: uuid("brand_profile_id")
       .notNull()
-      .references(() => brandProfiles.id),
+      .references(() => brandProfiles.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     status: campaignStatusEnum("status").notNull().default("draft"),
     objective: text("objective"),

@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, Copy, MoreHorizontal, Pause, Play, Trash2 } from "lucide-react";
+import { Copy, Pause, Play, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 

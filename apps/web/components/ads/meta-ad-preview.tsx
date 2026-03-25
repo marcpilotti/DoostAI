@@ -1,6 +1,6 @@
 "use client";
 
-import { Heart, MessageCircle, MoreHorizontal, Share2, ThumbsUp } from "lucide-react";
+import { MessageCircle, MoreHorizontal, Share2, ThumbsUp } from "lucide-react";
 
 type MetaAdData = {
   brandName: string;
