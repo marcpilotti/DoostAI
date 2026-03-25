@@ -22,6 +22,7 @@ const config: Config = {
         heading: ["var(--font-outfit)", "system-ui", "sans-serif"],
         display: ["var(--font-dm-sans)", "system-ui", "sans-serif"],
         sketch: ["var(--font-marker)", "cursive"],
+        grotesk: ["var(--font-space-grotesk)", "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

@@ -79,10 +79,10 @@ export default function Home() {
       {isEmpty ? (
         <div className="flex flex-1 flex-col items-center justify-center px-6 pb-8">
           <h1 className="text-center leading-tight">
-            <span className="block font-sketch text-[46px] text-foreground sm:text-[64px]">
+            <span className="block font-sketch text-[44px] text-foreground/80 sm:text-[60px]">
               Skippa byrån.
             </span>
-            <span className="block font-display text-[26px] font-bold tracking-tight text-[#6366f1] sm:text-[38px]">
+            <span className="mt-1 block font-grotesk text-[26px] font-medium tracking-tight text-[#6366f1] sm:text-[36px]">
               Bygg din kampanj!
             </span>
           </h1>

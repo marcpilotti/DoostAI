@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DM_Sans, Instrument_Sans, Outfit, Permanent_Marker } from "next/font/google";
+import { DM_Sans, Instrument_Sans, Outfit, Permanent_Marker, Space_Grotesk } from "next/font/google";
 import { PostHogProvider } from "@/lib/posthog/provider";
 import { QueryProvider } from "@/lib/query-provider";
 
@@ -31,6 +31,13 @@ const marker = Permanent_Marker({
   display: "swap",
 });
 
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
+  weight: ["500", "700"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Doost AI",
   description: "AI-powered marketing campaigns",
@@ -53,7 +60,7 @@ export default function RootLayout({
   return (
     <html lang="sv">
       <body
-        className={`${outfit.variable} ${instrumentSans.variable} ${dmSans.variable} ${marker.variable} font-sans antialiased`}
+        className={`${outfit.variable} ${instrumentSans.variable} ${dmSans.variable} ${marker.variable} ${spaceGrotesk.variable} font-sans antialiased`}
       >
         <QueryProvider>
           <PostHogProvider>{children}</PostHogProvider>
