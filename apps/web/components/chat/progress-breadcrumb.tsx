@@ -39,7 +39,7 @@ export function ProgressBreadcrumb({
   currentStep: FlowStep;
 }) {
   return (
-    <div className="sticky top-0 z-20 border-b border-border/30 bg-background/90 backdrop-blur-md">
+    <div className="border-b border-border/30 bg-background/90 backdrop-blur-md">
       {/* Desktop */}
       <div className="mx-auto hidden items-center justify-center gap-1 px-6 py-2 sm:flex">
         {STEPS.map((step, i) => {

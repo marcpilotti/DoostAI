@@ -61,9 +61,10 @@ export default function Home() {
 
   return (
     <div className="flex h-screen flex-col bg-background">
-      <ChatHeader />
-
-      {!isEmpty && <ProgressBreadcrumb currentStep={flowStep} />}
+      <div className="shrink-0">
+        <ChatHeader />
+        {!isEmpty && <ProgressBreadcrumb currentStep={flowStep} />}
+      </div>
 
       {isEmpty ? (
         <div className="flex flex-1 flex-col items-center justify-center px-6 pb-8">
