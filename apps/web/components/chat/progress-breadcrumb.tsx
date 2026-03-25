@@ -41,7 +41,7 @@ export function ProgressBreadcrumb({
   return (
     <div className="border-b border-border/30 bg-background/90 backdrop-blur-md">
       {/* Desktop */}
-      <div className="mx-auto hidden items-center justify-center gap-0.5 px-4 py-0.5 sm:flex">
+      <div className="mx-auto hidden items-center justify-center gap-1 px-6 py-2 sm:flex">
         {STEPS.map((step, i) => {
           const state = getStepState(step.id, currentStep);
           const Icon = step.icon;
@@ -49,13 +49,13 @@ export function ProgressBreadcrumb({
             <div key={step.id} className="flex items-center">
               {i > 0 && (
                 <div
-                  className={`mx-1 h-px w-6 transition-colors duration-500 ${
+                  className={`mx-1.5 h-px w-8 transition-colors duration-500 ${
                     state === "upcoming" ? "bg-border/30" : "bg-emerald-400/60"
                   }`}
                 />
               )}
               <div
-                className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-medium transition-all duration-300 ${
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium transition-all duration-300 ${
                   state === "completed"
                     ? "text-emerald-600"
                     : state === "current"
@@ -64,10 +64,10 @@ export function ProgressBreadcrumb({
                 }`}
               >
                 {state === "completed" ? (
-                  <Check className="h-2.5 w-2.5" />
+                  <Check className="h-3 w-3" />
                 ) : (
                   <Icon
-                    className={`h-2.5 w-2.5 ${state === "current" ? "animate-pulse" : ""}`}
+                    className={`h-3 w-3 ${state === "current" ? "animate-pulse" : ""}`}
                   />
                 )}
                 <span>{step.label}</span>

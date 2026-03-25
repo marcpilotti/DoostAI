@@ -3,11 +3,6 @@
 @tailwind utilities;
 
 @layer base {
-  html {
-    font-size: 13px;
-    zoom: 0.75;
-  }
-
   :root {
     --background: 0 0% 100%;
     --foreground: 221 54% 13%;

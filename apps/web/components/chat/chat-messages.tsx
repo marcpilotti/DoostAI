@@ -257,15 +257,15 @@ export function ChatMessages({
   }, [messages, isLoading]);
 
   return (
-    <div className="h-full overflow-y-auto px-3 py-4 sm:px-4">
-      <div className="mx-auto max-w-lg space-y-4">
+    <div className="h-full overflow-y-auto px-4 py-6 sm:px-6">
+      <div className="mx-auto max-w-2xl space-y-6">
         {messages.map((message) => {
           if (message.role === "user") {
             const text = getMessageText(message);
             if (!text) return null;
             return (
               <div key={message.id} className="animate-message-in flex justify-end">
-                <div className="max-w-[80%] rounded-2xl rounded-br-md bg-primary px-3 py-1.5 text-xs leading-relaxed text-primary-foreground sm:max-w-[75%]">
+                <div className="max-w-[85%] rounded-2xl rounded-br-md bg-primary px-4 py-2.5 text-sm leading-relaxed text-primary-foreground sm:max-w-[80%]">
                   {text}
                 </div>
               </div>
@@ -283,14 +283,14 @@ export function ChatMessages({
           if (!hasContent) return null;
 
           return (
-            <div key={message.id} className="animate-message-in flex items-start gap-2">
-              <img src="/symbol.svg" alt="" width={20} height={20} className="mt-0.5 h-5 w-5 shrink-0" aria-hidden />
-              <div className="min-w-0 max-w-[90%] space-y-1.5 sm:max-w-[85%]">
+            <div key={message.id} className="animate-message-in flex items-start gap-3">
+              <img src="/symbol.svg" alt="" width={28} height={28} className="h-7 w-7 shrink-0" aria-hidden />
+              <div className="min-w-0 max-w-[90%] space-y-2 sm:max-w-[85%]">
                 {textParts.map((part, i) =>
                   part.text.trim() ? (
                     <div
                       key={i}
-                      className="whitespace-pre-wrap text-xs leading-relaxed text-foreground/90"
+                      className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90"
                     >
                       {part.text}
                     </div>
