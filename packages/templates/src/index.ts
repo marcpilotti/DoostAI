@@ -1,5 +1,5 @@
 export { getTemplate, getTemplatesForPlatform, templates } from "./registry";
-export { renderTemplate, renderToImage, renderToSvg } from "./renderer";
+export { renderToImage, renderToSvg } from "./renderer";
 export type {
   AdContent,
   AdFormat,

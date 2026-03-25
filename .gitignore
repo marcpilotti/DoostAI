@@ -36,3 +36,4 @@ pnpm-debug.log*
 # Reference files (not part of build)
 reference/
 .vercel
+tmp/
