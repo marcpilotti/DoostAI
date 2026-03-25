@@ -5,10 +5,12 @@ import { z } from "zod";
 import { createTrace, traceGeneration, flushTraces } from "@doost/ai";
 import type { BrandProfile, BrandScrapeResult, CompanyEnrichment } from "./types";
 
+const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/, "Must be 6-digit hex like #1B2F5B");
+
 const brandAnalysisSchema = z.object({
-  name: z.string().describe("Company name"),
-  description: z.string().describe("One-sentence company description"),
-  industry: z.string().describe("Primary industry"),
+  name: z.string().describe("Company name without suffix (no AB, Inc, Ltd)"),
+  description: z.string().max(200).describe("One-sentence company description in Swedish"),
+  industry: z.string().describe("Primary industry in Swedish. Be specific: 'Fintech', 'E-handel', 'SaaS', 'Restaurang', 'Fastigheter', etc."),
   brandVoice: z
     .string()
     .describe(
@@ -19,26 +21,22 @@ const brandAnalysisSchema = z.object({
     .describe("Primary target audience description"),
   valuePropositions: z
     .array(z.string())
+    .min(3).max(5)
     .describe("3-5 key value propositions"),
   competitors: z
     .array(z.string())
+    .min(2).max(5)
     .describe("3-5 likely competitors"),
   colors: z.object({
-    primary: z
-      .string()
-      .describe("Primary brand color as hex (e.g. #1B2F5B)"),
-    secondary: z.string().describe("Secondary brand color as hex"),
-    accent: z.string().describe("Accent color as hex"),
-    background: z
-      .string()
-      .describe("Background color as hex, usually white or near-white"),
-    text: z
-      .string()
-      .describe("Text color as hex, usually dark"),
+    primary: hexColor.describe("Primary brand color from the website CSS. MUST be from the CSS data if available."),
+    secondary: hexColor.describe("Secondary brand color from the website CSS"),
+    accent: hexColor.describe("Accent color from the website CSS"),
+    background: hexColor.describe("Background color, usually #FFFFFF or near-white"),
+    text: hexColor.describe("Text color, usually #1A1A1A or similar dark"),
   }),
   fonts: z.object({
-    heading: z.string().describe("Heading font family name"),
-    body: z.string().describe("Body font family name"),
+    heading: z.string().describe("Heading font family from CSS. Use the EXACT name found in CSS."),
+    body: z.string().describe("Body font family from CSS. Use the EXACT name found in CSS."),
   }),
 });
 
@@ -46,21 +44,25 @@ export async function buildBrandProfile(
   scrapeResult: BrandScrapeResult,
   enrichment?: CompanyEnrichment,
 ): Promise<BrandProfile> {
+  // Put hard facts first, website content last — AI prioritizes early context
   const context = [
+    `== HARD FACTS (use these directly) ==`,
+    enrichment?.name && `Company name: ${enrichment.name}`,
+    enrichment?.industry && `Industry (from registry): ${enrichment.industry}`,
+    enrichment?.location && `Location: ${enrichment.location}`,
+    scrapeResult.colors.length > 0 &&
+      `Colors found in CSS (USE THESE EXACT HEX VALUES): ${scrapeResult.colors.join(", ")}`,
+    scrapeResult.fonts.length > 0 &&
+      `Fonts found in CSS (USE THESE EXACT NAMES): ${scrapeResult.fonts.join(", ")}`,
+    ``,
+    `== WEBSITE METADATA ==`,
     `URL: ${scrapeResult.url}`,
     scrapeResult.title && `Page title: ${scrapeResult.title}`,
     scrapeResult.description && `Meta description: ${scrapeResult.description}`,
-    scrapeResult.colors.length > 0 &&
-      `Colors found in CSS: ${scrapeResult.colors.join(", ")}`,
-    scrapeResult.fonts.length > 0 &&
-      `Fonts found in CSS: ${scrapeResult.fonts.join(", ")}`,
-    enrichment?.name && `Company name: ${enrichment.name}`,
-    enrichment?.industry && `Industry: ${enrichment.industry}`,
-    enrichment?.employeeCount &&
-      `Employee count: ${enrichment.employeeCount}`,
-    enrichment?.location && `Location: ${enrichment.location}`,
+    ``,
+    `== WEBSITE CONTENT ==`,
     scrapeResult.markdown &&
-      `Website content (truncated):\n${scrapeResult.markdown.slice(0, 6000)}`,
+      scrapeResult.markdown.slice(0, 6000),
   ]
     .filter(Boolean)
     .join("\n");
@@ -71,12 +73,15 @@ export async function buildBrandProfile(
   const { object } = await generateObject({
     model: anthropic("claude-haiku-4-5-20251001"),
     schema: brandAnalysisSchema,
-    prompt: `Analyze this company's brand identity from their website data. Extract structured brand information.
+    temperature: 0,
+    prompt: `Analyze this company's brand identity. Return ONLY facts from the data below — do NOT guess or hallucinate.
 
-CRITICAL:
-- For "industry": Determine the ACTUAL industry from the website content. Examples: "Fintech", "E-handel", "SaaS", "Restaurang", "Fastigheter", "Hälsa & Träning", "Bygg & Konstruktion", "Utbildning", "Juridik", "Marknadsföring", "Konsult", etc. Be SPECIFIC — never default to "Dataprogrammering" or generic "IT".
-- If color data is available from CSS, prefer those exact colors. If fonts are detected, use those exact names.
-- Infer brand voice, target audience, and value propositions from the actual website content.
+RULES (follow exactly):
+1. COLORS: You MUST use the exact hex colors from "Colors found in CSS". Pick the most prominent non-white/non-black color as primary. If no CSS colors, use the most visible color from the page content.
+2. FONTS: You MUST use the exact font names from "Fonts found in CSS". If none found, return "Inter" as default.
+3. INDUSTRY: Determine from website content. Use specific Swedish terms: "Fintech", "E-handel", "SaaS", "Rekrytering", "Fastigheter", "Hälsa & Träning", "Juridik", "Marknadsföring", "Logistik", "Utbildning", "Restaurang", "Bygg", "Konsult", etc. NEVER use "Dataprogrammering" or generic "IT".
+4. NAME: Return the company name WITHOUT suffix (no AB, Inc, Ltd, GmbH).
+5. DESCRIPTION: One sentence in Swedish describing what the company does.
 
 ${context}`,
   });
@@ -89,6 +94,26 @@ ${context}`,
     latencyMs: Date.now() - start,
   });
   await flushTraces();
+
+  // Post-process: prefer scraped CSS colors if AI hallucinated different ones
+  const cssColors = scrapeResult.colors.filter((c) => /^#[0-9a-fA-F]{6}$/.test(c));
+  const finalColors = { ...object.colors };
+  if (cssColors.length >= 1 && !cssColors.includes(finalColors.primary.toLowerCase())) {
+    finalColors.primary = cssColors[0]!;
+  }
+  if (cssColors.length >= 2 && !cssColors.includes(finalColors.secondary.toLowerCase())) {
+    finalColors.secondary = cssColors[1]!;
+  }
+  if (cssColors.length >= 3 && !cssColors.includes(finalColors.accent.toLowerCase())) {
+    finalColors.accent = cssColors[2]!;
+  }
+
+  // Post-process: prefer scraped fonts
+  const cssFonts = scrapeResult.fonts;
+  const finalFonts = { ...object.fonts };
+  if (cssFonts.length >= 1 && cssFonts[0]) finalFonts.heading = cssFonts[0];
+  if (cssFonts.length >= 2 && cssFonts[1]) finalFonts.body = cssFonts[1];
+  else if (cssFonts.length === 1 && cssFonts[0]) finalFonts.body = cssFonts[0];
 
   const primaryLogo =
     scrapeResult.logoUrls[0] ?? scrapeResult.ogImage ?? undefined;
@@ -104,8 +129,8 @@ ${context}`,
     location: enrichment?.location,
     ceo: enrichment?.ceo,
     orgNumber: enrichment?.orgNumber,
-    colors: object.colors,
-    fonts: object.fonts,
+    colors: finalColors,
+    fonts: finalFonts,
     logos: {
       primary: primaryLogo,
       icon: scrapeResult.logoUrls[1],
