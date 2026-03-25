@@ -2,7 +2,7 @@
 
 function Shimmer({ className }: { className?: string }) {
   return (
-    <div className={`shimmer-bar animate-pulse rounded bg-muted/50 ${className ?? ""}`} />
+    <div className={`animate-shimmer rounded bg-gradient-to-r from-muted via-muted/50 to-muted bg-[length:200%_100%] ${className ?? ""}`} />
   );
 }
 

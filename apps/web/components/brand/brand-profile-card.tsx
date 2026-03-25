@@ -224,6 +224,7 @@ export function BrandProfileCard({ data }: { data: BrandProfileData }) {
 export function BrandProfileLoading() {
   return (
     <div className="mt-1 overflow-hidden rounded-2xl border border-white/30 bg-white/50 p-5 shadow-sm backdrop-blur-xl">
+      {/* Badge */}
       <div className="mb-4 flex items-center gap-2">
         <div className="flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1">
           <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />
@@ -232,15 +233,31 @@ export function BrandProfileLoading() {
           </span>
         </div>
       </div>
-      <div className="space-y-3">
-        <div className="h-5 w-48 animate-pulse rounded-lg bg-muted/60" />
-        <div className="h-4 w-64 animate-pulse rounded-lg bg-muted/40" />
-        <div className="grid grid-cols-2 gap-2">
-          <div className="h-14 animate-pulse rounded-xl bg-muted/30" />
-          <div className="h-14 animate-pulse rounded-xl bg-muted/30" />
-          <div className="h-14 animate-pulse rounded-xl bg-muted/30" />
-          <div className="h-14 animate-pulse rounded-xl bg-muted/30" />
-        </div>
+      {/* Company name + URL */}
+      <div className="mb-1 h-6 w-40 animate-shimmer rounded-md bg-gradient-to-r from-muted via-muted/50 to-muted bg-[length:200%_100%]" />
+      <div className="mb-3 h-3.5 w-28 animate-shimmer rounded-md bg-gradient-to-r from-muted/60 via-muted/30 to-muted/60 bg-[length:200%_100%]" />
+      {/* Description */}
+      <div className="mb-4 space-y-1.5">
+        <div className="h-3.5 w-full animate-shimmer rounded bg-gradient-to-r from-muted/40 via-muted/20 to-muted/40 bg-[length:200%_100%]" />
+        <div className="h-3.5 w-3/4 animate-shimmer rounded bg-gradient-to-r from-muted/40 via-muted/20 to-muted/40 bg-[length:200%_100%]" />
+      </div>
+      {/* Data grid — matches 2x2 DataField layout */}
+      <div className="mb-4 grid grid-cols-2 gap-2">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="rounded-xl bg-white/70 px-3 py-2.5">
+            <div className="mb-1 h-2.5 w-14 animate-shimmer rounded bg-gradient-to-r from-muted/50 via-muted/25 to-muted/50 bg-[length:200%_100%]" style={{ animationDelay: `${i * 100}ms` }} />
+            <div className="h-4 w-20 animate-shimmer rounded bg-gradient-to-r from-muted/60 via-muted/30 to-muted/60 bg-[length:200%_100%]" style={{ animationDelay: `${i * 100}ms` }} />
+          </div>
+        ))}
+      </div>
+      {/* Color swatches */}
+      <div className="flex gap-4">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="flex items-center gap-2">
+            <div className="h-5 w-5 animate-shimmer rounded-full bg-gradient-to-r from-muted via-muted/50 to-muted bg-[length:200%_100%]" style={{ animationDelay: `${i * 150}ms` }} />
+            <div className="h-3 w-12 animate-shimmer rounded bg-gradient-to-r from-muted/50 via-muted/25 to-muted/50 bg-[length:200%_100%]" style={{ animationDelay: `${i * 150}ms` }} />
+          </div>
+        ))}
       </div>
     </div>
   );

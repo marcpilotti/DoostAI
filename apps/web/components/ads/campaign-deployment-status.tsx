@@ -220,8 +220,8 @@ export function CampaignDeploymentLoading() {
       <div className="flex items-center gap-2.5 rounded-xl bg-muted/40 p-3">
         <Rocket className="h-5 w-5 animate-pulse text-indigo-500" />
         <div className="space-y-1.5">
-          <div className="h-3.5 w-32 animate-pulse rounded bg-muted/60" />
-          <div className="h-2.5 w-20 animate-pulse rounded bg-muted/40" />
+          <div className="h-3.5 w-32 animate-shimmer rounded bg-gradient-to-r from-muted via-muted/50 to-muted bg-[length:200%_100%]/60" />
+          <div className="h-2.5 w-20 animate-shimmer rounded bg-gradient-to-r from-muted via-muted/50 to-muted bg-[length:200%_100%]/40" />
         </div>
       </div>
       {[1, 2].map((i) => (
@@ -231,8 +231,8 @@ export function CampaignDeploymentLoading() {
         >
           <div className="h-5 w-5 animate-pulse rounded-full bg-muted/50" />
           <div className="flex-1 space-y-1.5">
-            <div className="h-3.5 w-24 animate-pulse rounded bg-muted/50" />
-            <div className="h-2.5 w-40 animate-pulse rounded bg-muted/30" />
+            <div className="h-3.5 w-24 animate-shimmer rounded bg-gradient-to-r from-muted via-muted/50 to-muted bg-[length:200%_100%]/50" />
+            <div className="h-2.5 w-40 animate-shimmer rounded bg-gradient-to-r from-muted via-muted/50 to-muted bg-[length:200%_100%]/30" />
           </div>
         </div>
       ))}
