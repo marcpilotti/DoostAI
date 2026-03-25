@@ -59,8 +59,8 @@ export function SuggestionChips({
         <button
           key={s.label}
           onClick={() => onSelect(s.message)}
-          className="shrink-0 rounded-full border border-border/60 bg-white/80 px-4 py-1.5 text-[13px] font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600"
-          style={{ animationDelay: `${i * 50}ms` }}
+          className="animate-message-in shrink-0 rounded-full border border-border/60 bg-white/80 px-4 py-1.5 text-[13px] font-medium text-muted-foreground opacity-0 transition-all [animation-fill-mode:forwards] hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600"
+          style={{ animationDelay: `${i * 80}ms` }}
         >
           {s.icon && <span className="mr-1">{s.icon}</span>}
           {s.label}

@@ -102,12 +102,12 @@ function LogoStep({
                 onClick={() => handleSelect(logo.url)}
                 className={`group relative flex flex-col items-center gap-2 rounded-xl border-2 p-3 transition-all ${
                   selected === logo.url
-                    ? "border-emerald-400 bg-emerald-50/50 shadow-sm ring-1 ring-emerald-200"
+                    ? "border-indigo-400 bg-indigo-50/50 shadow-sm ring-1 ring-indigo-200"
                     : "border-border/50 bg-white hover:border-indigo-300 hover:shadow-sm"
                 }`}
               >
                 {selected === logo.url && (
-                  <div className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
+                  <div className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500 text-white shadow-sm">
                     <Check className="h-3 w-3" strokeWidth={3} />
                   </div>
                 )}
@@ -173,12 +173,15 @@ function LogoStep({
 
       {/* Action footer */}
       <div className="flex items-center justify-between border-t border-border/30 px-5 py-3">
-        <button
-          onClick={handleSkip}
-          className="rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground"
-        >
+        <div className="flex items-center gap-3">
+          <span className="text-[10px] text-muted-foreground/50">Steg 1 av 3</span>
+          <button
+            onClick={handleSkip}
+            className="rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground"
+          >
           Hoppa över
         </button>
+        </div>
         <button
           onClick={handleContinue}
           className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"

@@ -48,13 +48,13 @@ export function ChatInput({
   };
 
   return (
-    <div className="px-3 pb-4 pt-2 sm:px-6 sm:pb-6">
+    <div className="px-3 pb-4 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-6">
       <form
         ref={formRef}
         onSubmit={onSubmit}
         className="rainbow-glow mx-auto max-w-2xl"
       >
-        <div className="rounded-2xl border border-border/40 bg-white/60 p-2 shadow-sm backdrop-blur-xl">
+        <div className="rounded-2xl border border-border/40 bg-white/60 p-2 shadow-sm backdrop-blur-xl transition-shadow focus-within:border-indigo-300/60 focus-within:shadow-[0_0_0_3px_rgba(99,102,241,0.1)]">
           {urlHint && (
             <div className="mb-1 px-3 text-[11px] text-indigo-500">
               Tryck Enter för att analysera <span className="font-medium">{urlHint}</span>
@@ -94,7 +94,7 @@ export function ChatInput({
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#6366f1] text-white shadow-sm transition-all hover:bg-[#5558e6] disabled:opacity-30 disabled:shadow-none"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white shadow-sm transition-all hover:bg-primary/90 disabled:opacity-30 disabled:shadow-none"
               >
                 <ArrowUp className="h-4 w-4" strokeWidth={2.5} />
               </button>

@@ -14,7 +14,7 @@ import {
 type CampaignConfigData = {
   brandName: string;
   platform: string;
-  suggestedBudgets: { daily: number; label: string; reach: string }[];
+  suggestedBudgets: { daily: number; label: string; reach: string; recommended?: boolean }[];
   currency: string;
 };
 
@@ -107,19 +107,24 @@ export function CampaignConfigCard({
                   setBudget(b.daily);
                   setCustomBudget("");
                 }}
-                className={`rounded-xl border-2 px-3 py-3 text-center transition-all ${
+                className={`relative rounded-xl border-2 px-3 py-3 text-center transition-all ${
                   budget === b.daily
-                    ? "border-emerald-400 bg-emerald-50/50 shadow-sm ring-1 ring-emerald-200"
-                    : "border-border/50 bg-white hover:border-emerald-300 hover:shadow-sm"
+                    ? "border-indigo-400 bg-indigo-50/50 shadow-sm ring-1 ring-indigo-200"
+                    : "border-border/50 bg-white hover:border-indigo-300 hover:shadow-sm"
                 }`}
               >
+                {b.recommended && (
+                  <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-indigo-500 px-2 py-0.5 text-[8px] font-semibold text-white">
+                    Rekommenderad
+                  </span>
+                )}
                 <div className="text-base font-bold text-foreground">
                   {b.daily.toLocaleString("sv-SE")} {data.currency}
                 </div>
                 <div className="text-[10px] font-medium text-muted-foreground">
                   {b.label}
                 </div>
-                <div className="mt-1 flex items-center justify-center gap-1 text-[9px] text-emerald-600">
+                <div className="mt-1 flex items-center justify-center gap-1 text-[9px] text-indigo-500">
                   <TrendingUp className="h-2.5 w-2.5" />
                   {b.reach}
                 </div>
@@ -187,8 +192,8 @@ export function CampaignConfigCard({
                   onClick={() => toggleRegion(r.id)}
                   className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
                     active
-                      ? "border-blue-400 bg-blue-50 text-blue-700"
-                      : "border-border/50 bg-white text-muted-foreground hover:border-blue-300 hover:text-blue-600"
+                      ? "border-indigo-400 bg-indigo-50 text-indigo-700"
+                      : "border-border/50 bg-white text-muted-foreground hover:border-indigo-300 hover:text-indigo-600"
                   }`}
                 >
                   <Target className="h-3 w-3" />

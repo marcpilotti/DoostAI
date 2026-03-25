@@ -155,7 +155,7 @@ export function ChannelPicker({
                   {config.features.map((f) => (
                     <span
                       key={f}
-                      className="rounded-full bg-muted/50 px-1.5 py-0.5 text-[8px] font-medium text-muted-foreground"
+                      className="rounded-full bg-muted/50 px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
                     >
                       {f}
                     </span>

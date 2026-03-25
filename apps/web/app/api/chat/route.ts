@@ -274,7 +274,7 @@ ABSOLUTE RULES:
             currency: "kr",
             suggestedBudgets: [
               { daily: 200, label: "Sparsam", reach: "~1 000–3 000 visningar/dag" },
-              { daily: 500, label: "Rekommenderad", reach: "~3 000–8 000 visningar/dag" },
+              { daily: 500, label: "Standard", reach: "~3 000–8 000 visningar/dag", recommended: true },
               { daily: 1000, label: "Aggressiv", reach: "~8 000–20 000 visningar/dag" },
             ],
           };

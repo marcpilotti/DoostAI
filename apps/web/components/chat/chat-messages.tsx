@@ -264,9 +264,12 @@ export function ChatMessages({
             const text = getMessageText(message);
             if (!text) return null;
             return (
-              <div key={message.id} className="animate-message-in flex justify-end">
+              <div key={message.id} className="animate-message-in flex items-start justify-end gap-2">
                 <div className="max-w-[85%] rounded-2xl rounded-br-md border border-indigo-100 bg-indigo-50/80 px-4 py-2.5 text-sm leading-relaxed text-foreground sm:max-w-[80%]">
                   {text}
+                </div>
+                <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[10px] font-semibold text-indigo-600">
+                  Du
                 </div>
               </div>
             );
