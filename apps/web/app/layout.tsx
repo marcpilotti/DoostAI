@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Instrument_Sans, Outfit } from "next/font/google";
 import { PostHogProvider } from "@/lib/posthog/provider";
+import { QueryProvider } from "@/lib/query-provider";
 
 import "./globals.css";
 
@@ -31,7 +32,9 @@ export default function RootLayout({
       <body
         className={`${outfit.variable} ${instrumentSans.variable} font-sans antialiased`}
       >
-        <PostHogProvider>{children}</PostHogProvider>
+        <QueryProvider>
+          <PostHogProvider>{children}</PostHogProvider>
+        </QueryProvider>
       </body>
     </html>
   );
