@@ -133,15 +133,17 @@ function SignupStep({
 
   return (
     <StepCard>
-      {/* Hero banner */}
-      <div className="bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 px-6 py-6 text-center text-white">
-        <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm">
-          <Lock className="h-6 w-6" />
+      {/* Header */}
+      <div className="flex items-center gap-2 border-b border-border/30 px-5 py-3">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600">
+          <Lock className="h-4 w-4 text-white" />
         </div>
-        <h3 className="text-base font-bold tracking-tight">Sista steget innan din första annons</h3>
-        <p className="mt-1 text-xs text-white/70">
-          Spara allt du byggt — kampanjhistorik, analyser och mer
-        </p>
+        <div>
+          <div className="text-sm font-semibold">Spara ditt konto</div>
+          <div className="text-[11px] text-muted-foreground">
+            Så att allt du byggt sparas och du kan komma tillbaka
+          </div>
+        </div>
       </div>
 
       <div className="p-5">
