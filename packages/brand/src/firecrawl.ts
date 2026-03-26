@@ -13,7 +13,7 @@ export async function scrapeBrand(url: string): Promise<BrandScrapeResult> {
   const normalizedUrl = url.startsWith("http") ? url : `https://${url}`;
 
   const doc = await client.scrape(normalizedUrl, {
-    formats: ["html", "markdown"],
+    formats: ["html", "markdown", "screenshot"],
   });
 
   const html = doc.html ?? doc.rawHtml ?? "";
@@ -61,6 +61,7 @@ export async function scrapeBrand(url: string): Promise<BrandScrapeResult> {
     title: metadata.title ?? undefined,
     description: metadata.description ?? metadata.ogDescription ?? undefined,
     ogImage: metadata.ogImage ?? undefined,
+    screenshot: (doc as { screenshot?: string }).screenshot ?? undefined,
     markdown: doc.markdown ?? undefined,
     colors,
     fonts,

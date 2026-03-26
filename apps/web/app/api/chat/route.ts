@@ -141,6 +141,7 @@ ABSOLUTE RULES:
               cssFonts: scrapeResult.fonts,
               scrapedLogos: scrapeResult.logoUrls,
               ogImage: scrapeResult.ogImage,
+              screenshot: scrapeResult.screenshot,
               companyName: enrichment?.name ?? url.split("/")[0] ?? "",
               enrichedIndustry: enrichment?.industry,
             }).catch(() => null),

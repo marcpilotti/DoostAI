@@ -18,6 +18,7 @@ export type PipelineInput = {
   cssFonts: string[];
   scrapedLogos: string[];
   ogImage?: string;
+  screenshot?: string;
   companyName: string;
   enrichedIndustry?: string;
 };
@@ -51,7 +52,7 @@ export async function runBrandIntelligencePipeline(
     auditResult,
   ] = await Promise.allSettled([
     // L1: Vision AI (analyze OG image or screenshot)
-    timed(() => analyzeWithVision(input.ogImage)),
+    timed(() => analyzeWithVision(input.ogImage, input.screenshot)),
 
     // L3: Social media detection (from HTML)
     timed(() => Promise.resolve(detectSocialPresence(input.html, input.links))),

@@ -23,12 +23,17 @@ export type VisionAnalysis = z.infer<typeof visionSchema>;
  */
 export async function analyzeWithVision(
   ogImageUrl?: string,
-  screenshotUrl?: string,
+  screenshotBase64?: string,
 ): Promise<VisionAnalysis | null> {
-  const imageUrl = screenshotUrl ?? ogImageUrl;
-  if (!imageUrl) return null;
+  // Prefer screenshot (base64 from Firecrawl) over OG image URL
+  if (!screenshotBase64 && !ogImageUrl) return null;
 
   try {
+    // Build the image content part
+    const imagePart = screenshotBase64
+      ? { type: "image" as const, image: screenshotBase64 }
+      : { type: "image" as const, image: new URL(ogImageUrl!) };
+
     const { object } = await generateObject({
       model: anthropic("claude-sonnet-4-6"),
       schema: visionSchema,
@@ -36,10 +41,7 @@ export async function analyzeWithVision(
         {
           role: "user",
           content: [
-            {
-              type: "image",
-              image: new URL(imageUrl),
-            },
+            imagePart,
             {
               type: "text",
               text: `Analyze this website image. Extract the visual brand identity:

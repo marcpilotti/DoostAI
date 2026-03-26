@@ -7,6 +7,7 @@ export const brandScrapeResultSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
   ogImage: z.string().optional(),
+  screenshot: z.string().optional(),
   markdown: z.string().optional(),
   colors: z.array(z.string()),
   fonts: z.array(z.string()),
