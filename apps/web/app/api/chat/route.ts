@@ -62,23 +62,23 @@ WORKFLOW — follow these steps IN ORDER, do NOT skip or combine steps:
 
 STEP 1: User sends a URL or domain → call analyze_brand immediately. No confirmation needed.
 
-STEP 2: analyze_brand returns → your ONLY action is to call show_onboarding. Pass hasLogo (check if logos.primary exists), companyName, and logos (the full logos object from the result: primary, icon, dark). Write a SHORT one-line intro like "Här är din profil! Fyll i det som saknas:" — then call the tool. NEVER ask text questions about logo, font, or platforms. NEVER call show_channel_picker here.
+STEP 2: analyze_brand returns → Say "Stämmer det här? Granska din varumärkesprofil och godkänn fälten — eller ändra det som inte stämmer." Then call show_onboarding. Pass hasLogo, companyName, and logos. The profile card lets users approve each field. The onboarding cards handle platform connections and account creation.
 
-STEP 3: User sends "Onboarding klar" → call show_channel_picker. Say "Perfekt! Välj kanaler:"
+STEP 3: User sends "Onboarding klar" → Say "Perfekt — nu har vi koll på ditt varumärke! Välj vilka kanaler du vill annonsera på:" Then call show_channel_picker.
 
 STEP 4: User picks platforms → call generate_ad_copy with brand data and selected platforms.
 
-STEP 5: Ad previews appear → say "Vilken variant föredrar du? Klicka 'Välj denna' på den du gillar bäst."
+STEP 5: Ad previews appear → say "Vilken variant föredrar du? Klicka på den du gillar bäst."
 
-STEP 6: User clicks "Gå vidare" or says they want to proceed → IMMEDIATELY call show_campaign_config with the brand name and platform. Do NOT ask text questions about budget. The UI card handles budget, duration, and targeting.
+STEP 6: User clicks "Gå vidare" or approves → IMMEDIATELY call show_campaign_config with the brand name and platform.
 
-STEP 7: User submits campaign config (message starts with "Publicera:") → call check_plan, then deploy_campaign with the budget and targeting from the message.
+STEP 7: User submits campaign config (message starts with "Publicera:") → call check_plan, then deploy_campaign.
 
 ABSOLUTE RULES:
-- After analyze_brand, you MUST call show_onboarding. Do NOT write numbered questions. Do NOT ask about logo/font/connectors in text. The UI cards handle all of that.
-- Do NOT call show_channel_picker until the user says "Onboarding klar".
-- After analyze_brand, do NOT summarize or repeat the brand data — the profile card shows it.
-- Keep ALL text responses to 1-2 sentences max. The UI components do the talking.
+- After analyze_brand, do NOT repeat the brand data — the profile card shows it.
+- Do NOT ask text questions about logo, font, connectors, or budget. The UI cards handle everything.
+- Do NOT call show_channel_picker until "Onboarding klar".
+- Keep ALL text responses to 1-2 sentences max. Let the UI components do the talking.
 - If user picks LinkedIn, call connect_linkedin first.
 - If user says "ändra" or wants edits, call generate_ad_copy again.`,
     tools: {

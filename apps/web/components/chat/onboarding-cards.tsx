@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, Check, Image, Type, Plug, Upload } from "lucide-react";
+import { ArrowRight, Check, Plug, Mail, Lock, Eye, EyeOff } from "lucide-react";
 
-type OnboardingStep = "logo" | "font" | "connectors" | "done";
+type OnboardingStep = "connectors" | "signup" | "done";
 
 type LogoData = {
   primary?: string;
@@ -19,284 +19,35 @@ type OnboardingData = {
 
 function StepCard({ children }: { children: React.ReactNode }) {
   return (
-    <div className="animate-message-in mt-3 overflow-hidden rounded-2xl border border-border/40 bg-white/70 backdrop-blur-sm">
+    <div className="animate-card-in mt-3 overflow-hidden rounded-2xl border border-border/30 bg-white/80 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] backdrop-blur-xl">
       {children}
     </div>
   );
 }
 
-function emitLogoSelected(url: string) {
-  window.dispatchEvent(
-    new CustomEvent("doost:logo-selected", { detail: { url } }),
-  );
-}
-
-// ── Logo Step ───────────────────────────────────────────────────
-function LogoStep({
-  companyName,
-  logos,
+// ── Step 2: Connect ad platforms ────────────────────────────────
+function ConnectorStep({
   onComplete,
 }: {
-  companyName: string;
-  logos: LogoData;
-  onComplete: (skipped: boolean) => void;
+  onComplete: () => void;
 }) {
-  const [selected, setSelected] = useState<string | null>(null);
-  const [customUrl, setCustomUrl] = useState<string | null>(null);
-
-  const foundLogos: { url: string; label: string }[] = [];
-  if (logos.primary) foundLogos.push({ url: logos.primary, label: "Primär" });
-  if (logos.dark) foundLogos.push({ url: logos.dark, label: "Alternativ" });
-  if (logos.icon && logos.icon !== logos.primary)
-    foundLogos.push({ url: logos.icon, label: "Ikon" });
-
-  const hasFoundLogos = foundLogos.length > 0;
-  const hasSelection = selected !== null || customUrl !== null;
-
-  function handleSelect(url: string) {
-    setSelected(url);
-    setCustomUrl(null);
-    emitLogoSelected(url);
-  }
-
-  function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    setCustomUrl(url);
-    setSelected(null);
-    emitLogoSelected(url);
-  }
-
-  function handleContinue() {
-    onComplete(false);
-  }
-
-  function handleSkip() {
-    onComplete(true);
-  }
-
   return (
     <StepCard>
       <div className="p-5">
         <div className="mb-4 flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50">
-            <Image className="h-4 w-4 text-indigo-500" />
-          </div>
-          <div>
-            <div className="text-sm font-semibold">Logotyp</div>
-            <div className="text-[11px] text-muted-foreground">
-              {hasFoundLogos
-                ? "Vi hittade dessa loggor — välj en eller ladda upp din egen"
-                : "Vi hittade ingen logga — ladda upp en eller gå vidare"}
-            </div>
-          </div>
-        </div>
-
-        {/* Scraped logos */}
-        {hasFoundLogos && (
-          <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {foundLogos.map((logo) => (
-              <button
-                key={logo.url}
-                onClick={() => handleSelect(logo.url)}
-                className={`group relative flex flex-col items-center gap-2 rounded-xl border-2 p-3 transition-all ${
-                  selected === logo.url
-                    ? "border-indigo-400 bg-indigo-50/50 shadow-sm ring-1 ring-indigo-200"
-                    : "border-border/50 bg-white hover:border-indigo-300 hover:shadow-sm"
-                }`}
-              >
-                {selected === logo.url && (
-                  <div className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500 text-white shadow-sm">
-                    <Check className="h-3 w-3" strokeWidth={3} />
-                  </div>
-                )}
-                <div
-                  className="flex h-16 w-full items-center justify-center rounded-lg p-2"
-                  style={{
-                    backgroundImage:
-                      "linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%)",
-                    backgroundSize: "10px 10px",
-                    backgroundPosition: "0 0, 0 5px, 5px -5px, -5px 0px",
-                  }}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={logo.url}
-                    alt={`${companyName} ${logo.label}`}
-                    className="max-h-14 max-w-full object-contain"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = "none";
-                    }}
-                  />
-                </div>
-                <span className="text-[10px] font-medium text-muted-foreground">
-                  {logo.label}
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Upload own logo */}
-        {!customUrl ? (
-          <label className="flex cursor-pointer items-center gap-3 rounded-xl border-2 border-dashed border-border/60 bg-muted/10 px-4 py-3 transition-colors hover:border-indigo-300 hover:bg-indigo-50/30">
-            <Upload className="h-5 w-5 text-muted-foreground/40" />
-            <div>
-              <span className="text-xs font-medium text-muted-foreground">
-                {hasFoundLogos
-                  ? "Eller ladda upp en egen logga istället"
-                  : "Klicka för att ladda upp logga"}
-              </span>
-              <span className="block text-[10px] text-muted-foreground/50">
-                PNG, SVG eller JPG (max 2MB)
-              </span>
-            </div>
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleUpload}
-            />
-          </label>
-        ) : (
-          <div className="flex items-center gap-3 rounded-xl bg-emerald-50 px-4 py-3">
-            <Check className="h-4 w-4 shrink-0 text-emerald-500" />
-            <span className="text-sm text-emerald-700">Egen logga uppladdad!</span>
-            <label className="ml-auto cursor-pointer text-[10px] font-medium text-emerald-600 underline hover:text-emerald-800">
-              Byt
-              <input type="file" accept="image/*" className="hidden" onChange={handleUpload} />
-            </label>
-          </div>
-        )}
-      </div>
-
-      {/* Action footer */}
-      <div className="flex items-center justify-between border-t border-border/30 px-5 py-3">
-        <div className="flex items-center gap-3">
-          <span className="text-[10px] text-muted-foreground/50">Steg 1 av 3</span>
-          <button
-            onClick={handleSkip}
-            className="rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground"
-          >
-          Hoppa över
-        </button>
-        </div>
-        <button
-          onClick={handleContinue}
-          className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"
-        >
-          {hasSelection ? "Ser bra ut" : "Fortsätt utan logga"}
-          <ArrowRight className="h-3.5 w-3.5" />
-        </button>
-      </div>
-    </StepCard>
-  );
-}
-
-// ── Font Step ───────────────────────────────────────────────────
-function FontStep({
-  onComplete,
-}: {
-  onComplete: (skipped: boolean) => void;
-}) {
-  const [fontName, setFontName] = useState<string | null>(null);
-
-  async function handleFontUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      const buffer = await file.arrayBuffer();
-      const font = new FontFace("CustomBrandFont", buffer);
-      await font.load();
-      document.fonts.add(font);
-      setFontName(file.name.replace(/\.(ttf|otf|woff2?)$/i, ""));
-    } catch {
-      setFontName(file.name.replace(/\.(ttf|otf|woff2?)$/i, ""));
-    }
-  }
-
-  return (
-    <StepCard>
-      <div className="p-5">
-        <div className="mb-3 flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-50">
-            <Type className="h-4 w-4 text-purple-500" />
-          </div>
-          <div>
-            <div className="text-sm font-semibold">Typsnitt</div>
-            <div className="text-[11px] text-muted-foreground">
-              Vill du använda ett specifikt typsnitt?
-            </div>
-          </div>
-        </div>
-
-        {!fontName ? (
-          <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed border-border/60 bg-muted/20 px-6 py-6 transition-colors hover:border-purple-300 hover:bg-purple-50/30">
-            <Type className="h-6 w-6 text-muted-foreground/40" />
-            <span className="text-sm font-medium text-muted-foreground">
-              Ladda upp .ttf eller .otf
-            </span>
-            <input
-              type="file"
-              accept=".ttf,.otf,.woff,.woff2"
-              className="hidden"
-              onChange={handleFontUpload}
-            />
-          </label>
-        ) : (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 rounded-xl bg-indigo-50 px-4 py-3">
-              <Check className="h-4 w-4 text-indigo-500" />
-              <span className="text-sm text-indigo-700">{fontName}</span>
-            </div>
-            <div
-              className="rounded-xl border border-border/30 bg-white px-4 py-3 text-center text-lg"
-              style={{ fontFamily: "CustomBrandFont, sans-serif" }}
-            >
-              Aa Bb Cc Dd 123 — Förhandsvisning
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="flex items-center justify-between border-t border-border/30 px-5 py-3">
-        <span className="text-[10px] text-muted-foreground/50">Steg 2 av 3</span>
-        <button
-          onClick={() => onComplete(fontName ? false : true)}
-          className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"
-        >
-          {fontName ? "Fortsätt" : "Hoppa över"}
-          <ArrowRight className="h-3.5 w-3.5" />
-        </button>
-      </div>
-    </StepCard>
-  );
-}
-
-// ── Connector Step ──────────────────────────────────────────────
-function ConnectorStep({
-  onComplete,
-}: {
-  onComplete: (skipped: boolean) => void;
-}) {
-  return (
-    <StepCard>
-      <div className="p-5">
-        <div className="mb-3 flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50">
-            <Plug className="h-4 w-4 text-blue-500" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500">
+            <Plug className="h-4 w-4 text-white" />
           </div>
           <div>
             <div className="text-sm font-semibold">Anslut annonsplattformar</div>
             <div className="text-[11px] text-muted-foreground">
-              Du kan koppla senare — det går att förhandsvisa utan konto
+              Koppla befintliga konton eller låt oss skapa allt åt dig
             </div>
           </div>
         </div>
 
         <div className="space-y-2">
-          <button className="flex w-full items-center gap-3 rounded-xl border border-border/60 bg-white px-4 py-3 transition-colors hover:border-[#1877F2]/30 hover:bg-blue-50/30">
+          <button className="flex w-full items-center gap-3 rounded-xl border border-border/40 bg-white px-4 py-3 transition-all hover:border-[#1877F2]/30 hover:bg-blue-50/30 hover:shadow-sm">
             <svg className="h-5 w-5 text-[#1877F2]" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.563V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z" />
             </svg>
@@ -304,10 +55,10 @@ function ConnectorStep({
               <div className="text-sm font-medium">Meta Business</div>
               <div className="text-[10px] text-muted-foreground">Facebook & Instagram</div>
             </div>
-            <span className="text-xs text-muted-foreground">Anslut →</span>
+            <span className="text-[11px] font-medium text-indigo-500">Anslut</span>
           </button>
 
-          <button className="flex w-full items-center gap-3 rounded-xl border border-border/60 bg-white px-4 py-3 transition-colors hover:border-[#4285F4]/30 hover:bg-blue-50/30">
+          <button className="flex w-full items-center gap-3 rounded-xl border border-border/40 bg-white px-4 py-3 transition-all hover:border-[#4285F4]/30 hover:bg-blue-50/30 hover:shadow-sm">
             <svg className="h-5 w-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -318,20 +69,138 @@ function ConnectorStep({
               <div className="text-sm font-medium">Google Ads</div>
               <div className="text-[10px] text-muted-foreground">Sök & Display</div>
             </div>
-            <span className="text-xs text-muted-foreground">Anslut →</span>
+            <span className="text-[11px] font-medium text-indigo-500">Anslut</span>
+          </button>
+
+          <button className="flex w-full items-center gap-3 rounded-xl border border-border/40 bg-white px-4 py-3 transition-all hover:border-[#0077B5]/30 hover:bg-blue-50/30 hover:shadow-sm">
+            <svg className="h-5 w-5 text-[#0077B5]" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+            </svg>
+            <div className="flex-1 text-left">
+              <div className="text-sm font-medium">LinkedIn</div>
+              <div className="text-[10px] text-muted-foreground">B2B-annonsering</div>
+            </div>
+            <span className="text-[11px] font-medium text-indigo-500">Anslut</span>
           </button>
         </div>
       </div>
 
-      <div className="flex items-center justify-between border-t border-border/30 px-5 py-3">
-        <span className="text-[10px] text-muted-foreground/50">Valfritt</span>
+      <div className="flex items-center justify-between border-t border-border/20 px-5 py-3">
+        <span className="text-[10px] text-muted-foreground/50">Valfritt — du kan koppla senare</span>
         <button
-          onClick={() => onComplete(true)}
+          onClick={onComplete}
           className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"
         >
-          Fortsätt
+          Hoppa över
           <ArrowRight className="h-3.5 w-3.5" />
         </button>
+      </div>
+    </StepCard>
+  );
+}
+
+// ── Step 3: Create account ──────────────────────────────────────
+function SignupStep({
+  onComplete,
+}: {
+  onComplete: () => void;
+}) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email || !password) return;
+    setSaving(true);
+    // TODO: wire to Clerk signup
+    setTimeout(() => {
+      setSaving(false);
+      onComplete();
+    }, 1200);
+  }
+
+  return (
+    <StepCard>
+      <div className="p-5">
+        <div className="mb-4 flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500">
+            <Lock className="h-4 w-4 text-white" />
+          </div>
+          <div>
+            <div className="text-sm font-semibold">Spara ditt konto</div>
+            <div className="text-[11px] text-muted-foreground">
+              Så att allt du byggt sparas och du kan komma tillbaka
+            </div>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div>
+            <label className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60">
+              E-post
+            </label>
+            <div className="flex items-center gap-2 rounded-xl border border-border/40 bg-white px-3 py-2.5 transition-all focus-within:border-indigo-300 focus-within:ring-1 focus-within:ring-indigo-200">
+              <Mail className="h-4 w-4 text-muted-foreground/40" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="din@email.se"
+                className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground/40"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60">
+              Lösenord
+            </label>
+            <div className="flex items-center gap-2 rounded-xl border border-border/40 bg-white px-3 py-2.5 transition-all focus-within:border-indigo-300 focus-within:ring-1 focus-within:ring-indigo-200">
+              <Lock className="h-4 w-4 text-muted-foreground/40" />
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Minst 8 tecken"
+                className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground/40"
+                minLength={8}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-muted-foreground/40 hover:text-muted-foreground"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={!email || !password || password.length < 8 || saving}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md disabled:opacity-40"
+          >
+            {saving ? (
+              <>
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                Sparar...
+              </>
+            ) : (
+              <>
+                Skapa konto
+                <ArrowRight className="h-4 w-4" />
+              </>
+            )}
+          </button>
+        </form>
+      </div>
+
+      <div className="border-t border-border/20 px-5 py-2.5 text-center text-[10px] text-muted-foreground/40">
+        Genom att skapa konto godkänner du våra villkor
       </div>
     </StepCard>
   );
@@ -345,10 +214,25 @@ export function OnboardingCards({
   data: OnboardingData;
   onAllComplete: () => void;
 }) {
-  // Logo + font are now handled in the profile card — onboarding only shows connectors
+  const [currentStep, setCurrentStep] = useState<OnboardingStep>("connectors");
+
+  function advance(from: OnboardingStep) {
+    if (from === "connectors") {
+      setCurrentStep("signup");
+    } else if (from === "signup") {
+      setCurrentStep("done");
+      onAllComplete();
+    }
+  }
+
   return (
     <div className="space-y-0">
-      <ConnectorStep onComplete={() => onAllComplete()} />
+      {currentStep === "connectors" && (
+        <ConnectorStep onComplete={() => advance("connectors")} />
+      )}
+      {currentStep === "signup" && (
+        <SignupStep onComplete={() => advance("signup")} />
+      )}
     </div>
   );
 }
