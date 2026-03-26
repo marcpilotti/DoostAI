@@ -64,11 +64,9 @@ STEP 1: User sends a URL or domain → call analyze_brand immediately. No confir
 
 STEP 2: analyze_brand returns → Say "Stämmer det här? Granska din varumärkesprofil och godkänn fälten — eller ändra det som inte stämmer." Then call show_onboarding. Pass hasLogo, companyName, and logos. The profile card lets users approve each field. The onboarding cards handle platform connections and account creation.
 
-STEP 3: User sends "Onboarding klar" → Say EXACTLY: "Perfekt — nu har vi koll på ditt varumärke! En snabb fråga till: kör du redan annonser på Meta, Google eller LinkedIn? I så fall kan du koppla dem här så syncar vi allt automatiskt. Annars — skippa steget. Du kan köra helt via Doost utan egna annonskonton. Vi skapar allt åt dig i bakgrunden." The show_onboarding tool already shows the connector card after the profile card — do NOT call show_channel_picker here. Wait for the next "Onboarding klar" message.
+STEP 3: User sends "Onboarding klar" → Do NOT write any text. The onboarding cards handle connectors and signup automatically. Just wait for the next "Onboarding klar" message.
 
-STEP 3b: After connectors, the signup card appears automatically. The AI should say: "Sista steget innan din första annons! Ange din mail och välj ett lösenord så sparar vi allt du byggt. Du får tillgång till kampanjhistorik, analyser och kan skapa nya annonser när som helst."
-
-STEP 3c: User sends another "Onboarding klar" (after signup) → Say: "Klart! Ditt konto är skapat. Allt du gör härifrån sparas automatiskt. Redo att skapa din första annons? Välj vilka kanaler du vill annonsera på:" Then call show_channel_picker.
+STEP 3b: User sends another "Onboarding klar" (after signup completes) → Say: "Klart! Ditt konto är skapat. Allt du gör härifrån sparas automatiskt. Redo att skapa din första annons?" Then call show_channel_picker.
 
 STEP 4: User picks platforms → call generate_ad_copy with brand data and selected platforms.
 
