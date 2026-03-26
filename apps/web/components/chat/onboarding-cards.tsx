@@ -133,56 +133,55 @@ function SignupStep({
 
   return (
     <StepCard>
-      <div className="p-5">
-        <div className="mb-4 flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500">
-            <Lock className="h-4 w-4 text-white" />
-          </div>
-          <div>
-            <div className="text-sm font-semibold">Sista steget innan din första annons</div>
-            <div className="text-[11px] text-muted-foreground">
-              Spara allt du byggt — kampanjhistorik, analyser och mer
-            </div>
-          </div>
+      {/* Hero banner */}
+      <div className="bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 px-6 py-6 text-center text-white">
+        <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm">
+          <Lock className="h-6 w-6" />
         </div>
+        <h3 className="text-base font-bold tracking-tight">Sista steget innan din första annons</h3>
+        <p className="mt-1 text-xs text-white/70">
+          Spara allt du byggt — kampanjhistorik, analyser och mer
+        </p>
+      </div>
 
+      <div className="p-5">
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60">
+            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-foreground/50">
               E-post
             </label>
-            <div className="flex items-center gap-2 rounded-xl border border-border/40 bg-white px-3 py-2.5 transition-all focus-within:border-indigo-300 focus-within:ring-1 focus-within:ring-indigo-200">
-              <Mail className="h-4 w-4 text-muted-foreground/40" />
+            <div className="flex items-center gap-2.5 rounded-xl border border-border/50 bg-white px-4 py-3 shadow-sm transition-all focus-within:border-indigo-400 focus-within:shadow-[0_0_0_3px_rgba(99,102,241,0.1)]">
+              <Mail className="h-4 w-4 text-indigo-400" />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="din@email.se"
-                className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground/40"
+                className="w-full bg-transparent text-sm font-medium outline-none placeholder:text-muted-foreground/40"
                 required
               />
             </div>
           </div>
 
           <div>
-            <label className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60">
+            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-foreground/50">
               Lösenord
             </label>
-            <div className="flex items-center gap-2 rounded-xl border border-border/40 bg-white px-3 py-2.5 transition-all focus-within:border-indigo-300 focus-within:ring-1 focus-within:ring-indigo-200">
-              <Lock className="h-4 w-4 text-muted-foreground/40" />
+            <div className="flex items-center gap-2.5 rounded-xl border border-border/50 bg-white px-4 py-3 shadow-sm transition-all focus-within:border-indigo-400 focus-within:shadow-[0_0_0_3px_rgba(99,102,241,0.1)]">
+              <Lock className="h-4 w-4 text-indigo-400" />
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Minst 8 tecken"
-                className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground/40"
+                className="w-full bg-transparent text-sm font-medium outline-none placeholder:text-muted-foreground/40"
                 minLength={8}
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="text-muted-foreground/40 hover:text-muted-foreground"
+                className="text-muted-foreground/30 transition-colors hover:text-muted-foreground"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -192,12 +191,12 @@ function SignupStep({
           <button
             type="submit"
             disabled={!email || !password || password.length < 8 || saving}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md disabled:opacity-40"
+            className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-md transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-lg disabled:opacity-40"
           >
             {saving ? (
               <>
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                Sparar...
+                Skapar ditt konto...
               </>
             ) : (
               <>
@@ -207,10 +206,19 @@ function SignupStep({
             )}
           </button>
         </form>
+
+        {/* Trust signals */}
+        <div className="mt-4 flex items-center justify-center gap-4 text-[10px] text-muted-foreground/40">
+          <span className="flex items-center gap-1"><Lock className="h-2.5 w-2.5" /> Krypterad</span>
+          <span>·</span>
+          <span>Ingen betalkort krävs</span>
+          <span>·</span>
+          <span>Avsluta när som helst</span>
+        </div>
       </div>
 
-      <div className="border-t border-border/20 px-5 py-2.5 text-center text-[10px] text-muted-foreground/40">
-        Genom att skapa konto godkänner du våra villkor
+      <div className="border-t border-border/10 bg-muted/5 px-5 py-2 text-center text-[9px] text-muted-foreground/30">
+        Genom att skapa konto godkänner du våra <span className="underline">villkor</span>
       </div>
     </StepCard>
   );
