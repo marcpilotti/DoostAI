@@ -6,6 +6,7 @@ import {
   enrichCompany,
   scrapeBrand,
 } from "@doost/brand";
+import { runBrandIntelligencePipeline } from "@doost/intelligence";
 import {
   generateAdCopy,
   classifyIntent,
@@ -125,18 +126,51 @@ ABSOLUTE RULES:
             }).catch(() => {}); // fire-and-forget
           }
 
-          const profile = await buildBrandProfile(
-            scrapeResult,
-            enrichment ?? undefined,
-          );
+          // Run AI profile build + intelligence pipeline in parallel
+          const [profile, intelligence] = await Promise.all([
+            buildBrandProfile(scrapeResult, enrichment ?? undefined),
+            runBrandIntelligencePipeline({
+              url: scrapeResult.url,
+              html: scrapeResult.rawHtml ?? "",
+              links: scrapeResult.links,
+              cssColors: scrapeResult.colors,
+              cssFonts: scrapeResult.fonts,
+              scrapedLogos: scrapeResult.logoUrls,
+              ogImage: scrapeResult.ogImage,
+              companyName: enrichment?.name ?? url.split("/")[0] ?? "",
+              enrichedIndustry: enrichment?.industry,
+            }).catch(() => null),
+          ]);
 
           const durationMs = Date.now() - start;
           const { rawScrapeData: _s, rawEnrichmentData: _e, ...clean } =
             profile;
+
+          // Override profile with higher-confidence intelligence data
+          const intel = intelligence?.intelligence;
+          const finalLogo = intel?.logo.confidence ?? 0 > 60
+            ? { primary: intel?.logo.value.url ?? clean.logos?.primary, icon: clean.logos?.icon, dark: clean.logos?.dark }
+            : clean.logos;
+
           return {
             ...clean,
+            logos: finalLogo,
             _analysisMs: durationMs,
             _enrichmentStatus: enrichment ? "complete" : "partial",
+            _intelligence: intel ? {
+              overallConfidence: intel.overallConfidence,
+              logoSource: intel.logo.source,
+              colorSource: intel.colors.source,
+              fontSource: intel.font.source,
+              socialProfiles: intel.social,
+              audit: intel.audit ? {
+                readinessScore: intel.audit.readinessScore,
+                hasMetaPixel: intel.audit.hasMetaPixel,
+                hasGoogleTag: intel.audit.hasGoogleTag,
+                techStack: intel.audit.techStack,
+                issues: intel.audit.issues,
+              } : null,
+            } : null,
           };
         },
       }),

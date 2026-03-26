@@ -2,6 +2,19 @@
   "name": "@doost/intelligence",
   "version": "0.0.1",
   "private": true,
-  "main": "./index.ts",
-  "types": "./index.ts"
+  "exports": {
+    ".": {
+      "types": "./index.ts",
+      "default": "./index.ts"
+    }
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.64",
+    "ai": "^6.0.138",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@doost/config": "workspace:*",
+    "typescript": "^5"
+  }
 }

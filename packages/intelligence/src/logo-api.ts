@@ -1,0 +1,100 @@
+/**
+ * L4: Logo extraction via Brandfetch and Clearbit APIs.
+ * Returns logo URL, brand colors, and fonts from authoritative sources.
+ */
+
+export type BrandfetchResult = {
+  logos: { url: string; type: string; theme: string }[];
+  colors: { hex: string; type: string }[];
+  fonts: { name: string; weight: number; type: string }[];
+  confidence: number;
+};
+
+/**
+ * Brandfetch API — returns logo, colors, and fonts.
+ * $75/month plan required for production.
+ */
+async function fetchBrandfetch(domain: string): Promise<BrandfetchResult | null> {
+  const apiKey = process.env.BRANDFETCH_API_KEY;
+  if (!apiKey || apiKey === "your_brandfetch_api_key") return null;
+
+  try {
+    const res = await fetch(`https://api.brandfetch.io/v2/brands/${domain}`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      signal: AbortSignal.timeout(8000),
+    });
+
+    if (!res.ok) return null;
+
+    const data = await res.json() as {
+      logos?: Array<{ formats?: Array<{ src: string; format: string }>; type?: string; theme?: string }>;
+      colors?: Array<{ hex: string; type?: string }>;
+      fonts?: Array<{ name: string; weight?: number; type?: string }>;
+    };
+
+    const logos = (data.logos ?? []).flatMap((logo) =>
+      (logo.formats ?? [])
+        .filter((f) => f.format === "svg" || f.format === "png")
+        .map((f) => ({ url: f.src, type: logo.type ?? "logo", theme: logo.theme ?? "light" }))
+    );
+
+    const colors = (data.colors ?? []).map((c) => ({
+      hex: c.hex,
+      type: c.type ?? "brand",
+    }));
+
+    const fonts = (data.fonts ?? []).map((f) => ({
+      name: f.name,
+      weight: f.weight ?? 400,
+      type: f.type ?? "body",
+    }));
+
+    return {
+      logos,
+      colors,
+      fonts,
+      confidence: 95,
+    };
+  } catch (err) {
+    console.warn("[L4 Brandfetch] Failed:", err instanceof Error ? err.message : err);
+    return null;
+  }
+}
+
+/**
+ * Clearbit Logo API — simple logo URL fallback.
+ */
+function getClearbitLogoUrl(domain: string): string {
+  return `https://logo.clearbit.com/${domain}?size=512`;
+}
+
+/**
+ * Check if Clearbit logo actually exists (returns 200).
+ */
+async function verifyClearbitLogo(domain: string): Promise<string | null> {
+  try {
+    const url = getClearbitLogoUrl(domain);
+    const res = await fetch(url, { method: "HEAD", signal: AbortSignal.timeout(5000) });
+    return res.ok ? url : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Run all logo API sources in parallel.
+ */
+export async function fetchLogoApis(domain: string): Promise<{
+  brandfetch: BrandfetchResult | null;
+  clearbitLogo: string | null;
+}> {
+  const [brandfetch, clearbitLogo] = await Promise.allSettled([
+    fetchBrandfetch(domain),
+    verifyClearbitLogo(domain),
+  ]);
+
+  return {
+    brandfetch: brandfetch.status === "fulfilled" ? brandfetch.value : null,
+    clearbitLogo: clearbitLogo.status === "fulfilled" ? clearbitLogo.value : null,
+  };
+}

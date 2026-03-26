@@ -17,6 +17,7 @@
     "@doost/ai": "workspace:*",
     "@doost/brand": "workspace:*",
     "@doost/db": "workspace:*",
+    "@doost/intelligence": "workspace:*",
     "@doost/platforms": "workspace:*",
     "@doost/templates": "workspace:*",
     "@radix-ui/react-slot": "^1.2.4",
