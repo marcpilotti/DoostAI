@@ -74,12 +74,11 @@ export function GoalPicker({
           </div>
         </div>
 
-        {/* Section 2: Audience */}
-        {selectedGoal && (
-          <div className="animate-message-in">
-            <div className="mb-2 text-[9px] font-semibold uppercase tracking-wider text-foreground/50">
-              Vilka brukar anlita er?
-            </div>
+        {/* Section 2: Audience — always visible */}
+        <div>
+          <div className="mb-2 text-[9px] font-semibold uppercase tracking-wider text-foreground/50">
+            Vilka brukar anlita er?
+          </div>
             <div className="flex flex-wrap gap-1.5">
               {audiences.map((a) => {
                 const active = selectedAudience === a;
@@ -98,8 +97,7 @@ export function GoalPicker({
                 );
               })}
             </div>
-          </div>
-        )}
+        </div>
       </div>
 
       {/* Footer */}
