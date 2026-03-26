@@ -46,6 +46,23 @@ type BrandProfileData = {
   _analysisMs?: number;
   _enrichmentStatus?: string;
   valuePropositions: string[];
+  _intelligence?: {
+    overallConfidence: number;
+    logo: { source: string; confidence: number; status: string };
+    colors: { source: string; confidence: number; status: string };
+    font: { source: string; confidence: number; status: string };
+    industry: { source: string; confidence: number; status: string };
+    socialProfiles: { platform: string; url: string; confidence: number }[];
+    visualStyle: string;
+    audit?: {
+      readinessScore: number;
+      hasMetaPixel: boolean;
+      hasGoogleTag: boolean;
+      hasLinkedinTag: boolean;
+      techStack: string[];
+      issues: { severity: string; title: string; description: string }[];
+    };
+  };
 };
 
 function stripSuffix(name: string): string {
@@ -238,12 +255,19 @@ export function BrandProfileCard({
           <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
             <Globe className="h-2.5 w-2.5" />
             {domain}
-            {data._enrichmentStatus === "complete" && (
+            {data._intelligence ? (
+              <span className={`ml-1 rounded px-1 py-0.5 text-[8px] font-semibold ${
+                data._intelligence.overallConfidence >= 80 ? "bg-emerald-50 text-emerald-600" :
+                data._intelligence.overallConfidence >= 50 ? "bg-amber-50 text-amber-600" :
+                "bg-red-50 text-red-500"
+              }`}>
+                {data._intelligence.overallConfidence}% säker
+              </span>
+            ) : data._enrichmentStatus === "complete" ? (
               <span className="ml-1 rounded bg-emerald-50 px-1 py-0.5 text-[8px] font-semibold text-emerald-600">Berikad</span>
-            )}
-            {data._enrichmentStatus === "partial" && (
+            ) : data._enrichmentStatus === "partial" ? (
               <span className="ml-1 rounded bg-amber-50 px-1 py-0.5 text-[8px] font-semibold text-amber-600">Grunddata</span>
-            )}
+            ) : null}
           </div>
         </div>
         {/* Approval progress */}
@@ -501,6 +525,71 @@ export function BrandProfileCard({
           </div>
         </div>
       </div>
+
+      {/* Intelligence: Social profiles */}
+      {data._intelligence?.socialProfiles && data._intelligence.socialProfiles.filter((s) => s.confidence >= 50).length > 0 && (
+        <div className="px-4 pb-2">
+          <div className="flex flex-wrap gap-1.5">
+            {data._intelligence.socialProfiles
+              .filter((s) => s.confidence >= 50)
+              .map((s) => (
+                <a
+                  key={s.url}
+                  href={s.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 rounded-full border border-border/30 bg-white px-2 py-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:border-indigo-300 hover:text-indigo-600"
+                >
+                  <span className="capitalize">{s.platform}</span>
+                  {s.confidence >= 80 && <span className="text-emerald-500">✓</span>}
+                </a>
+              ))}
+          </div>
+        </div>
+      )}
+
+      {/* Intelligence: Marketing readiness */}
+      {data._intelligence?.audit && (
+        <div className="mx-4 mb-2 rounded-lg border border-border/30 bg-muted/5 px-3 py-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-semibold text-foreground/60">Annonsredo</span>
+            <span className={`text-[10px] font-bold ${
+              data._intelligence.audit.readinessScore >= 60 ? "text-emerald-600" :
+              data._intelligence.audit.readinessScore >= 30 ? "text-amber-600" : "text-red-500"
+            }`}>
+              {data._intelligence.audit.readinessScore}/100
+            </span>
+          </div>
+          <div className="mt-1 h-1 overflow-hidden rounded-full bg-muted/30">
+            <div
+              className={`h-full rounded-full transition-all duration-700 ${
+                data._intelligence.audit.readinessScore >= 60 ? "bg-emerald-400" :
+                data._intelligence.audit.readinessScore >= 30 ? "bg-amber-400" : "bg-red-400"
+              }`}
+              style={{ width: `${data._intelligence.audit.readinessScore}%` }}
+            />
+          </div>
+          <div className="mt-1.5 flex flex-wrap gap-1">
+            {data._intelligence.audit.hasMetaPixel && (
+              <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[8px] font-medium text-emerald-600">Meta Pixel ✓</span>
+            )}
+            {data._intelligence.audit.hasGoogleTag && (
+              <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[8px] font-medium text-emerald-600">Google Tag ✓</span>
+            )}
+            {!data._intelligence.audit.hasMetaPixel && (
+              <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[8px] font-medium text-amber-600">Meta Pixel saknas</span>
+            )}
+            {!data._intelligence.audit.hasGoogleTag && (
+              <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[8px] font-medium text-amber-600">Google Tag saknas</span>
+            )}
+            {data._intelligence.audit.techStack.length > 0 && (
+              <span className="rounded bg-muted/40 px-1.5 py-0.5 text-[8px] font-medium text-muted-foreground">
+                {data._intelligence.audit.techStack.slice(0, 2).join(", ")}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Footer CTA */}
       <div className="flex items-center justify-between border-t border-border/20 px-4 py-2">

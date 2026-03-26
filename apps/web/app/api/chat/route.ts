@@ -148,25 +148,42 @@ ABSOLUTE RULES:
 
           // Override profile with higher-confidence intelligence data
           const intel = intelligence?.intelligence;
-          const finalLogo = intel?.logo.confidence ?? 0 > 60
-            ? { primary: intel?.logo.value.url ?? clean.logos?.primary, icon: clean.logos?.icon, dark: clean.logos?.dark }
+
+          // Use best logo source
+          const finalLogo = intel && intel.logo.confidence > 60 && intel.logo.value.url
+            ? { primary: intel.logo.value.url, icon: clean.logos?.icon, dark: clean.logos?.dark }
             : clean.logos;
+
+          // Use best color source (if intel confidence > profile's CSS-based colors)
+          const finalColors = intel && intel.colors.confidence >= 90
+            ? intel.colors.value
+            : clean.colors;
+
+          // Use best font source
+          const finalFonts = intel && intel.font.confidence >= 90
+            ? { heading: intel.font.value.family, body: intel.font.value.family }
+            : clean.fonts;
 
           return {
             ...clean,
             logos: finalLogo,
+            colors: finalColors,
+            fonts: finalFonts,
             _analysisMs: durationMs,
             _enrichmentStatus: enrichment ? "complete" : "partial",
             _intelligence: intel ? {
               overallConfidence: intel.overallConfidence,
-              logoSource: intel.logo.source,
-              colorSource: intel.colors.source,
-              fontSource: intel.font.source,
+              logo: { source: intel.logo.source, confidence: intel.logo.confidence, status: intel.logo.status },
+              colors: { source: intel.colors.source, confidence: intel.colors.confidence, status: intel.colors.status },
+              font: { source: intel.font.source, confidence: intel.font.confidence, status: intel.font.status },
+              industry: { source: intel.industry.source, confidence: intel.industry.confidence, status: intel.industry.status },
               socialProfiles: intel.social,
+              visualStyle: intel.visualStyle,
               audit: intel.audit ? {
                 readinessScore: intel.audit.readinessScore,
                 hasMetaPixel: intel.audit.hasMetaPixel,
                 hasGoogleTag: intel.audit.hasGoogleTag,
+                hasLinkedinTag: intel.audit.hasLinkedinTag,
                 techStack: intel.audit.techStack,
                 issues: intel.audit.issues,
               } : null,
