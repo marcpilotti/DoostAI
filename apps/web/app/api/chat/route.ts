@@ -158,7 +158,7 @@ ABSOLUTE RULES:
           // Use best color source — intel pipeline uses Brandfetch/Vision which understands
           // actual brand colors, not just CSS frequency. Override if any confidence.
           const finalColors = intel && intel.colors.confidence >= 60
-            ? intel.colors.value
+            ? { ...clean.colors, ...intel.colors.value }
             : clean.colors;
 
           // Use best font source — Brandfetch (95) or CSS-detected (80) override AI

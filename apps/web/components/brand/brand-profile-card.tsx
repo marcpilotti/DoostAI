@@ -341,7 +341,7 @@ export function BrandProfileCard({
           <div className="min-w-0 flex-1">
             {/* Name + approve */}
             <div className="flex items-center gap-2">
-              <h3 className="truncate text-sm font-semibold tracking-tight">{name}</h3>
+              <h3 className="truncate text-xs font-semibold tracking-tight">{name}</h3>
               {approved.name === "approved" ? (
                 <div className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 shadow-sm">
                   <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />
@@ -394,8 +394,8 @@ export function BrandProfileCard({
           <div className="flex items-center gap-2">
             <ImageIcon className={`h-3.5 w-3.5 shrink-0 ${approved.logo === "approved" ? "text-emerald-500" : "text-muted-foreground/50"}`} />
             <div className="min-w-0 flex-1">
-              <div className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/50">Logotyp</div>
-              <div className="truncate text-sm font-medium text-foreground">
+              <div className="text-[7px] font-medium uppercase tracking-widest text-muted-foreground/40">Logotyp</div>
+              <div className="truncate text-xs font-medium text-foreground">
                 {logoUrl ? "Uppladdad" : "Saknas"}
               </div>
             </div>
@@ -431,8 +431,8 @@ export function BrandProfileCard({
           <div className="flex items-center gap-2">
             <Type className={`h-3.5 w-3.5 shrink-0 ${approved.font === "approved" ? "text-emerald-500" : "text-muted-foreground/50"}`} />
             <div className="min-w-0 flex-1">
-              <div className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/50">Typsnitt</div>
-              <div className="truncate text-sm font-medium text-foreground">
+              <div className="text-[7px] font-medium uppercase tracking-widest text-muted-foreground/40">Typsnitt</div>
+              <div className="truncate text-xs font-medium text-foreground">
                 {fontFile ?? data.fonts?.heading ?? "Ej valt"}
               </div>
             </div>
