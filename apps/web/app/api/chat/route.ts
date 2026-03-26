@@ -342,16 +342,26 @@ ABSOLUTE RULES:
         inputSchema: z.object({
           brandName: z.string().describe("Company name"),
           platform: z.string().describe("The selected ad platform (e.g. 'meta')"),
+          industryCategory: z.string().optional().describe("Industry category for budget defaults"),
         }),
-        execute: async ({ brandName, platform }: { brandName: string; platform: string }) => {
+        execute: async ({ brandName, platform, industryCategory }: { brandName: string; platform: string; industryCategory?: string }) => {
+          // Import dynamically to avoid circular deps
+          const { INDUSTRY_BUDGETS, DEFAULT_BUDGETS } = await import("@doost/ai");
+          const looked = industryCategory ? INDUSTRY_BUDGETS[industryCategory] : undefined;
+          const budgets = (looked && typeof looked === "object" && "low" in looked) ? looked : DEFAULT_BUDGETS;
+          const cpm = 50; // Average CPM in SEK
+          const estimateReach = (daily: number) => {
+            const impressions = (daily / cpm) * 1000;
+            return `~${Math.round(impressions * 0.8).toLocaleString("sv-SE")}–${Math.round(impressions * 1.5).toLocaleString("sv-SE")} visningar/dag`;
+          };
           return {
             brandName,
             platform,
             currency: "kr",
             suggestedBudgets: [
-              { daily: 200, label: "Sparsam", reach: "~1 000–3 000 visningar/dag" },
-              { daily: 500, label: "Standard", reach: "~3 000–8 000 visningar/dag", recommended: true },
-              { daily: 1000, label: "Aggressiv", reach: "~8 000–20 000 visningar/dag" },
+              { daily: Math.round(budgets.low / 30), label: "Sparsam", reach: estimateReach(Math.round(budgets.low / 30)) },
+              { daily: Math.round(budgets.mid / 30), label: "Standard", reach: estimateReach(Math.round(budgets.mid / 30)), recommended: true },
+              { daily: Math.round(budgets.high / 30), label: "Aggressiv", reach: estimateReach(Math.round(budgets.high / 30)) },
             ],
           };
         },

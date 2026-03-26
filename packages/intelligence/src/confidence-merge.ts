@@ -102,6 +102,7 @@ function mergeColors(
   brandfetch: BrandfetchResult | null,
   vision: VisionAnalysis | null,
   cssColors: string[],
+  industryPalette?: { primary: string; secondary: string; accent: string },
 ): ConfidenceField<{ primary: string; secondary: string; accent: string }> {
   // Priority 1: Brandfetch brand guidelines (confidence 95)
   if (brandfetch && brandfetch.colors.length >= 2) {
@@ -146,8 +147,9 @@ function mergeColors(
     };
   }
 
-  // Fallback: industry default (confidence 100 — generated)
-  return { value: { primary: "#6366f1", secondary: "#4f46e5", accent: "#818cf8" }, confidence: 100, source: "default", status: "found" };
+  // Fallback: industry palette or generic default (confidence 100 — generated)
+  const fallback = industryPalette ?? { primary: "#6366f1", secondary: "#4f46e5", accent: "#818cf8" };
+  return { value: fallback, confidence: 100, source: industryPalette ? "industry_palette" : "default", status: "found" };
 }
 
 /**
@@ -198,9 +200,10 @@ export function mergeIntelligence(input: {
   social: SocialProfile[];
   audit: WebsiteAuditResult | null;
   enrichedIndustry?: string;
+  industryPalette?: { primary: string; secondary: string; accent: string };
 }): MergedBrandIntelligence {
   const logo = mergeLogo(input.brandfetch, input.logoDevUrl, input.scrapedLogos, input.social, input.companyName);
-  const colors = mergeColors(input.brandfetch, input.vision, input.cssColors);
+  const colors = mergeColors(input.brandfetch, input.vision, input.cssColors, input.industryPalette);
   const font = mergeFont(input.brandfetch, input.vision, input.cssFonts);
 
   // Industry: enrichment > vision > default

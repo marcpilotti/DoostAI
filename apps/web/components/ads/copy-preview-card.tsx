@@ -518,6 +518,24 @@ export function CopyPreviewCard({
         </div>
       </div>
 
+      {/* Template style chips */}
+      <div className="flex gap-1.5 border-t border-border/20 px-4 py-2">
+        {[
+          { id: "logo-headline", label: "Logo + rubrik" },
+          { id: "stat-impact", label: "Siffra + impact" },
+          { id: "testimonial", label: "Kundreferens" },
+          { id: "minimal", label: "Minimalistisk" },
+        ].map((t) => (
+          <button
+            key={t.id}
+            className="rounded-full border border-border/40 bg-white px-2.5 py-1 text-[10px] font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600"
+            onClick={() => onSendMessage?.(`Byt till mall: ${t.label}`)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
       {/* Editing toolbar */}
       <div className="border-t border-border/30 px-4 py-3">
         <div className="flex gap-2">

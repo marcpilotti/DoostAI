@@ -14,6 +14,7 @@ export type PipelineInput = {
   html: string;
   links: string[];
   cssColors: string[];
+  industryPalette?: { primary: string; secondary: string; accent: string };
   cssFonts: string[];
   scrapedLogos: string[];
   ogImage?: string;
@@ -80,6 +81,7 @@ export async function runBrandIntelligencePipeline(
     social: social ?? [],
     audit,
     enrichedIndustry: input.enrichedIndustry,
+    industryPalette: input.industryPalette,
   });
 
   return {
