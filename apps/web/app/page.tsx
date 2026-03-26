@@ -88,7 +88,12 @@ export default function Home() {
           <p className="mx-auto mt-4 max-w-xs text-center text-base text-muted-foreground">
             Klistra in din URL. Vi sköter resten.
           </p>
-          <div className="mt-6 w-full max-w-2xl">
+          {/* Tooltip hint */}
+          <div className="mt-4 flex items-center gap-2 rounded-full bg-indigo-50/80 px-4 py-1.5 text-[11px] font-medium text-indigo-600 animate-message-in">
+            <span className="inline-block animate-bounce text-base">↓</span>
+            Prova med ditt företags hemsida — det tar 10 sekunder
+          </div>
+          <div className="mt-4 w-full max-w-2xl">
             <ChatInput
               input={input}
               onInputChange={setInput}

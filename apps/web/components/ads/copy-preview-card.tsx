@@ -563,33 +563,70 @@ export function CopyPreviewCard({
 
         {/* Manual editing options */}
         {editMode === "manual" && (
-          <div className="mt-3 space-y-2">
-            {variants.map((copy) => {
+          <div className="mt-3 space-y-3">
+            {variants.map((copy, vi) => {
               const copyId = copy.id ?? `${copy.platform}-${copy.variant}`;
               return (
-                <div key={copyId} className="rounded-xl border border-border/50 bg-white p-3">
-                  <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/50">
+                <div key={copyId} className="rounded-xl border border-border/50 bg-white p-3 space-y-2">
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/50">
                     {copy.label}
                   </div>
+                  {/* Headline */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[9px] font-medium text-muted-foreground/50">RUBRIK</span>
+                      <span className={`text-[9px] font-mono ${copy.headline.length > 40 ? "text-red-500" : "text-muted-foreground/40"}`}>
+                        {copy.headline.length}/40
+                      </span>
+                    </div>
+                    <input
+                      type="text"
+                      defaultValue={copy.headline}
+                      maxLength={40}
+                      className="w-full rounded-lg border border-border/40 bg-muted/5 px-2.5 py-1.5 text-xs font-medium outline-none transition-all focus:border-indigo-300 focus:ring-1 focus:ring-indigo-200"
+                    />
+                  </div>
+                  {/* Body */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[9px] font-medium text-muted-foreground/50">BRÖDTEXT</span>
+                      <span className={`text-[9px] font-mono ${copy.bodyCopy.length > 125 ? "text-red-500" : "text-muted-foreground/40"}`}>
+                        {copy.bodyCopy.length}/125
+                      </span>
+                    </div>
+                    <textarea
+                      defaultValue={copy.bodyCopy}
+                      maxLength={125}
+                      rows={2}
+                      className="w-full resize-none rounded-lg border border-border/40 bg-muted/5 px-2.5 py-1.5 text-xs outline-none transition-all focus:border-indigo-300 focus:ring-1 focus:ring-indigo-200"
+                    />
+                  </div>
+                  {/* CTA */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[9px] font-medium text-muted-foreground/50">CTA</span>
+                      <span className={`text-[9px] font-mono ${copy.cta.length > 20 ? "text-red-500" : "text-muted-foreground/40"}`}>
+                        {copy.cta.length}/20
+                      </span>
+                    </div>
+                    <input
+                      type="text"
+                      defaultValue={copy.cta}
+                      maxLength={20}
+                      className="w-full rounded-lg border border-border/40 bg-muted/5 px-2.5 py-1.5 text-xs font-medium outline-none transition-all focus:border-indigo-300 focus:ring-1 focus:ring-indigo-200"
+                    />
+                  </div>
+                  {/* Background image */}
                   <button
                     onClick={() => {
                       setUploadTarget(copyId);
                       fileInputRef.current?.click();
                     }}
-                    className="mb-2 flex w-full items-center gap-2 rounded-lg border border-dashed border-border/60 bg-muted/10 px-3 py-2 text-xs text-muted-foreground transition-colors hover:border-indigo-300 hover:bg-indigo-50/30 hover:text-indigo-600"
+                    className="flex w-full items-center gap-2 rounded-lg border border-dashed border-border/50 bg-muted/5 px-3 py-2 text-xs text-muted-foreground transition-colors hover:border-indigo-300 hover:bg-indigo-50/20 hover:text-indigo-600"
                   >
                     <ImagePlus className="h-3.5 w-3.5" />
                     {bgImages[copyId] ? "Byt bakgrundsbild" : "Ladda upp bakgrundsbild"}
                   </button>
-                  {bgImages[copyId] && (
-                    <div className="mb-2 flex items-center gap-2">
-                      <div
-                        className="h-8 w-8 rounded border bg-cover bg-center"
-                        style={{ backgroundImage: `url(${bgImages[copyId]})` }}
-                      />
-                      <span className="text-[10px] text-emerald-600">Bild uppladdad</span>
-                    </div>
-                  )}
                 </div>
               );
             })}

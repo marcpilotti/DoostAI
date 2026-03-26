@@ -197,6 +197,7 @@ export function BrandProfileCard({
 
   function approve(field: string) {
     setApproved((prev) => ({ ...prev, [field]: "approved" }));
+    try { navigator?.vibrate?.(10); } catch {}
   }
 
   function startEdit(field: string) {

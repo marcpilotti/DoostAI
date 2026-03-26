@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowRight, Check, Plug, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { useRef } from "react";
+import { ArrowRight, Check, Plug, Mail, Lock, Eye, EyeOff, ShieldCheck } from "lucide-react";
 
-type OnboardingStep = "connectors" | "signup" | "done";
+type OnboardingStep = "connectors" | "signup" | "verify" | "done";
 
 type LogoData = {
   primary?: string;
@@ -108,7 +109,7 @@ function SignupStep({
   companyName,
   logoUrl,
 }: {
-  onComplete: () => void;
+  onComplete: (email: string) => void;
   companyName?: string;
   logoUrl?: string;
 }) {
@@ -125,7 +126,7 @@ function SignupStep({
     setTimeout(() => {
       setSaving(false);
       window.dispatchEvent(new CustomEvent("doost:signup-complete"));
-      onComplete();
+      onComplete(email);
     }, 1200);
   }
 
@@ -231,6 +232,88 @@ function SignupStep({
   );
 }
 
+// ── Step 4: Verify email ─────────────────────────────────────────
+function VerifyEmailStep({
+  email,
+  onComplete,
+}: {
+  email: string;
+  onComplete: () => void;
+}) {
+  const [code, setCode] = useState(["", "", "", ""]);
+  const [verifying, setVerifying] = useState(false);
+  const inputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
+
+  function handleDigit(index: number, value: string) {
+    if (!/^\d*$/.test(value)) return;
+    const next = [...code];
+    next[index] = value.slice(-1);
+    setCode(next);
+    if (value && index < 3) inputRefs[index + 1]?.current?.focus();
+    if (next.every((d) => d) && next.join("").length === 4) {
+      setVerifying(true);
+      setTimeout(() => { setVerifying(false); onComplete(); }, 800);
+    }
+  }
+
+  function handleKeyDown(index: number, e: React.KeyboardEvent) {
+    if (e.key === "Backspace" && !code[index] && index > 0) {
+      inputRefs[index - 1]?.current?.focus();
+    }
+  }
+
+  return (
+    <StepCard>
+      <div className="flex items-center gap-2 border-b border-border/30 px-5 py-3">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500">
+          <ShieldCheck className="h-4 w-4 text-white" />
+        </div>
+        <div>
+          <div className="text-sm font-semibold">Verifiera din e-post</div>
+          <div className="text-[11px] text-muted-foreground">
+            Vi skickade en kod till {email}
+          </div>
+        </div>
+      </div>
+
+      <div className="px-5 py-5">
+        <div className="flex justify-center gap-3">
+          {code.map((digit, i) => (
+            <input
+              key={i}
+              ref={inputRefs[i]}
+              type="text"
+              inputMode="numeric"
+              maxLength={1}
+              value={digit}
+              onChange={(e) => handleDigit(i, e.target.value)}
+              onKeyDown={(e) => handleKeyDown(i, e)}
+              className={`h-14 w-12 rounded-xl border-2 bg-white text-center text-xl font-bold outline-none transition-all ${
+                digit
+                  ? "border-indigo-400 text-indigo-600 shadow-sm"
+                  : "border-border/50 text-foreground focus:border-indigo-400 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.1)]"
+              }`}
+            />
+          ))}
+        </div>
+
+        {verifying && (
+          <div className="mt-4 flex items-center justify-center gap-2 text-xs text-indigo-500">
+            <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-indigo-200 border-t-indigo-500" />
+            Verifierar...
+          </div>
+        )}
+
+        <div className="mt-4 text-center">
+          <button className="text-[11px] font-medium text-indigo-500 transition-colors hover:text-indigo-700">
+            Fick ingen kod? Skicka igen
+          </button>
+        </div>
+      </div>
+    </StepCard>
+  );
+}
+
 // ── Main Component ──────────────────────────────────────────────
 export function OnboardingCards({
   data,
@@ -242,6 +325,7 @@ export function OnboardingCards({
   const [profileApproved, setProfileApproved] = useState(false);
   const [showInterstitial, setShowInterstitial] = useState(false);
   const [currentStep, setCurrentStep] = useState<OnboardingStep>("connectors");
+  const [userEmail, setUserEmail] = useState("");
 
   // Wait for profile card "Godkänn alla & fortsätt" before showing
   useEffect(() => {
@@ -256,10 +340,13 @@ export function OnboardingCards({
     return () => window.removeEventListener("doost:profile-approved", handleApproved);
   }, []);
 
-  function advance(from: OnboardingStep) {
+  function advance(from: OnboardingStep, email?: string) {
     if (from === "connectors") {
       setCurrentStep("signup");
     } else if (from === "signup") {
+      if (email) setUserEmail(email);
+      setCurrentStep("verify");
+    } else if (from === "verify") {
       setCurrentStep("done");
       onAllComplete();
     }
@@ -297,9 +384,15 @@ export function OnboardingCards({
       )}
       {currentStep === "signup" && (
         <SignupStep
-          onComplete={() => advance("signup")}
+          onComplete={(email) => advance("signup", email)}
           companyName={data.companyName?.replace(/\s+(AB|HB|Inc|Ltd)$/i, "")}
           logoUrl={logoUrl}
+        />
+      )}
+      {currentStep === "verify" && (
+        <VerifyEmailStep
+          email={userEmail}
+          onComplete={() => advance("verify")}
         />
       )}
     </div>

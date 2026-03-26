@@ -258,6 +258,19 @@ export function ChatMessages({
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
+  // Auto-scroll when onboarding steps advance
+  useEffect(() => {
+    function scrollToEnd() {
+      setTimeout(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), 200);
+    }
+    window.addEventListener("doost:profile-approved", scrollToEnd);
+    window.addEventListener("doost:signup-complete", scrollToEnd);
+    return () => {
+      window.removeEventListener("doost:profile-approved", scrollToEnd);
+      window.removeEventListener("doost:signup-complete", scrollToEnd);
+    };
+  }, []);
+
   return (
     <div className="h-full overflow-y-auto px-4 pt-8 pb-24 sm:px-6">
       <div className="mx-auto max-w-2xl space-y-5">

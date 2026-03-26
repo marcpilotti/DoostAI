@@ -106,6 +106,16 @@
     transform: translateY(0) scale(1);
   }
 }
+
+/* Skeleton to content morph */
+@keyframes skeleton-reveal {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-skeleton-reveal {
+  animation: skeleton-reveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 .animate-card-in {
   animation: card-materialize 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
 }

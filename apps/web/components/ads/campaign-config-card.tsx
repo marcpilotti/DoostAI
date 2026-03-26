@@ -95,6 +95,22 @@ export function CampaignConfigCard({
       </div>
 
       <div className="space-y-5 p-5">
+        {/* Campaign name */}
+        <div>
+          <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-foreground/80">
+            Kampanjnamn
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => {/* pre-selected */}}
+              className="flex-1 rounded-xl border-2 border-indigo-400 bg-indigo-50/30 px-3 py-2 text-left text-xs font-medium ring-1 ring-indigo-200"
+            >
+              {data.brandName} — {new Date().toLocaleDateString("sv-SE", { month: "short", year: "numeric" })}
+            </button>
+          </div>
+        </div>
+
         {/* Budget */}
         <div>
           <div className="mb-2.5 flex items-center gap-1.5 text-xs font-semibold text-foreground/80">
@@ -207,6 +223,18 @@ export function CampaignConfigCard({
               );
             })}
           </div>
+        </div>
+
+        {/* A/B Test toggle */}
+        <div className="flex items-center justify-between rounded-xl border border-border/30 bg-muted/5 px-4 py-3">
+          <div>
+            <div className="text-xs font-semibold text-foreground/80">A/B-test</div>
+            <div className="text-[10px] text-muted-foreground">Kör båda varianterna och behåll vinnaren automatiskt</div>
+          </div>
+          <label className="relative inline-flex cursor-pointer items-center">
+            <input type="checkbox" defaultChecked className="peer sr-only" />
+            <div className="peer h-5 w-9 rounded-full bg-muted/60 after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow-sm after:transition-all peer-checked:bg-indigo-500 peer-checked:after:translate-x-full" />
+          </label>
         </div>
 
         {/* Summary */}

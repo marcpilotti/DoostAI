@@ -62,6 +62,21 @@ export function ChatInput({
               Tryck Enter för att analysera <span className="font-medium">{urlHint}</span>
             </div>
           )}
+          {/* URL domain suggestions */}
+          {input.length >= 3 && !urlHint && !isLoading && /^[a-zåäö]/i.test(input) && (
+            <div className="mb-1 flex gap-1 px-3">
+              {[".se", ".com", ".nu"].map((ext) => (
+                <button
+                  key={ext}
+                  type="button"
+                  onClick={() => onInputChange(`${input.trim()}${ext}`)}
+                  className="rounded bg-muted/40 px-1.5 py-0.5 text-[10px] text-muted-foreground transition-colors hover:bg-indigo-50 hover:text-indigo-600"
+                >
+                  {input.trim()}{ext}
+                </button>
+              ))}
+            </div>
+          )}
           <textarea
             ref={textareaRef}
             value={input}
