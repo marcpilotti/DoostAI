@@ -158,7 +158,7 @@ export default function Home() {
         </div>
       ) : (
         <>
-          <div className="min-h-0 flex-1">
+          <div className="min-h-0 flex-1 overflow-hidden">
             <ChatMessages
               messages={messages}
               isLoading={isLoading}
@@ -167,7 +167,7 @@ export default function Home() {
               }}
             />
           </div>
-          <div className="mx-auto w-full max-w-2xl px-4 sm:px-6">
+          <div className="shrink-0 mx-auto w-full max-w-2xl px-4 sm:px-6">
             {!isLoading && messages.length > 0 && !input && (
               <SuggestionChips
                 suggestions={getSuggestionsForStep(flowStep)}
