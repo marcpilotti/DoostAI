@@ -1,6 +1,6 @@
 "use client";
 
-import { lazy, Suspense, useEffect, useRef } from "react";
+import { lazy, Suspense, useMemo } from "react";
 import type { UIMessage } from "ai";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -252,86 +252,83 @@ export function ChatMessages({
   isLoading: boolean;
   onSendMessage?: (text: string) => void;
 }) {
-  const endRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isLoading]);
-
-  // Auto-scroll when onboarding steps advance
-  useEffect(() => {
-    function scrollToEnd() {
-      setTimeout(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), 200);
+  // Find the latest AI text and latest tool card to show
+  const latestText = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i]!;
+      if (m.role !== "assistant") continue;
+      const texts = m.parts
+        .filter((p): p is { type: "text"; text: string } => p.type === "text")
+        .filter((p) => p.text.trim());
+      if (texts.length > 0) return texts[texts.length - 1]!.text;
     }
-    window.addEventListener("doost:profile-approved", scrollToEnd);
-    window.addEventListener("doost:signup-complete", scrollToEnd);
-    return () => {
-      window.removeEventListener("doost:profile-approved", scrollToEnd);
-      window.removeEventListener("doost:signup-complete", scrollToEnd);
-    };
-  }, []);
+    return null;
+  }, [messages]);
+
+  const latestToolParts = useMemo(() => {
+    const parts: { part: ToolPart; messageId: string }[] = [];
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i]!;
+      if (m.role !== "assistant") continue;
+      const tools = m.parts.filter(isToolPart) as ToolPart[];
+      if (tools.length > 0) {
+        return tools.map((t) => ({ part: t, messageId: m.id }));
+      }
+    }
+    return parts;
+  }, [messages]);
+
+  // Also find the latest user message (non-hidden)
+  const latestUserText = useMemo(() => {
+    const hidden = ["Onboarding klar", "Gå vidare till kampanjinställningar"];
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i]!;
+      if (m.role !== "user") continue;
+      const text = getMessageText(m);
+      if (text && !hidden.includes(text.trim())) return text;
+    }
+    return null;
+  }, [messages]);
 
   return (
-    <div className="h-full overflow-y-auto px-4 pt-8 pb-24 sm:px-6">
-      <div className="mx-auto max-w-2xl space-y-5">
-        {messages.map((message) => {
-          if (message.role === "user") {
-            const text = getMessageText(message);
-            if (!text) return null;
-            // Hide system-triggered messages from display
-            const hidden = ["Onboarding klar", "Gå vidare till kampanjinställningar"];
-            if (hidden.some((h) => text.trim() === h)) return null;
-            return (
-              <div key={message.id} className="animate-message-in flex items-start justify-end gap-2">
-                <div className="max-w-[72%] rounded-2xl rounded-br-md border border-indigo-100 bg-indigo-50/80 px-4 py-2.5 text-sm leading-relaxed text-foreground sm:max-w-[60%]">
-                  {text}
-                </div>
-                <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[10px] font-semibold text-indigo-600">
-                  Du
-                </div>
-              </div>
-            );
-          }
-
-          // Assistant message — render all parts
-          const textParts = message.parts.filter((p) => p.type === "text") as {
-            type: "text";
-            text: string;
-          }[];
-          const toolParts = message.parts.filter(isToolPart) as ToolPart[];
-          const hasContent = textParts.some((p) => p.text.trim()) || toolParts.length > 0;
-
-          if (!hasContent) return null;
-
-          return (
-            <div key={message.id} className="animate-message-in flex items-start gap-2.5">
-              <img src="/symbol.svg" alt="" width={28} height={28} className="mt-0.5 h-7 w-7 shrink-0" aria-hidden />
-              <div className="relative min-w-0 max-w-full space-y-1.5 pl-3 before:absolute before:left-0 before:top-1 before:bottom-1 before:w-0.5 before:rounded-full before:bg-gradient-to-b before:from-indigo-400/30 before:to-transparent">
-                {textParts.map((part, i) =>
-                  part.text.trim() ? (
-                    <div
-                      key={i}
-                      className="prose prose-sm prose-neutral max-w-none text-foreground/90 [&_p]:leading-relaxed [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0.5 [&_strong]:font-semibold [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mt-3 [&_h3]:mb-1"
-                    >
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {part.text}
-                      </ReactMarkdown>
-                    </div>
-                  ) : null,
-                )}
-                {toolParts.map((part, i) => (
-                  <Suspense key={part.toolCallId ?? `tool-${i}`} fallback={<div className="h-8" />}>
-                    <ToolInvocation part={part} onSendMessage={onSendMessage} />
-                  </Suspense>
-                ))}
-              </div>
+    <div className="flex h-full flex-col px-4 sm:px-6">
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col">
+        {/* Latest user message — compact at top */}
+        {latestUserText && (
+          <div className="flex justify-end pt-4 pb-2">
+            <div className="max-w-[72%] rounded-2xl rounded-br-md border border-indigo-100 bg-indigo-50/80 px-4 py-2 text-sm text-foreground sm:max-w-[60%]">
+              {latestUserText}
             </div>
-          );
-        })}
-        {isLoading && messages[messages.length - 1]?.role === "user" && (
-          <TypingIndicator />
+          </div>
         )}
-        <div ref={endRef} />
+
+        {/* Latest AI text — brief message above card */}
+        {latestText && (
+          <div className="animate-message-in flex items-start gap-2.5 pb-2">
+            <img src="/symbol.svg" alt="" width={24} height={24} className="mt-0.5 h-6 w-6 shrink-0" aria-hidden />
+            <div className="prose prose-sm prose-neutral max-w-none text-foreground/90 [&_p]:leading-relaxed [&_p]:my-0.5">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {latestText}
+              </ReactMarkdown>
+            </div>
+          </div>
+        )}
+
+        {/* Main card area — fills remaining viewport */}
+        <div className="flex-1 overflow-y-auto pb-4">
+          {latestToolParts.map(({ part, messageId }) => (
+            <Suspense key={part.toolCallId ?? messageId} fallback={<div className="h-8" />}>
+              <ToolInvocation part={part} onSendMessage={onSendMessage} />
+            </Suspense>
+          ))}
+        </div>
+
+        {/* Typing indicator */}
+        {isLoading && messages[messages.length - 1]?.role === "user" && (
+          <div className="pb-4">
+            <TypingIndicator />
+          </div>
+        )}
       </div>
     </div>
   );
