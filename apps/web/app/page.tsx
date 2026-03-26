@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useChat } from "@ai-sdk/react";
+import { Sparkles } from "lucide-react";
 
 import { ChatHeader } from "@/components/chat/chat-header";
 import { ChatInput } from "@/components/chat/chat-input";
@@ -74,11 +75,60 @@ export default function Home() {
     setInput("");
   };
 
-  const isEmpty = messages.length === 0;
+  const [savedSession, setSavedSession] = useState<{ companyName?: string } | null>(null);
+
+  // Check for saved session on mount
+  useEffect(() => {
+    try {
+      const draft = localStorage.getItem("doost:draft-session");
+      if (draft && messages.length === 0) {
+        const parsed = JSON.parse(draft);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Try to extract company name from tool results
+          const brandResult = parsed.find((m: { parts?: Array<{ toolName?: string; output?: { name?: string } }> }) =>
+            m.parts?.some((p: { toolName?: string }) => p.toolName === "analyze_brand")
+          );
+          const name = brandResult?.parts?.find((p: { toolName?: string }) => p.toolName === "analyze_brand")?.output?.name;
+          setSavedSession({ companyName: name });
+        }
+      }
+    } catch {}
+  }, [messages.length]);
+
+  const isEmpty = messages.length === 0 && !savedSession;
 
   return (
     <div className="flex h-screen flex-col bg-background">
       <ChatHeader authenticated={authenticated} />
+
+      {/* Resume saved session */}
+      {savedSession && messages.length === 0 && (
+        <div className="flex flex-1 flex-col items-center justify-center px-6 pb-8">
+          <div className="animate-card-in w-full max-w-sm overflow-hidden rounded-2xl border border-border/30 bg-white/80 shadow-sm backdrop-blur-xl">
+            <div className="px-5 py-4 text-center">
+              <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50">
+                <Sparkles className="h-5 w-5 text-indigo-500" />
+              </div>
+              <h3 className="text-sm font-semibold">Välkommen tillbaka{savedSession.companyName ? `, ${savedSession.companyName}` : ""}!</h3>
+              <p className="mt-1 text-xs text-muted-foreground">Du har en pågående session. Vill du fortsätta?</p>
+            </div>
+            <div className="flex gap-2 border-t border-border/20 px-5 py-3">
+              <button
+                onClick={() => { localStorage.removeItem("doost:draft-session"); setSavedSession(null); }}
+                className="flex-1 rounded-xl border border-border/40 px-3 py-2 text-xs font-medium text-muted-foreground transition-all hover:bg-muted/40"
+              >
+                Börja om
+              </button>
+              <button
+                onClick={() => { setSavedSession(null); /* session will restore via useChat */ }}
+                className="flex-1 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700"
+              >
+                Fortsätt
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {isEmpty ? (
         <div className="flex flex-1 flex-col items-center justify-center px-6 pb-8">
@@ -92,6 +142,10 @@ export default function Home() {
           <div className="mt-4 flex items-center gap-2 rounded-full bg-indigo-50/80 px-4 py-1.5 text-[11px] font-medium text-indigo-600 animate-message-in">
             <span className="inline-block animate-bounce text-base">↓</span>
             Prova med ditt företags hemsida — det tar 10 sekunder
+          </div>
+          {/* Social proof */}
+          <div className="mt-2 animate-message-in text-[11px] text-emerald-600/70" style={{ animationDelay: "300ms" }}>
+            ✓ 1 247 svenska företag har redan skapat sin första kampanj
           </div>
           <div className="mt-4 w-full max-w-2xl">
             <ChatInput

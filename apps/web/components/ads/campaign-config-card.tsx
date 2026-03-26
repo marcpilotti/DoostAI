@@ -195,6 +195,33 @@ export function CampaignConfigCard({
           </div>
         </div>
 
+        {/* Start date */}
+        <div>
+          <div className="mb-2.5 flex items-center gap-1.5 text-xs font-semibold text-foreground/80">
+            <CalendarDays className="h-3.5 w-3.5" />
+            Startdatum
+          </div>
+          <div className="flex gap-2">
+            {[
+              { value: "today", label: "Idag" },
+              { value: "tomorrow", label: "Imorgon" },
+            ].map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                className="rounded-xl border-2 border-indigo-400 bg-indigo-50/50 px-4 py-2 text-xs font-semibold ring-1 ring-indigo-200 first:border-indigo-400 [&:not(:first-child)]:border-border/50 [&:not(:first-child)]:bg-white [&:not(:first-child)]:ring-0 [&:not(:first-child)]:hover:border-indigo-300"
+              >
+                {opt.label}
+              </button>
+            ))}
+            <input
+              type="date"
+              min={new Date().toISOString().split("T")[0]}
+              className="rounded-xl border border-border/50 bg-white px-3 py-2 text-xs outline-none transition-all hover:border-indigo-300 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200"
+            />
+          </div>
+        </div>
+
         {/* Regions */}
         <div>
           <div className="mb-2.5 flex items-center gap-1.5 text-xs font-semibold text-foreground/80">

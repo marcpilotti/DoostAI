@@ -16,6 +16,7 @@ import {
   Sparkles,
   Type,
   Upload,
+  Users,
   X,
 } from "lucide-react";
 
@@ -183,6 +184,7 @@ export function BrandProfileCard({
     location: "pending",
     logo: "pending",
     font: "pending",
+    audience: "pending",
     colors: "pending",
   });
 
@@ -270,26 +272,36 @@ export function BrandProfileCard({
         <div className="flex items-start gap-3">
           {/* Logo — shows when uploaded/scraped, otherwise hidden until grid upload */}
           {logoUrl && (
-            <label className="group relative shrink-0 cursor-pointer">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={logoUrl}
-                alt={name}
-                className={`h-12 w-12 rounded-xl border-2 bg-white object-contain p-1.5 shadow-sm transition-all ${
-                  approved.logo === "approved" ? "border-emerald-300" : "border-border/30"
-                }`}
-                onError={() => setLogoUrl(null)}
-              />
-              <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/30 opacity-100 sm:opacity-0 transition-opacity sm:group-hover:opacity-100">
-                <Pencil className="h-3 w-3 text-white" />
-              </div>
-              {approved.logo === "approved" && (
-                <div className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
-                  <Check className="h-2.5 w-2.5" strokeWidth={3} />
+            <div className="shrink-0">
+              <label className="group relative cursor-pointer block">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={logoUrl}
+                  alt={name}
+                  className={`h-12 w-12 rounded-xl border-2 bg-white object-contain p-1.5 shadow-sm transition-all ${
+                    approved.logo === "approved" ? "border-emerald-300" : "border-border/30"
+                  }`}
+                  onError={() => setLogoUrl(null)}
+                />
+                <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/30 opacity-100 sm:opacity-0 transition-opacity sm:group-hover:opacity-100">
+                  <Pencil className="h-3 w-3 text-white" />
                 </div>
+                {approved.logo === "approved" && (
+                  <div className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
+                    <Check className="h-2.5 w-2.5" strokeWidth={3} />
+                  </div>
+                )}
+                <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+              </label>
+              {approved.logo !== "approved" && (
+                <button
+                  onClick={() => setLogoUrl(null)}
+                  className="mt-1 block w-full text-center text-[8px] text-muted-foreground/40 transition-colors hover:text-indigo-500"
+                >
+                  Fel logo?
+                </button>
               )}
-              <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-            </label>
+            </div>
           )}
 
           <div className="min-w-0 flex-1">
@@ -421,6 +433,18 @@ export function BrandProfileCard({
             )}
           </div>
         </div>
+
+        {/* Target audience — full width */}
+        {data.targetAudience && (
+          <ApprovableField
+            icon={Users}
+            label="Målgrupp"
+            value={data.targetAudience}
+            state={approved.audience ?? "pending"}
+            onApprove={() => approve("audience")}
+            onEdit={() => startEdit("audience")}
+          />
+        )}
       </div>
 
       {/* Colors section — approvable */}
@@ -485,18 +509,18 @@ export function BrandProfileCard({
         </span>
         <button
           onClick={() => {
-            // Auto-approve all remaining
-            setApproved((prev) => {
-              const next = { ...prev };
-              for (const key of Object.keys(next)) {
-                if (next[key] !== "approved") next[key] = "approved";
-              }
-              return next;
+            // Cascade approve: stagger each field 100ms apart
+            const pending = Object.keys(approved).filter((k) => approved[k] !== "approved");
+            pending.forEach((key, i) => {
+              setTimeout(() => {
+                setApproved((prev) => ({ ...prev, [key]: "approved" }));
+                try { navigator?.vibrate?.(10); } catch {}
+              }, i * 100);
             });
             setTimeout(() => {
               window.dispatchEvent(new CustomEvent("doost:profile-approved"));
               onComplete?.();
-            }, 400);
+            }, pending.length * 100 + 300);
           }}
           className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold shadow-sm transition-all ${
             allApproved
