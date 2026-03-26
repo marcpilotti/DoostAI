@@ -295,8 +295,8 @@ export function ChatMessages({
       <div className="mx-auto flex w-full min-h-0 max-w-2xl flex-1 flex-col">
         {/* Latest user message — compact at top */}
         {latestUserText && (
-          <div className="flex justify-end pt-4 pb-2">
-            <div className="max-w-[72%] rounded-2xl rounded-br-md border border-indigo-100 bg-indigo-50/80 px-4 py-2 text-sm text-foreground sm:max-w-[60%]">
+          <div className="flex justify-end pt-2 pb-1">
+            <div className="max-w-[72%] rounded-2xl rounded-br-md border border-indigo-100 bg-indigo-50/80 px-3 py-1.5 text-xs text-foreground sm:max-w-[60%]">
               {latestUserText}
             </div>
           </div>
@@ -304,9 +304,9 @@ export function ChatMessages({
 
         {/* Latest AI text — brief message above card */}
         {latestText && (
-          <div className="animate-message-in flex items-start gap-2.5 pb-2">
-            <img src="/symbol.svg" alt="" width={24} height={24} className="mt-0.5 h-6 w-6 shrink-0" aria-hidden />
-            <div className="prose prose-sm prose-neutral max-w-none text-foreground/90 [&_p]:leading-relaxed [&_p]:my-0.5">
+          <div className="animate-message-in flex items-start gap-2 pb-1">
+            <img src="/symbol.svg" alt="" width={20} height={20} className="mt-0.5 h-5 w-5 shrink-0" aria-hidden />
+            <div className="prose prose-xs prose-neutral max-w-none text-xs text-foreground/80 [&_p]:leading-relaxed [&_p]:my-0">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {latestText}
               </ReactMarkdown>

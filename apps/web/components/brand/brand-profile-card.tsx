@@ -75,7 +75,7 @@ function ApprovableField({
 }) {
   return (
     <div
-      className={`group relative rounded-xl border px-3 py-2.5 transition-all duration-300 ${
+      className={`group relative rounded-lg border px-2.5 py-1.5 transition-all duration-300 ${
         state === "approved"
           ? "border-emerald-200 bg-emerald-50/30"
           : state === "editing"
@@ -86,8 +86,8 @@ function ApprovableField({
       <div className="flex items-center gap-2">
         <Icon className={`h-3.5 w-3.5 shrink-0 ${state === "approved" ? "text-emerald-500" : "text-muted-foreground/50"}`} />
         <div className="min-w-0 flex-1">
-          <div className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/50">{label}</div>
-          <div className="truncate text-sm font-medium text-foreground">{value}</div>
+          <div className="text-[8px] font-medium uppercase tracking-wider text-muted-foreground/50">{label}</div>
+          <div className="truncate text-xs font-medium text-foreground">{value}</div>
         </div>
         {state === "approved" ? (
           <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 shadow-sm">
@@ -143,7 +143,7 @@ function ColorSwatch({
       >
         <div className="relative">
           <div
-            className={`h-10 w-10 rounded-full border-2 shadow-sm transition-all ${
+            className={`h-8 w-8 rounded-full border-2 shadow-sm transition-all ${
               approved ? "border-emerald-400 ring-2 ring-emerald-200" : "border-white hover:scale-105"
             }`}
             style={{ backgroundColor: color }}
@@ -227,14 +227,14 @@ export function BrandProfileCard({
   const allApproved = approvedCount === totalFields;
 
   return (
-    <div className="animate-card-in mt-3 overflow-hidden rounded-2xl border border-border/30 bg-white/80 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] backdrop-blur-xl">
+    <div className="animate-card-in mt-2 overflow-hidden rounded-2xl border border-border/30 bg-white/80 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] backdrop-blur-xl">
       {/* Header */}
-      <div className="flex items-center gap-3 px-5 py-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-sm">
-          <Sparkles className="h-4 w-4 text-white" />
+      <div className="flex items-center gap-2 px-4 py-2">
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 shadow-sm">
+          <Sparkles className="h-3.5 w-3.5 text-white" />
         </div>
         <div className="flex-1">
-          <div className="text-sm font-semibold tracking-tight">Varumärkesprofil</div>
+          <div className="text-xs font-semibold tracking-tight">Varumärkesprofil</div>
           <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
             <Globe className="h-2.5 w-2.5" />
             {domain}
@@ -268,8 +268,8 @@ export function BrandProfileCard({
       <div className="h-px bg-gradient-to-r from-transparent via-border/40 to-transparent" />
 
       {/* Logo + Name section */}
-      <div className="px-5 pt-4 pb-3">
-        <div className="flex items-start gap-3">
+      <div className="px-4 pt-2 pb-1">
+        <div className="flex items-start gap-2.5">
           {/* Logo — shows when uploaded/scraped, otherwise hidden until grid upload */}
           {logoUrl && (
             <div className="shrink-0">
@@ -278,7 +278,7 @@ export function BrandProfileCard({
                 <img
                   src={logoUrl}
                   alt={name}
-                  className={`h-12 w-12 rounded-xl border-2 bg-white object-contain p-1.5 shadow-sm transition-all ${
+                  className={`h-10 w-10 rounded-lg border-2 bg-white object-contain p-1 shadow-sm transition-all ${
                     approved.logo === "approved" ? "border-emerald-300" : "border-border/30"
                   }`}
                   onError={() => setLogoUrl(null)}
@@ -307,7 +307,7 @@ export function BrandProfileCard({
           <div className="min-w-0 flex-1">
             {/* Name + approve */}
             <div className="flex items-center gap-2">
-              <h3 className="truncate text-lg font-semibold tracking-tight">{name}</h3>
+              <h3 className="truncate text-sm font-semibold tracking-tight">{name}</h3>
               {approved.name === "approved" ? (
                 <div className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 shadow-sm">
                   <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />
@@ -326,7 +326,7 @@ export function BrandProfileCard({
             </div>
             {/* Description */}
             {data.description && (
-              <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+              <p className="mt-0.5 line-clamp-1 text-[11px] text-muted-foreground">
                 {data.description}
               </p>
             )}
@@ -335,7 +335,7 @@ export function BrandProfileCard({
       </div>
 
       {/* Approvable fields grid — always 2 columns */}
-      <div className="grid grid-cols-2 gap-2 px-5 pb-3">
+      <div className="grid grid-cols-2 gap-1.5 px-4 pb-2">
         {/* Row 1: Bransch + Plats */}
         <ApprovableField
           icon={Building2}
@@ -357,7 +357,7 @@ export function BrandProfileCard({
         {/* Row 2: Logo + Font */}
         {/* Logo field */}
         <div
-          className={`group relative rounded-xl border px-3 py-2.5 transition-all duration-300 ${
+          className={`group relative rounded-lg border px-2.5 py-1.5 transition-all duration-300 ${
             approved.logo === "approved"
               ? "border-emerald-200 bg-emerald-50/30"
               : "border-border/40 bg-white/50 hover:border-border/60"
@@ -394,7 +394,7 @@ export function BrandProfileCard({
 
         {/* Font field */}
         <div
-          className={`group relative rounded-xl border px-3 py-2.5 transition-all duration-300 ${
+          className={`group relative rounded-lg border px-2.5 py-1.5 transition-all duration-300 ${
             approved.font === "approved"
               ? "border-emerald-200 bg-emerald-50/30"
               : "border-border/40 bg-white/50 hover:border-border/60"
@@ -448,9 +448,9 @@ export function BrandProfileCard({
       </div>
 
       {/* Colors section — approvable */}
-      <div className="px-5 pb-4">
+      <div className="px-4 pb-2">
         <div
-          className={`rounded-xl border p-4 transition-all duration-300 ${
+          className={`rounded-lg border p-3 transition-all duration-300 ${
             approved.colors === "approved"
               ? "border-emerald-200 bg-emerald-50/20"
               : "border-border/30 bg-muted/5"
@@ -503,7 +503,7 @@ export function BrandProfileCard({
       </div>
 
       {/* Footer CTA */}
-      <div className="flex items-center justify-between border-t border-border/20 px-5 py-3">
+      <div className="flex items-center justify-between border-t border-border/20 px-4 py-2">
         <span className="text-[10px] text-muted-foreground/40">
           {allApproved ? "Alla fält godkända" : `Godkänn alla fält genom att hovra och klicka ✓`}
         </span>
