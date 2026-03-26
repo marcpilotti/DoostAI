@@ -92,7 +92,7 @@ function ApprovableField({
 }) {
   return (
     <div
-      className={`group relative rounded-lg border px-2.5 py-1.5 transition-all duration-300 ${
+      className={`group relative rounded-lg border px-2 py-1 transition-all duration-300 ${
         state === "approved"
           ? "border-emerald-200 bg-emerald-50/30"
           : state === "editing"
@@ -100,32 +100,42 @@ function ApprovableField({
             : "border-border/40 bg-white/50 hover:border-border/60"
       }`}
     >
-      <div className="flex items-center gap-2">
-        <Icon className={`h-3 w-3 shrink-0 ${state === "approved" ? "text-emerald-500" : "text-muted-foreground/40"}`} />
+      <div className="flex items-center gap-1.5">
+        <Icon className={`h-2.5 w-2.5 shrink-0 ${state === "approved" ? "text-emerald-500" : "text-muted-foreground/40"}`} />
         <div className="min-w-0 flex-1">
-          <div className="text-[8px] font-medium uppercase tracking-widest text-muted-foreground/40">{label}</div>
-          <div className="truncate text-sm font-semibold text-foreground">{value}</div>
+          <div className="text-[7px] font-medium uppercase tracking-widest text-muted-foreground/40">{label}</div>
+          {state === "editing" ? (
+            <input
+              type="text"
+              defaultValue={value}
+              autoFocus
+              onKeyDown={(e) => { if (e.key === "Enter") onApprove(); }}
+              onBlur={() => onApprove()}
+              className="w-full border-b border-indigo-300 bg-transparent text-xs font-medium text-foreground outline-none"
+            />
+          ) : (
+            <div className="truncate text-xs font-medium text-foreground">{value}</div>
+          )}
         </div>
         {state === "approved" ? (
-          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 shadow-sm">
-            <Check className="h-3 w-3 text-white" strokeWidth={3} />
+          <div className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500">
+            <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />
           </div>
         ) : state === "editing" ? (
-          <button onClick={onApprove} className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500 text-white shadow-sm hover:bg-indigo-600">
-            <Check className="h-3 w-3" strokeWidth={3} />
+          <button onClick={onApprove} className="flex h-4 w-4 items-center justify-center rounded-full bg-indigo-500 text-white hover:bg-indigo-600">
+            <Check className="h-2.5 w-2.5" strokeWidth={3} />
           </button>
         ) : (
-          <div className="flex gap-1 opacity-100 sm:opacity-0 transition-opacity sm:group-hover:opacity-100">
-            <button onClick={onApprove} className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 transition-colors hover:bg-emerald-100" title="Godkänn">
-              <Check className="h-3 w-3" strokeWidth={2.5} />
+          <div className="flex gap-0.5 opacity-100 sm:opacity-0 transition-opacity sm:group-hover:opacity-100">
+            <button onClick={onApprove} className="flex h-5 w-5 items-center justify-center rounded bg-emerald-50 text-emerald-600 transition-colors hover:bg-emerald-100" title="Godkänn">
+              <Check className="h-2.5 w-2.5" strokeWidth={2.5} />
             </button>
-            <button onClick={onEdit} className="flex h-6 w-6 items-center justify-center rounded-lg bg-muted/40 text-muted-foreground transition-colors hover:bg-muted/60" title="Ändra">
-              <Pencil className="h-3 w-3" />
+            <button onClick={onEdit} className="flex h-5 w-5 items-center justify-center rounded bg-muted/40 text-muted-foreground transition-colors hover:bg-muted/60" title="Ändra">
+              <Pencil className="h-2.5 w-2.5" />
             </button>
           </div>
         )}
       </div>
-      {state === "editing" && children}
     </div>
   );
 }
@@ -244,7 +254,7 @@ export function BrandProfileCard({
   const allApproved = approvedCount === totalFields;
 
   return (
-    <div className="animate-card-in mt-2 overflow-hidden rounded-2xl border border-border/30 bg-white/80 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] backdrop-blur-xl">
+    <div className="animate-card-in mt-2 max-h-[calc(100vh-200px)] overflow-hidden rounded-2xl border border-border/30 bg-white/80 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] backdrop-blur-xl">
       {/* Header */}
       <div className="flex items-center gap-2 px-4 py-2">
         <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 shadow-sm">
@@ -375,7 +385,7 @@ export function BrandProfileCard({
         {/* Row 2: Logo + Font */}
         {/* Logo field */}
         <div
-          className={`group relative rounded-lg border px-2.5 py-1.5 transition-all duration-300 ${
+          className={`group relative rounded-lg border px-2 py-1 transition-all duration-300 ${
             approved.logo === "approved"
               ? "border-emerald-200 bg-emerald-50/30"
               : "border-border/40 bg-white/50 hover:border-border/60"
@@ -412,7 +422,7 @@ export function BrandProfileCard({
 
         {/* Font field */}
         <div
-          className={`group relative rounded-lg border px-2.5 py-1.5 transition-all duration-300 ${
+          className={`group relative rounded-lg border px-2 py-1 transition-all duration-300 ${
             approved.font === "approved"
               ? "border-emerald-200 bg-emerald-50/30"
               : "border-border/40 bg-white/50 hover:border-border/60"
