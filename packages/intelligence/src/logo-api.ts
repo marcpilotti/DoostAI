@@ -62,26 +62,6 @@ async function fetchBrandfetch(domain: string): Promise<BrandfetchResult | null>
 }
 
 /**
- * Clearbit Logo API — simple logo URL fallback.
- */
-function getClearbitLogoUrl(domain: string): string {
-  return `https://logo.clearbit.com/${domain}?size=512`;
-}
-
-/**
- * Check if Clearbit logo actually exists (returns 200).
- */
-async function verifyClearbitLogo(domain: string): Promise<string | null> {
-  try {
-    const url = getClearbitLogoUrl(domain);
-    const res = await fetch(url, { method: "HEAD", signal: AbortSignal.timeout(5000) });
-    return res.ok ? url : null;
-  } catch {
-    return null;
-  }
-}
-
-/**
  * Logo.dev API — simple domain-based logo lookup.
  * Free tier: 500k requests/month. No npm package needed.
  */
@@ -103,18 +83,15 @@ async function fetchLogoDev(domain: string): Promise<string | null> {
  */
 export async function fetchLogoApis(domain: string): Promise<{
   brandfetch: BrandfetchResult | null;
-  clearbitLogo: string | null;
   logoDevUrl: string | null;
 }> {
-  const [brandfetch, clearbitLogo, logoDevUrl] = await Promise.allSettled([
+  const [brandfetch, logoDevUrl] = await Promise.allSettled([
     fetchBrandfetch(domain),
-    verifyClearbitLogo(domain),
     fetchLogoDev(domain),
   ]);
 
   return {
     brandfetch: brandfetch.status === "fulfilled" ? brandfetch.value : null,
-    clearbitLogo: clearbitLogo.status === "fulfilled" ? clearbitLogo.value : null,
     logoDevUrl: logoDevUrl.status === "fulfilled" ? logoDevUrl.value : null,
   };
 }

@@ -55,7 +55,6 @@ function colorDeltaE(hex1: string, hex2: string): number {
  */
 function mergeLogo(
   brandfetch: BrandfetchResult | null,
-  clearbitLogo: string | null,
   logoDevUrl: string | null,
   scrapedLogos: string[],
   socialProfiles: SocialProfile[],
@@ -78,11 +77,6 @@ function mergeLogo(
   // Priority 2: Logo.dev (confidence 90)
   if (logoDevUrl) {
     return { value: { url: logoDevUrl, type: "image", initials }, confidence: 90, source: "logo.dev", status: "found" };
-  }
-
-  // Priority 3: Clearbit logo (confidence 85)
-  if (clearbitLogo) {
-    return { value: { url: clearbitLogo, type: "image", initials }, confidence: 85, source: "clearbit", status: "found" };
   }
 
   // Priority 3: Scraped logo from DOM (confidence 60)
@@ -196,7 +190,6 @@ function mergeFont(
 export function mergeIntelligence(input: {
   companyName: string;
   brandfetch: BrandfetchResult | null;
-  clearbitLogo: string | null;
   logoDevUrl: string | null;
   vision: VisionAnalysis | null;
   cssColors: string[];
@@ -206,7 +199,7 @@ export function mergeIntelligence(input: {
   audit: WebsiteAuditResult | null;
   enrichedIndustry?: string;
 }): MergedBrandIntelligence {
-  const logo = mergeLogo(input.brandfetch, input.clearbitLogo, input.logoDevUrl, input.scrapedLogos, input.social, input.companyName);
+  const logo = mergeLogo(input.brandfetch, input.logoDevUrl, input.scrapedLogos, input.social, input.companyName);
   const colors = mergeColors(input.brandfetch, input.vision, input.cssColors);
   const font = mergeFont(input.brandfetch, input.vision, input.cssFonts);
 
