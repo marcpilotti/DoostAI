@@ -97,7 +97,7 @@ function ApprovableField({
             <Check className="h-3 w-3" strokeWidth={3} />
           </button>
         ) : (
-          <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+          <div className="flex gap-1 opacity-100 sm:opacity-0 transition-opacity sm:group-hover:opacity-100">
             <button onClick={onApprove} className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 transition-colors hover:bg-emerald-100" title="Godkänn">
               <Check className="h-3 w-3" strokeWidth={2.5} />
             </button>
@@ -274,7 +274,7 @@ export function BrandProfileCard({
                   }`}
                   onError={() => setLogoUrl(null)}
                 />
-                <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/30 opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/30 opacity-100 sm:opacity-0 transition-opacity sm:group-hover:opacity-100">
                   <Pencil className="h-3.5 w-3.5 text-white" />
                 </div>
                 {approved.logo === "approved" && (
@@ -359,7 +359,7 @@ export function BrandProfileCard({
                 <Check className="h-3 w-3 text-white" strokeWidth={3} />
               </div>
             ) : (
-              <label className="flex cursor-pointer gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+              <label className="flex cursor-pointer gap-1 opacity-100 sm:opacity-0 transition-opacity sm:group-hover:opacity-100">
                 {logoUrl && (
                   <button onClick={() => approve("logo")} className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 transition-colors hover:bg-emerald-100">
                     <Check className="h-3 w-3" strokeWidth={2.5} />
@@ -396,7 +396,7 @@ export function BrandProfileCard({
                 <Check className="h-3 w-3 text-white" strokeWidth={3} />
               </div>
             ) : (
-              <label className="flex cursor-pointer gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+              <label className="flex cursor-pointer gap-1 opacity-100 sm:opacity-0 transition-opacity sm:group-hover:opacity-100">
                 {(fontFile || data.fonts?.heading) && (
                   <button onClick={() => approve("font")} className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 transition-colors hover:bg-emerald-100">
                     <Check className="h-3 w-3" strokeWidth={2.5} />

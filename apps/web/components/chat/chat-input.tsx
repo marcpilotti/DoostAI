@@ -48,7 +48,7 @@ export function ChatInput({
   };
 
   return (
-    <div className="px-3 pb-4 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-6">
+    <div className="px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2 sm:px-6 sm:pb-6">
       <form
         ref={formRef}
         onSubmit={onSubmit}
@@ -73,12 +73,14 @@ export function ChatInput({
             <div className="flex gap-0.5">
               <button
                 type="button"
+                aria-label="Bifoga bild"
                 className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground/50 transition-colors hover:text-muted-foreground"
               >
                 <Image className="h-4 w-4" />
               </button>
               <button
                 type="button"
+                aria-label="Bifoga fil"
                 className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground/50 transition-colors hover:text-muted-foreground"
               >
                 <Paperclip className="h-4 w-4" />
@@ -87,6 +89,7 @@ export function ChatInput({
             <div className="flex items-center gap-0.5">
               <button
                 type="button"
+                aria-label="Röstinmatning"
                 className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground/50 transition-colors hover:text-muted-foreground"
               >
                 <Mic className="h-4 w-4" />

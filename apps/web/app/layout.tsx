@@ -1,16 +1,10 @@
 import type { Metadata } from "next";
-import { DM_Sans, Instrument_Sans, Outfit, Permanent_Marker, Space_Grotesk } from "next/font/google";
+import { Instrument_Sans, Permanent_Marker } from "next/font/google";
 import { CommandPalette } from "@/components/command-palette";
 import { PostHogProvider } from "@/lib/posthog/provider";
 import { QueryProvider } from "@/lib/query-provider";
 
 import "./globals.css";
-
-const outfit = Outfit({
-  subsets: ["latin"],
-  variable: "--font-outfit",
-  display: "swap",
-});
 
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
@@ -18,24 +12,10 @@ const instrumentSans = Instrument_Sans({
   display: "swap",
 });
 
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  variable: "--font-dm-sans",
-  weight: ["700", "800"],
-  display: "swap",
-});
-
 const marker = Permanent_Marker({
   subsets: ["latin"],
   variable: "--font-marker",
   weight: ["400"],
-  display: "swap",
-});
-
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-space-grotesk",
-  weight: ["500", "700"],
   display: "swap",
 });
 
@@ -60,8 +40,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="sv">
+      <head>
+        <meta name="theme-color" content="#6366f1" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+      </head>
       <body
-        className={`${outfit.variable} ${instrumentSans.variable} ${dmSans.variable} ${marker.variable} ${spaceGrotesk.variable} font-sans antialiased`}
+        className={`${instrumentSans.variable} ${marker.variable} font-sans antialiased`}
       >
         <QueryProvider>
           <PostHogProvider>

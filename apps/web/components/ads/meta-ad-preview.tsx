@@ -8,6 +8,7 @@ type MetaAdData = {
   brandName: string;
   brandUrl: string;
   primaryColor: string;
+  accentColor?: string;
   headline: string;
   bodyCopy: string;
   cta: string;
@@ -57,7 +58,7 @@ export function MetaAdPreview({ data }: { data: MetaAdData }) {
       <div
         className="flex aspect-square w-full items-center justify-center p-8 text-center"
         style={{
-          background: `linear-gradient(135deg, ${data.primaryColor} 0%, ${data.primaryColor}cc 100%)`,
+          background: `linear-gradient(135deg, ${data.primaryColor} 0%, ${data.accentColor ?? data.primaryColor}cc 100%)`,
         }}
       >
         <span className="text-2xl font-bold leading-tight text-white">

@@ -71,7 +71,8 @@ export function SuggestionChips({
   if (suggestions.length === 0) return null;
 
   return (
-    <div className="no-scrollbar flex gap-2 overflow-x-auto px-1 py-2">
+    <div className="relative">
+    <div className="no-scrollbar flex gap-2 overflow-x-auto px-1 py-3">
       {suggestions.map((s, i) => {
         const Icon = s.icon;
         return (
@@ -86,6 +87,8 @@ export function SuggestionChips({
           </button>
         );
       })}
+    </div>
+    <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-background to-transparent" />
     </div>
   );
 }

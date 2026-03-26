@@ -8,6 +8,7 @@ type LinkedInAdData = {
   brandName: string;
   brandUrl: string;
   primaryColor: string;
+  accentColor?: string;
   headline: string;
   bodyCopy: string;
   cta: string;
@@ -61,7 +62,7 @@ export function LinkedInAdPreview({ data }: { data: LinkedInAdData }) {
       <div
         className="flex aspect-[1200/627] w-full items-center justify-center p-10 text-center"
         style={{
-          background: `linear-gradient(135deg, ${data.primaryColor} 0%, ${data.primaryColor}99 100%)`,
+          background: `linear-gradient(135deg, ${data.primaryColor} 0%, ${data.accentColor ?? data.primaryColor}99 100%)`,
         }}
       >
         <span className="text-xl font-bold leading-tight text-white">
