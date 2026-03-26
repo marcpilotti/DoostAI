@@ -58,7 +58,7 @@ export function ChatInput({
           isLoading ? "border-indigo-400/50 shadow-[0_0_0_4px_rgba(99,102,241,0.12)] animate-pulse" : "border-border/40"
         }`}>
           {urlHint && (
-            <div className="mb-1 px-3 text-[11px] text-indigo-500">
+            <div className="mb-1 px-3 text-xs text-indigo-500">
               Tryck Enter för att analysera <span className="font-medium">{urlHint}</span>
             </div>
           )}
@@ -70,7 +70,7 @@ export function ChatInput({
                   key={ext}
                   type="button"
                   onClick={() => onInputChange(`${input.trim()}${ext}`)}
-                  className="rounded bg-muted/40 px-1.5 py-0.5 text-[10px] text-muted-foreground transition-colors hover:bg-indigo-50 hover:text-indigo-600"
+                  className="rounded bg-muted/40 px-1.5 py-0.5 text-[9px] text-muted-foreground transition-colors hover:bg-indigo-50 hover:text-indigo-600"
                 >
                   {input.trim()}{ext}
                 </button>

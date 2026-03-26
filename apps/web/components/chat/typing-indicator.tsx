@@ -8,7 +8,7 @@ export function TypingIndicator() {
           <span className="typing-dot h-1.5 w-1.5 rounded-full bg-indigo-400 [animation-delay:150ms]" />
           <span className="typing-dot h-1.5 w-1.5 rounded-full bg-indigo-400 [animation-delay:300ms]" />
         </div>
-        <span className="text-[11px] text-muted-foreground/60">skriver...</span>
+        <span className="text-xs text-muted-foreground/60">skriver...</span>
       </div>
       <span className="sr-only">Doost AI skriver ett svar</span>
     </div>

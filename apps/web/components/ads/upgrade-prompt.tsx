@@ -21,10 +21,10 @@ export function UpgradePrompt({ data }: { data: UpgradeData }) {
     data.suggestedPlan.charAt(0).toUpperCase() + data.suggestedPlan.slice(1);
 
   return (
-    <div className="mt-1 rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-50/80 to-purple-50/40 p-4">
+    <div className="mt-2 rounded-2xl border border-border/30 bg-white/80 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] backdrop-blur-xl p-4">
       <div className="flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500">
-          <Sparkles className="h-5 w-5 text-white" />
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500">
+          <Sparkles className="h-3.5 w-3.5 text-white" />
         </div>
         <div className="min-w-0 flex-1">
           <h4 className="text-sm font-semibold text-foreground">

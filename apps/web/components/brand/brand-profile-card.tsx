@@ -103,7 +103,7 @@ function ApprovableField({
       <div className="flex items-center gap-2">
         <Icon className={`h-3.5 w-3.5 shrink-0 ${state === "approved" ? "text-emerald-500" : "text-muted-foreground/50"}`} />
         <div className="min-w-0 flex-1">
-          <div className="text-[8px] font-medium uppercase tracking-wider text-muted-foreground/50">{label}</div>
+          <div className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/50">{label}</div>
           <div className="truncate text-xs font-medium text-foreground">{value}</div>
         </div>
         {state === "approved" ? (
@@ -252,11 +252,11 @@ export function BrandProfileCard({
         </div>
         <div className="flex-1">
           <div className="text-xs font-semibold tracking-tight">Varumärkesprofil</div>
-          <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Globe className="h-2.5 w-2.5" />
             {domain}
             {data._intelligence ? (
-              <span className={`ml-1 rounded px-1 py-0.5 text-[8px] font-semibold ${
+              <span className={`ml-1 rounded px-1 py-0.5 text-[9px] font-semibold ${
                 data._intelligence.overallConfidence >= 80 ? "bg-emerald-50 text-emerald-600" :
                 data._intelligence.overallConfidence >= 50 ? "bg-amber-50 text-amber-600" :
                 "bg-red-50 text-red-500"
@@ -264,9 +264,9 @@ export function BrandProfileCard({
                 {data._intelligence.overallConfidence}% säker
               </span>
             ) : data._enrichmentStatus === "complete" ? (
-              <span className="ml-1 rounded bg-emerald-50 px-1 py-0.5 text-[8px] font-semibold text-emerald-600">Berikad</span>
+              <span className="ml-1 rounded bg-emerald-50 px-1 py-0.5 text-[9px] font-semibold text-emerald-600">Berikad</span>
             ) : data._enrichmentStatus === "partial" ? (
-              <span className="ml-1 rounded bg-amber-50 px-1 py-0.5 text-[8px] font-semibold text-amber-600">Grunddata</span>
+              <span className="ml-1 rounded bg-amber-50 px-1 py-0.5 text-[9px] font-semibold text-amber-600">Grunddata</span>
             ) : null}
           </div>
         </div>
@@ -282,7 +282,7 @@ export function BrandProfileCard({
               />
             ))}
           </div>
-          <span className="text-[10px] font-medium text-muted-foreground">
+          <span className="text-[9px] font-medium text-muted-foreground">
             {approvedCount}/{totalFields}
           </span>
         </div>
@@ -320,7 +320,7 @@ export function BrandProfileCard({
               {approved.logo !== "approved" && (
                 <button
                   onClick={() => setLogoUrl(null)}
-                  className="mt-1 block w-full text-center text-[8px] text-muted-foreground/40 transition-colors hover:text-indigo-500"
+                  className="mt-1 block w-full text-center text-[9px] text-muted-foreground/40 transition-colors hover:text-indigo-500"
                 >
                   Fel logo?
                 </button>
@@ -350,7 +350,7 @@ export function BrandProfileCard({
             </div>
             {/* Description */}
             {data.description && (
-              <p className="mt-0.5 line-clamp-1 text-[11px] text-muted-foreground">
+              <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
                 {data.description}
               </p>
             )}
@@ -481,7 +481,7 @@ export function BrandProfileCard({
           }`}
         >
           <div className="mb-3 flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-[11px] font-semibold text-foreground/60">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground/60">
               <Palette className="h-3.5 w-3.5" />
               Varumärkesfärger
             </div>
@@ -538,7 +538,7 @@ export function BrandProfileCard({
                   href={s.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 rounded-full border border-border/30 bg-white px-2 py-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:border-indigo-300 hover:text-indigo-600"
+                  className="flex items-center gap-1 rounded-full border border-border/30 bg-white px-2 py-0.5 text-[9px] font-medium text-muted-foreground transition-colors hover:border-indigo-300 hover:text-indigo-600"
                 >
                   <span className="capitalize">{s.platform}</span>
                   {s.confidence >= 80 && <span className="text-emerald-500">✓</span>}
@@ -552,8 +552,8 @@ export function BrandProfileCard({
       {data._intelligence?.audit && (
         <div className="mx-4 mb-2 rounded-lg border border-border/30 bg-muted/5 px-3 py-2">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold text-foreground/60">Annonsredo</span>
-            <span className={`text-[10px] font-bold ${
+            <span className="text-[9px] font-semibold text-foreground/60">Annonsredo</span>
+            <span className={`text-[9px] font-bold ${
               data._intelligence.audit.readinessScore >= 60 ? "text-emerald-600" :
               data._intelligence.audit.readinessScore >= 30 ? "text-amber-600" : "text-red-500"
             }`}>
@@ -571,19 +571,19 @@ export function BrandProfileCard({
           </div>
           <div className="mt-1.5 flex flex-wrap gap-1">
             {data._intelligence.audit.hasMetaPixel && (
-              <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[8px] font-medium text-emerald-600">Meta Pixel ✓</span>
+              <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[9px] font-medium text-emerald-600">Meta Pixel ✓</span>
             )}
             {data._intelligence.audit.hasGoogleTag && (
-              <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[8px] font-medium text-emerald-600">Google Tag ✓</span>
+              <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[9px] font-medium text-emerald-600">Google Tag ✓</span>
             )}
             {!data._intelligence.audit.hasMetaPixel && (
-              <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[8px] font-medium text-amber-600">Meta Pixel saknas</span>
+              <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[9px] font-medium text-amber-600">Meta Pixel saknas</span>
             )}
             {!data._intelligence.audit.hasGoogleTag && (
-              <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[8px] font-medium text-amber-600">Google Tag saknas</span>
+              <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[9px] font-medium text-amber-600">Google Tag saknas</span>
             )}
             {data._intelligence.audit.techStack.length > 0 && (
-              <span className="rounded bg-muted/40 px-1.5 py-0.5 text-[8px] font-medium text-muted-foreground">
+              <span className="rounded bg-muted/40 px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground">
                 {data._intelligence.audit.techStack.slice(0, 2).join(", ")}
               </span>
             )}
@@ -593,7 +593,7 @@ export function BrandProfileCard({
 
       {/* Footer CTA */}
       <div className="flex items-center justify-between border-t border-border/20 px-4 py-2">
-        <span className="text-[10px] text-muted-foreground/40">
+        <span className="text-[9px] text-muted-foreground/40">
           {allApproved ? "Alla fält godkända" : `Godkänn alla fält genom att hovra och klicka ✓`}
         </span>
         <button
@@ -645,7 +645,7 @@ export function BrandProfileLoading() {
         <div className="h-9 w-9 animate-shimmer rounded-xl bg-gradient-to-r from-indigo-100 via-purple-50 to-indigo-100 bg-[length:200%_100%]" />
         <div className="space-y-1.5">
           <div className="h-3.5 w-32 animate-shimmer rounded-md bg-gradient-to-r from-muted via-muted/50 to-muted bg-[length:200%_100%]" />
-          <div className="text-[11px] text-indigo-500 transition-opacity duration-500">{LOADING_STEPS[step]}</div>
+          <div className="text-xs text-indigo-500 transition-opacity duration-500">{LOADING_STEPS[step]}</div>
         </div>
       </div>
       <div className="h-px bg-gradient-to-r from-transparent via-border/40 to-transparent" />

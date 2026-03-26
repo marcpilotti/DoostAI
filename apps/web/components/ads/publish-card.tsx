@@ -64,7 +64,7 @@ function EditableRow({
   return (
     <div className="flex items-center gap-2 py-1.5">
       <Icon className="h-3 w-3 shrink-0 text-muted-foreground/40" />
-      <span className="text-[10px] font-medium text-muted-foreground/60 w-20 shrink-0">{label}</span>
+      <span className="text-[9px] font-medium text-muted-foreground/60 w-20 shrink-0">{label}</span>
       <span className="flex-1 truncate text-xs text-foreground">{value}</span>
       {onEdit && (
         <button onClick={onEdit} className="text-[9px] font-medium text-indigo-500 hover:text-indigo-700">
@@ -130,7 +130,7 @@ export function PublishCard({
         </div>
         <div>
           <div className="text-xs font-semibold">Publicera kampanj</div>
-          <div className="text-[10px] text-muted-foreground">Allt du behöver i ett steg</div>
+          <div className="text-[9px] text-muted-foreground">Allt du behöver i ett steg</div>
         </div>
       </div>
 
@@ -153,7 +153,7 @@ export function PublishCard({
                 <button
                   key={ch.id}
                   onClick={() => toggleChannel(ch.id)}
-                  className={`flex-1 rounded-lg border px-2 py-1.5 text-center text-[10px] font-medium transition-all ${
+                  className={`flex-1 rounded-lg border px-2 py-1.5 text-center text-[9px] font-medium transition-all ${
                     active
                       ? "border-indigo-400 bg-indigo-50/50 text-indigo-700 ring-1 ring-indigo-200"
                       : "border-border/40 bg-white text-muted-foreground hover:border-indigo-300"
@@ -181,10 +181,10 @@ export function PublishCard({
                 }`}
               >
                 {b.recommended && (
-                  <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 rounded-full bg-indigo-500 px-1.5 py-px text-[7px] font-semibold text-white">★</span>
+                  <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 rounded-full bg-indigo-500 px-1.5 py-px text-[9px] font-semibold text-white">★</span>
                 )}
                 <div className="text-xs font-bold">{b.daily} {data.currency}</div>
-                <div className="text-[8px] text-muted-foreground">{b.label}</div>
+                <div className="text-[9px] text-muted-foreground">{b.label}</div>
               </button>
             ))}
           </div>
@@ -233,7 +233,7 @@ export function PublishCard({
         {/* Total */}
         <div className="flex items-center justify-between bg-emerald-50/30 px-4 py-2">
           <div>
-            <div className="text-[10px] text-muted-foreground">Total kostnad</div>
+            <div className="text-[9px] text-muted-foreground">Total kostnad</div>
             <div className="text-sm font-bold text-foreground">{total.toLocaleString("sv-SE")} {data.currency}</div>
           </div>
           <div className="text-right text-[9px] text-muted-foreground">
@@ -282,7 +282,7 @@ export function PublishCard({
           <div>
             <button
               onClick={() => setShowConnectors(!showConnectors)}
-              className="text-[10px] font-medium text-indigo-500 transition-colors hover:text-indigo-700"
+              className="text-[9px] font-medium text-indigo-500 transition-colors hover:text-indigo-700"
             >
               {showConnectors ? "Dölj kopplingar ↑" : "Har du redan annonskonton? Koppla dem →"}
             </button>
@@ -293,8 +293,8 @@ export function PublishCard({
                   { id: "google", label: "Google Ads", icon: "G" },
                   { id: "linkedin", label: "LinkedIn", icon: "in" },
                 ].map((p) => (
-                  <button key={p.id} className="flex w-full items-center gap-2 rounded-lg border border-border/40 bg-white px-3 py-1.5 text-[10px] text-muted-foreground transition-all hover:border-indigo-300 hover:text-indigo-600">
-                    <span className="flex h-5 w-5 items-center justify-center rounded bg-muted/30 text-[8px] font-bold">{p.icon}</span>
+                  <button key={p.id} className="flex w-full items-center gap-2 rounded-lg border border-border/40 bg-white px-3 py-1.5 text-[9px] text-muted-foreground transition-all hover:border-indigo-300 hover:text-indigo-600">
+                    <span className="flex h-5 w-5 items-center justify-center rounded bg-muted/30 text-[9px] font-bold">{p.icon}</span>
                     <span className="flex-1 text-left font-medium">{p.label}</span>
                     <span className="text-indigo-500">Koppla</span>
                   </button>

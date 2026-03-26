@@ -35,12 +35,12 @@ export function GoogleAdPreview({ data }: { data: GoogleAdData }) {
               {data.brandName}
             </span>
           </div>
-          <div className="flex items-center gap-1 text-[12px] text-gray-600">
+          <div className="flex items-center gap-1 text-xs text-gray-600">
             <span>{domain}</span>
           </div>
         </div>
         <div className="ml-auto flex items-center gap-1 rounded bg-[#e8f0fe] px-1.5 py-0.5">
-          <span className="text-[11px] font-bold text-[#1a73e8]">Annons</span>
+          <span className="text-xs font-bold text-[#1a73e8]">Annons</span>
         </div>
       </div>
 
@@ -75,7 +75,7 @@ export function GoogleAdPreview({ data }: { data: GoogleAdData }) {
         {["Priser", "Kundcase", "Om oss", "Kontakt"].map((link) => (
           <span
             key={link}
-            className="rounded-full border border-gray-200 px-3 py-1 text-[12px] text-[#1a0dab]"
+            className="rounded-full border border-gray-200 px-3 py-1 text-xs text-[#1a0dab]"
           >
             {link}
           </span>

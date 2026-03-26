@@ -39,14 +39,14 @@ export function GoalPicker({
         </div>
         <div>
           <div className="text-xs font-semibold">Mål & målgrupp</div>
-          <div className="text-[10px] text-muted-foreground">Två snabba val — resten sköter vi</div>
+          <div className="text-[9px] text-muted-foreground">Två snabba val — resten sköter vi</div>
         </div>
       </div>
 
       <div className="p-4 space-y-4">
         {/* Section 1: Goal */}
         <div>
-          <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-foreground/50">
+          <div className="mb-2 text-[9px] font-semibold uppercase tracking-wider text-foreground/50">
             Vad behöver ni mest?
           </div>
           <div className="grid grid-cols-2 gap-1.5">
@@ -77,7 +77,7 @@ export function GoalPicker({
         {/* Section 2: Audience */}
         {selectedGoal && (
           <div className="animate-message-in">
-            <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-foreground/50">
+            <div className="mb-2 text-[9px] font-semibold uppercase tracking-wider text-foreground/50">
               Vilka brukar anlita er?
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -87,7 +87,7 @@ export function GoalPicker({
                   <button
                     key={a}
                     onClick={() => setSelectedAudience(a)}
-                    className={`rounded-full border px-3 py-1 text-[11px] font-medium transition-all ${
+                    className={`rounded-full border px-3 py-1 text-xs font-medium transition-all ${
                       active
                         ? "border-indigo-400 bg-indigo-50 text-indigo-700"
                         : "border-border/40 bg-white text-muted-foreground hover:border-indigo-300 hover:text-indigo-600"

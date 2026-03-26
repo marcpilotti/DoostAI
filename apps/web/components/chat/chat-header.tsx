@@ -8,7 +8,7 @@ export function ChatHeader({ authenticated = false }: { authenticated?: boolean 
     <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border/20 bg-background/80 px-4 py-3 backdrop-blur-md sm:px-6 sm:py-4">
       <div className="flex items-center gap-2.5">
         <Image src="/logo.svg" alt="Doost AI" width={120} height={28} className="h-7 w-auto" />
-        <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-indigo-600">
+        <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-indigo-600">
           Beta
         </span>
       </div>

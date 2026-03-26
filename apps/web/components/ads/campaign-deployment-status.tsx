@@ -46,7 +46,7 @@ function ElapsedTimer({ startedAt }: { startedAt?: string }) {
 
   if (!startedAt || elapsed === 0) return null;
   return (
-    <span className="ml-1 font-mono text-[10px] text-muted-foreground/50">
+    <span className="ml-1 font-mono text-[9px] text-muted-foreground/50">
       ({elapsed}s)
     </span>
   );
@@ -93,7 +93,7 @@ function StatusBadge({ status }: { status: PlatformStatus["status"] }) {
 
   return (
     <span
-      className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider transition-colors duration-300 ${styles[status]}`}
+      className={`rounded-full px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider transition-colors duration-300 ${styles[status]}`}
     >
       {labels[status]}
     </span>
@@ -154,7 +154,7 @@ export function CampaignDeploymentStatus({
           )}
         </div>
         {allLive && (
-          <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-700">
+          <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-emerald-700">
             Alla live
           </span>
         )}

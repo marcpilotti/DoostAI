@@ -79,7 +79,7 @@ export function SuggestionChips({
           <button
             key={s.label}
             onClick={() => onSelect(s.message)}
-            className="animate-message-in flex shrink-0 items-center gap-1.5 rounded-full border border-border/60 bg-white/80 px-4 py-1.5 text-[13px] font-medium text-muted-foreground opacity-0 transition-all [animation-fill-mode:forwards] hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600"
+            className="animate-message-in flex shrink-0 items-center gap-1.5 rounded-full border border-border/60 bg-white/80 px-4 py-1.5 text-xs font-medium text-muted-foreground opacity-0 transition-all [animation-fill-mode:forwards] hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600"
             style={{ animationDelay: `${i * 80}ms` }}
           >
             <Icon className="h-3.5 w-3.5 shrink-0 opacity-60" />

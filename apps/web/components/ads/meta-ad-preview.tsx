@@ -19,7 +19,7 @@ export function MetaAdPreview({ data }: { data: MetaAdData }) {
   const domain = data.brandUrl.replace(/^https?:\/\//, "").replace(/\/$/, "");
 
   return (
-    <div className="w-full max-w-[400px] overflow-hidden rounded-lg border border-gray-200 bg-white font-sans text-[13px] text-gray-900 shadow-sm">
+    <div className="w-full max-w-[400px] overflow-hidden rounded-lg border border-gray-200 bg-white font-sans text-xs text-gray-900 shadow-sm">
       {/* Post header */}
       <div className="flex items-center gap-2.5 px-3 py-2.5">
         <div
@@ -32,7 +32,7 @@ export function MetaAdPreview({ data }: { data: MetaAdData }) {
           <div className="flex items-center gap-1">
             <span className="font-semibold">{data.brandName}</span>
           </div>
-          <div className="flex items-center gap-1 text-[11px] text-gray-500">
+          <div className="flex items-center gap-1 text-xs text-gray-500">
             <span>Sponsrad</span>
             <span>·</span>
             <svg className="h-3 w-3" viewBox="0 0 16 16" fill="currentColor">
@@ -73,7 +73,7 @@ export function MetaAdPreview({ data }: { data: MetaAdData }) {
       {/* Link preview bar */}
       <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50 px-3 py-2.5">
         <div className="min-w-0 flex-1">
-          <div className="truncate text-[11px] uppercase text-gray-500">
+          <div className="truncate text-xs uppercase text-gray-500">
             {domain}
           </div>
           <div className="truncate text-sm font-semibold">{data.headline}</div>
@@ -94,15 +94,15 @@ export function MetaAdPreview({ data }: { data: MetaAdData }) {
       <div className="flex items-center justify-around border-t border-gray-100 px-2 py-1.5">
         <button className="flex items-center gap-1.5 rounded px-3 py-1.5 text-gray-500 hover:bg-gray-50">
           <ThumbsUp className="h-4 w-4" />
-          <span className="text-[12px] font-medium">Gilla</span>
+          <span className="text-xs font-medium">Gilla</span>
         </button>
         <button className="flex items-center gap-1.5 rounded px-3 py-1.5 text-gray-500 hover:bg-gray-50">
           <MessageCircle className="h-4 w-4" />
-          <span className="text-[12px] font-medium">Kommentera</span>
+          <span className="text-xs font-medium">Kommentera</span>
         </button>
         <button className="flex items-center gap-1.5 rounded px-3 py-1.5 text-gray-500 hover:bg-gray-50">
           <Share2 className="h-4 w-4" />
-          <span className="text-[12px] font-medium">Dela</span>
+          <span className="text-xs font-medium">Dela</span>
         </button>
       </div>
     </div>

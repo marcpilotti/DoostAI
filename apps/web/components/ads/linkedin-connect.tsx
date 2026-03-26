@@ -9,10 +9,10 @@ type LinkedInConnectData = {
 
 export function LinkedInConnect({ data }: { data: LinkedInConnectData }) {
   return (
-    <div className="mt-1 rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
+    <div className="mt-2 rounded-2xl border border-border/30 bg-white/80 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] backdrop-blur-xl p-4">
       <div className="flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0077b5]">
-          <Linkedin className="h-5 w-5 text-white" />
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#0077b5]">
+          <Linkedin className="h-3.5 w-3.5 text-white" />
         </div>
         <div className="min-w-0 flex-1">
           <h4 className="text-sm font-semibold text-foreground">

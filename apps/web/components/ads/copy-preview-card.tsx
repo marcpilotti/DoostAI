@@ -99,18 +99,18 @@ function InstagramPreview({
     >
       {isSelected && (
         <div className="absolute left-1/2 top-0 z-10 -translate-x-1/2">
-          <span className="flex items-center gap-1 rounded-b-lg bg-emerald-500 px-3 py-1 text-[10px] font-semibold text-white shadow-sm">
+          <span className="flex items-center gap-1 rounded-b-lg bg-emerald-500 px-3 py-1 text-[9px] font-semibold text-white shadow-sm">
             <Check className="h-3 w-3" strokeWidth={3} /> Vald
           </span>
         </div>
       )}
 
       <div className="flex items-center justify-between bg-muted/30 px-3 py-1.5">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/60">
           {copy.label ?? "Variant"}
         </span>
         {!isSelected && !isLoser && (
-          <span className="text-[10px] font-medium text-indigo-400 opacity-0 transition-opacity group-hover:opacity-100">
+          <span className="text-[9px] font-medium text-indigo-400 opacity-0 transition-opacity group-hover:opacity-100">
             Välj denna
           </span>
         )}
@@ -120,14 +120,14 @@ function InstagramPreview({
         {/* IG Header */}
         <div className="flex items-center gap-2 px-3 py-2">
           <div
-            className="flex h-8 w-8 items-center justify-center rounded-full text-[10px] font-bold text-white ring-2 ring-pink-400 ring-offset-1"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-[9px] font-bold text-white ring-2 ring-pink-400 ring-offset-1"
             style={{ backgroundColor: brand.colors.primary }}
           >
             {brand.name[0]}
           </div>
           <div className="flex-1">
             <div className="text-xs font-semibold">{brand.name.toLowerCase().replace(/\s+/g, "")}</div>
-            <div className="text-[10px] text-gray-400">Sponsrad</div>
+            <div className="text-[9px] text-gray-400">Sponsrad</div>
           </div>
           <MoreHorizontal className="h-4 w-4 text-gray-300" />
         </div>
@@ -206,18 +206,18 @@ function FacebookPreview({
     >
       {isSelected && (
         <div className="absolute left-1/2 top-0 z-10 -translate-x-1/2">
-          <span className="flex items-center gap-1 rounded-b-lg bg-emerald-500 px-3 py-1 text-[10px] font-semibold text-white shadow-sm">
+          <span className="flex items-center gap-1 rounded-b-lg bg-emerald-500 px-3 py-1 text-[9px] font-semibold text-white shadow-sm">
             <Check className="h-3 w-3" strokeWidth={3} /> Vald
           </span>
         </div>
       )}
 
       <div className="flex items-center justify-between bg-muted/30 px-3 py-1.5">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/60">
           {copy.label ?? "Variant"}
         </span>
         {!isSelected && !isLoser && (
-          <span className="text-[10px] font-medium text-indigo-400 opacity-0 transition-opacity group-hover:opacity-100">
+          <span className="text-[9px] font-medium text-indigo-400 opacity-0 transition-opacity group-hover:opacity-100">
             Välj denna
           </span>
         )}
@@ -227,14 +227,14 @@ function FacebookPreview({
         {/* FB Header */}
         <div className="flex items-center gap-2 px-3 py-2">
           <div
-            className="flex h-8 w-8 items-center justify-center rounded-full text-[10px] font-bold text-white"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-[9px] font-bold text-white"
             style={{ backgroundColor: brand.colors.primary }}
           >
             {brand.name[0]}
           </div>
           <div className="flex-1">
             <div className="text-xs font-semibold">{brand.name}</div>
-            <div className="text-[10px] text-gray-400">Sponsrad · <span className="inline-block h-2.5 w-2.5 rounded-full border border-gray-300 text-center text-[7px] leading-[10px]">🌐</span></div>
+            <div className="text-[9px] text-gray-400">Sponsrad · <span className="inline-block h-2.5 w-2.5 rounded-full border border-gray-300 text-center text-[7px] leading-[10px]">🌐</span></div>
           </div>
           <MoreHorizontal className="h-4 w-4 text-gray-300" />
         </div>
@@ -265,13 +265,13 @@ function FacebookPreview({
         {/* Link bar */}
         <div className="flex items-center justify-between bg-gray-50 px-3 py-2">
           <div>
-            <div className="text-[10px] uppercase text-gray-400">
+            <div className="text-[9px] uppercase text-gray-400">
               {brand.url.replace(/^https?:\/\//, "").replace(/\/$/, "")}
             </div>
             <div className="text-xs font-semibold text-gray-800">{copy.headline.slice(0, 40)}</div>
           </div>
           <div
-            className="rounded px-3 py-1.5 text-[10px] font-semibold"
+            className="rounded px-3 py-1.5 text-[9px] font-semibold"
             style={{ backgroundColor: brand.colors.primary, color: "#fff" }}
           >
             {copy.cta}
@@ -279,7 +279,7 @@ function FacebookPreview({
         </div>
 
         {/* Engagement */}
-        <div className="flex justify-around border-t px-2 py-1.5 text-[10px] text-gray-400">
+        <div className="flex justify-around border-t px-2 py-1.5 text-[9px] text-gray-400">
           <span className="flex items-center gap-1"><ThumbsUp className="h-3 w-3" /> Gilla</span>
           <span className="flex items-center gap-1"><MessageCircle className="h-3 w-3" /> Kommentera</span>
           <span className="flex items-center gap-1"><Share2 className="h-3 w-3" /> Dela</span>
@@ -311,7 +311,7 @@ function StoryPreview({
     <button
       onClick={onPick}
       disabled={isSelected}
-      className={`group relative mx-auto w-[200px] overflow-hidden rounded-[20px] border-2 text-left transition-all duration-300 ${
+      className={`group relative mx-auto w-[200px] overflow-hidden rounded-2xl border-2 text-left transition-all duration-300 ${
         isSelected
           ? "border-emerald-400 shadow-lg ring-2 ring-emerald-200"
           : isLoser
@@ -321,7 +321,7 @@ function StoryPreview({
     >
       {isSelected && (
         <div className="absolute left-1/2 top-0 z-10 -translate-x-1/2">
-          <span className="flex items-center gap-1 rounded-b-lg bg-emerald-500 px-3 py-1 text-[10px] font-semibold text-white shadow-sm">
+          <span className="flex items-center gap-1 rounded-b-lg bg-emerald-500 px-3 py-1 text-[9px] font-semibold text-white shadow-sm">
             <Check className="h-3 w-3" strokeWidth={3} /> Vald
           </span>
         </div>
@@ -339,7 +339,7 @@ function StoryPreview({
           >
             {brand.name[0]}
           </div>
-          <span className="text-[10px] font-semibold text-white drop-shadow">{brand.name}</span>
+          <span className="text-[9px] font-semibold text-white drop-shadow">{brand.name}</span>
         </div>
 
         {/* Center: headline */}
@@ -353,7 +353,7 @@ function StoryPreview({
         <div className="flex flex-col items-center gap-1">
           <ChevronUp className="h-4 w-4 text-white/80 animate-bounce" />
           <div
-            className="rounded-full px-5 py-1.5 text-[10px] font-semibold text-white shadow-sm"
+            className="rounded-full px-5 py-1.5 text-[9px] font-semibold text-white shadow-sm"
             style={{ backgroundColor: "rgba(255,255,255,0.25)", backdropFilter: "blur(8px)" }}
           >
             {copy.cta}
@@ -403,16 +403,16 @@ export function CopyPreviewCard({
   }
 
   return (
-    <div className="animate-message-in mt-3 overflow-hidden rounded-2xl border border-border/40 bg-white/70 backdrop-blur-sm">
+    <div className="animate-card-in mt-2 overflow-hidden rounded-2xl border border-border/30 bg-white/80 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] backdrop-blur-xl">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border/30 px-5 py-3">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-pink-500 to-purple-500">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-pink-500 to-purple-500">
             <Sparkles className="h-4 w-4 text-white" />
           </div>
           <div>
             <div className="text-sm font-semibold">Annonsförslag</div>
-            <div className="text-[11px] text-muted-foreground">
+            <div className="text-xs text-muted-foreground">
               Välj format och variant
             </div>
           </div>
@@ -528,7 +528,7 @@ export function CopyPreviewCard({
         ].map((t) => (
           <button
             key={t.id}
-            className="rounded-full border border-border/40 bg-white px-2.5 py-1 text-[10px] font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600"
+            className="rounded-full border border-border/40 bg-white px-2.5 py-1 text-[9px] font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600"
             onClick={() => onSendMessage?.(`Byt till mall: ${t.label}`)}
           >
             {t.label}
@@ -586,7 +586,7 @@ export function CopyPreviewCard({
               const copyId = copy.id ?? `${copy.platform}-${copy.variant}`;
               return (
                 <div key={copyId} className="rounded-xl border border-border/50 bg-white p-3 space-y-2">
-                  <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/50">
+                  <div className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/50">
                     {copy.label}
                   </div>
                   {/* Headline */}
@@ -664,13 +664,13 @@ export function CopyPreviewCard({
       <div className="border-t border-border/20 px-4 py-2">
         {selectedId ? (
           <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-600">
+            <span className="flex items-center gap-1 text-[9px] font-medium text-emerald-600">
               <Check className="h-3 w-3" /> Variant vald
             </span>
             <div className="ml-auto flex gap-1.5">
               <button
                 onClick={() => onSendMessage?.("Visa fler varianter")}
-                className="rounded-full border border-border/40 bg-white px-2.5 py-1 text-[10px] font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:text-indigo-600"
+                className="rounded-full border border-border/40 bg-white px-2.5 py-1 text-[9px] font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:text-indigo-600"
               >
                 Fler varianter
               </button>
@@ -682,7 +682,7 @@ export function CopyPreviewCard({
                     : "Ser bra ut, publicera!";
                   onSendMessage?.(msg);
                 }}
-                className="flex items-center gap-1 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600 px-3 py-1 text-[10px] font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700"
+                className="flex items-center gap-1 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600 px-3 py-1 text-[9px] font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700"
               >
                 Ser bra ut, publicera!
                 <ArrowRight className="h-3 w-3" />
@@ -693,13 +693,13 @@ export function CopyPreviewCard({
           <div className="flex gap-1.5">
             <button
               onClick={() => onSendMessage?.("Ändra texten")}
-              className="rounded-full border border-border/40 bg-white px-2.5 py-1 text-[10px] font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:text-indigo-600"
+              className="rounded-full border border-border/40 bg-white px-2.5 py-1 text-[9px] font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:text-indigo-600"
             >
               Ändra texten
             </button>
             <button
               onClick={() => onSendMessage?.("Visa fler varianter")}
-              className="rounded-full border border-border/40 bg-white px-2.5 py-1 text-[10px] font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:text-indigo-600"
+              className="rounded-full border border-border/40 bg-white px-2.5 py-1 text-[9px] font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:text-indigo-600"
             >
               Fler varianter
             </button>
