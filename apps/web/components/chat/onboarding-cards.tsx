@@ -39,9 +39,9 @@ function ConnectorStep({
             <Plug className="h-4 w-4 text-white" />
           </div>
           <div>
-            <div className="text-sm font-semibold">Anslut annonsplattformar</div>
+            <div className="text-sm font-semibold">Har du redan annonskonton?</div>
             <div className="text-[11px] text-muted-foreground">
-              Koppla befintliga konton eller låt oss skapa allt åt dig
+              Koppla dina befintliga konton — eller skippa så skapar vi allt åt dig
             </div>
           </div>
         </div>
@@ -55,7 +55,7 @@ function ConnectorStep({
               <div className="text-sm font-medium">Meta Business</div>
               <div className="text-[10px] text-muted-foreground">Facebook & Instagram</div>
             </div>
-            <span className="text-[11px] font-medium text-indigo-500">Anslut</span>
+            <span className="rounded-lg bg-indigo-50 px-2.5 py-1 text-[10px] font-semibold text-indigo-600 transition-colors hover:bg-indigo-100">Koppla konto</span>
           </button>
 
           <button className="flex w-full items-center gap-3 rounded-xl border border-border/40 bg-white px-4 py-3 transition-all hover:border-[#4285F4]/30 hover:bg-blue-50/30 hover:shadow-sm">
@@ -69,7 +69,7 @@ function ConnectorStep({
               <div className="text-sm font-medium">Google Ads</div>
               <div className="text-[10px] text-muted-foreground">Sök & Display</div>
             </div>
-            <span className="text-[11px] font-medium text-indigo-500">Anslut</span>
+            <span className="rounded-lg bg-indigo-50 px-2.5 py-1 text-[10px] font-semibold text-indigo-600 transition-colors hover:bg-indigo-100">Koppla konto</span>
           </button>
 
           <button className="flex w-full items-center gap-3 rounded-xl border border-border/40 bg-white px-4 py-3 transition-all hover:border-[#0077B5]/30 hover:bg-blue-50/30 hover:shadow-sm">
@@ -80,16 +80,25 @@ function ConnectorStep({
               <div className="text-sm font-medium">LinkedIn</div>
               <div className="text-[10px] text-muted-foreground">B2B-annonsering</div>
             </div>
-            <span className="text-[11px] font-medium text-indigo-500">Anslut</span>
+            <span className="rounded-lg bg-indigo-50 px-2.5 py-1 text-[10px] font-semibold text-indigo-600 transition-colors hover:bg-indigo-100">Koppla konto</span>
           </button>
+        </div>
+
+        {/* "Vi löser det" info */}
+        <div className="mt-3 flex items-start gap-2 rounded-xl bg-indigo-50/50 px-3 py-2.5">
+          <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-500" />
+          <p className="text-[11px] leading-relaxed text-muted-foreground">
+            Har du inga konton? <span className="font-medium text-foreground">Inga problem — vi skapar och hanterar allt åt dig.</span> Du behöver aldrig logga in på Meta eller Google själv.
+          </p>
         </div>
       </div>
 
+      {/* Footer with prominent skip */}
       <div className="flex items-center justify-between border-t border-border/20 px-5 py-3">
-        <span className="text-[10px] text-muted-foreground/50">Valfritt — du kan koppla senare</span>
+        <span className="text-[10px] text-muted-foreground/40">Valfritt steg</span>
         <button
           onClick={onComplete}
-          className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"
+          className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"
         >
           Hoppa över
           <ArrowRight className="h-3.5 w-3.5" />
