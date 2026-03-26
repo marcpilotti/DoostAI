@@ -21,6 +21,17 @@ export {
 export type { ModelChoice, ModelIntent } from "./router";
 export { getCostSummary, trackCost } from "./cost";
 export {
+  sniToCategory,
+  mapFontToGoogle,
+  INDUSTRY_PALETTES,
+  INDUSTRY_AUDIENCES,
+  INDUSTRY_BUDGETS,
+  DEFAULT_BUDGETS,
+  GOAL_MAPPINGS,
+  FONT_MAPPING,
+  SNI_TO_CATEGORY,
+} from "./mappings";
+export {
   canTransition,
   getAvailableEvents,
   getNextState,

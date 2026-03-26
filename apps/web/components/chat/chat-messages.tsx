@@ -19,6 +19,7 @@ const LinkedInConnect = lazy(() => import("@/components/ads/linkedin-connect").t
 const UpgradePrompt = lazy(() => import("@/components/ads/upgrade-prompt").then(m => ({ default: m.UpgradePrompt })));
 const BrandProfileCard = lazy(() => import("@/components/brand/brand-profile-card").then(m => ({ default: m.BrandProfileCard })));
 const ChannelPicker = lazy(() => import("./channel-picker").then(m => ({ default: m.ChannelPicker })));
+const GoalPicker = lazy(() => import("./goal-picker").then(m => ({ default: m.GoalPicker })));
 const OnboardingCards = lazy(() => import("./onboarding-cards").then(m => ({ default: m.OnboardingCards })));
 
 function getMessageText(message: UIMessage): string {
@@ -81,6 +82,20 @@ function ToolInvocation({
         Förbereder onboarding...
       </div>
     );
+  }
+
+  if (name === "show_goal_picker") {
+    if (part.state === "output-available" && part.output) {
+      return (
+        <GoalPicker
+          data={part.output as { industryCategory?: string; audiences?: string[] }}
+          onSelect={(goal, audience) => {
+            onSendMessage?.(`Mål: ${goal}, Målgrupp: ${audience}`);
+          }}
+        />
+      );
+    }
+    return null;
   }
 
   if (name === "show_channel_picker") {
@@ -285,6 +300,7 @@ export function ChatMessages({
       const m = messages[i]!;
       if (m.role !== "user") continue;
       const text = getMessageText(m);
+      if (text && (hidden.includes(text.trim()) || text.startsWith("Mål:") || text.startsWith("Skapa annonser för") || text.startsWith("Publicera:"))) continue;
       if (text && !hidden.includes(text.trim())) return text;
     }
     return null;

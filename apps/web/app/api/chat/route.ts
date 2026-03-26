@@ -14,6 +14,8 @@ import {
   routeModel,
   trackCost,
   traceRouting,
+  INDUSTRY_AUDIENCES,
+  sniToCategory,
 } from "@doost/ai";
 import type { BrandContext, Platform } from "@doost/ai";
 import { linkedinGetOAuthUrl } from "@doost/platforms";
@@ -67,17 +69,19 @@ STEP 2: analyze_brand returns → Say "Stämmer det här? Granska din varumärke
 
 STEP 3: User sends "Onboarding klar" → Do NOT write any text. The onboarding cards handle connectors and signup automatically. Just wait for the next "Onboarding klar" message.
 
-STEP 3b: User sends another "Onboarding klar" (after signup completes) → Say: "Klart! Ditt konto är skapat. Allt du gör härifrån sparas automatiskt. Redo att skapa din första annons?" Then call show_channel_picker.
+STEP 3b: User sends another "Onboarding klar" (after signup completes) → Say: "Klart! Ditt konto är skapat." Then IMMEDIATELY call show_goal_picker with the industry category from the brand analysis.
 
-STEP 4: User picks platforms → call generate_ad_copy with brand data and selected platforms.
+STEP 4: User picks goal + audience (message starts with "Mål:") → call show_channel_picker.
 
-STEP 5: Ad previews appear → say "Vilken variant föredrar du? Klicka på den du gillar bäst."
+STEP 5: User picks platforms → call generate_ad_copy with brand data, selected platforms, goal, and audience.
 
-STEP 6: User clicks "Gå vidare" or approves → IMMEDIATELY call show_campaign_config with the brand name and platform.
+STEP 6: Ad previews appear → say "Vilken variant föredrar du? Klicka på den du gillar bäst."
 
-STEP 7: User submits campaign config (message starts with "Publicera:") → call check_plan, then deploy_campaign.
+STEP 7: User clicks "Gå vidare" or approves → IMMEDIATELY call show_campaign_config with the brand name and platform.
 
-STEP 8: After deploy_campaign returns successfully → Say: "Dina annonser är nu iväg! 🚀 Det tar vanligtvis 1-2 timmar innan de godkänns av plattformen. Jag meddelar dig så fort de första visningarna börjar rulla in. Under tiden kan du skapa fler kampanjer eller bara luta dig tillbaka."
+STEP 8: User submits campaign config (message starts with "Publicera:") → call check_plan, then deploy_campaign.
+
+STEP 9: After deploy_campaign returns successfully → Say: "Dina annonser är nu iväg! 🚀 Det tar vanligtvis 1-2 timmar innan de godkänns av plattformen. Jag meddelar dig så fort de första visningarna börjar rulla in. Under tiden kan du skapa fler kampanjer eller bara luta dig tillbaka."
 
 ABSOLUTE RULES:
 - After analyze_brand, do NOT repeat the brand data — the profile card shows it.
@@ -312,6 +316,23 @@ ABSOLUTE RULES:
         }),
         execute: async ({ hasLogo, companyName, logos }: { hasLogo: boolean; companyName: string; logos: { primary?: string; icon?: string; dark?: string } }) => {
           return { hasLogo, companyName, logos };
+        },
+      }),
+
+      show_goal_picker: tool({
+        description:
+          "Show goal and target audience picker. Call this AFTER the user completes onboarding (brand profile approved + connectors). Shows 4 goals + industry-specific audiences.",
+        inputSchema: z.object({
+          industryCategory: z.string().optional().describe("Industry category from brand analysis"),
+          industryCodes: z.array(z.string()).optional().describe("SNI codes from enrichment"),
+        }),
+        execute: async ({ industryCategory, industryCodes }: { industryCategory?: string; industryCodes?: string[] }) => {
+          const category = industryCategory ?? (industryCodes?.[0] ? sniToCategory(industryCodes[0]) : null) ?? undefined;
+          const audiences = category ? INDUSTRY_AUDIENCES[category] : undefined;
+          return {
+            industryCategory: category,
+            audiences: audiences ?? ["Småföretagare", "Privatpersoner 25–55", "Beslutsfattare", "Lokala kunder"],
+          };
         },
       }),
 
