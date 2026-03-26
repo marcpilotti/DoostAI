@@ -323,37 +323,20 @@ export function OnboardingCards({
   onAllComplete: () => void;
 }) {
   const [profileApproved, setProfileApproved] = useState(false);
-  const [showInterstitial, setShowInterstitial] = useState(false);
-  const [currentStep, setCurrentStep] = useState<OnboardingStep>("connectors");
-  const [userEmail, setUserEmail] = useState("");
 
-  // Wait for profile card "Godkänn alla & fortsätt" before showing
+  // Wait for profile card approval → immediately complete onboarding
   useEffect(() => {
     function handleApproved() {
-      setShowInterstitial(true);
-      setTimeout(() => {
-        setShowInterstitial(false);
-        setProfileApproved(true);
-      }, 1500);
+      setProfileApproved(true);
+      // Short delay for the interstitial, then complete
+      setTimeout(() => onAllComplete(), 1500);
     }
     window.addEventListener("doost:profile-approved", handleApproved);
     return () => window.removeEventListener("doost:profile-approved", handleApproved);
-  }, []);
+  }, [onAllComplete]);
 
-  function advance(from: OnboardingStep, email?: string) {
-    if (from === "connectors") {
-      setCurrentStep("signup");
-    } else if (from === "signup") {
-      if (email) setUserEmail(email);
-      setCurrentStep("verify");
-    } else if (from === "verify") {
-      setCurrentStep("done");
-      onAllComplete();
-    }
-  }
-
-  // Interstitial: "Profil sparad" confirmation
-  if (showInterstitial) {
+  // Show interstitial after approval
+  if (profileApproved) {
     return (
       <StepCard>
         <div className="flex items-center gap-3 px-5 py-4">
@@ -372,29 +355,6 @@ export function OnboardingCards({
     );
   }
 
-  // Don't render until profile card is approved
-  if (!profileApproved) return null;
-
-  const logoUrl = data.logos?.primary ?? data.logos?.icon;
-
-  return (
-    <div className="space-y-0">
-      {currentStep === "connectors" && (
-        <ConnectorStep onComplete={() => advance("connectors")} />
-      )}
-      {currentStep === "signup" && (
-        <SignupStep
-          onComplete={(email) => advance("signup", email)}
-          companyName={data.companyName?.replace(/\s+(AB|HB|Inc|Ltd)$/i, "")}
-          logoUrl={logoUrl}
-        />
-      )}
-      {currentStep === "verify" && (
-        <VerifyEmailStep
-          email={userEmail}
-          onComplete={() => advance("verify")}
-        />
-      )}
-    </div>
-  );
+  // Hidden until profile approved
+  return null;
 }

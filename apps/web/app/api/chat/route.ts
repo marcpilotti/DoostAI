@@ -67,9 +67,7 @@ STEP 1: User sends a URL or domain → call analyze_brand immediately. No confir
 
 STEP 2: analyze_brand returns → Say "Stämmer det här? Granska din varumärkesprofil och godkänn fälten — eller ändra det som inte stämmer." Then call show_onboarding. Pass hasLogo, companyName, and logos. The profile card lets users approve each field. The onboarding cards handle platform connections and account creation.
 
-STEP 3: User sends "Onboarding klar" → Do NOT write any text. The onboarding cards handle connectors and signup automatically. Just wait for the next "Onboarding klar" message.
-
-STEP 3b: User sends another "Onboarding klar" (after signup completes) → Say: "Klart! Ditt konto är skapat." Then IMMEDIATELY call show_goal_picker with the industry category from the brand analysis.
+STEP 3: User sends "Onboarding klar" → IMMEDIATELY call show_goal_picker with the industry category from the brand analysis. Do NOT write any text before the tool call.
 
 STEP 4: User picks goal + audience (message starts with "Mål:") → call show_channel_picker.
 
