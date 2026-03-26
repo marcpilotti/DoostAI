@@ -45,7 +45,9 @@ export function CampaignConfigCard({
     currency: string;
   }) => void;
 }) {
-  const [budget, setBudget] = useState<number | null>(null);
+  const [budget, setBudget] = useState<number | null>(
+    data.suggestedBudgets.find((b) => b.recommended)?.daily ?? null,
+  );
   const [customBudget, setCustomBudget] = useState("");
   const [duration, setDuration] = useState<number>(14);
   const [selectedRegions, setSelectedRegions] = useState<Set<string>>(

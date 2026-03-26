@@ -235,7 +235,12 @@ export function BrandProfileCard({
           <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
             <Globe className="h-2.5 w-2.5" />
             {domain}
-            {data._analysisMs && <span className="text-muted-foreground/30"> · {(data._analysisMs / 1000).toFixed(1)}s</span>}
+            {data._enrichmentStatus === "complete" && (
+              <span className="ml-1 rounded bg-emerald-50 px-1 py-0.5 text-[8px] font-semibold text-emerald-600">Berikad</span>
+            )}
+            {data._enrichmentStatus === "partial" && (
+              <span className="ml-1 rounded bg-amber-50 px-1 py-0.5 text-[8px] font-semibold text-amber-600">Grunddata</span>
+            )}
           </div>
         </div>
         {/* Approval progress */}
@@ -498,7 +503,7 @@ export function BrandProfileCard({
               : "bg-gradient-to-r from-indigo-500 to-indigo-600 text-white hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"
           }`}
         >
-          {allApproved ? "Allt ser bra ut" : "Godkänn alla & fortsätt"}
+          {allApproved ? "Allt ser bra ut" : `Godkänn ${totalFields - approvedCount === totalFields ? "alla" : `sista ${totalFields - approvedCount}`} & fortsätt`}
           <ArrowRight className="h-3.5 w-3.5" />
         </button>
       </div>
@@ -506,14 +511,27 @@ export function BrandProfileCard({
   );
 }
 
+const LOADING_STEPS = [
+  "Analyserar hemsida...",
+  "Extraherar färger och typsnitt...",
+  "Hämtar företagsdata...",
+  "Sätter ihop profilen...",
+];
+
 export function BrandProfileLoading() {
+  const [step, setStep] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => setStep((s) => (s + 1) % LOADING_STEPS.length), 2500);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <div className="animate-card-in mt-3 overflow-hidden rounded-2xl border border-border/30 bg-white/80 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] backdrop-blur-xl">
       <div className="flex items-center gap-3 px-5 py-3">
         <div className="h-9 w-9 animate-shimmer rounded-xl bg-gradient-to-r from-indigo-100 via-purple-50 to-indigo-100 bg-[length:200%_100%]" />
         <div className="space-y-1.5">
           <div className="h-3.5 w-32 animate-shimmer rounded-md bg-gradient-to-r from-muted via-muted/50 to-muted bg-[length:200%_100%]" />
-          <div className="h-2.5 w-24 animate-shimmer rounded-md bg-gradient-to-r from-muted/60 via-muted/30 to-muted/60 bg-[length:200%_100%]" />
+          <div className="text-[11px] text-indigo-500 transition-opacity duration-500">{LOADING_STEPS[step]}</div>
         </div>
       </div>
       <div className="h-px bg-gradient-to-r from-transparent via-border/40 to-transparent" />
@@ -530,7 +548,10 @@ export function BrandProfileLoading() {
             <div key={i} className="h-14 animate-shimmer rounded-xl bg-gradient-to-r from-muted/30 via-muted/15 to-muted/30 bg-[length:200%_100%]" style={{ animationDelay: `${i * 100}ms` }} />
           ))}
         </div>
-        <div className="mt-3 h-24 animate-shimmer rounded-xl bg-gradient-to-r from-muted/20 via-muted/10 to-muted/20 bg-[length:200%_100%]" />
+        {/* Progress bar */}
+        <div className="mt-3 h-1 overflow-hidden rounded-full bg-muted/30">
+          <div className="h-full animate-shimmer rounded-full bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-400 bg-[length:200%_100%]" style={{ width: `${((step + 1) / LOADING_STEPS.length) * 100}%`, transition: "width 0.5s ease" }} />
+        </div>
       </div>
     </div>
   );

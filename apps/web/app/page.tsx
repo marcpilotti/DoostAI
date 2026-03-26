@@ -38,6 +38,13 @@ export default function Home() {
     }
   }, []);
 
+  // Persist chat session to localStorage (restore on reload)
+  useEffect(() => {
+    if (messages.length > 0) {
+      try { localStorage.setItem("doost:draft-session", JSON.stringify(messages)); } catch {}
+    }
+  }, [messages]);
+
   // Auto-dismiss toast
   useEffect(() => {
     if (toast) {

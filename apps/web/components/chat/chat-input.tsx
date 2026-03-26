@@ -54,7 +54,9 @@ export function ChatInput({
         onSubmit={onSubmit}
         className="rainbow-glow mx-auto max-w-2xl"
       >
-        <div className="rounded-2xl border border-border/40 bg-white/60 p-2 shadow-sm backdrop-blur-xl transition-shadow focus-within:border-indigo-300/60 focus-within:shadow-[0_0_0_3px_rgba(99,102,241,0.1)]">
+        <div className={`rounded-2xl border bg-white/60 p-2 shadow-sm backdrop-blur-xl transition-all focus-within:border-indigo-300/60 focus-within:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] ${
+          isLoading ? "border-indigo-400/50 shadow-[0_0_0_4px_rgba(99,102,241,0.12)] animate-pulse" : "border-border/40"
+        }`}>
           {urlHint && (
             <div className="mb-1 px-3 text-[11px] text-indigo-500">
               Tryck Enter för att analysera <span className="font-medium">{urlHint}</span>
