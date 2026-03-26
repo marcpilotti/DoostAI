@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, Check, Plug, Mail, Lock, Eye, EyeOff } from "lucide-react";
 
 type OnboardingStep = "connectors" | "signup" | "done";
@@ -224,7 +224,17 @@ export function OnboardingCards({
   data: OnboardingData;
   onAllComplete: () => void;
 }) {
+  const [profileApproved, setProfileApproved] = useState(false);
   const [currentStep, setCurrentStep] = useState<OnboardingStep>("connectors");
+
+  // Wait for profile card "Godkänn alla & fortsätt" before showing
+  useEffect(() => {
+    function handleApproved() {
+      setProfileApproved(true);
+    }
+    window.addEventListener("doost:profile-approved", handleApproved);
+    return () => window.removeEventListener("doost:profile-approved", handleApproved);
+  }, []);
 
   function advance(from: OnboardingStep) {
     if (from === "connectors") {
@@ -234,6 +244,9 @@ export function OnboardingCards({
       onAllComplete();
     }
   }
+
+  // Don't render until profile card is approved
+  if (!profileApproved) return null;
 
   return (
     <div className="space-y-0">
