@@ -14,6 +14,7 @@ import { TypingIndicator } from "./typing-indicator";
 // Lazy-load heavy components — only loaded when their tool results render
 const CampaignConfigCard = lazy(() => import("@/components/ads/campaign-config-card").then(m => ({ default: m.CampaignConfigCard })));
 const CopyPreviewCard = lazy(() => import("@/components/ads/copy-preview-card").then(m => ({ default: m.CopyPreviewCard })));
+const PublishCard = lazy(() => import("@/components/ads/publish-card").then(m => ({ default: m.PublishCard })));
 const CampaignDeploymentStatus = lazy(() => import("@/components/ads/campaign-deployment-status").then(m => ({ default: m.CampaignDeploymentStatus })));
 const LinkedInConnect = lazy(() => import("@/components/ads/linkedin-connect").then(m => ({ default: m.LinkedInConnect })));
 const UpgradePrompt = lazy(() => import("@/components/ads/upgrade-prompt").then(m => ({ default: m.UpgradePrompt })));
@@ -146,6 +147,22 @@ function ToolInvocation({
         </div>
       </div>
     );
+  }
+
+  if (name === "show_publish_card") {
+    if (part.state === "output-available" && part.output) {
+      return (
+        <PublishCard
+          data={part.output as Parameters<typeof PublishCard>[0]["data"]}
+          onPublish={(config) => {
+            onSendMessage?.(
+              `Publicera: ${config.dailyBudget} kr/dag, ${config.duration} dagar, ${config.channels.join("+")}${config.email ? `, email: ${config.email}` : ""}`,
+            );
+          }}
+        />
+      );
+    }
+    return null;
   }
 
   if (name === "show_campaign_config") {
@@ -300,7 +317,7 @@ export function ChatMessages({
       const m = messages[i]!;
       if (m.role !== "user") continue;
       const text = getMessageText(m);
-      if (text && (hidden.includes(text.trim()) || text.startsWith("Mål:") || text.startsWith("Skapa annonser för") || text.startsWith("Publicera:"))) continue;
+      if (text && (hidden.includes(text.trim()) || text.startsWith("Mål:") || text.startsWith("Skapa annonser för") || text.startsWith("Publicera:") || text.includes("publicera!") || text === "Ändra texten" || text === "Visa fler varianter")) continue;
       if (text && !hidden.includes(text.trim())) return text;
     }
     return null;

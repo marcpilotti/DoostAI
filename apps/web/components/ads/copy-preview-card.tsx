@@ -660,28 +660,47 @@ export function CopyPreviewCard({
         />
       </div>
 
-      {/* Footer */}
-      {!selectedId && !editMode && (
-        <div className="border-t border-border/30 px-5 py-2.5 text-center text-[11px] text-muted-foreground/50">
-          Klicka på den variant du vill använda, eller redigera nedan
-        </div>
-      )}
-
-      {selectedId && (
-        <div className="flex items-center justify-between border-t border-border/30 bg-emerald-50/30 px-5 py-3">
-          <span className="flex items-center gap-1 text-[11px] font-medium text-emerald-600">
-            <Check className="h-3 w-3" />
-            Variant vald
-          </span>
-          <button
-            onClick={() => onSendMessage?.("Gå vidare till kampanjinställningar")}
-            className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"
-          >
-            Gå vidare
-            <ArrowRight className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      )}
+      {/* QuickPicks + Footer */}
+      <div className="border-t border-border/20 px-4 py-2">
+        {selectedId ? (
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-600">
+              <Check className="h-3 w-3" /> Variant vald
+            </span>
+            <div className="ml-auto flex gap-1.5">
+              <button
+                onClick={() => onSendMessage?.("Visa fler varianter")}
+                className="rounded-full border border-border/40 bg-white px-2.5 py-1 text-[10px] font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:text-indigo-600"
+              >
+                Fler varianter
+              </button>
+              <button
+                onClick={() => onSendMessage?.("Ser bra ut, publicera!")}
+                className="flex items-center gap-1 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600 px-3 py-1 text-[10px] font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700"
+              >
+                Ser bra ut, publicera!
+                <ArrowRight className="h-3 w-3" />
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex gap-1.5">
+            <button
+              onClick={() => onSendMessage?.("Ändra texten")}
+              className="rounded-full border border-border/40 bg-white px-2.5 py-1 text-[10px] font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:text-indigo-600"
+            >
+              Ändra texten
+            </button>
+            <button
+              onClick={() => onSendMessage?.("Visa fler varianter")}
+              className="rounded-full border border-border/40 bg-white px-2.5 py-1 text-[10px] font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:text-indigo-600"
+            >
+              Fler varianter
+            </button>
+            <span className="ml-auto text-[9px] text-muted-foreground/40 self-center">Välj en variant ↑</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

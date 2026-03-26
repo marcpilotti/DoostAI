@@ -69,17 +69,15 @@ STEP 2: analyze_brand returns → Say "Stämmer det här? Granska din varumärke
 
 STEP 3: User sends "Onboarding klar" → IMMEDIATELY call show_goal_picker with the industry category from the brand analysis. Do NOT write any text before the tool call.
 
-STEP 4: User picks goal + audience (message starts with "Mål:") → call show_channel_picker.
+STEP 4: User picks goal + audience (message starts with "Mål:") → call generate_ad_copy with brand data and "meta" as default platform, plus the goal and audience.
 
-STEP 5: User picks platforms → call generate_ad_copy with brand data, selected platforms, goal, and audience.
+STEP 5: Ad previews appear with QuickPicks. User can click "Ändra texten", "Fler varianter", or "Ser bra ut, publicera!". Handle fritext edits by regenerating copy.
 
-STEP 6: Ad previews appear → say "Vilken variant föredrar du? Klicka på den du gillar bäst."
+STEP 6: User says "Ser bra ut, publicera!" or wants to publish → IMMEDIATELY call show_publish_card with brand name, URL, headline, body, goal, audience, and industry category. Do NOT show a separate channel picker — channels are in the PublishCard.
 
-STEP 7: User clicks "Gå vidare" or approves → IMMEDIATELY call show_campaign_config with the brand name and platform.
+STEP 7: User submits publish config (message starts with "Publicera:") → call check_plan, then deploy_campaign.
 
-STEP 8: User submits campaign config (message starts with "Publicera:") → call check_plan, then deploy_campaign.
-
-STEP 9: After deploy_campaign returns successfully → Say: "Dina annonser är nu iväg! 🚀 Det tar vanligtvis 1-2 timmar innan de godkänns av plattformen. Jag meddelar dig så fort de första visningarna börjar rulla in. Under tiden kan du skapa fler kampanjer eller bara luta dig tillbaka."
+STEP 8: After deploy_campaign returns successfully → Say: "Dina annonser är nu iväg! 🚀 Det tar vanligtvis 1-2 timmar innan de godkänns av plattformen. Jag meddelar dig så fort de första visningarna börjar rulla in. Under tiden kan du skapa fler kampanjer eller bara luta dig tillbaka."
 
 ABSOLUTE RULES:
 - After analyze_brand, do NOT repeat the brand data — the profile card shows it.
@@ -331,6 +329,43 @@ ABSOLUTE RULES:
           return {
             industryCategory: category,
             audiences: audiences ?? ["Småföretagare", "Privatpersoner 25–55", "Beslutsfattare", "Lokala kunder"],
+          };
+        },
+      }),
+
+      show_publish_card: tool({
+        description:
+          "Show the all-in-one publish card with ad summary, channels, budget, targeting, and email. Call this when user approves their ad and wants to publish. Replaces separate channel picker + campaign config.",
+        inputSchema: z.object({
+          brandName: z.string(),
+          brandUrl: z.string(),
+          headline: z.string(),
+          bodyCopy: z.string(),
+          goal: z.string(),
+          audience: z.string(),
+          industryCategory: z.string().optional(),
+          defaultCity: z.string().optional(),
+        }),
+        execute: async ({ brandName, brandUrl, headline, bodyCopy, goal, audience, industryCategory, defaultCity }) => {
+          const { INDUSTRY_BUDGETS, DEFAULT_BUDGETS } = await import("@doost/ai");
+          const looked = industryCategory ? INDUSTRY_BUDGETS[industryCategory] : undefined;
+          const budgets = (looked && typeof looked === "object" && "low" in looked) ? looked : DEFAULT_BUDGETS;
+          const cpm = 50;
+          const estimateReach = (daily: number) => `~${Math.round((daily / cpm) * 800).toLocaleString("sv-SE")}–${Math.round((daily / cpm) * 1500).toLocaleString("sv-SE")} visningar/dag`;
+          return {
+            brandName,
+            brandUrl,
+            headline,
+            bodyCopy,
+            goal,
+            audience,
+            defaultCity,
+            currency: "kr",
+            suggestedBudgets: [
+              { daily: Math.round(budgets.low / 30), label: "Sparsam", reach: estimateReach(Math.round(budgets.low / 30)) },
+              { daily: Math.round(budgets.mid / 30), label: "Standard", reach: estimateReach(Math.round(budgets.mid / 30)), recommended: true },
+              { daily: Math.round(budgets.high / 30), label: "Aggressiv", reach: estimateReach(Math.round(budgets.high / 30)) },
+            ],
           };
         },
       }),
