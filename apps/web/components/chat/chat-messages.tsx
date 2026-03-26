@@ -265,6 +265,9 @@ export function ChatMessages({
           if (message.role === "user") {
             const text = getMessageText(message);
             if (!text) return null;
+            // Hide system-triggered messages from display
+            const hidden = ["Onboarding klar", "Gå vidare till kampanjinställningar"];
+            if (hidden.some((h) => text.trim() === h)) return null;
             return (
               <div key={message.id} className="animate-message-in flex items-start justify-end gap-2">
                 <div className="max-w-[72%] rounded-2xl rounded-br-md border border-indigo-100 bg-indigo-50/80 px-4 py-2.5 text-sm leading-relaxed text-foreground sm:max-w-[60%]">
