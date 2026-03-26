@@ -26,10 +26,9 @@ export function useFlowProgress(messages: UIMessage[]): FlowStep {
     if (messages.length === 0) return "analys";
 
     const hasBrand = hasToolInMessages(messages, "analyze_brand");
-    const hasChannels = hasToolInMessages(messages, "show_channel_picker");
-    const hasCopy =
-      hasToolInMessages(messages, "generate_ad_copy") ||
-      hasToolInMessages(messages, "generate_ads");
+    const hasGoal = hasToolInMessages(messages, "show_goal_picker");
+    const hasCopy = hasToolInMessages(messages, "generate_ad_copy");
+    const hasPublish = hasToolInMessages(messages, "show_publish_card");
     const hasDeploy = hasToolInMessages(messages, "deploy_campaign");
 
     const isLive = messages.some((m) =>
@@ -46,9 +45,9 @@ export function useFlowProgress(messages: UIMessage[]): FlowStep {
 
     if (isLive) return "live";
     if (hasDeploy) return "publicera";
-    if (hasCopy) return "granska";
-    if (hasChannels) return "skapa";
-    if (hasBrand) return "profil";
+    if (hasPublish) return "granska";
+    if (hasCopy) return "skapa";
+    if (hasGoal || hasBrand) return "profil";
     return "analys";
   }, [messages]);
 }

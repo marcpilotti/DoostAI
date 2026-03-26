@@ -675,7 +675,13 @@ export function CopyPreviewCard({
                 Fler varianter
               </button>
               <button
-                onClick={() => onSendMessage?.("Ser bra ut, publicera!")}
+                onClick={() => {
+                  const selected = variants.find((c) => (c.id ?? `${c.platform}-${c.variant}`) === selectedId);
+                  const msg = selected
+                    ? `Ser bra ut, publicera! [headline: ${selected.headline}] [body: ${selected.bodyCopy}] [cta: ${selected.cta}]`
+                    : "Ser bra ut, publicera!";
+                  onSendMessage?.(msg);
+                }}
                 className="flex items-center gap-1 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600 px-3 py-1 text-[10px] font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700"
               >
                 Ser bra ut, publicera!

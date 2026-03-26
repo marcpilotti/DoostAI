@@ -32,7 +32,7 @@ export async function analyzeWithVision(
     // Build the image content part
     const imagePart = screenshotBase64
       ? { type: "image" as const, image: screenshotBase64 }
-      : { type: "image" as const, image: new URL(ogImageUrl!) };
+      : { type: "image" as const, image: ogImageUrl! };
 
     const { object } = await generateObject({
       model: anthropic("claude-sonnet-4-6"),

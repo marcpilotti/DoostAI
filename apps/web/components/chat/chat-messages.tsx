@@ -12,14 +12,12 @@ import {
 import { TypingIndicator } from "./typing-indicator";
 
 // Lazy-load heavy components — only loaded when their tool results render
-const CampaignConfigCard = lazy(() => import("@/components/ads/campaign-config-card").then(m => ({ default: m.CampaignConfigCard })));
 const CopyPreviewCard = lazy(() => import("@/components/ads/copy-preview-card").then(m => ({ default: m.CopyPreviewCard })));
 const PublishCard = lazy(() => import("@/components/ads/publish-card").then(m => ({ default: m.PublishCard })));
 const CampaignDeploymentStatus = lazy(() => import("@/components/ads/campaign-deployment-status").then(m => ({ default: m.CampaignDeploymentStatus })));
 const LinkedInConnect = lazy(() => import("@/components/ads/linkedin-connect").then(m => ({ default: m.LinkedInConnect })));
 const UpgradePrompt = lazy(() => import("@/components/ads/upgrade-prompt").then(m => ({ default: m.UpgradePrompt })));
 const BrandProfileCard = lazy(() => import("@/components/brand/brand-profile-card").then(m => ({ default: m.BrandProfileCard })));
-const ChannelPicker = lazy(() => import("./channel-picker").then(m => ({ default: m.ChannelPicker })));
 const GoalPicker = lazy(() => import("./goal-picker").then(m => ({ default: m.GoalPicker })));
 const OnboardingCards = lazy(() => import("./onboarding-cards").then(m => ({ default: m.OnboardingCards })));
 
@@ -99,27 +97,7 @@ function ToolInvocation({
     return null;
   }
 
-  if (name === "show_channel_picker") {
-    if (part.state === "output-available" && part.output) {
-      return (
-        <ChannelPicker
-          data={part.output as Parameters<typeof ChannelPicker>[0]["data"]}
-          onSelect={(channels) => {
-            const labels: Record<string, string> = {
-              meta: "Meta",
-              google: "Google",
-              linkedin: "LinkedIn",
-            };
-            const text = channels.map((c) => labels[c] ?? c).join(", ");
-            onSendMessage?.(`Skapa annonser för ${text}`);
-          }}
-        />
-      );
-    }
-    return null;
-  }
-
-  if (name === "generate_ad_copy" || name === "generate_ads") {
+  if (name === "generate_ad_copy") {
     if (part.state === "output-available" && part.output) {
       return (
         <CopyPreviewCard
@@ -163,27 +141,6 @@ function ToolInvocation({
       );
     }
     return null;
-  }
-
-  if (name === "show_campaign_config") {
-    if (part.state === "output-available" && part.output) {
-      return (
-        <CampaignConfigCard
-          data={part.output as Parameters<typeof CampaignConfigCard>[0]["data"]}
-          onSubmit={(config) => {
-            onSendMessage?.(
-              `Publicera: ${config.dailyBudget} ${config.currency}/dag, ${config.duration} dagar, ${config.regions.join(", ")}`,
-            );
-          }}
-        />
-      );
-    }
-    return (
-      <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-        <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
-        Förbereder kampanjinställningar...
-      </div>
-    );
   }
 
   if (name === "connect_linkedin") {

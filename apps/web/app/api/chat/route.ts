@@ -19,7 +19,7 @@ import {
 } from "@doost/ai";
 import type { BrandContext, Platform } from "@doost/ai";
 import { linkedinGetOAuthUrl } from "@doost/platforms";
-import { adAccounts, campaigns, organizations, db, and, eq } from "@doost/db";
+import { adAccounts, db, eq } from "@doost/db";
 import { inngest } from "@/lib/inngest/client";
 import {
   checkCampaignLimit,
@@ -82,7 +82,7 @@ STEP 8: After deploy_campaign returns successfully → Say: "Dina annonser är n
 ABSOLUTE RULES:
 - After analyze_brand, do NOT repeat the brand data — the profile card shows it.
 - Do NOT ask text questions about logo, font, connectors, or budget. The UI cards handle everything.
-- Do NOT call show_channel_picker until "Onboarding klar".
+- After "Onboarding klar", call show_goal_picker immediately.
 - Keep ALL text responses to 1-2 sentences max. Let the UI components do the talking.
 - If user picks LinkedIn, call connect_linkedin first.
 - If user says "ändra" or wants edits, call generate_ad_copy again.`,
@@ -209,18 +209,20 @@ ABSOLUTE RULES:
               primary: z.string(),
               secondary: z.string(),
               accent: z.string(),
-              background: z.string(),
-              text: z.string(),
+              background: z.string().optional(),
+              text: z.string().optional(),
             }),
             fonts: z.object({ heading: z.string(), body: z.string() }),
           }),
           platforms: z.array(z.enum(["meta", "google", "linkedin"])),
           objective: z.string().optional(),
+          audience: z.string().optional().describe("Target audience from GoalPicker"),
         }),
         execute: async ({
           brand,
           platforms,
           objective,
+          audience,
         }: {
           brand: BrandContext & {
             colors: Record<string, string>;
@@ -228,13 +230,14 @@ ABSOLUTE RULES:
           };
           platforms: Platform[];
           objective?: string;
+          audience?: string;
         }) => {
           const brandContext: BrandContext = {
             name: brand.name,
             description: brand.description,
             industry: brand.industry,
             brandVoice: brand.brandVoice,
-            targetAudience: brand.targetAudience,
+            targetAudience: audience ?? brand.targetAudience,
             valuePropositions: brand.valuePropositions,
             url: brand.url,
           };
@@ -365,55 +368,6 @@ ABSOLUTE RULES:
               { daily: Math.round(budgets.low / 30), label: "Sparsam", reach: estimateReach(Math.round(budgets.low / 30)) },
               { daily: Math.round(budgets.mid / 30), label: "Standard", reach: estimateReach(Math.round(budgets.mid / 30)), recommended: true },
               { daily: Math.round(budgets.high / 30), label: "Aggressiv", reach: estimateReach(Math.round(budgets.high / 30)) },
-            ],
-          };
-        },
-      }),
-
-      show_campaign_config: tool({
-        description:
-          "Show campaign configuration card with budget, duration, and targeting options. Call this AFTER the user selects/approves an ad variant. Do NOT ask budget questions in text.",
-        inputSchema: z.object({
-          brandName: z.string().describe("Company name"),
-          platform: z.string().describe("The selected ad platform (e.g. 'meta')"),
-          industryCategory: z.string().optional().describe("Industry category for budget defaults"),
-        }),
-        execute: async ({ brandName, platform, industryCategory }: { brandName: string; platform: string; industryCategory?: string }) => {
-          // Import dynamically to avoid circular deps
-          const { INDUSTRY_BUDGETS, DEFAULT_BUDGETS } = await import("@doost/ai");
-          const looked = industryCategory ? INDUSTRY_BUDGETS[industryCategory] : undefined;
-          const budgets = (looked && typeof looked === "object" && "low" in looked) ? looked : DEFAULT_BUDGETS;
-          const cpm = 50; // Average CPM in SEK
-          const estimateReach = (daily: number) => {
-            const impressions = (daily / cpm) * 1000;
-            return `~${Math.round(impressions * 0.8).toLocaleString("sv-SE")}–${Math.round(impressions * 1.5).toLocaleString("sv-SE")} visningar/dag`;
-          };
-          return {
-            brandName,
-            platform,
-            currency: "kr",
-            suggestedBudgets: [
-              { daily: Math.round(budgets.low / 30), label: "Sparsam", reach: estimateReach(Math.round(budgets.low / 30)) },
-              { daily: Math.round(budgets.mid / 30), label: "Standard", reach: estimateReach(Math.round(budgets.mid / 30)), recommended: true },
-              { daily: Math.round(budgets.high / 30), label: "Aggressiv", reach: estimateReach(Math.round(budgets.high / 30)) },
-            ],
-          };
-        },
-      }),
-
-      show_channel_picker: tool({
-        description:
-          "Show channel selection buttons to the user. Call this AFTER onboarding cards are completed (user finishes or skips logo, font, connectors).",
-        inputSchema: z.object({}),
-        execute: async () => {
-          return {
-            channels: [
-              { id: "meta", label: "Meta", description: "Facebook & Instagram", supported: true },
-              { id: "google", label: "Google", description: "Sök & Display", supported: true },
-              { id: "linkedin", label: "LinkedIn", description: "B2B-fokus", supported: true },
-              { id: "tiktok", label: "TikTok", description: "Kortvideo & Gen Z", supported: false },
-              { id: "snapchat", label: "Snapchat", description: "AR & Story Ads", supported: false },
-              { id: "pinterest", label: "Pinterest", description: "Shopping & Inspiration", supported: false },
             ],
           };
         },
