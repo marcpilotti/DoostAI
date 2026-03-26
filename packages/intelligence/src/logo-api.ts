@@ -82,19 +82,39 @@ async function verifyClearbitLogo(domain: string): Promise<string | null> {
 }
 
 /**
+ * Logo.dev API — simple domain-based logo lookup.
+ * Free tier: 500k requests/month. No npm package needed.
+ */
+async function fetchLogoDev(domain: string): Promise<string | null> {
+  const token = process.env.LOGO_DEV_TOKEN;
+  if (!token || token === "your_logo_dev_token") return null;
+
+  try {
+    const url = `https://img.logo.dev/${domain}?token=${token}&format=png&size=256`;
+    const res = await fetch(url, { method: "HEAD", signal: AbortSignal.timeout(5000) });
+    return res.ok ? url : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Run all logo API sources in parallel.
  */
 export async function fetchLogoApis(domain: string): Promise<{
   brandfetch: BrandfetchResult | null;
   clearbitLogo: string | null;
+  logoDevUrl: string | null;
 }> {
-  const [brandfetch, clearbitLogo] = await Promise.allSettled([
+  const [brandfetch, clearbitLogo, logoDevUrl] = await Promise.allSettled([
     fetchBrandfetch(domain),
     verifyClearbitLogo(domain),
+    fetchLogoDev(domain),
   ]);
 
   return {
     brandfetch: brandfetch.status === "fulfilled" ? brandfetch.value : null,
     clearbitLogo: clearbitLogo.status === "fulfilled" ? clearbitLogo.value : null,
+    logoDevUrl: logoDevUrl.status === "fulfilled" ? logoDevUrl.value : null,
   };
 }

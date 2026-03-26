@@ -73,6 +73,7 @@ export async function runBrandIntelligencePipeline(
     companyName: input.companyName,
     brandfetch: logoApi?.brandfetch ?? null,
     clearbitLogo: logoApi?.clearbitLogo ?? null,
+    logoDevUrl: logoApi?.logoDevUrl ?? null,
     vision,
     cssColors: input.cssColors,
     cssFonts: input.cssFonts,
