@@ -33,8 +33,7 @@ export function ChatHeader({ authenticated = false }: { authenticated?: boolean 
           </button>
         </nav>
       ) : (
-        <button className="flex items-center gap-1.5 rounded-lg border border-transparent px-3 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:border-border/50 hover:bg-muted/60 hover:text-foreground">
-          <LogIn className="h-3.5 w-3.5" />
+        <button className="rounded-full border border-border/40 px-4 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:border-foreground/20 hover:text-foreground">
           Logga in
         </button>
       )}
