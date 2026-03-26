@@ -293,14 +293,7 @@ export function ChatMessages({
   return (
     <div className="flex h-full min-h-0 flex-col px-4 sm:px-6">
       <div className="mx-auto flex w-full min-h-0 max-w-2xl flex-1 flex-col">
-        {/* Latest user message — compact at top */}
-        {latestUserText && (
-          <div className="flex justify-end pt-2 pb-1">
-            <div className="max-w-[72%] rounded-2xl rounded-br-md border border-indigo-100 bg-indigo-50/80 px-3 py-1.5 text-xs text-foreground sm:max-w-[60%]">
-              {latestUserText}
-            </div>
-          </div>
-        )}
+        {/* User messages hidden — the cards speak for themselves */}
 
         {/* Latest AI text — brief message above card */}
         {latestText && (
