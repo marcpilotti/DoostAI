@@ -60,9 +60,9 @@ export async function buildBrandProfile(
     enrichedIndustry && `Industry (from registry): ${enrichedIndustry}`,
     enrichment?.location && `Location: ${enrichment.location}`,
     scrapeResult.colors.length > 0 &&
-      `Colors found in CSS (USE THESE EXACT HEX VALUES): ${scrapeResult.colors.join(", ")}`,
+      `Colors found in CSS (hints — may include text/border colors, identify BRAND colors only): ${scrapeResult.colors.join(", ")}`,
     scrapeResult.fonts.length > 0 &&
-      `Fonts found in CSS (USE THESE EXACT NAMES): ${scrapeResult.fonts.join(", ")}`,
+      `Fonts found in CSS (hints — may include system fonts): ${scrapeResult.fonts.join(", ")}`,
     ``,
     `== WEBSITE METADATA ==`,
     `URL: ${scrapeResult.url}`,
@@ -86,8 +86,8 @@ export async function buildBrandProfile(
     prompt: `Analyze this company's brand identity. Return ONLY facts from the data below — do NOT guess or hallucinate.
 
 RULES (follow exactly):
-1. COLORS: You MUST use the exact hex colors from "Colors found in CSS". Pick the most prominent non-white/non-black color as primary. If no CSS colors, use the most visible color from the page content.
-2. FONTS: You MUST use the exact font names from "Fonts found in CSS". If none found, return "Inter" as default.
+1. COLORS: Identify the company's BRAND colors — the colors that represent their visual identity (logo, buttons, header, accent). IGNORE body text colors, border colors, and neutral grays. CSS colors are provided as hints but often include text colors (#1a1a1a, #333, etc.) — skip those. Return the actual brand colors as 6-digit hex. Example: Biltema uses blue #003DA6 as primary, not black #231f20 which is just text.
+2. FONTS: Identify the main font used for headings and body text. CSS font names are provided as hints. If they are generic system fonts (Arial, Helvetica, system-ui), try to identify the actual display font from the website content. If unsure, return "Inter".
 3. INDUSTRY: Determine from website content. Use specific Swedish terms: "Fintech", "E-handel", "SaaS", "Rekrytering", "Fastigheter", "Hälsa & Träning", "Juridik", "Marknadsföring", "Logistik", "Utbildning", "Restaurang", "Bygg", "Konsult", etc. NEVER use "Dataprogrammering" or generic "IT".
 4. NAME: Return the OFFICIAL company name as it appears on the website, with correct spacing and capitalization. Example: "Lyvia Group" not "Lyviagroup", "HubSpot" not "Hubspot". Remove legal suffixes (AB, Inc, Ltd, GmbH) but keep the brand spelling exactly as the company uses it. Look at the page title, logo text, and headings for the correct form.
 5. DESCRIPTION: One sentence in Swedish describing what the company does.
@@ -104,42 +104,16 @@ ${context}`,
   });
   await flushTraces();
 
-  // Post-process: use UNIQUE CSS colors, filter near-black/near-white/gray
-  function isChromatic(hex: string): boolean {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    if (r < 0x30 && g < 0x30 && b < 0x30) return false; // near-black
-    if (r > 0xe0 && g > 0xe0 && b > 0xe0) return false; // near-white
-    if (Math.max(r, g, b) - Math.min(r, g, b) < 30) return false; // gray
-    return true;
-  }
-  const cssColors = [...new Set(
-    scrapeResult.colors
-      .filter((c) => /^#[0-9a-fA-F]{6}$/.test(c))
-      .map((c) => c.toLowerCase())
-      .filter(isChromatic)
-  )];
+  // Trust the AI for colors — it analyzes the page visually and understands
+  // brand colors vs body text. CSS frequency counting picks up text colors
+  // (#231f20) as "primary" which is almost always wrong.
   const finalColors = { ...object.colors };
 
-  // Only override with CSS colors if we have enough DISTINCT ones
-  if (cssColors.length >= 3) {
-    finalColors.primary = cssColors[0]!;
-    finalColors.secondary = cssColors[1]!;
-    finalColors.accent = cssColors[2]!;
-  } else if (cssColors.length === 2) {
-    finalColors.primary = cssColors[0]!;
-    finalColors.accent = cssColors[1]!;
-    // Let AI choose secondary
-  } else if (cssColors.length === 1) {
-    finalColors.primary = cssColors[0]!;
-    // Let AI choose secondary + accent (they're usually decent)
-  }
-  // If 0 CSS colors, trust the AI entirely
-
-  // Post-process: prefer scraped fonts
-  const cssFonts = scrapeResult.fonts;
+  // Post-process: only override AI fonts if CSS found specific non-system fonts
+  const SYSTEM_FONTS = new Set(["arial", "helvetica", "verdana", "tahoma", "times new roman", "georgia", "segoe ui", "system-ui", "sans-serif", "serif", "monospace", "-apple-system", "blinkmacsystemfont"]);
+  const cssFonts = scrapeResult.fonts.filter((f) => !SYSTEM_FONTS.has(f.toLowerCase().trim()));
   const finalFonts = { ...object.fonts };
+  // Only override if CSS found specific named fonts (not system defaults)
   if (cssFonts.length >= 1 && cssFonts[0]) finalFonts.heading = cssFonts[0];
   if (cssFonts.length >= 2 && cssFonts[1]) finalFonts.body = cssFonts[1];
   else if (cssFonts.length === 1 && cssFonts[0]) finalFonts.body = cssFonts[0];

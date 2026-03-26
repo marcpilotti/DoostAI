@@ -150,18 +150,19 @@ ABSOLUTE RULES:
           // Override profile with higher-confidence intelligence data
           const intel = intelligence?.intelligence;
 
-          // Use best logo source
-          const finalLogo = intel && intel.logo.confidence > 60 && intel.logo.value.url
+          // Use best logo source — Logo.dev/Brandfetch > scraped
+          const finalLogo = intel && intel.logo.confidence >= 50 && intel.logo.value.url
             ? { primary: intel.logo.value.url, icon: clean.logos?.icon, dark: clean.logos?.dark }
             : clean.logos;
 
-          // Use best color source (if intel confidence > profile's CSS-based colors)
-          const finalColors = intel && intel.colors.confidence >= 90
+          // Use best color source — intel pipeline uses Brandfetch/Vision which understands
+          // actual brand colors, not just CSS frequency. Override if any confidence.
+          const finalColors = intel && intel.colors.confidence >= 60
             ? intel.colors.value
             : clean.colors;
 
-          // Use best font source
-          const finalFonts = intel && intel.font.confidence >= 90
+          // Use best font source — Brandfetch (95) or CSS-detected (80) override AI
+          const finalFonts = intel && intel.font.confidence >= 70
             ? { heading: intel.font.value.family, body: intel.font.value.family }
             : clean.fonts;
 
