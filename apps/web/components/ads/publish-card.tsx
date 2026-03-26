@@ -5,7 +5,11 @@ import {
   ArrowRight,
   CalendarDays,
   Check,
+  Eye,
+  EyeOff,
   Globe,
+  Lock,
+  Mail,
   MapPin,
   Megaphone,
   Pencil,
@@ -93,6 +97,9 @@ export function PublishCard({
     new Set([data.defaultCity?.toLowerCase() === "göteborg" ? "gothenburg" : data.defaultCity?.toLowerCase() === "malmö" ? "malmo" : "stockholm"]),
   );
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConnectors, setShowConnectors] = useState(false);
 
   function toggleChannel(id: string) {
     setChannels((prev) => {
@@ -234,33 +241,94 @@ export function PublishCard({
           </div>
         </div>
 
-        {/* Email + Publish */}
-        <div className="px-4 py-3">
-          <div className="mb-2 flex items-center gap-2 rounded-lg border border-border/40 bg-white px-3 py-2 transition-all focus-within:border-indigo-400 focus-within:ring-1 focus-within:ring-indigo-200">
-            <span className="text-[10px] text-muted-foreground/50">✉</span>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="din@email.se (valfritt)"
-              className="w-full bg-transparent text-xs outline-none placeholder:text-muted-foreground/40"
-            />
+        {/* Account creation + Connectors + Publish */}
+        <div className="px-4 py-3 space-y-3">
+          {/* Account fields */}
+          <div>
+            <div className="mb-1.5 text-[9px] font-semibold uppercase tracking-wider text-foreground/50">
+              Skapa konto för att publicera
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2 rounded-lg border border-border/40 bg-white px-3 py-2 transition-all focus-within:border-indigo-400 focus-within:ring-1 focus-within:ring-indigo-200">
+                <Mail className="h-3.5 w-3.5 text-muted-foreground/40" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="din@email.se"
+                  className="w-full bg-transparent text-xs outline-none placeholder:text-muted-foreground/40"
+                  required
+                />
+              </div>
+              <div className="flex items-center gap-2 rounded-lg border border-border/40 bg-white px-3 py-2 transition-all focus-within:border-indigo-400 focus-within:ring-1 focus-within:ring-indigo-200">
+                <Lock className="h-3.5 w-3.5 text-muted-foreground/40" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Välj lösenord (minst 8 tecken)"
+                  minLength={8}
+                  className="w-full bg-transparent text-xs outline-none placeholder:text-muted-foreground/40"
+                  required
+                />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-muted-foreground/30 hover:text-muted-foreground">
+                  {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                </button>
+              </div>
+            </div>
           </div>
+
+          {/* Existing ad accounts? */}
+          <div>
+            <button
+              onClick={() => setShowConnectors(!showConnectors)}
+              className="text-[10px] font-medium text-indigo-500 transition-colors hover:text-indigo-700"
+            >
+              {showConnectors ? "Dölj kopplingar ↑" : "Har du redan annonskonton? Koppla dem →"}
+            </button>
+            {showConnectors && (
+              <div className="mt-2 space-y-1 animate-message-in">
+                {[
+                  { id: "meta", label: "Meta Business", icon: "f" },
+                  { id: "google", label: "Google Ads", icon: "G" },
+                  { id: "linkedin", label: "LinkedIn", icon: "in" },
+                ].map((p) => (
+                  <button key={p.id} className="flex w-full items-center gap-2 rounded-lg border border-border/40 bg-white px-3 py-1.5 text-[10px] text-muted-foreground transition-all hover:border-indigo-300 hover:text-indigo-600">
+                    <span className="flex h-5 w-5 items-center justify-center rounded bg-muted/30 text-[8px] font-bold">{p.icon}</span>
+                    <span className="flex-1 text-left font-medium">{p.label}</span>
+                    <span className="text-indigo-500">Koppla</span>
+                  </button>
+                ))}
+                <div className="text-[9px] text-muted-foreground/40">
+                  Valfritt — vi skapar konton åt dig om du hoppar över
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Publish button */}
           <button
-            onClick={() => onPublish?.({
-              channels: [...channels],
-              dailyBudget: budget,
-              duration,
-              regions: [...regions],
-              email: email || undefined,
-            })}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:from-emerald-600 hover:to-teal-600 hover:shadow-md"
+            onClick={() => {
+              if (!email || !password || password.length < 8) return;
+              window.dispatchEvent(new CustomEvent("doost:signup-complete"));
+              onPublish?.({
+                channels: [...channels],
+                dailyBudget: budget,
+                duration,
+                regions: [...regions],
+                email,
+              });
+            }}
+            disabled={!email || !password || password.length < 8}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:from-emerald-600 hover:to-teal-600 hover:shadow-md disabled:opacity-40"
           >
-            Publicera kampanj
+            Skapa konto & publicera
             <ArrowRight className="h-3.5 w-3.5" />
           </button>
-          <div className="mt-1.5 text-center text-[9px] text-muted-foreground/40">
-            Du kan pausa eller ändra när som helst
+          <div className="flex items-center justify-center gap-3 text-[9px] text-muted-foreground/40">
+            <span>🔒 Krypterad</span>
+            <span>·</span>
+            <span>Pausa när som helst</span>
           </div>
         </div>
       </div>
