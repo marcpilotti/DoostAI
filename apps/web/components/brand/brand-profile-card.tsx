@@ -261,39 +261,33 @@ export function BrandProfileCard({
 
       {/* Logo + Name section */}
       <div className="px-5 pt-4 pb-3">
-        <div className="flex items-center gap-4">
-          <label className="group relative shrink-0 cursor-pointer">
-            {logoUrl ? (
-              <>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={logoUrl}
-                  alt={name}
-                  className={`h-14 w-14 rounded-xl border-2 bg-white object-contain p-1.5 shadow-sm transition-all ${
-                    approved.logo === "approved" ? "border-emerald-300" : "border-border/30"
-                  }`}
-                  onError={() => setLogoUrl(null)}
-                />
-                <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/30 opacity-100 sm:opacity-0 transition-opacity sm:group-hover:opacity-100">
-                  <Pencil className="h-3.5 w-3.5 text-white" />
-                </div>
-                {approved.logo === "approved" && (
-                  <div className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
-                    <Check className="h-3 w-3" strokeWidth={3} />
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-xl border-2 border-dashed border-border/50 bg-muted/10 transition-all group-hover:border-indigo-300 group-hover:bg-indigo-50/20">
-                <ImageIcon className="h-5 w-5 text-muted-foreground/30" />
-                <span className="text-[7px] text-muted-foreground/40">Logga</span>
+        <div className="flex items-start gap-3">
+          {/* Logo — shows when uploaded/scraped, otherwise hidden until grid upload */}
+          {logoUrl && (
+            <label className="group relative shrink-0 cursor-pointer">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={logoUrl}
+                alt={name}
+                className={`h-12 w-12 rounded-xl border-2 bg-white object-contain p-1.5 shadow-sm transition-all ${
+                  approved.logo === "approved" ? "border-emerald-300" : "border-border/30"
+                }`}
+                onError={() => setLogoUrl(null)}
+              />
+              <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/30 opacity-100 sm:opacity-0 transition-opacity sm:group-hover:opacity-100">
+                <Pencil className="h-3 w-3 text-white" />
               </div>
-            )}
-            <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-          </label>
+              {approved.logo === "approved" && (
+                <div className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
+                  <Check className="h-2.5 w-2.5" strokeWidth={3} />
+                </div>
+              )}
+              <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+            </label>
+          )}
 
-          <div className="min-w-0 flex-1 space-y-1">
-            {/* Name field — approvable */}
+          <div className="min-w-0 flex-1">
+            {/* Name + approve */}
             <div className="flex items-center gap-2">
               <h3 className="truncate text-lg font-semibold tracking-tight">{name}</h3>
               {approved.name === "approved" ? (
@@ -303,7 +297,7 @@ export function BrandProfileCard({
               ) : (
                 <button
                   onClick={() => approve("name")}
-                  className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-50 text-emerald-500 opacity-0 transition-all hover:bg-emerald-100 group-hover:opacity-100"
+                  className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-50 text-emerald-500 opacity-100 sm:opacity-0 transition-all hover:bg-emerald-100 sm:group-hover:opacity-100"
                 >
                   <Check className="h-3 w-3" strokeWidth={2.5} />
                 </button>
@@ -312,32 +306,37 @@ export function BrandProfileCard({
                 <ExternalLink className="h-3 w-3" />
               </a>
             </div>
+            {/* Description */}
+            {data.description && (
+              <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                {data.description}
+              </p>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Approvable fields grid */}
+      {/* Approvable fields grid — always 2 columns */}
       <div className="grid grid-cols-2 gap-2 px-5 pb-3">
-        {data.industry && (
-          <ApprovableField
-            icon={Building2}
-            label="Bransch"
-            value={data.industry}
-            state={approved.industry ?? "pending"}
-            onApprove={() => approve("industry")}
-            onEdit={() => startEdit("industry")}
-          />
-        )}
-        {data.location && (
-          <ApprovableField
-            icon={MapPin}
-            label="Plats"
-            value={data.location}
-            state={approved.location ?? "pending"}
-            onApprove={() => approve("location")}
-            onEdit={() => startEdit("location")}
-          />
-        )}
+        {/* Row 1: Bransch + Plats */}
+        <ApprovableField
+          icon={Building2}
+          label="Bransch"
+          value={data.industry ?? "Ej angiven"}
+          state={approved.industry ?? "pending"}
+          onApprove={() => approve("industry")}
+          onEdit={() => startEdit("industry")}
+        />
+        <ApprovableField
+          icon={MapPin}
+          label="Plats"
+          value={data.location ?? "Ej angiven"}
+          state={approved.location ?? "pending"}
+          onApprove={() => approve("location")}
+          onEdit={() => startEdit("location")}
+        />
+
+        {/* Row 2: Logo + Font */}
         {/* Logo field */}
         <div
           className={`group relative rounded-xl border px-3 py-2.5 transition-all duration-300 ${
