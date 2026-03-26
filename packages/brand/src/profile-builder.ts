@@ -104,11 +104,21 @@ ${context}`,
   });
   await flushTraces();
 
-  // Post-process: use UNIQUE CSS colors, never assign same color to multiple roles
+  // Post-process: use UNIQUE CSS colors, filter near-black/near-white/gray
+  function isChromatic(hex: string): boolean {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    if (r < 0x30 && g < 0x30 && b < 0x30) return false; // near-black
+    if (r > 0xe0 && g > 0xe0 && b > 0xe0) return false; // near-white
+    if (Math.max(r, g, b) - Math.min(r, g, b) < 30) return false; // gray
+    return true;
+  }
   const cssColors = [...new Set(
     scrapeResult.colors
       .filter((c) => /^#[0-9a-fA-F]{6}$/.test(c))
       .map((c) => c.toLowerCase())
+      .filter(isChromatic)
   )];
   const finalColors = { ...object.colors };
 

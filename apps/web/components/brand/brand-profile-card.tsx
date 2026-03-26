@@ -101,10 +101,10 @@ function ApprovableField({
       }`}
     >
       <div className="flex items-center gap-2">
-        <Icon className={`h-3.5 w-3.5 shrink-0 ${state === "approved" ? "text-emerald-500" : "text-muted-foreground/50"}`} />
+        <Icon className={`h-3 w-3 shrink-0 ${state === "approved" ? "text-emerald-500" : "text-muted-foreground/40"}`} />
         <div className="min-w-0 flex-1">
-          <div className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/50">{label}</div>
-          <div className="truncate text-xs font-medium text-foreground">{value}</div>
+          <div className="text-[8px] font-medium uppercase tracking-widest text-muted-foreground/40">{label}</div>
+          <div className="truncate text-sm font-semibold text-foreground">{value}</div>
         </div>
         {state === "approved" ? (
           <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 shadow-sm">
@@ -348,12 +348,6 @@ export function BrandProfileCard({
                 <ExternalLink className="h-3 w-3" />
               </a>
             </div>
-            {/* Description */}
-            {data.description && (
-              <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
-                {data.description}
-              </p>
-            )}
           </div>
         </div>
       </div>
@@ -548,48 +542,7 @@ export function BrandProfileCard({
         </div>
       )}
 
-      {/* Intelligence: Marketing readiness */}
-      {data._intelligence?.audit && (
-        <div className="mx-4 mb-2 rounded-lg border border-border/30 bg-muted/5 px-3 py-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[9px] font-semibold text-foreground/60">Annonsredo</span>
-            <span className={`text-[9px] font-bold ${
-              data._intelligence.audit.readinessScore >= 60 ? "text-emerald-600" :
-              data._intelligence.audit.readinessScore >= 30 ? "text-amber-600" : "text-red-500"
-            }`}>
-              {data._intelligence.audit.readinessScore}/100
-            </span>
-          </div>
-          <div className="mt-1 h-1 overflow-hidden rounded-full bg-muted/30">
-            <div
-              className={`h-full rounded-full transition-all duration-700 ${
-                data._intelligence.audit.readinessScore >= 60 ? "bg-emerald-400" :
-                data._intelligence.audit.readinessScore >= 30 ? "bg-amber-400" : "bg-red-400"
-              }`}
-              style={{ width: `${data._intelligence.audit.readinessScore}%` }}
-            />
-          </div>
-          <div className="mt-1.5 flex flex-wrap gap-1">
-            {data._intelligence.audit.hasMetaPixel && (
-              <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[9px] font-medium text-emerald-600">Meta Pixel ✓</span>
-            )}
-            {data._intelligence.audit.hasGoogleTag && (
-              <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[9px] font-medium text-emerald-600">Google Tag ✓</span>
-            )}
-            {!data._intelligence.audit.hasMetaPixel && (
-              <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[9px] font-medium text-amber-600">Meta Pixel saknas</span>
-            )}
-            {!data._intelligence.audit.hasGoogleTag && (
-              <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[9px] font-medium text-amber-600">Google Tag saknas</span>
-            )}
-            {data._intelligence.audit.techStack.length > 0 && (
-              <span className="rounded bg-muted/40 px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground">
-                {data._intelligence.audit.techStack.slice(0, 2).join(", ")}
-              </span>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Intelligence data shown as subtle tags, not a separate section */}
 
       {/* Footer CTA */}
       <div className="flex items-center justify-between border-t border-border/20 px-4 py-2">

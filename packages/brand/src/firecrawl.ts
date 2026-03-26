@@ -81,8 +81,19 @@ function extractColorsFromHtml(html: string): string[] {
   const counts = new Map<string, number>();
   for (const c of matches) {
     const n = c.toLowerCase();
+    // Filter out near-white, near-black, and gray colors
     if (["#fff", "#ffffff", "#000", "#000000", "#333", "#333333"].includes(n))
       continue;
+    // Filter 6-digit hex that are near-black (all components < 0x30) or near-white (all > 0xE0)
+    if (n.length === 7) {
+      const r = parseInt(n.slice(1, 3), 16);
+      const g = parseInt(n.slice(3, 5), 16);
+      const b = parseInt(n.slice(5, 7), 16);
+      if (r < 0x30 && g < 0x30 && b < 0x30) continue; // near-black
+      if (r > 0xe0 && g > 0xe0 && b > 0xe0) continue; // near-white
+      // Filter grays (low saturation: max-min < 30)
+      if (Math.max(r, g, b) - Math.min(r, g, b) < 30 && r > 0x40 && r < 0xc0) continue;
+    }
     counts.set(n, (counts.get(n) ?? 0) + 1);
   }
   return [...counts.entries()]
