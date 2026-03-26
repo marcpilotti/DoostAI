@@ -291,8 +291,8 @@ export function ChatMessages({
   }, [messages]);
 
   return (
-    <div className="flex h-full flex-col px-4 sm:px-6">
-      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col">
+    <div className="flex h-full min-h-0 flex-col px-4 sm:px-6">
+      <div className="mx-auto flex w-full min-h-0 max-w-2xl flex-1 flex-col">
         {/* Latest user message — compact at top */}
         {latestUserText && (
           <div className="flex justify-end pt-4 pb-2">
@@ -314,8 +314,8 @@ export function ChatMessages({
           </div>
         )}
 
-        {/* Main card area — fills remaining viewport */}
-        <div className="flex-1 overflow-y-auto pb-4">
+        {/* Main card area — fills remaining viewport, scrolls internally */}
+        <div className="min-h-0 flex-1 overflow-y-auto pb-2">
           {latestToolParts.map(({ part, messageId }) => (
             <Suspense key={part.toolCallId ?? messageId} fallback={<div className="h-8" />}>
               <ToolInvocation part={part} onSendMessage={onSendMessage} />
