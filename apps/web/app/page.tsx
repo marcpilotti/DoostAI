@@ -13,6 +13,7 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [authenticated, setAuthenticated] = useState(false);
   const { messages, sendMessage, status } = useChat({
     onError: (err) => {
       setError(err.message ?? "Något gick fel. Försök igen.");
@@ -45,6 +46,16 @@ export default function Home() {
     }
   }, [toast]);
 
+  // Listen for signup completion → show nav
+  useEffect(() => {
+    function handleSignup() {
+      setAuthenticated(true);
+      setToast("Klart! Ditt konto är skapat.");
+    }
+    window.addEventListener("doost:signup-complete", handleSignup);
+    return () => window.removeEventListener("doost:signup-complete", handleSignup);
+  }, []);
+
   const isLoading = status === "submitted" || status === "streaming";
   const flowStep = useFlowProgress(messages);
 
@@ -60,7 +71,7 @@ export default function Home() {
 
   return (
     <div className="flex h-screen flex-col bg-background">
-      <ChatHeader />
+      <ChatHeader authenticated={authenticated} />
 
       {isEmpty ? (
         <div className="flex flex-1 flex-col items-center justify-center px-6 pb-8">

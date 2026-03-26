@@ -123,9 +123,10 @@ function SignupStep({
     e.preventDefault();
     if (!email || !password) return;
     setSaving(true);
-    // TODO: wire to Clerk signup
+    // TODO: wire to Clerk signup API
     setTimeout(() => {
       setSaving(false);
+      window.dispatchEvent(new CustomEvent("doost:signup-complete"));
       onComplete();
     }, 1200);
   }
@@ -138,9 +139,9 @@ function SignupStep({
             <Lock className="h-4 w-4 text-white" />
           </div>
           <div>
-            <div className="text-sm font-semibold">Spara ditt konto</div>
+            <div className="text-sm font-semibold">Sista steget innan din första annons</div>
             <div className="text-[11px] text-muted-foreground">
-              Så att allt du byggt sparas och du kan komma tillbaka
+              Spara allt du byggt — kampanjhistorik, analyser och mer
             </div>
           </div>
         </div>
