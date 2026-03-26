@@ -338,42 +338,55 @@ export function BrandProfileCard({
             onEdit={() => startEdit("location")}
           />
         )}
-        {/* Logo field */}
-        <div
-          className={`group relative rounded-xl border px-3 py-2.5 transition-all duration-300 ${
+        {/* Logo field — with preview or upload prompt */}
+        <label
+          className={`group relative col-span-2 flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 transition-all duration-300 ${
             approved.logo === "approved"
               ? "border-emerald-200 bg-emerald-50/30"
-              : "border-border/40 bg-white/50 hover:border-border/60"
+              : logoUrl
+                ? "border-border/40 bg-white/50 hover:border-border/60"
+                : "border-2 border-dashed border-border/50 bg-muted/5 hover:border-indigo-300 hover:bg-indigo-50/10"
           }`}
         >
-          <div className="flex items-center gap-2">
-            <ImageIcon className={`h-3.5 w-3.5 shrink-0 ${approved.logo === "approved" ? "text-emerald-500" : "text-muted-foreground/50"}`} />
-            <div className="min-w-0 flex-1">
-              <div className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/50">Logotyp</div>
-              <div className="truncate text-sm font-medium text-foreground">
-                {logoUrl ? "Uppladdad" : "Saknas"}
+          {logoUrl ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={logoUrl} alt="Logo" className="h-9 w-9 rounded-lg border border-border/20 bg-white object-contain p-1" onError={() => setLogoUrl(null)} />
+              <div className="min-w-0 flex-1">
+                <div className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/50">Logotyp</div>
+                <div className="text-sm font-medium text-foreground">Hittad automatiskt</div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50/50">
+                <Upload className="h-4 w-4 text-indigo-400" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-medium text-foreground/80">Ladda upp din logga</div>
+                <div className="text-[10px] text-muted-foreground/50">PNG, SVG eller JPG</div>
+              </div>
+            </>
+          )}
+          {approved.logo === "approved" ? (
+            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 shadow-sm">
+              <Check className="h-3 w-3 text-white" strokeWidth={3} />
+            </div>
+          ) : (
+            <div className="flex gap-1 opacity-100 sm:opacity-0 transition-opacity sm:group-hover:opacity-100">
+              {logoUrl && (
+                <button onClick={(e) => { e.preventDefault(); approve("logo"); }} className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 transition-colors hover:bg-emerald-100">
+                  <Check className="h-3 w-3" strokeWidth={2.5} />
+                </button>
+              )}
+              <div className="flex h-6 items-center justify-center rounded-lg bg-indigo-50 px-2 text-[9px] font-medium text-indigo-500">
+                <Upload className="mr-1 h-2.5 w-2.5" />
+                {logoUrl ? "Byt" : "Ladda upp"}
               </div>
             </div>
-            {approved.logo === "approved" ? (
-              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 shadow-sm">
-                <Check className="h-3 w-3 text-white" strokeWidth={3} />
-              </div>
-            ) : (
-              <label className="flex cursor-pointer gap-1 opacity-100 sm:opacity-0 transition-opacity sm:group-hover:opacity-100">
-                {logoUrl && (
-                  <button onClick={() => approve("logo")} className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 transition-colors hover:bg-emerald-100">
-                    <Check className="h-3 w-3" strokeWidth={2.5} />
-                  </button>
-                )}
-                <div className="flex h-6 items-center justify-center rounded-lg bg-muted/40 px-2 text-[9px] font-medium text-muted-foreground transition-colors hover:bg-muted/60">
-                  <Upload className="mr-1 h-2.5 w-2.5" />
-                  Ladda upp
-                </div>
-                <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-              </label>
-            )}
-          </div>
-        </div>
+          )}
+          <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+        </label>
 
         {/* Font field */}
         <div

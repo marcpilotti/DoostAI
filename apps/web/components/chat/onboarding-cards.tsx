@@ -324,7 +324,7 @@ function ConnectorStep({
       </div>
 
       <div className="flex items-center justify-between border-t border-border/30 px-5 py-3">
-        <span className="text-[10px] text-muted-foreground/50">Steg 3 av 3</span>
+        <span className="text-[10px] text-muted-foreground/50">Valfritt</span>
         <button
           onClick={() => onComplete(true)}
           className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"
@@ -345,34 +345,10 @@ export function OnboardingCards({
   data: OnboardingData;
   onAllComplete: () => void;
 }) {
-  const [currentStep, setCurrentStep] = useState<OnboardingStep>("logo");
-
-  function advance(from: OnboardingStep) {
-    if (from === "logo") {
-      setCurrentStep("font");
-    } else if (from === "font") {
-      setCurrentStep("connectors");
-    } else if (from === "connectors") {
-      setCurrentStep("done");
-      onAllComplete();
-    }
-  }
-
+  // Logo + font are now handled in the profile card — onboarding only shows connectors
   return (
     <div className="space-y-0">
-      {currentStep === "logo" && (
-        <LogoStep
-          companyName={data.companyName}
-          logos={data.logos ?? {}}
-          onComplete={() => advance("logo")}
-        />
-      )}
-      {currentStep === "font" && (
-        <FontStep onComplete={() => advance("font")} />
-      )}
-      {currentStep === "connectors" && (
-        <ConnectorStep onComplete={() => advance("connectors")} />
-      )}
+      <ConnectorStep onComplete={() => onAllComplete()} />
     </div>
   );
 }
