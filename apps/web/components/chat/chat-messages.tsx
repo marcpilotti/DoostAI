@@ -57,6 +57,9 @@ function ToolInvocation({
       return (
         <BrandProfileCard
           data={part.output as Parameters<typeof BrandProfileCard>[0]["data"]}
+          onComplete={() => {
+            onSendMessage?.("Onboarding klar");
+          }}
         />
       );
     }
@@ -64,23 +67,9 @@ function ToolInvocation({
   }
 
   if (name === "show_onboarding") {
-    if (part.state === "output-available" && part.output) {
-      const output = part.output as { hasLogo: boolean; companyName: string; logos: { primary?: string; icon?: string; dark?: string } };
-      return (
-        <OnboardingCards
-          data={output}
-          onAllComplete={() => {
-            onSendMessage?.("Onboarding klar");
-          }}
-        />
-      );
-    }
-    return (
-      <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-        <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-indigo-500" />
-        Förbereder onboarding...
-      </div>
-    );
+    // Skip onboarding cards — brand profile card handles approval + proceed
+    if (part.state === "output-available") return null;
+    return null;
   }
 
   if (name === "show_goal_picker") {
