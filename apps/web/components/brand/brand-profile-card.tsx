@@ -69,6 +69,30 @@ function stripSuffix(name: string): string {
   return name.replace(/\s+(AB|HB|KB|Inc\.?|Ltd\.?|LLC|GmbH|Corp\.?|Co\.?)$/i, "").trim();
 }
 
+// ── Swedish industries (broad, top 20) ──────────────────────────
+const INDUSTRIES = [
+  "Bygg & Fastigheter",
+  "Detaljhandel",
+  "E-handel",
+  "Finans & Försäkring",
+  "Fordon & Transport",
+  "Hälsa & Sjukvård",
+  "Hotell & Restaurang",
+  "IT & Tech",
+  "Juridik & Redovisning",
+  "Konsult & Rådgivning",
+  "Livsmedel & Dagligvaror",
+  "Marknadsföring & Media",
+  "Mode & Skönhet",
+  "Rekrytering & Bemanning",
+  "Tillverkning & Industri",
+  "Träning & Fritid",
+  "Utbildning",
+  "Energi & Miljö",
+  "Kultur & Nöje",
+  "SaaS & Molntjänster",
+];
+
 // ── Approvable Field ────────────────────────────────────────────
 // Each field can be: pending (just scraped) → approved (green check) → editing
 type FieldState = "pending" | "approved" | "editing";
@@ -201,6 +225,7 @@ export function BrandProfileCard({
 }) {
   const [colors, setColors] = useState(data.colors);
   const [logoUrl, setLogoUrl] = useState<string | null>(data.logos?.primary ?? data.logos?.icon ?? null);
+  const [industry, setIndustry] = useState(data.industry ?? "");
   const [fontFile, setFontFile] = useState<string | null>(null);
   const originalColors = data.colors;
   const logoDarkTheme = data._logoTheme === "dark";
@@ -347,15 +372,42 @@ export function BrandProfileCard({
 
       {/* Approvable fields grid — 2 columns */}
       <div className="grid grid-cols-2 gap-1.5 px-4 pb-2">
-        {/* Row 1: Bransch + Plats */}
-        <ApprovableField
-          icon={Building2}
-          label="Bransch"
-          value={data.industry ?? "Ej angiven"}
-          state={approved.industry ?? "pending"}
-          onApprove={() => approve("industry")}
-          onEdit={() => startEdit("industry")}
-        />
+        {/* Row 1: Bransch (dropdown) + Plats */}
+        <div
+          className={`group relative rounded-lg border px-2 py-1 transition-all duration-300 ${
+            approved.industry === "approved"
+              ? "border-emerald-200 bg-emerald-50/30"
+              : "border-border/40 bg-white/50 hover:border-border/60"
+          }`}
+        >
+          <div className="flex items-center gap-1.5">
+            <Building2 className={`h-2.5 w-2.5 shrink-0 ${approved.industry === "approved" ? "text-emerald-500" : "text-muted-foreground/40"}`} />
+            <div className="min-w-0 flex-1">
+              <div className="text-[7px] font-medium uppercase tracking-widest text-muted-foreground/40">Bransch</div>
+              <select
+                value={industry}
+                onChange={(e) => {
+                  setIndustry(e.target.value);
+                  approve("industry");
+                }}
+                className="w-full appearance-none bg-transparent text-xs font-medium text-foreground outline-none cursor-pointer truncate pr-4"
+              >
+                {industry && !INDUSTRIES.includes(industry) && (
+                  <option value={industry}>{industry}</option>
+                )}
+                {INDUSTRIES.map((ind) => (
+                  <option key={ind} value={ind}>{ind}</option>
+                ))}
+              </select>
+            </div>
+            <ChevronDown className="h-2.5 w-2.5 shrink-0 text-muted-foreground/40" />
+            {approved.industry === "approved" && (
+              <div className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500">
+                <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />
+              </div>
+            )}
+          </div>
+        </div>
         <ApprovableField
           icon={MapPin}
           label="Plats"
