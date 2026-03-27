@@ -49,6 +49,7 @@ async function fetchBrandfetch(domain: string): Promise<BrandfetchResult | null>
       type: f.type ?? "body",
     }));
 
+    console.log(`[L4 Brandfetch] ${domain} → ${logos.length} logos, ${colors.length} colors, ${fonts.length} fonts`);
     return {
       logos,
       colors,
@@ -67,13 +68,19 @@ async function fetchBrandfetch(domain: string): Promise<BrandfetchResult | null>
  */
 async function fetchLogoDev(domain: string): Promise<string | null> {
   const token = process.env.LOGO_DEV_TOKEN;
-  if (!token || token === "your_logo_dev_token") return null;
+  if (!token || token === "your_logo_dev_token") {
+    console.warn("[L4 Logo.dev] No token configured");
+    return null;
+  }
 
   try {
+    // Just construct the URL — Logo.dev returns 404 for HEAD requests from servers
+    // but works fine when loaded in <img> tags in the browser
     const url = `https://img.logo.dev/${domain}?token=${token}&format=png&size=256`;
-    const res = await fetch(url, { method: "HEAD", signal: AbortSignal.timeout(5000) });
-    return res.ok ? url : null;
-  } catch {
+    console.log(`[L4 Logo.dev] ${domain} → constructed URL (no server check)`);
+    return url;
+  } catch (err) {
+    console.warn("[L4 Logo.dev] Failed:", err instanceof Error ? err.message : err);
     return null;
   }
 }

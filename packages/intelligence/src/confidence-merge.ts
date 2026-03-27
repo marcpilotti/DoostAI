@@ -67,30 +67,30 @@ function mergeLogo(
     .toUpperCase()
     .slice(0, 2);
 
-  // Priority 1: Logo.dev (always provides a properly colored, embeddable logo)
-  if (logoDevUrl) {
-    return { value: { url: logoDevUrl, type: "image", initials }, confidence: 92, source: "logo.dev", status: "found" };
-  }
-
-  // Priority 2: Brandfetch icon (square, usually colored and visible)
+  // Priority 1: Brandfetch icon (square, colored, high quality)
   const bfIcon = brandfetch?.logos.find((l) => l.type === "icon");
   if (bfIcon?.url) {
-    return { value: { url: bfIcon.url, type: "image", initials }, confidence: 90, source: "brandfetch", status: "found" };
+    return { value: { url: bfIcon.url, type: "image", initials }, confidence: 95, source: "brandfetch", status: "found" };
   }
 
-  // Priority 3: Brandfetch light theme logo
-  const bfLightLogo = brandfetch?.logos.find((l) => l.theme === "light");
-  if (bfLightLogo?.url) {
-    return { value: { url: bfLightLogo.url, type: "image", initials }, confidence: 90, source: "brandfetch", status: "found" };
+  // Priority 2: Brandfetch any logo (light preferred, dark ok)
+  const bfAnyLogo = brandfetch?.logos.find((l) => l.theme === "light") ?? brandfetch?.logos[0];
+  if (bfAnyLogo?.url) {
+    return { value: { url: bfAnyLogo.url, type: "image", initials }, confidence: 93, source: "brandfetch", status: "found" };
   }
 
-  // Priority 3: Scraped logo from DOM (confidence 60)
+  // Priority 3: Logo.dev fallback (embeddable, works in <img> tags)
+  if (logoDevUrl) {
+    return { value: { url: logoDevUrl, type: "image", initials }, confidence: 90, source: "logo.dev", status: "found" };
+  }
+
+  // Priority 4: Scraped logo from DOM (confidence 60)
   const scrapedLogo = scrapedLogos.find((u) => !u.endsWith(".ico") && !u.includes("favicon"));
   if (scrapedLogo) {
     return { value: { url: scrapedLogo, type: "image", initials }, confidence: 60, source: "scrape", status: "uncertain" };
   }
 
-  // Priority 4: Favicon (confidence 40)
+  // Priority 5: Favicon (confidence 40)
   const favicon = scrapedLogos.find((u) => u.endsWith(".ico") || u.includes("favicon"));
   if (favicon) {
     return { value: { url: favicon, type: "image", initials }, confidence: 40, source: "favicon", status: "uncertain" };
