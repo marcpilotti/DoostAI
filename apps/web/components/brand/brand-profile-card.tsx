@@ -327,8 +327,8 @@ export function BrandProfileCard({
       <div className="h-px bg-gradient-to-r from-transparent via-border/40 to-transparent" />
 
       {/* Logo + Name section — centered */}
-      <div className="px-4 pt-3 pb-2">
-        <div className="flex flex-col items-center gap-2">
+      <div className="px-4 pt-4 pb-3">
+        <div className="flex flex-col items-center gap-3">
           {/* Logo */}
           {logoUrl && (
             <label className="group relative cursor-pointer block">
@@ -336,13 +336,13 @@ export function BrandProfileCard({
               <img
                 src={logoUrl}
                 alt={name}
-                className={`h-14 w-14 rounded-xl border-2 object-contain p-1.5 shadow-sm transition-all ${
+                className={`h-20 w-20 rounded-2xl border-2 object-contain p-2 shadow-sm transition-all ${
                   logoDarkTheme ? "bg-gray-800" : "bg-white"
                 } border-border/30`}
                 onError={() => setLogoUrl(null)}
               />
-              <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/30 opacity-0 transition-opacity group-hover:opacity-100">
-                <Pencil className="h-3 w-3 text-white" />
+              <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/30 opacity-0 transition-opacity group-hover:opacity-100">
+                <Pencil className="h-4 w-4 text-white" />
               </div>
               <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
             </label>
@@ -350,7 +350,7 @@ export function BrandProfileCard({
 
           {/* Name + approve */}
           <div className="flex items-center gap-2">
-            <h3 className="text-base font-semibold tracking-tight">{name}</h3>
+            <h3 className="text-xl font-bold tracking-tight">{name}</h3>
             {approved.name === "approved" ? (
               <div className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 shadow-sm">
                 <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />
