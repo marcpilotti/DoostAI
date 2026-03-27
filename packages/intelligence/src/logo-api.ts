@@ -32,11 +32,14 @@ async function fetchBrandfetch(domain: string): Promise<BrandfetchResult | null>
       fonts?: Array<{ name: string; weight?: number; type?: string }>;
     };
 
-    const logos = (data.logos ?? []).flatMap((logo) =>
-      (logo.formats ?? [])
-        .filter((f) => f.format === "svg" || f.format === "png")
-        .map((f) => ({ url: f.src, type: logo.type ?? "logo", theme: logo.theme ?? "light" }))
-    );
+    // Pick ONE format per logo: prefer PNG over SVG (SVGs often render poorly in <img> tags)
+    const logos = (data.logos ?? []).map((logo) => {
+      const formats = logo.formats ?? [];
+      const png = formats.find((f) => f.format === "png");
+      const svg = formats.find((f) => f.format === "svg");
+      const best = png ?? svg;
+      return best ? { url: best.src, type: logo.type ?? "logo", theme: logo.theme ?? "light" } : null;
+    }).filter((l): l is NonNullable<typeof l> => l !== null && !!l.url);
 
     const colors = (data.colors ?? []).map((c) => ({
       hex: c.hex,
