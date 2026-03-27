@@ -362,7 +362,7 @@ export function BrandProfileCard({
         </div>
       </div>
 
-      {/* Approvable fields grid — always 2 columns */}
+      {/* Approvable fields grid — 2 columns */}
       <div className="grid grid-cols-2 gap-1.5 px-4 pb-2">
         {/* Row 1: Bransch + Plats */}
         <ApprovableField
@@ -382,87 +382,7 @@ export function BrandProfileCard({
           onEdit={() => startEdit("location")}
         />
 
-        {/* Row 2: Logo + Font */}
-        {/* Logo field */}
-        <div
-          className={`group relative rounded-lg border px-2 py-1 transition-all duration-300 ${
-            approved.logo === "approved"
-              ? "border-emerald-200 bg-emerald-50/30"
-              : "border-border/40 bg-white/50 hover:border-border/60"
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <ImageIcon className={`h-3.5 w-3.5 shrink-0 ${approved.logo === "approved" ? "text-emerald-500" : "text-muted-foreground/50"}`} />
-            <div className="min-w-0 flex-1">
-              <div className="text-[7px] font-medium uppercase tracking-widest text-muted-foreground/40">Logotyp</div>
-              <div className="truncate text-xs font-medium text-foreground">
-                {logoUrl ? "Uppladdad" : "Saknas"}
-              </div>
-            </div>
-            {approved.logo === "approved" ? (
-              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 shadow-sm">
-                <Check className="h-3 w-3 text-white" strokeWidth={3} />
-              </div>
-            ) : (
-              <label className="flex cursor-pointer gap-1 opacity-100 sm:opacity-0 transition-opacity sm:group-hover:opacity-100">
-                {logoUrl && (
-                  <button onClick={() => approve("logo")} className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 transition-colors hover:bg-emerald-100">
-                    <Check className="h-3 w-3" strokeWidth={2.5} />
-                  </button>
-                )}
-                <div className="flex h-6 items-center justify-center rounded-lg bg-muted/40 px-2 text-[9px] font-medium text-muted-foreground transition-colors hover:bg-muted/60">
-                  <Upload className="mr-1 h-2.5 w-2.5" />
-                  Ladda upp
-                </div>
-                <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-              </label>
-            )}
-          </div>
-        </div>
-
-        {/* Font field */}
-        <div
-          className={`group relative rounded-lg border px-2 py-1 transition-all duration-300 ${
-            approved.font === "approved"
-              ? "border-emerald-200 bg-emerald-50/30"
-              : "border-border/40 bg-white/50 hover:border-border/60"
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <Type className={`h-3.5 w-3.5 shrink-0 ${approved.font === "approved" ? "text-emerald-500" : "text-muted-foreground/50"}`} />
-            <div className="min-w-0 flex-1">
-              <div className="text-[7px] font-medium uppercase tracking-widest text-muted-foreground/40">Typsnitt</div>
-              <div className="truncate text-xs font-medium text-foreground">
-                {fontFile ?? data.fonts?.heading ?? "Ej valt"}
-              </div>
-            </div>
-            {approved.font === "approved" ? (
-              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 shadow-sm">
-                <Check className="h-3 w-3 text-white" strokeWidth={3} />
-              </div>
-            ) : (
-              <label className="flex cursor-pointer gap-1 opacity-100 sm:opacity-0 transition-opacity sm:group-hover:opacity-100">
-                {(fontFile || data.fonts?.heading) && (
-                  <button onClick={() => approve("font")} className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 transition-colors hover:bg-emerald-100">
-                    <Check className="h-3 w-3" strokeWidth={2.5} />
-                  </button>
-                )}
-                <div className="flex h-6 items-center justify-center rounded-lg bg-muted/40 px-2 text-[9px] font-medium text-muted-foreground transition-colors hover:bg-muted/60">
-                  <Upload className="mr-1 h-2.5 w-2.5" />
-                  Ladda upp
-                </div>
-                <input type="file" accept=".ttf,.otf,.woff,.woff2" className="hidden" onChange={(e) => {
-                  if (e.target.files?.[0]) {
-                    setFontFile(e.target.files[0].name.replace(/\.(ttf|otf|woff2?)$/i, ""));
-                    approve("font");
-                  }
-                }} />
-              </label>
-            )}
-          </div>
-        </div>
-
-        {/* Target audience — full width */}
+        {/* Row 2: Målgrupp + Typsnitt */}
         {data.targetAudience && (
           <ApprovableField
             icon={Users}
@@ -473,12 +393,59 @@ export function BrandProfileCard({
             onEdit={() => startEdit("audience")}
           />
         )}
+        <ApprovableField
+          icon={Type}
+          label="Typsnitt"
+          value={fontFile ?? data.fonts?.heading ?? "Ej valt"}
+          state={approved.font ?? "pending"}
+          onApprove={() => approve("font")}
+          onEdit={() => startEdit("font")}
+        />
       </div>
 
-      {/* Colors section — approvable */}
-      <div className="px-4 pb-2">
+      {/* Logo + Colors section — side by side */}
+      <div className="flex gap-1.5 px-4 pb-2">
+        {/* Logo field — compact */}
         <div
-          className={`rounded-lg border p-3 transition-all duration-300 ${
+          className={`group relative flex-shrink-0 rounded-lg border px-2 py-1 transition-all duration-300 ${
+            approved.logo === "approved"
+              ? "border-emerald-200 bg-emerald-50/30"
+              : "border-border/40 bg-white/50 hover:border-border/60"
+          }`}
+        >
+          <div className="flex items-center gap-1.5">
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logoUrl} alt="" className="h-8 w-8 rounded object-contain" onError={() => setLogoUrl(null)} />
+            ) : (
+              <ImageIcon className="h-3.5 w-3.5 text-muted-foreground/40" />
+            )}
+            <div className="min-w-0">
+              <div className="text-[7px] font-medium uppercase tracking-widest text-muted-foreground/40">Logotyp</div>
+              <div className="text-[9px] font-medium text-foreground">
+                {logoUrl ? "Hittad" : "Saknas"}
+              </div>
+            </div>
+            {approved.logo !== "approved" && (
+              <label className="flex cursor-pointer opacity-100 sm:opacity-0 transition-opacity sm:group-hover:opacity-100">
+                <div className="flex h-5 items-center justify-center rounded bg-muted/40 px-1.5 text-[8px] font-medium text-muted-foreground hover:bg-muted/60">
+                  <Upload className="mr-0.5 h-2 w-2" />
+                  {logoUrl ? "Byt" : "Ladda upp"}
+                </div>
+                <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+              </label>
+            )}
+            {approved.logo === "approved" && (
+              <div className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500">
+                <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Colors — takes remaining space */}
+        <div
+          className={`flex-1 rounded-lg border p-2 transition-all duration-300 ${
             approved.colors === "approved"
               ? "border-emerald-200 bg-emerald-50/20"
               : "border-border/30 bg-muted/5"
