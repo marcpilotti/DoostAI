@@ -5,7 +5,7 @@
 
 import { analyzeWithVision } from "./vision-analysis";
 import { detectSocialPresence } from "./social-detection";
-import { fetchLogoApis } from "./logo-api";
+import { fetchLogoApis, type DownloadedLogo } from "./logo-api";
 import { auditWebsite } from "./website-audit";
 import { mergeIntelligence, type MergedBrandIntelligence } from "./confidence-merge";
 
@@ -25,6 +25,7 @@ export type PipelineInput = {
 
 export type PipelineResult = {
   intelligence: MergedBrandIntelligence;
+  downloadedLogo: DownloadedLogo | null;
   timing: {
     total: number;
     vision: number | null;
@@ -74,7 +75,7 @@ export async function runBrandIntelligencePipeline(
   const intelligence = mergeIntelligence({
     companyName: input.companyName,
     brandfetch: logoApi?.brandfetch ?? null,
-    logoDevUrl: logoApi?.logoDevUrl ?? null,
+    logoDevUrl: null, // Logo downloaded as base64 instead — see downloadedLogo
     vision,
     cssColors: input.cssColors,
     cssFonts: input.cssFonts,
@@ -87,6 +88,7 @@ export async function runBrandIntelligencePipeline(
 
   return {
     intelligence,
+    downloadedLogo: logoApi?.downloadedLogo ?? null,
     timing: {
       total: Date.now() - start,
       vision: visionResult.status === "fulfilled" ? visionResult.value.ms : null,

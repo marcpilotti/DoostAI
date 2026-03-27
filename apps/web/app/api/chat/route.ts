@@ -154,28 +154,19 @@ ABSOLUTE RULES:
           const intel = intelligence?.intelligence;
           console.log("[Brand Analysis] Intel:", intel ? `logo=${intel.logo.source}(${intel.logo.confidence}) colors=${intel.colors.source}(${intel.colors.confidence}) font=${intel.font.source}(${intel.font.confidence})` : "NULL - pipeline failed or returned null");
 
-          // Build ordered list of logo URLs the browser can actually load.
-          // Brandfetch CDN returns 403 for direct access — excluded entirely.
-          // Logo.dev may 404 for some domains — component fallback chain handles this.
-          const intelLogoUrl = intel?.logo.value.url ?? null;
-          const scrapedPrimary = clean.logos?.primary;
-          const scrapedIcon = clean.logos?.icon;
-          const ogImage = scrapeResult.ogImage;
-
-          // All publicly-accessible logo URLs, in priority order
-          const logoSources = [
-            intelLogoUrl,       // Logo.dev or scraped (from intelligence merge)
-            scrapedPrimary,     // First logo found in DOM
-            scrapedIcon,        // Second logo / favicon
-            ogImage,            // OG image as last resort
-          ].filter((u): u is string => typeof u === "string" && u.length > 0);
+          // Use downloaded logo (base64 data URL) — guaranteed to render in browser.
+          // Downloaded server-side from Logo.dev → Brandfetch CDN → Google Favicons.
+          const downloadedLogo = intelligence?.downloadedLogo ?? null;
+          const logoDataUrl = downloadedLogo?.dataUrl ?? null;
 
           const finalLogo = {
-            primary: logoSources[0],
-            icon: scrapedIcon,
+            primary: logoDataUrl ?? clean.logos?.primary ?? undefined,
+            icon: clean.logos?.icon,
             dark: clean.logos?.dark,
           };
-          console.log("[Brand Analysis] Logo sources:", logoSources.map(u => u.slice(0, 60)));
+          console.log("[Brand Analysis] Logo:", downloadedLogo
+            ? `${downloadedLogo.source} (${downloadedLogo.theme}, ${downloadedLogo.dataUrl.length} chars)`
+            : "no downloaded logo, using scraped");
 
           // Use best color source — intel pipeline uses Brandfetch/Vision which understands
           // actual brand colors, not just CSS frequency. Override if any confidence.
@@ -193,7 +184,8 @@ ABSOLUTE RULES:
             logos: finalLogo,
             colors: finalColors,
             fonts: finalFonts,
-            _logoSources: logoSources,
+            _logoSource: downloadedLogo?.source ?? "scraped",
+            _logoTheme: downloadedLogo?.theme ?? "light",
             _analysisMs: durationMs,
             _enrichmentStatus: enrichment ? "complete" : "partial",
             _intelligence: intel ? {
