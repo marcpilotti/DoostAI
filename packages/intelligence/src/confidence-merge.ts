@@ -67,16 +67,21 @@ function mergeLogo(
     .toUpperCase()
     .slice(0, 2);
 
-  // Priority 1: Brandfetch logo (confidence 95)
-  const bfLogo = brandfetch?.logos.find((l) => l.type === "logo" && l.theme === "light")
-    ?? brandfetch?.logos[0];
-  if (bfLogo?.url) {
-    return { value: { url: bfLogo.url, type: "image", initials }, confidence: 95, source: "brandfetch", status: "found" };
+  // Priority 1: Logo.dev (always provides a properly colored, embeddable logo)
+  if (logoDevUrl) {
+    return { value: { url: logoDevUrl, type: "image", initials }, confidence: 92, source: "logo.dev", status: "found" };
   }
 
-  // Priority 2: Logo.dev (confidence 90)
-  if (logoDevUrl) {
-    return { value: { url: logoDevUrl, type: "image", initials }, confidence: 90, source: "logo.dev", status: "found" };
+  // Priority 2: Brandfetch icon (square, usually colored and visible)
+  const bfIcon = brandfetch?.logos.find((l) => l.type === "icon");
+  if (bfIcon?.url) {
+    return { value: { url: bfIcon.url, type: "image", initials }, confidence: 90, source: "brandfetch", status: "found" };
+  }
+
+  // Priority 3: Brandfetch light theme logo
+  const bfLightLogo = brandfetch?.logos.find((l) => l.theme === "light");
+  if (bfLightLogo?.url) {
+    return { value: { url: bfLightLogo.url, type: "image", initials }, confidence: 90, source: "brandfetch", status: "found" };
   }
 
   // Priority 3: Scraped logo from DOM (confidence 60)
