@@ -9,13 +9,11 @@ import {
   ExternalLink,
   FileText,
   Globe,
-  ImageIcon,
   MapPin,
   Palette,
   Pencil,
   Sparkles,
   Type,
-  Upload,
   Users,
   X,
 } from "lucide-react";
@@ -212,7 +210,6 @@ export function BrandProfileCard({
     name: "pending",
     industry: "pending",
     location: "pending",
-    logo: "pending",
     font: "pending",
     audience: "pending",
     colors: "pending",
@@ -304,63 +301,46 @@ export function BrandProfileCard({
       {/* Divider with gradient accent */}
       <div className="h-px bg-gradient-to-r from-transparent via-border/40 to-transparent" />
 
-      {/* Logo + Name section */}
-      <div className="px-4 pt-2 pb-1">
-        <div className="flex items-start gap-2.5">
-          {/* Logo — shows when uploaded/scraped, otherwise hidden until grid upload */}
+      {/* Logo + Name section — centered */}
+      <div className="px-4 pt-3 pb-2">
+        <div className="flex flex-col items-center gap-2">
+          {/* Logo */}
           {logoUrl && (
-            <div className="shrink-0">
-              <label className="group relative cursor-pointer block">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={logoUrl}
-                  alt={name}
-                  className={`h-10 w-10 rounded-lg border-2 object-contain p-1 shadow-sm transition-all ${
-                    logoDarkTheme ? "bg-gray-800" : "bg-white"
-                  } ${approved.logo === "approved" ? "border-emerald-300" : "border-border/30"}`}
-                  onError={() => setLogoUrl(null)}
-                />
-                <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/30 opacity-100 sm:opacity-0 transition-opacity sm:group-hover:opacity-100">
-                  <Pencil className="h-3 w-3 text-white" />
-                </div>
-                {approved.logo === "approved" && (
-                  <div className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
-                    <Check className="h-2.5 w-2.5" strokeWidth={3} />
-                  </div>
-                )}
-                <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-              </label>
-              {approved.logo !== "approved" && (
-                <button
-                  onClick={() => setLogoUrl(null)}
-                  className="mt-1 block w-full text-center text-[9px] text-muted-foreground/40 transition-colors hover:text-indigo-500"
-                >
-                  Fel logo?
-                </button>
-              )}
-            </div>
+            <label className="group relative cursor-pointer block">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={logoUrl}
+                alt={name}
+                className={`h-14 w-14 rounded-xl border-2 object-contain p-1.5 shadow-sm transition-all ${
+                  logoDarkTheme ? "bg-gray-800" : "bg-white"
+                } border-border/30`}
+                onError={() => setLogoUrl(null)}
+              />
+              <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/30 opacity-0 transition-opacity group-hover:opacity-100">
+                <Pencil className="h-3 w-3 text-white" />
+              </div>
+              <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+            </label>
           )}
 
-          <div className="min-w-0 flex-1">
-            {/* Name + approve */}
-            <div className="flex items-center gap-2">
-              <h3 className="truncate text-xs font-semibold tracking-tight">{name}</h3>
-              {approved.name === "approved" ? (
-                <div className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 shadow-sm">
-                  <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />
-                </div>
-              ) : (
-                <button
-                  onClick={() => approve("name")}
-                  className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-50 text-emerald-500 opacity-100 sm:opacity-0 transition-all hover:bg-emerald-100 sm:group-hover:opacity-100"
-                >
-                  <Check className="h-3 w-3" strokeWidth={2.5} />
-                </button>
-              )}
-              <a href={data.url.startsWith("http") ? data.url : `https://${data.url}`} target="_blank" rel="noopener noreferrer" className="ml-auto shrink-0 text-muted-foreground/30 transition-colors hover:text-muted-foreground">
-                <ExternalLink className="h-3 w-3" />
+          {/* Name + approve */}
+          <div className="flex items-center gap-2">
+            <h3 className="text-base font-semibold tracking-tight">{name}</h3>
+            {approved.name === "approved" ? (
+              <div className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 shadow-sm">
+                <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />
+              </div>
+            ) : (
+              <button
+                onClick={() => approve("name")}
+                className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-50 text-emerald-500 opacity-0 transition-all hover:bg-emerald-100 group-hover:opacity-100"
+              >
+                <Check className="h-3 w-3" strokeWidth={2.5} />
+              </button>
+            )}
+            <a href={data.url.startsWith("http") ? data.url : `https://${data.url}`} target="_blank" rel="noopener noreferrer" className="shrink-0 text-muted-foreground/30 transition-colors hover:text-muted-foreground">
+              <ExternalLink className="h-3 w-3" />
               </a>
-            </div>
           </div>
         </div>
       </div>
@@ -406,49 +386,10 @@ export function BrandProfileCard({
         />
       </div>
 
-      {/* Logo + Colors section — side by side */}
-      <div className="flex gap-1.5 px-4 pb-2">
-        {/* Logo field — compact */}
+      {/* Colors section */}
+      <div className="px-4 pb-2">
         <div
-          className={`group relative flex-shrink-0 rounded-lg border px-2 py-1 transition-all duration-300 ${
-            approved.logo === "approved"
-              ? "border-emerald-200 bg-emerald-50/30"
-              : "border-border/40 bg-white/50 hover:border-border/60"
-          }`}
-        >
-          <div className="flex items-center gap-1.5">
-            {logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={logoUrl} alt="" className={`h-8 w-8 rounded object-contain ${logoDarkTheme ? "bg-gray-800 p-0.5" : ""}`} onError={() => setLogoUrl(null)} />
-            ) : (
-              <ImageIcon className="h-3.5 w-3.5 text-muted-foreground/40" />
-            )}
-            <div className="min-w-0">
-              <div className="text-[7px] font-medium uppercase tracking-widest text-muted-foreground/40">Logotyp</div>
-              <div className="text-[9px] font-medium text-foreground">
-                {logoUrl ? "Hittad" : "Saknas"}
-              </div>
-            </div>
-            {approved.logo !== "approved" && (
-              <label className="flex cursor-pointer opacity-100 sm:opacity-0 transition-opacity sm:group-hover:opacity-100">
-                <div className="flex h-5 items-center justify-center rounded bg-muted/40 px-1.5 text-[8px] font-medium text-muted-foreground hover:bg-muted/60">
-                  <Upload className="mr-0.5 h-2 w-2" />
-                  {logoUrl ? "Byt" : "Ladda upp"}
-                </div>
-                <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-              </label>
-            )}
-            {approved.logo === "approved" && (
-              <div className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500">
-                <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Colors — takes remaining space */}
-        <div
-          className={`flex-1 rounded-lg border p-2 transition-all duration-300 ${
+          className={`rounded-lg border p-2 transition-all duration-300 ${
             approved.colors === "approved"
               ? "border-emerald-200 bg-emerald-50/20"
               : "border-border/30 bg-muted/5"
