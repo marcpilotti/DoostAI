@@ -154,26 +154,28 @@ ABSOLUTE RULES:
           const intel = intelligence?.intelligence;
           console.log("[Brand Analysis] Intel:", intel ? `logo=${intel.logo.source}(${intel.logo.confidence}) colors=${intel.colors.source}(${intel.colors.confidence}) font=${intel.font.source}(${intel.font.confidence})` : "NULL - pipeline failed or returned null");
 
-          // Use best logo source — Brandfetch/Logo.dev > scraped
+          // Build ordered list of logo URLs the browser can actually load.
+          // Brandfetch CDN returns 403 for direct access — excluded entirely.
+          // Logo.dev may 404 for some domains — component fallback chain handles this.
           const intelLogoUrl = intel?.logo.value.url ?? null;
-          const logoDevUrl = intel?.logo.source === "logo.dev" ? intelLogoUrl : null;
-          const brandfetchLogoUrl = intel?.logo.source === "brandfetch" ? intelLogoUrl : null;
+          const scrapedPrimary = clean.logos?.primary;
+          const scrapedIcon = clean.logos?.icon;
+          const ogImage = scrapeResult.ogImage;
 
-          // Try intelligence logo first, then fall back to scraped logos
-          const bestLogoUrl = intelLogoUrl ?? clean.logos?.primary ?? clean.logos?.icon ?? null;
+          // All publicly-accessible logo URLs, in priority order
+          const logoSources = [
+            intelLogoUrl,       // Logo.dev or scraped (from intelligence merge)
+            scrapedPrimary,     // First logo found in DOM
+            scrapedIcon,        // Second logo / favicon
+            ogImage,            // OG image as last resort
+          ].filter((u): u is string => typeof u === "string" && u.length > 0);
+
           const finalLogo = {
-            primary: bestLogoUrl ?? undefined,
-            icon: clean.logos?.icon,
+            primary: logoSources[0],
+            icon: scrapedIcon,
             dark: clean.logos?.dark,
           };
-          console.log("[Brand Analysis] Logo resolution:", {
-            intelSource: intel?.logo.source,
-            intelConfidence: intel?.logo.confidence,
-            intelUrl: intelLogoUrl?.slice(0, 80),
-            intelType: intel?.logo.value.type,
-            cleanLogoPrimary: clean.logos?.primary?.slice(0, 80),
-            finalPrimary: finalLogo.primary?.slice(0, 80),
-          });
+          console.log("[Brand Analysis] Logo sources:", logoSources.map(u => u.slice(0, 60)));
 
           // Use best color source — intel pipeline uses Brandfetch/Vision which understands
           // actual brand colors, not just CSS frequency. Override if any confidence.
@@ -191,12 +193,12 @@ ABSOLUTE RULES:
             logos: finalLogo,
             colors: finalColors,
             fonts: finalFonts,
-            _logoFallbackUrl: logoDevUrl ?? brandfetchLogoUrl ?? null,
+            _logoSources: logoSources,
             _analysisMs: durationMs,
             _enrichmentStatus: enrichment ? "complete" : "partial",
             _intelligence: intel ? {
               overallConfidence: intel.overallConfidence,
-              logo: { source: intel.logo.source, confidence: intel.logo.confidence, status: intel.logo.status, url: intelLogoUrl },
+              logo: { source: intel.logo.source, confidence: intel.logo.confidence, status: intel.logo.status },
               colors: { source: intel.colors.source, confidence: intel.colors.confidence, status: intel.colors.status },
               font: { source: intel.font.source, confidence: intel.font.confidence, status: intel.font.status },
               industry: { source: intel.industry.source, confidence: intel.industry.confidence, status: intel.industry.status },

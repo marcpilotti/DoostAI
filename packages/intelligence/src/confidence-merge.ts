@@ -67,41 +67,33 @@ function mergeLogo(
     .toUpperCase()
     .slice(0, 2);
 
-  // Priority 1: Logo.dev (designed for browser <img> embedding, always renders cleanly)
+  // NOTE: Brandfetch CDN returns 403 for direct browser access — never use
+  // Brandfetch URLs for <img> tags. Brandfetch is used for colors/fonts only.
+
+  // Priority 1: Logo.dev (designed for browser <img> embedding)
+  // May return 404 for some domains — component fallback chain handles this.
   if (logoDevUrl) {
     console.log(`[L6 Merge] Logo: Logo.dev → ${logoDevUrl.slice(0, 80)}`);
-    return { value: { url: logoDevUrl, type: "image", initials }, confidence: 95, source: "logo.dev", status: "found" };
+    return { value: { url: logoDevUrl, type: "image", initials }, confidence: 92, source: "logo.dev", status: "found" };
   }
 
-  // Priority 2: Brandfetch icon PNG (Brandfetch CDN URLs can have rendering issues)
-  const bfIcon = brandfetch?.logos.find((l) => l.type === "icon");
-  if (bfIcon?.url) {
-    console.log(`[L6 Merge] Logo: Brandfetch icon → ${bfIcon.url.slice(0, 80)}`);
-    return { value: { url: bfIcon.url, type: "image", initials }, confidence: 90, source: "brandfetch", status: "found" };
-  }
-
-  // Priority 3: Brandfetch any logo (light preferred)
-  const bfAnyLogo = brandfetch?.logos.find((l) => l.theme === "light") ?? brandfetch?.logos[0];
-  if (bfAnyLogo?.url) {
-    console.log(`[L6 Merge] Logo: Brandfetch logo (${bfAnyLogo.type}/${bfAnyLogo.theme}) → ${bfAnyLogo.url.slice(0, 80)}`);
-    return { value: { url: bfAnyLogo.url, type: "image", initials }, confidence: 88, source: "brandfetch", status: "found" };
-  }
-
-  console.log(`[L6 Merge] Logo: No Logo.dev/Brandfetch. Logo.dev:`, !!logoDevUrl, "Brandfetch logos:", brandfetch?.logos?.length ?? 0);
-
-  // Priority 4: Scraped logo from DOM (confidence 60)
+  // Priority 2: Scraped logo from DOM (public URL, always loadable)
   const scrapedLogo = scrapedLogos.find((u) => !u.endsWith(".ico") && !u.includes("favicon"));
   if (scrapedLogo) {
+    console.log(`[L6 Merge] Logo: Scraped → ${scrapedLogo.slice(0, 80)}`);
     return { value: { url: scrapedLogo, type: "image", initials }, confidence: 60, source: "scrape", status: "uncertain" };
   }
 
-  // Priority 5: Favicon (confidence 40)
+  // Priority 3: Favicon (public URL)
   const favicon = scrapedLogos.find((u) => u.endsWith(".ico") || u.includes("favicon"));
   if (favicon) {
+    console.log(`[L6 Merge] Logo: Favicon → ${favicon.slice(0, 80)}`);
     return { value: { url: favicon, type: "image", initials }, confidence: 40, source: "favicon", status: "uncertain" };
   }
 
-  // Fallback: Generated initials (confidence 100 — always works)
+  console.log(`[L6 Merge] Logo: No sources found. Logo.dev: ${!!logoDevUrl}, scraped: ${scrapedLogos.length}`);
+
+  // Fallback: Generated initials (always works)
   return { value: { url: null, type: "initials", initials }, confidence: 100, source: "generated", status: "found" };
 }
 

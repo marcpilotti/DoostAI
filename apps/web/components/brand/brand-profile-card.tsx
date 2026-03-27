@@ -45,11 +45,11 @@ type BrandProfileData = {
   targetAudience: string;
   _analysisMs?: number;
   _enrichmentStatus?: string;
-  _logoFallbackUrl?: string | null;
+  _logoSources?: string[];
   valuePropositions: string[];
   _intelligence?: {
     overallConfidence: number;
-    logo: { source: string; confidence: number; status: string; url?: string | null };
+    logo: { source: string; confidence: number; status: string };
     colors: { source: string; confidence: number; status: string };
     font: { source: string; confidence: number; status: string };
     industry: { source: string; confidence: number; status: string };
@@ -201,22 +201,18 @@ export function BrandProfileCard({
   onComplete?: () => void;
 }) {
   const [colors, setColors] = useState(data.colors);
-  // Build ordered list of logo URLs to try: primary → icon → intel URL → fallback
-  const logoSources = [
+
+  // Use server-provided logo sources (ordered by priority, all publicly accessible)
+  // Falls back to logos object if _logoSources not available
+  const logoSources = (data._logoSources?.length ? data._logoSources : [
     data.logos?.primary,
     data.logos?.icon,
-    data._intelligence?.logo?.url,
-    data._logoFallbackUrl,
-  ].filter((u): u is string => typeof u === "string" && u.length > 0);
+  ]).filter((u): u is string => typeof u === "string" && u.length > 0);
+
   const [logoUrl, setLogoUrl] = useState<string | null>(logoSources[0] ?? null);
   const [logoAttempt, setLogoAttempt] = useState(0);
   const [fontFile, setFontFile] = useState<string | null>(null);
   const originalColors = data.colors;
-
-  // Debug: log logo sources
-  if (typeof window !== "undefined") {
-    console.log("[BrandProfileCard] Logo sources:", logoSources, "current:", logoUrl);
-  }
 
   // Field approval states
   const [approved, setApproved] = useState<Record<string, FieldState>>({
