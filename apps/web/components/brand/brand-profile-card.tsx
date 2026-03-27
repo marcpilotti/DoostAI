@@ -116,7 +116,7 @@ function ApprovableField({
 }) {
   return (
     <div
-      className={`group relative rounded-lg border px-2 py-2 transition-all duration-300 ${
+      className={`group relative h-[52px] rounded-lg border px-2 transition-all duration-300 flex items-center ${
         state === "approved"
           ? "border-emerald-200 bg-emerald-50/30"
           : state === "editing"
@@ -369,7 +369,7 @@ export function BrandProfileCard({
       <div className="grid grid-cols-2 gap-1.5 px-4 pb-2">
         {/* Row 1: Bransch (dropdown) + Plats */}
         <div
-          className={`group relative rounded-lg border px-2 py-2 transition-all duration-300 ${
+          className={`group relative h-[52px] rounded-lg border px-2 transition-all duration-300 flex items-center ${
             approved.industry === "approved"
               ? "border-emerald-200 bg-emerald-50/30"
               : "border-border/40 bg-white/50 hover:border-border/60"
@@ -385,7 +385,7 @@ export function BrandProfileCard({
                   setIndustry(e.target.value);
                   approve("industry");
                 }}
-                className="w-full appearance-none bg-transparent text-xs font-medium text-foreground outline-none cursor-pointer truncate pr-4"
+                className="h-5 w-full appearance-none bg-transparent text-xs font-medium leading-tight text-foreground outline-none cursor-pointer truncate pr-4"
               >
                 {industry && !INDUSTRIES.includes(industry) && (
                   <option value={industry}>{industry}</option>
