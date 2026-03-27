@@ -140,7 +140,10 @@ ABSOLUTE RULES:
               screenshot: scrapeResult.screenshot,
               companyName: enrichment?.name ?? url.split("/")[0] ?? "",
               enrichedIndustry: enrichment?.industry,
-            }).catch(() => null),
+            }).catch((err) => {
+              console.error("[Intelligence Pipeline] FAILED:", err instanceof Error ? err.message : err);
+              return null;
+            }),
           ]);
 
           const durationMs = Date.now() - start;
@@ -149,6 +152,7 @@ ABSOLUTE RULES:
 
           // Override profile with higher-confidence intelligence data
           const intel = intelligence?.intelligence;
+          console.log("[Brand Analysis] Intel:", intel ? `logo=${intel.logo.source}(${intel.logo.confidence}) colors=${intel.colors.source}(${intel.colors.confidence}) font=${intel.font.source}(${intel.font.confidence})` : "NULL - pipeline failed or returned null");
 
           // Use best logo source — Logo.dev/Brandfetch > scraped
           const finalLogo = intel && intel.logo.confidence >= 50 && intel.logo.value.url

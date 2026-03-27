@@ -12,7 +12,7 @@ const visionSchema = z.object({
   visual_style: z.enum(["modern", "classic", "playful", "premium", "neutral"]).describe("Overall visual style"),
   industry_guess: z.string().describe("Best guess at the company's industry in Swedish"),
   tagline: z.string().optional().describe("Company tagline if visible"),
-  confidence: z.number().min(0).max(100).describe("Overall confidence in the analysis"),
+  confidence: z.number().describe("Overall confidence 0-100"),
 });
 
 export type VisionAnalysis = z.infer<typeof visionSchema>;
