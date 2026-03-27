@@ -50,6 +50,11 @@ async function fetchBrandfetch(domain: string): Promise<BrandfetchResult | null>
     }));
 
     console.log(`[L4 Brandfetch] ${domain} → ${logos.length} logos, ${colors.length} colors, ${fonts.length} fonts`);
+    if (logos.length > 0) {
+      console.log(`[L4 Brandfetch] Logo URLs:`, logos.map((l) => ({ url: l.url?.slice(0, 100), type: l.type, theme: l.theme })));
+    } else {
+      console.log(`[L4 Brandfetch] Raw logos data:`, JSON.stringify(data.logos ?? []).slice(0, 500));
+    }
     return {
       logos,
       colors,

@@ -45,10 +45,11 @@ type BrandProfileData = {
   targetAudience: string;
   _analysisMs?: number;
   _enrichmentStatus?: string;
+  _logoFallbackUrl?: string | null;
   valuePropositions: string[];
   _intelligence?: {
     overallConfidence: number;
-    logo: { source: string; confidence: number; status: string };
+    logo: { source: string; confidence: number; status: string; url?: string | null };
     colors: { source: string; confidence: number; status: string };
     font: { source: string; confidence: number; status: string };
     industry: { source: string; confidence: number; status: string };
@@ -200,9 +201,22 @@ export function BrandProfileCard({
   onComplete?: () => void;
 }) {
   const [colors, setColors] = useState(data.colors);
-  const [logoUrl, setLogoUrl] = useState<string | null>(data.logos?.primary ?? data.logos?.icon ?? null);
+  // Build ordered list of logo URLs to try: primary → icon → intel URL → fallback
+  const logoSources = [
+    data.logos?.primary,
+    data.logos?.icon,
+    data._intelligence?.logo?.url,
+    data._logoFallbackUrl,
+  ].filter((u): u is string => typeof u === "string" && u.length > 0);
+  const [logoUrl, setLogoUrl] = useState<string | null>(logoSources[0] ?? null);
+  const [logoAttempt, setLogoAttempt] = useState(0);
   const [fontFile, setFontFile] = useState<string | null>(null);
   const originalColors = data.colors;
+
+  // Debug: log logo sources
+  if (typeof window !== "undefined") {
+    console.log("[BrandProfileCard] Logo sources:", logoSources, "current:", logoUrl);
+  }
 
   // Field approval states
   const [approved, setApproved] = useState<Record<string, FieldState>>({
@@ -315,7 +329,16 @@ export function BrandProfileCard({
                   className={`h-10 w-10 rounded-lg border-2 bg-white object-contain p-1 shadow-sm transition-all ${
                     approved.logo === "approved" ? "border-emerald-300" : "border-border/30"
                   }`}
-                  onError={() => setLogoUrl(null)}
+                  onError={() => {
+                    console.warn("[BrandProfileCard] Logo failed to load:", logoUrl);
+                    const nextIdx = logoAttempt + 1;
+                    if (nextIdx < logoSources.length) {
+                      setLogoAttempt(nextIdx);
+                      setLogoUrl(logoSources[nextIdx]!);
+                    } else {
+                      setLogoUrl(null);
+                    }
+                  }}
                 />
                 <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/30 opacity-100 sm:opacity-0 transition-opacity sm:group-hover:opacity-100">
                   <Pencil className="h-3 w-3 text-white" />
@@ -416,7 +439,15 @@ export function BrandProfileCard({
           <div className="flex items-center gap-1.5">
             {logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={logoUrl} alt="" className="h-8 w-8 rounded object-contain" onError={() => setLogoUrl(null)} />
+              <img src={logoUrl} alt="" className="h-8 w-8 rounded object-contain" onError={() => {
+                const nextIdx = logoAttempt + 1;
+                if (nextIdx < logoSources.length) {
+                  setLogoAttempt(nextIdx);
+                  setLogoUrl(logoSources[nextIdx]!);
+                } else {
+                  setLogoUrl(null);
+                }
+              }} />
             ) : (
               <ImageIcon className="h-3.5 w-3.5 text-muted-foreground/40" />
             )}

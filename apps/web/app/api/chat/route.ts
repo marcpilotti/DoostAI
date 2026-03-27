@@ -154,10 +154,26 @@ ABSOLUTE RULES:
           const intel = intelligence?.intelligence;
           console.log("[Brand Analysis] Intel:", intel ? `logo=${intel.logo.source}(${intel.logo.confidence}) colors=${intel.colors.source}(${intel.colors.confidence}) font=${intel.font.source}(${intel.font.confidence})` : "NULL - pipeline failed or returned null");
 
-          // Use best logo source — Logo.dev/Brandfetch > scraped
-          const finalLogo = intel && intel.logo.confidence >= 50 && intel.logo.value.url
-            ? { primary: intel.logo.value.url, icon: clean.logos?.icon, dark: clean.logos?.dark }
-            : clean.logos;
+          // Use best logo source — Brandfetch/Logo.dev > scraped
+          const intelLogoUrl = intel?.logo.value.url ?? null;
+          const logoDevUrl = intel?.logo.source === "logo.dev" ? intelLogoUrl : null;
+          const brandfetchLogoUrl = intel?.logo.source === "brandfetch" ? intelLogoUrl : null;
+
+          // Try intelligence logo first, then fall back to scraped logos
+          const bestLogoUrl = intelLogoUrl ?? clean.logos?.primary ?? clean.logos?.icon ?? null;
+          const finalLogo = {
+            primary: bestLogoUrl ?? undefined,
+            icon: clean.logos?.icon,
+            dark: clean.logos?.dark,
+          };
+          console.log("[Brand Analysis] Logo resolution:", {
+            intelSource: intel?.logo.source,
+            intelConfidence: intel?.logo.confidence,
+            intelUrl: intelLogoUrl?.slice(0, 80),
+            intelType: intel?.logo.value.type,
+            cleanLogoPrimary: clean.logos?.primary?.slice(0, 80),
+            finalPrimary: finalLogo.primary?.slice(0, 80),
+          });
 
           // Use best color source — intel pipeline uses Brandfetch/Vision which understands
           // actual brand colors, not just CSS frequency. Override if any confidence.
@@ -175,11 +191,12 @@ ABSOLUTE RULES:
             logos: finalLogo,
             colors: finalColors,
             fonts: finalFonts,
+            _logoFallbackUrl: logoDevUrl ?? brandfetchLogoUrl ?? null,
             _analysisMs: durationMs,
             _enrichmentStatus: enrichment ? "complete" : "partial",
             _intelligence: intel ? {
               overallConfidence: intel.overallConfidence,
-              logo: { source: intel.logo.source, confidence: intel.logo.confidence, status: intel.logo.status },
+              logo: { source: intel.logo.source, confidence: intel.logo.confidence, status: intel.logo.status, url: intelLogoUrl },
               colors: { source: intel.colors.source, confidence: intel.colors.confidence, status: intel.colors.status },
               font: { source: intel.font.source, confidence: intel.font.confidence, status: intel.font.status },
               industry: { source: intel.industry.source, confidence: intel.industry.confidence, status: intel.industry.status },

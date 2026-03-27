@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
     "@doost/platforms",
     "@doost/brand",
     "@doost/templates",
+    "@doost/intelligence",
   ],
   images: {
     remotePatterns: [

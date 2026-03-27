@@ -70,19 +70,24 @@ function mergeLogo(
   // Priority 1: Brandfetch icon (square, colored, high quality)
   const bfIcon = brandfetch?.logos.find((l) => l.type === "icon");
   if (bfIcon?.url) {
+    console.log(`[L6 Merge] Logo: Brandfetch icon → ${bfIcon.url.slice(0, 80)}`);
     return { value: { url: bfIcon.url, type: "image", initials }, confidence: 95, source: "brandfetch", status: "found" };
   }
 
   // Priority 2: Brandfetch any logo (light preferred, dark ok)
   const bfAnyLogo = brandfetch?.logos.find((l) => l.theme === "light") ?? brandfetch?.logos[0];
   if (bfAnyLogo?.url) {
+    console.log(`[L6 Merge] Logo: Brandfetch logo (${bfAnyLogo.type}/${bfAnyLogo.theme}) → ${bfAnyLogo.url.slice(0, 80)}`);
     return { value: { url: bfAnyLogo.url, type: "image", initials }, confidence: 93, source: "brandfetch", status: "found" };
   }
 
   // Priority 3: Logo.dev fallback (embeddable, works in <img> tags)
   if (logoDevUrl) {
+    console.log(`[L6 Merge] Logo: Logo.dev → ${logoDevUrl.slice(0, 80)}`);
     return { value: { url: logoDevUrl, type: "image", initials }, confidence: 90, source: "logo.dev", status: "found" };
   }
+
+  console.log(`[L6 Merge] Logo: No Brandfetch/Logo.dev. Brandfetch logos:`, brandfetch?.logos?.length ?? 0, "Logo.dev:", !!logoDevUrl);
 
   // Priority 4: Scraped logo from DOM (confidence 60)
   const scrapedLogo = scrapedLogos.find((u) => !u.endsWith(".ico") && !u.includes("favicon"));
