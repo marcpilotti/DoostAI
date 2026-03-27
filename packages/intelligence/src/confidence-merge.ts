@@ -107,20 +107,41 @@ function mergeColors(
   industryPalette?: { primary: string; secondary: string; accent: string },
 ): ConfidenceField<{ primary: string; secondary: string; accent: string }> {
   // Priority 1: Brandfetch brand guidelines (confidence 95)
-  if (brandfetch && brandfetch.colors.length >= 2) {
-    const primary = brandfetch.colors[0]!.hex;
-    const secondary = brandfetch.colors[1]?.hex ?? primary;
-    const accent = brandfetch.colors[2]?.hex ?? secondary;
+  // Filter out utility colors (dark/light type, or near-black/near-white hex)
+  const bfBrandColors = (brandfetch?.colors ?? []).filter((c) => {
+    if (c.type === "dark" || c.type === "light") return false;
+    const hex = c.hex.toLowerCase();
+    // Exclude near-black and near-white
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const brightness = (r + g + b) / 3;
+    return brightness > 30 && brightness < 230;
+  });
+  if (bfBrandColors.length >= 2) {
+    const primary = bfBrandColors[0]!.hex;
+    const secondary = bfBrandColors[1]?.hex ?? primary;
+    const accent = bfBrandColors[2]?.hex ?? secondary;
     return { value: { primary, secondary, accent }, confidence: 95, source: "brandfetch", status: "found" };
   }
 
+  // Filter CSS colors: remove near-black, near-white, and grays
+  const usableCss = cssColors.filter((hex) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const brightness = (r + g + b) / 3;
+    const saturation = Math.max(r, g, b) - Math.min(r, g, b);
+    return brightness > 30 && brightness < 230 && saturation > 20;
+  });
+
   // Priority 2: Vision AI + CSS agree (confidence 90)
-  if (vision && cssColors.length >= 2) {
+  if (vision && usableCss.length >= 2) {
     const visionPrimary = vision.dominant_colors[0]?.hex;
-    const cssPrimary = cssColors[0];
+    const cssPrimary = usableCss[0];
     if (visionPrimary && cssPrimary && colorDeltaE(visionPrimary, cssPrimary) < 60) {
       return {
-        value: { primary: cssPrimary, secondary: cssColors[1] ?? cssPrimary, accent: cssColors[2] ?? cssPrimary },
+        value: { primary: cssPrimary, secondary: usableCss[1] ?? cssPrimary, accent: usableCss[2] ?? cssPrimary },
         confidence: 90,
         source: "vision+css",
         status: "found",
@@ -129,9 +150,9 @@ function mergeColors(
   }
 
   // Priority 3: CSS only (confidence 70)
-  if (cssColors.length >= 2) {
+  if (usableCss.length >= 2) {
     return {
-      value: { primary: cssColors[0]!, secondary: cssColors[1] ?? cssColors[0]!, accent: cssColors[2] ?? cssColors[0]! },
+      value: { primary: usableCss[0]!, secondary: usableCss[1] ?? usableCss[0]!, accent: usableCss[2] ?? usableCss[0]! },
       confidence: 70,
       source: "css",
       status: "uncertain",
