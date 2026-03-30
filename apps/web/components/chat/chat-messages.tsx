@@ -74,7 +74,7 @@ function ToolInvocation({
     if (part.state === "output-available" && part.output) {
       return (
         <GoalPicker
-          data={part.output as { industryCategory?: string; audiences?: string[] }}
+          data={part.output as { industryCategory?: string; audiences?: string[]; targetAudience?: string }}
           onSelect={(goal, audience) => {
             onSendMessage?.(`Mål: ${goal}, Målgrupp: ${audience}`);
           }}

@@ -43,6 +43,7 @@ type BrandProfileData = {
   targetAudience: string;
   _analysisMs?: number;
   _enrichmentStatus?: string;
+  _intelligenceStatus?: string;
   _logoSource?: string;
   _logoTheme?: string;
   valuePropositions: string[];
@@ -246,6 +247,26 @@ export function BrandProfileCard({
 
   const [cascading, setCascading] = useState(false);
 
+  // Animated confidence counter — counts up from 0 to final value over ~1.5s
+  const [displayedConfidence, setDisplayedConfidence] = useState(0);
+  const targetConfidence = data._intelligence?.overallConfidence ?? 0;
+
+  useEffect(() => {
+    if (targetConfidence === 0) return;
+    let current = 0;
+    const step = targetConfidence / 30; // 30 frames over ~1.5s
+    const interval = setInterval(() => {
+      current += step;
+      if (current >= targetConfidence) {
+        setDisplayedConfidence(targetConfidence);
+        clearInterval(interval);
+      } else {
+        setDisplayedConfidence(Math.round(current));
+      }
+    }, 50);
+    return () => clearInterval(interval);
+  }, [targetConfidence]);
+
   // Field approval states
   const [approved, setApproved] = useState<Record<string, FieldState>>({
     name: "pending",
@@ -313,7 +334,7 @@ export function BrandProfileCard({
                 data._intelligence.overallConfidence >= 50 ? "bg-amber-50 text-amber-600" :
                 "bg-red-50 text-red-500"
               }`}>
-                {data._intelligence.overallConfidence}% säker
+                {displayedConfidence}% säker
               </span>
             ) : data._enrichmentStatus === "complete" ? (
               <span className="ml-1 rounded bg-emerald-50 px-1 py-0.5 text-[9px] font-semibold text-emerald-600">Berikad</span>
@@ -342,6 +363,18 @@ export function BrandProfileCard({
 
       {/* Divider with gradient accent */}
       <div className="h-px bg-gradient-to-r from-transparent via-border/40 to-transparent" />
+
+      {/* Status warnings */}
+      {data._intelligenceStatus === "failed" && (
+        <div className="mx-4 mt-2 rounded-lg border border-amber-200 bg-amber-50/60 px-3 py-1.5 text-xs text-amber-700">
+          {"\u26A0\uFE0F"} Viss data kunde inte h\u00E4mtas. Profilen kan vara ofullst\u00E4ndig.
+        </div>
+      )}
+      {data._enrichmentStatus === "partial" && data._intelligenceStatus !== "failed" && (
+        <div className="mx-4 mt-2 rounded-lg border border-blue-200 bg-blue-50/60 px-3 py-1.5 text-xs text-blue-700">
+          {"\u2139\uFE0F"} F\u00F6retagsdata h\u00E5ller p\u00E5 att uppdateras.
+        </div>
+      )}
 
       {/* Logo + Name — side by side */}
       <div className="flex items-center gap-3 px-4 pt-3 pb-2">

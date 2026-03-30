@@ -432,17 +432,19 @@ ABSOLUTE RULES:
 
       show_goal_picker: tool({
         description:
-          "Show goal and target audience picker. Call this AFTER the user completes onboarding (brand profile approved + connectors). Shows 4 goals + industry-specific audiences.",
+          "Show goal and target audience picker. Call this AFTER the user completes onboarding (brand profile approved + connectors). Shows 3 goals + industry-specific audiences.",
         inputSchema: z.object({
           industryCategory: z.string().optional().describe("Industry category from brand analysis"),
           industryCodes: z.array(z.string()).optional().describe("SNI codes from enrichment"),
+          targetAudience: z.string().optional().describe("Target audience from brand analysis, used to pre-select an audience"),
         }),
-        execute: async ({ industryCategory, industryCodes }: { industryCategory?: string; industryCodes?: string[] }) => {
+        execute: async ({ industryCategory, industryCodes, targetAudience }: { industryCategory?: string; industryCodes?: string[]; targetAudience?: string }) => {
           const category = industryCategory ?? (industryCodes?.[0] ? sniToCategory(industryCodes[0]) : null) ?? undefined;
           const audiences = category ? INDUSTRY_AUDIENCES[category] : undefined;
           return {
             industryCategory: category,
             audiences: audiences ?? ["Småföretagare", "Privatpersoner 25–55", "Beslutsfattare", "Lokala kunder"],
+            targetAudience: targetAudience ?? undefined,
           };
         },
       }),
@@ -480,6 +482,7 @@ ABSOLUTE RULES:
             cta,
             goal,
             audience,
+            industryCategory: industryCategory ?? undefined,
             defaultCity,
             detectedLocations: detectedLocations ?? [],
             currency: "kr",
@@ -681,7 +684,7 @@ ABSOLUTE RULES:
           // In production with auth, this would check real ad accounts
           type PlatformDeployStatus = {
             platform: string;
-            status: "deploying" | "active" | "failed" | "connect_required";
+            status: "deploying" | "active" | "failed" | "connect_required" | "connect_later";
             message: string;
             errorCode?: string;
             action?: "retry" | "contact_support" | "add_payment" | "connect_account";
@@ -692,10 +695,12 @@ ABSOLUTE RULES:
 
           const platformStatuses: PlatformDeployStatus[] = platforms.map((platform) => {
             if (platform === "linkedin") {
+              // LinkedIn requires OAuth but should NOT block other platforms.
+              // Deploy Meta/Google immediately; LinkedIn can be connected later.
               return {
                 platform,
-                status: "connect_required" as const,
-                message: "Du behöver ansluta ditt LinkedIn-konto först.",
+                status: "connect_later" as const,
+                message: "LinkedIn kräver kontoanslutning. Vi publicerar Meta/Google direkt.",
                 action: "connect_account" as const,
                 accountType: "oauth" as const,
                 oauthUrl: "#",

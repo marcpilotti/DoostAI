@@ -236,6 +236,7 @@ export function PublishCard({
   );
 
   const [showAllRegions, setShowAllRegions] = useState(false);
+  const [showAllBudgets, setShowAllBudgets] = useState(false);
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const total = budget * duration;
@@ -325,25 +326,72 @@ export function PublishCard({
         {/* Budget */}
         <div className="px-4 py-2">
           <div className="mb-1.5 text-[9px] font-semibold uppercase tracking-wider text-foreground/50">Budget</div>
-          <div className="flex gap-1.5">
-            {data.suggestedBudgets.map((b) => (
+
+          {/* Recommended budget shown prominently by default */}
+          {!showAllBudgets && (() => {
+            const rec = data.suggestedBudgets.find((b) => b.recommended) ?? data.suggestedBudgets[1];
+            if (!rec) return null;
+            return (
+              <div>
+                <button
+                  onClick={() => setBudget(rec.daily)}
+                  className={`relative w-full rounded-lg border px-3 py-2.5 text-center transition-all ${
+                    budget === rec.daily
+                      ? "border-indigo-400 bg-indigo-50/50 ring-1 ring-indigo-200"
+                      : "border-border/40 bg-white hover:border-indigo-300"
+                  }`}
+                >
+                  <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 rounded-full bg-indigo-500 px-1.5 py-px text-[9px] font-semibold text-white">★ Rekommenderad</span>
+                  <div className="text-sm font-bold">{rec.daily} {data.currency}/dag</div>
+                  <div className="text-[9px] text-muted-foreground">{rec.label}</div>
+                </button>
+                <div className="mt-1.5 text-[9px] text-muted-foreground/70 text-center">
+                  Rekommenderat{data.industryCategory ? ` för ${data.industryCategory}` : ""}. Du får ca {rec.reach}.
+                </div>
+                <button
+                  onClick={() => setShowAllBudgets(true)}
+                  className="mt-1.5 block w-full text-center text-[9px] font-medium text-indigo-500 transition-colors hover:text-indigo-700"
+                >
+                  {"Visa alla budgetar \u2193"}
+                </button>
+              </div>
+            );
+          })()}
+
+          {/* All 3 budget options — shown on toggle */}
+          {showAllBudgets && (
+            <div>
+              <div className="flex gap-1.5">
+                {data.suggestedBudgets.map((b) => (
+                  <button
+                    key={b.daily}
+                    onClick={() => setBudget(b.daily)}
+                    className={`relative flex-1 rounded-lg border px-2 py-2 text-center transition-all ${
+                      budget === b.daily
+                        ? "border-indigo-400 bg-indigo-50/50 ring-1 ring-indigo-200"
+                        : "border-border/40 bg-white hover:border-indigo-300"
+                    }`}
+                  >
+                    {b.recommended && (
+                      <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 rounded-full bg-indigo-500 px-1.5 py-px text-[9px] font-semibold text-white">★</span>
+                    )}
+                    <div className="text-xs font-bold">{b.daily} {data.currency}</div>
+                    <div className="text-[9px] text-muted-foreground">{b.label}</div>
+                    {b.recommended && (
+                      <div className="text-[8px] text-indigo-500 mt-0.5">Rekommenderad</div>
+                    )}
+                  </button>
+                ))}
+              </div>
               <button
-                key={b.daily}
-                onClick={() => setBudget(b.daily)}
-                className={`relative flex-1 rounded-lg border px-2 py-2 text-center transition-all ${
-                  budget === b.daily
-                    ? "border-indigo-400 bg-indigo-50/50 ring-1 ring-indigo-200"
-                    : "border-border/40 bg-white hover:border-indigo-300"
-                }`}
+                onClick={() => setShowAllBudgets(false)}
+                className="mt-1.5 block w-full text-center text-[9px] font-medium text-indigo-500 transition-colors hover:text-indigo-700"
               >
-                {b.recommended && (
-                  <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 rounded-full bg-indigo-500 px-1.5 py-px text-[9px] font-semibold text-white">★</span>
-                )}
-                <div className="text-xs font-bold">{b.daily} {data.currency}</div>
-                <div className="text-[9px] text-muted-foreground">{b.label}</div>
+                {"Visa färre \u2191"}
               </button>
-            ))}
-          </div>
+            </div>
+          )}
+
           {/* Budget spend-pace warnings — advisory only, does not block publish */}
           {budgetWarning && (
             <div className="mt-2 flex items-start gap-1.5 rounded-lg border border-amber-200 bg-amber-50/50 px-2.5 py-1.5 animate-message-in">
@@ -392,12 +440,19 @@ export function PublishCard({
             )}
           </div>
 
+          {/* Confirmation text when region is pre-selected from company location */}
+          {data.defaultCity && (
+            <div className="mb-1.5 text-[9px] text-muted-foreground/60 italic">
+              Baserat p&aring; er plats: {data.defaultCity}
+            </div>
+          )}
+
           {/* Recommended locations badge — only shown when intelligence found locations */}
           {recommendedRegionIds.size > 0 && (
             <div className="mb-2 flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50/50 px-2.5 py-1.5 animate-message-in">
               <MapPin className="h-3 w-3 shrink-0 text-emerald-600" />
               <span className="text-[9px] text-emerald-700">
-                Rekommenderat baserat på företagsdata:{" "}
+                Rekommenderat baserat p&aring; f&ouml;retagsdata:{" "}
                 <span className="font-semibold">
                   {[...recommendedRegionIds]
                     .map((id) => ALL_REGIONS.find((r) => r.id === id)?.label)

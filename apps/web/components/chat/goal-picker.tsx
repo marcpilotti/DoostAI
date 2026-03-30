@@ -1,17 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, Phone, Users, Rocket, Eye, Target } from "lucide-react";
+import { ArrowRight, Phone, Users, Eye, Target } from "lucide-react";
 
 type GoalPickerData = {
   industryCategory?: string;
   audiences?: string[];
+  targetAudience?: string;
 };
 
 const GOALS = [
   { id: "Fler kunder", label: "Fler kunder", subtitle: "Vi vill att telefonen ringer", icon: Phone },
   { id: "Hitta personal", label: "Hitta personal", subtitle: "Vi behöver anställa", icon: Users },
-  { id: "Lansera nytt", label: "Lansera något nytt", subtitle: "Vi har en ny tjänst eller produkt", icon: Rocket },
   { id: "Synas mer", label: "Synas mer", subtitle: "Folk vet inte att vi finns", icon: Eye },
 ];
 
@@ -24,13 +24,24 @@ export function GoalPicker({
   data: GoalPickerData;
   onSelect?: (goal: string, audience: string) => void;
 }) {
-  const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
-  const [selectedAudience, setSelectedAudience] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
   const filteredAudiences = data.audiences?.filter((a) => a.trim()) ?? [];
   const audiences = filteredAudiences.length > 0 ? filteredAudiences : DEFAULT_AUDIENCES;
+
+  // Pre-select "Fler kunder" (most common goal)
+  const [selectedGoal, setSelectedGoal] = useState<string | null>("Fler kunder");
+
+  // Pre-select first audience if brand profile included a targetAudience
+  const [selectedAudience, setSelectedAudience] = useState<string | null>(() => {
+    if (data.targetAudience && audiences.length > 0) {
+      return audiences[0] ?? null;
+    }
+    return null;
+  });
+
   const ready = selectedGoal && selectedAudience;
+  const hasPreSelection = selectedGoal === "Fler kunder" && selectedAudience !== null;
 
   return (
     <div className="animate-card-in mt-2 overflow-hidden rounded-2xl border border-border/30 bg-white/80 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] backdrop-blur-xl">
@@ -46,12 +57,19 @@ export function GoalPicker({
       </div>
 
       <div className="p-4 space-y-4">
+        {/* Suggestion text when pre-selections are active */}
+        {hasPreSelection && (
+          <div className="text-[9px] text-muted-foreground/60 italic">
+            Vi f&ouml;resl&aring;r baserat p&aring; din hemsida:
+          </div>
+        )}
+
         {/* Section 1: Goal */}
         <div>
           <div className="mb-2 text-[9px] font-semibold uppercase tracking-wider text-foreground/50">
             Vad behöver ni mest?
           </div>
-          <div className="grid grid-cols-2 gap-1.5">
+          <div className="grid grid-cols-3 gap-1.5">
             {GOALS.map((g) => {
               const Icon = g.icon;
               const active = selectedGoal === g.id;

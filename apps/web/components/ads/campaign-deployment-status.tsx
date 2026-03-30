@@ -16,7 +16,7 @@ import {
 
 type PlatformStatus = {
   platform: string;
-  status: "deploying" | "active" | "live" | "failed" | "connect_required" | "queued";
+  status: "deploying" | "active" | "live" | "failed" | "connect_required" | "connect_later" | "queued";
   message: string;
   errorCode?: string;
   action?: "retry" | "contact_support" | "add_payment" | "connect_account";
@@ -77,6 +77,8 @@ function StatusIcon({ status }: { status: PlatformStatus["status"] }) {
       );
     case "connect_required":
       return <Linkedin className="h-5 w-5 text-[#0077B5]" />;
+    case "connect_later":
+      return <Linkedin className="h-5 w-5 text-[#0077B5] opacity-60" />;
   }
 }
 
@@ -88,6 +90,7 @@ function StatusBadge({ status }: { status: PlatformStatus["status"] }) {
     queued: "bg-gray-50 text-gray-600",
     failed: "bg-red-50 text-red-700",
     connect_required: "bg-blue-50 text-blue-700",
+    connect_later: "bg-blue-50/60 text-blue-600",
   };
 
   const labels: Record<string, string> = {
@@ -97,6 +100,7 @@ function StatusBadge({ status }: { status: PlatformStatus["status"] }) {
     queued: "I kö",
     failed: "Misslyckades",
     connect_required: "Anslut konto",
+    connect_later: "Anslut senare",
   };
 
   return (
@@ -191,9 +195,10 @@ export function CampaignDeploymentStatus({
   onRetry?: (platform: string) => void;
   onAction?: (platform: string, action: string) => void;
 }) {
-  const allSuccess = data.platforms.every(
-    (p) => p.status === "live" || p.status === "active",
-  );
+  // connect_later (LinkedIn) does not block success — only Meta/Google matter
+  const allSuccess = data.platforms
+    .filter((p) => p.status !== "connect_later")
+    .every((p) => p.status === "live" || p.status === "active");
   const hasErrors = data.platforms.some((p) => p.status === "failed");
   const [showConfetti, setShowConfetti] = useState(false);
 
@@ -278,6 +283,19 @@ export function CampaignDeploymentStatus({
                     className="flex items-center gap-1 rounded-lg bg-[#0077B5] px-3 py-1.5 text-xs font-medium text-white"
                   >
                     Anslut
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
+
+                {/* Non-blocking connect button for connect_later (LinkedIn) */}
+                {p.status === "connect_later" && p.oauthUrl && (
+                  <a
+                    href={p.oauthUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 rounded-lg border border-[#0077B5]/30 bg-blue-50 px-3 py-1.5 text-xs font-medium text-[#0077B5] transition-colors hover:bg-blue-100"
+                  >
+                    Anslut senare
                     <ExternalLink className="h-3 w-3" />
                   </a>
                 )}
