@@ -587,25 +587,15 @@ export function BrandProfileCard({
 
             const pending = Object.keys(approved).filter((k) => approved[k] !== "approved");
 
-            if (pending.length === 0) {
-              // All already approved — fire immediately, no setTimeout
-              onComplete?.(approvedData);
-              return;
+            // Approve all instantly and proceed — no animation delay
+            if (pending.length > 0) {
+              const allApprovedState: Record<string, FieldState> = {};
+              for (const key of Object.keys(approved)) {
+                allApprovedState[key] = "approved";
+              }
+              setApproved(allApprovedState);
             }
-
-            // Cascade approve with stagger animation
-            setCascading(true);
-            pending.forEach((key, i) => {
-              setTimeout(() => {
-                setApproved((prev) => ({ ...prev, [key]: "approved" }));
-                try { navigator?.vibrate?.(10); } catch {}
-              }, i * 100);
-            });
-            setTimeout(() => {
-              window.dispatchEvent(new CustomEvent("doost:profile-approved"));
-              onComplete?.(approvedData);
-              setCascading(false);
-            }, pending.length * 100 + 300);
+            onComplete?.(approvedData);
           }}
           className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold shadow-sm transition-all ${
             allApproved

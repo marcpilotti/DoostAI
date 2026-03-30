@@ -88,7 +88,7 @@ export async function buildBrandProfile(
 
 RULES (follow exactly):
 1. COLORS: Identify the company's PRIMARY BRAND color — the color that represents their logo and identity. Many websites use third-party colors (Trustpilot green, social media colors, payment provider colors, sustainability badges, etc.) prominently in their CSS. IGNORE these. Focus on the color used in the company's OWN logo, header, and primary buttons. IGNORE body text colors, border colors, and neutral grays. CSS colors are provided as hints but often include text colors (#1a1a1a, #333, etc.) — skip those. Return the actual brand colors as 6-digit hex. Example: Biltema uses blue #003DA6 as primary, not black #231f20 which is just text. Example: Klarna uses pink #FFB3C7 as primary, not green from Trustpilot widgets.
-2. FONTS: Identify the main font used for headings and body text. CSS font names are provided as hints. If they are generic system fonts (Arial, Helvetica, system-ui), try to identify the actual display font from the website content. If unsure, return "Inter".
+2. FONTS: Identify the main font used for headings and body text. CSS font names are provided as hints. If they are generic system fonts (Arial, Helvetica, system-ui), try to identify the actual display font from the website content. NEVER return CSS variables like "var(--font-normal)" or "--font-heading". Return the actual font NAME. If unsure, return "Inter".
 3. INDUSTRY: Determine from website content. Use specific Swedish terms: "Fintech", "E-handel", "SaaS", "Rekrytering", "Fastigheter", "Hälsa & Träning", "Juridik", "Marknadsföring", "Logistik", "Utbildning", "Restaurang", "Bygg", "Konsult", etc. NEVER use "Dataprogrammering" or generic "IT".
 4. NAME: Return the OFFICIAL company name as it appears on the website, with correct spacing and capitalization. Example: "Lyvia Group" not "Lyviagroup", "HubSpot" not "Hubspot". Remove legal suffixes (AB, Inc, Ltd, GmbH) but keep the brand spelling exactly as the company uses it. Look at the page title, logo text, and headings for the correct form.
 5. DESCRIPTION: One sentence in Swedish describing what the company does.
@@ -120,6 +120,9 @@ ${context}`,
     return true;
   });
   const finalFonts = { ...object.fonts };
+  // Post-process: if AI returned CSS variables as font names, replace with "Inter"
+  if (finalFonts.heading.startsWith("var(") || finalFonts.heading.startsWith("--")) finalFonts.heading = "Inter";
+  if (finalFonts.body.startsWith("var(") || finalFonts.body.startsWith("--")) finalFonts.body = "Inter";
   // Only override if CSS found specific named fonts (not system defaults)
   if (cssFonts.length >= 1 && cssFonts[0]) finalFonts.heading = cssFonts[0];
   if (cssFonts.length >= 2 && cssFonts[1]) finalFonts.body = cssFonts[1];
