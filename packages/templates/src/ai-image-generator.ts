@@ -38,6 +38,11 @@ export type GeneratedImage = {
  * Used by the /api/brand/ai-image route to serve images.
  */
 export async function getAiImageFromCache(key: string): Promise<string | null> {
+  // Check in-memory cache first (fast, no network)
+  const memCached = getFromMemoryCache(key);
+  if (memCached) return memCached;
+
+  // Then check Redis
   const redis = getRedis();
   if (!redis) return null;
   try {
@@ -72,8 +77,32 @@ const CACHE_KEY_PREFIX = "ai-img:";
 
 const OPENAI_IMAGES_API = "https://api.openai.com/v1/images/generations";
 
-/** Timeout for OpenAI image generation — DALL-E 3 can take 15-25s */
-const GENERATION_TIMEOUT_MS = 60_000;
+/** Timeout for OpenAI image generation — gpt-image-1 takes 10-15s */
+const GENERATION_TIMEOUT_MS = 45_000;
+
+// ── In-memory cache (fallback when Redis unavailable) ─────────────
+// Stores base64 data URLs keyed by cache key. Expires after 2 hours.
+const memoryCache = new Map<string, { dataUrl: string; expires: number }>();
+const MEMORY_CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
+
+function getFromMemoryCache(key: string): string | null {
+  const entry = memoryCache.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expires) {
+    memoryCache.delete(key);
+    return null;
+  }
+  return entry.dataUrl;
+}
+
+function setInMemoryCache(key: string, dataUrl: string): void {
+  // Limit cache size to prevent memory leaks
+  if (memoryCache.size > 100) {
+    const oldest = memoryCache.keys().next().value;
+    if (oldest) memoryCache.delete(oldest);
+  }
+  memoryCache.set(key, { dataUrl, expires: Date.now() + MEMORY_CACHE_TTL_MS });
+}
 
 // ── Redis singleton (lazy, tolerates missing env vars) ───────────
 
@@ -232,7 +261,20 @@ export async function generateAdBackground(
   const cacheKey = toCacheKey(industry, primaryColor, format);
   const redis = getRedis();
 
-  // ── 1. Check Redis cache ────────────────────────────────────
+  // ── 1. Check memory cache first (instant, no network) ─────
+  const memCached = getFromMemoryCache(cacheKey);
+  if (memCached) {
+    console.log(`[AI Image] Memory cache HIT for "${industry}"`);
+    return {
+      cacheKey,
+      imageUrl: `/api/brand/ai-image?key=${encodeURIComponent(cacheKey)}`,
+      prompt: "(memory cached)",
+      source: "openai",
+      cached: true,
+    };
+  }
+
+  // ── 1b. Check Redis cache ─────────────────────────────────
   if (redis) {
     try {
       const cached = await redis.get<string>(cacheKey);
@@ -275,12 +317,12 @@ export async function generateAdBackground(
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "dall-e-3",
+            model: "gpt-image-1",
             prompt,
             n: 1,
-            size: formatToSize(format),
-            quality: "standard", // $0.04/image — "hd" is $0.08
-            response_format: redis ? "b64_json" : "url", // Use URL when no Redis (avoids needing cache)
+            size: "1024x1024",
+            quality: "low",           // Fast + cheap (~$0.02/image)
+            output_format: "jpeg",    // 64KB vs 1MB PNG — small enough to cache in memory
           }),
           signal: AbortSignal.timeout(GENERATION_TIMEOUT_MS),
         });
@@ -300,46 +342,42 @@ export async function generateAdBackground(
     if (!response?.ok) return null;
 
     const data = (await response.json()) as {
-      data: Array<{ b64_json?: string; url?: string; revised_prompt?: string }>;
+      data: Array<{ b64_json?: string; revised_prompt?: string }>;
     };
 
     const imageData = data.data[0];
     const usedPrompt = imageData?.revised_prompt ?? prompt;
 
-    // Handle both response formats: b64_json (when Redis available) or url (when no Redis)
-    if (imageData?.b64_json && redis) {
-      // With Redis: cache the base64 and serve via our API route
-      const dataUrl = `data:image/png;base64,${imageData.b64_json}`;
-      console.log(`[AI Image] Generated for "${brandName}" (${industry}), ${dataUrl.length} chars, caching in Redis`);
+    if (!imageData?.b64_json) {
+      console.warn("[AI Image] No b64_json in response");
+      return null;
+    }
 
+    // gpt-image-1 with JPEG output: ~64KB base64 — small enough for memory cache
+    const dataUrl = `data:image/jpeg;base64,${imageData.b64_json}`;
+    console.log(`[AI Image] Generated for "${brandName}" (${industry}), ${(dataUrl.length / 1024).toFixed(0)}KB`);
+
+    // Cache in Redis if available, otherwise in-memory (2h TTL)
+    if (redis) {
       try {
         await redis.setex(cacheKey, AI_IMAGE_CACHE_TTL_SECONDS, dataUrl);
-        console.log(`[AI Image] Cached "${cacheKey}" (TTL ${AI_IMAGE_CACHE_TTL_SECONDS}s / 30 days)`);
+        console.log(`[AI Image] Cached in Redis "${cacheKey}"`);
       } catch (err) {
         console.warn("[AI Image] Redis write error:", err instanceof Error ? err.message : err);
+        setInMemoryCache(cacheKey, dataUrl);
       }
-
-      return {
-        cacheKey,
-        imageUrl: `/api/brand/ai-image?key=${encodeURIComponent(cacheKey)}`,
-        prompt: usedPrompt,
-        source: "openai",
-        cached: false,
-      };
+    } else {
+      setInMemoryCache(cacheKey, dataUrl);
+      console.log(`[AI Image] Cached in memory "${cacheKey}" (2h TTL)`);
     }
 
-    if (imageData?.url) {
-      // Without Redis: use OpenAI's temporary URL directly (valid ~1 hour)
-      console.log(`[AI Image] Generated for "${brandName}" (${industry}), using temporary OpenAI URL (no Redis)`);
-      return {
-        cacheKey,
-        imageUrl: imageData.url,
-        prompt: usedPrompt,
-        source: "openai",
-        cached: false,
-      };
-    }
-
+    return {
+      cacheKey,
+      imageUrl: `/api/brand/ai-image?key=${encodeURIComponent(cacheKey)}`,
+      prompt: usedPrompt,
+      source: "openai",
+      cached: false,
+    };
     console.warn("[AI Image] No image data in OpenAI response");
     return null;
   } catch (err) {
