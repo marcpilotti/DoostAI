@@ -284,8 +284,8 @@ export function ChatMessages({
       <div className="mx-auto flex w-full min-h-0 max-w-2xl flex-1 flex-col">
         {/* User messages hidden — the cards speak for themselves */}
 
-        {/* Latest AI text — brief message above card. Hidden while streaming to prevent jumping. */}
-        {latestText && !isLoading && (
+        {/* Latest AI text — hidden while streaming and when ad preview is showing (redundant) */}
+        {latestText && !isLoading && !latestToolParts.some(({ part }) => (part.toolName ?? part.type.replace("tool-", "")) === "generate_ad_copy") && (
           <div className="animate-message-in flex items-start gap-2 pb-1">
             <img src="/symbol.svg" alt="" width={20} height={20} className="mt-0.5 h-5 w-5 shrink-0" aria-hidden />
             <div className="prose prose-xs prose-neutral max-w-none text-xs text-foreground/80 [&_p]:leading-relaxed [&_p]:my-0">

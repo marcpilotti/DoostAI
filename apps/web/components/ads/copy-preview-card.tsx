@@ -329,25 +329,28 @@ function ColorDot({
 // ── Utility functions ───────────────────────────────────────────
 
 function getGradient(primary?: string, accent?: string): string {
-  // If primary color is very dark (near-black), use a light neutral gradient
-  // so the ad preview remains readable instead of appearing as a dark blob
-  if (primary) {
-    const c = primary.replace("#", "");
-    const r = parseInt(c.substring(0, 2), 16);
-    const g = parseInt(c.substring(2, 4), 16);
-    const b = parseInt(c.substring(4, 6), 16);
-    const brightness = (r + g + b) / 3;
-    if (brightness < 40) {
-      return `linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)`;
-    }
+  // Always produce a rich, visible gradient — never white/transparent
+  if (!primary) return "linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%)";
+
+  const c = primary.replace("#", "");
+  const r = parseInt(c.substring(0, 2), 16);
+  const g = parseInt(c.substring(2, 4), 16);
+  const b = parseInt(c.substring(4, 6), 16);
+  const brightness = (r + g + b) / 3;
+
+  // Very dark → use brand color but lightened, with white text overlay still works
+  if (brightness < 40) {
+    return `linear-gradient(135deg, #1e293b 0%, #334155 50%, ${primary} 100%)`;
   }
-  if (primary && accent) {
-    return `linear-gradient(135deg, ${primary} 0%, ${accent} 100%)`;
+  // Very light → darken significantly so white text is readable
+  if (brightness > 200) {
+    return `linear-gradient(135deg, ${darken(primary, 60)} 0%, ${darken(primary, 30)} 50%, ${primary} 100%)`;
   }
-  if (primary) {
-    return `linear-gradient(135deg, ${primary} 0%, ${darken(primary, 25)} 100%)`;
+  // Normal: rich multi-stop gradient
+  if (accent && accent !== primary) {
+    return `linear-gradient(135deg, ${primary} 0%, ${accent} 50%, ${darken(accent, 20)} 100%)`;
   }
-  return "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)";
+  return `linear-gradient(135deg, ${primary} 0%, ${darken(primary, 20)} 50%, ${darken(primary, 40)} 100%)`;
 }
 
 function darken(hex: string, amount: number): string {
@@ -744,7 +747,7 @@ function MetaFeedPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
 
   function renderCreativeContent() {
     const headlineEl = (
-      <EditableText value={copy.headline} field="headline" onEditField={onEditField} charLimit={charLimits?.headline} className="text-xl font-extrabold leading-tight drop-shadow-lg sm:text-2xl" tagName="div" />
+      <EditableText value={copy.headline} field="headline" onEditField={onEditField} charLimit={charLimits?.headline} className="text-2xl font-black leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] sm:text-3xl" tagName="div" />
     );
     const ctaEl = (
       <EditableText value={copy.cta} field="cta" onEditField={onEditField} charLimit={charLimits?.cta} className="inline-flex items-center gap-1.5 rounded-lg px-5 py-2 text-xs font-bold shadow-md" tagName="div" />
@@ -784,7 +787,7 @@ function MetaFeedPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
       case "bold-cta":
         return (
           <div className="relative flex aspect-[1.91/1] flex-col items-center justify-between overflow-hidden py-4 text-center" style={{ background: bgImage ? `url(${bgImage}) center/cover` : gradient }}>
-            {!bgImage && <div className="absolute inset-0 bg-black/10" />}
+            {<div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />}
             <ColorDot color={colorOverrides?.gradientStart ?? primary} label="Bakgrundsf&#228;rg" colorKey="gradientStart" onColorChange={onColorChange} position="top-right" />
             <div className="relative z-[1] px-6">
               <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70">{brand.name}</div>
@@ -801,7 +804,7 @@ function MetaFeedPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
       default: // "centered"
         return (
           <div className="relative flex aspect-[1.91/1] items-center justify-center overflow-hidden text-center" style={{ background: bgImage ? `url(${bgImage}) center/cover` : gradient }}>
-            {!bgImage && <div className="absolute inset-0 bg-black/10" />}
+            {<div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />}
             <ColorDot color={colorOverrides?.gradientStart ?? primary} label="Bakgrundsf&#228;rg" colorKey="gradientStart" onColorChange={onColorChange} position="top-right" />
             <ColorDot color={colorOverrides?.gradientEnd ?? accent ?? darken(primary, 25)} label="Gradient slut" colorKey="gradientEnd" onColorChange={onColorChange} position="bottom-left" />
             <div className="relative z-[1] space-y-4 px-6">
@@ -1103,7 +1106,7 @@ function LinkedInPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
 
   function renderCreativeContent() {
     const headlineEl = (
-      <EditableText value={copy.headline} field="headline" onEditField={onEditField} charLimit={charLimits?.headline} className="text-xl font-extrabold leading-tight drop-shadow-lg sm:text-2xl" tagName="div" />
+      <EditableText value={copy.headline} field="headline" onEditField={onEditField} charLimit={charLimits?.headline} className="text-2xl font-black leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] sm:text-3xl" tagName="div" />
     );
     const ctaEl = (
       <EditableText value={copy.cta} field="cta" onEditField={onEditField} charLimit={charLimits?.cta} className="inline-flex items-center gap-1.5 rounded-lg px-5 py-2 text-xs font-bold shadow-md" tagName="div" />
@@ -1143,7 +1146,7 @@ function LinkedInPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
       case "bold-cta":
         return (
           <div className="relative flex aspect-[1.91/1] flex-col items-center justify-between overflow-hidden py-4 text-center" style={{ background: bgImage ? `url(${bgImage}) center/cover` : gradient }}>
-            {!bgImage && <div className="absolute inset-0 bg-black/10" />}
+            {<div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />}
             <ColorDot color={colorOverrides?.gradientStart ?? primary} label="Bakgrundsf&#228;rg" colorKey="gradientStart" onColorChange={onColorChange} position="top-right" />
             <div className="relative z-[1] px-6">
               <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70">{brand.name}</div>
@@ -1160,7 +1163,7 @@ function LinkedInPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
       default:
         return (
           <div className="relative flex aspect-[1.91/1] items-center justify-center overflow-hidden text-center" style={{ background: bgImage ? `url(${bgImage}) center/cover` : gradient }}>
-            {!bgImage && <div className="absolute inset-0 bg-black/10" />}
+            {<div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />}
             <ColorDot color={colorOverrides?.gradientStart ?? primary} label="Bakgrundsf&#228;rg" colorKey="gradientStart" onColorChange={onColorChange} position="top-right" />
             <div className="relative z-[1] space-y-4 px-6">
               <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70">{brand.name}</div>
@@ -1456,8 +1459,8 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
             // Use different background for variant B
             const variantBg = vi === 1 && data.backgroundUrlB ? data.backgroundUrlB : bgImages[copyId];
             return (
+              <div key={`${format}-${layout}-${copyId}`} className="animate-card-in" style={{ animationDelay: `${vi * 150}ms`, animationFillMode: "both" }}>
               <Preview
-                key={`${format}-${layout}-${copyId}`}
                 copy={getEditedCopy(copy)}
                 brand={data.brand!}
                 bgImage={variantBg}
@@ -1474,6 +1477,7 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
                 onLogoPositionChange={setLogoPosition}
                 diffs={variantDiffs.get(copyId)}
               />
+              </div>
             );
           })}
         </div>
