@@ -149,6 +149,9 @@ function ToolInvocation({
         />
       );
     }
+    {/* Loading state — detect platform from the tool input if available */}
+    const toolInput = part.input as { platforms?: string[] } | undefined;
+    const platformLabel = toolInput?.platforms?.[0] === "google" ? "Google" : toolInput?.platforms?.[0] === "linkedin" ? "LinkedIn" : "Meta";
     return (
       <div className="mt-3 animate-pulse rounded-2xl border border-border/40 bg-white/70 p-5 backdrop-blur-sm">
         <div className="flex items-center gap-2">
@@ -164,7 +167,7 @@ function ToolInvocation({
         </div>
         <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
           <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-purple-500" />
-          Skapar annonsförslag...
+          Genererar {platformLabel}-annons med AI-bakgrund...
         </div>
       </div>
     );
