@@ -45,6 +45,10 @@ export async function POST(req: Request) {
       .map((p: { text: string }) => p.text)
       .join("") ?? "";
 
+  // Detect language from user message — Swedish if common Swedish words found
+  const isSwedish = /\b(ska|vill|och|för|med|som|att|kan|har|det|jag|vi|är|inte|den|ett|min|din|på|till|från|vara|blev|alla|mycket|också|redan|skulle|kunna|behöver|göra|hej|tack)\b/i.test(lastText);
+  const detectedLanguage = isSwedish ? "Swedish" : "English";
+
   // Route to cheapest sufficient model
   const intent = classifyIntent(lastText, true);
   const routeStart = Date.now();
@@ -275,7 +279,7 @@ ABSOLUTE RULES:
           const allCopy = await Promise.all(
             platforms.map((p) =>
               generateAdCopy(brandContext, p, objective ?? "lead generation", {
-                language: "Swedish",
+                language: detectedLanguage,
                 variants: 2,
               }),
             ),
@@ -374,7 +378,7 @@ ABSOLUTE RULES:
 
       show_publish_card: tool({
         description:
-          "Show the all-in-one publish card with ad summary, channels, budget, targeting, and email. Call this when user approves their ad and wants to publish. Replaces separate channel picker + campaign config.",
+          "Show the all-in-one publish card with ad summary, channels, budget, targeting, and email. Call this when user approves their ad and wants to publish. Replaces separate channel picker + campaign config. Pass detectedLocations from brand analysis if available (e.g. company city, region mentions from website).",
         inputSchema: z.object({
           brandName: z.string(),
           brandUrl: z.string(),
@@ -385,8 +389,14 @@ ABSOLUTE RULES:
           audience: z.string(),
           industryCategory: z.string().optional(),
           defaultCity: z.string().optional(),
+          detectedLocations: z.array(z.string()).optional().describe("Locations detected from brand analysis (company address, website mentions). Shown as recommended regions in the publish card."),
+          tracking: z.object({
+            hasMetaPixel: z.boolean().optional(),
+            hasGoogleTag: z.boolean().optional(),
+            hasLinkedinTag: z.boolean().optional(),
+          }).optional(),
         }),
-        execute: async ({ brandName, brandUrl, headline, bodyCopy, cta, goal, audience, industryCategory, defaultCity }) => {
+        execute: async ({ brandName, brandUrl, headline, bodyCopy, cta, goal, audience, industryCategory, defaultCity, detectedLocations, tracking }) => {
           const looked = industryCategory ? INDUSTRY_BUDGETS[industryCategory] : undefined;
           const budgets = (looked && typeof looked === "object" && "low" in looked) ? looked : DEFAULT_BUDGETS;
           const cpm = 50;
@@ -400,7 +410,9 @@ ABSOLUTE RULES:
             goal,
             audience,
             defaultCity,
+            detectedLocations: detectedLocations ?? [],
             currency: "kr",
+            tracking: tracking ?? null,
             suggestedBudgets: [
               { daily: Math.round(budgets.low / 30), label: "Sparsam", reach: estimateReach(Math.round(budgets.low / 30)) },
               { daily: Math.round(budgets.mid / 30), label: "Standard", reach: estimateReach(Math.round(budgets.mid / 30)), recommended: true },
@@ -567,16 +579,42 @@ ABSOLUTE RULES:
           // TODO: Replace with real plan/deployment logic — currently returns demo status
           // Demo mode: return simulated deployment status
           // In production with auth, this would check real ad accounts
-          const platformStatuses = platforms.map((platform) => {
+          type PlatformDeployStatus = {
+            platform: string;
+            status: "deploying" | "active" | "failed" | "connect_required";
+            message: string;
+            errorCode?: string;
+            action?: "retry" | "contact_support" | "add_payment" | "connect_account";
+            accountType?: "auto" | "oauth";
+            oauthUrl?: string;
+            startedAt?: string;
+          };
+
+          const platformStatuses: PlatformDeployStatus[] = platforms.map((platform) => {
             if (platform === "linkedin") {
               return {
                 platform,
                 status: "connect_required" as const,
                 message: "Du behöver ansluta ditt LinkedIn-konto först.",
+                action: "connect_account" as const,
                 accountType: "oauth" as const,
                 oauthUrl: "#",
               };
             }
+
+            // In production, each platform deploy would be wrapped in try/catch.
+            // Errors map to specific errorCode + action pairs:
+            //
+            //   AUTH_EXPIRED       -> action: "connect_account"
+            //   PAYMENT_REQUIRED   -> action: "add_payment"
+            //   BUDGET_TOO_LOW     -> action: "retry" (user adjusts budget)
+            //   CREATIVE_REJECTED  -> action: "retry" (user edits creative)
+            //   ACCOUNT_SUSPENDED  -> action: "contact_support"
+            //   RATE_LIMITED       -> action: "retry"
+            //   API_ERROR          -> action: "retry"
+            //   TARGETING_INVALID  -> action: "retry"
+            //   CAMPAIGN_LIMIT     -> action: "contact_support"
+            //   NETWORK_ERROR      -> action: "retry"
 
             // Demo: simulate deploying status for Meta/Google
             return {

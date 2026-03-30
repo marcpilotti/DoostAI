@@ -1,4 +1,4 @@
-export { buildCopyKey, getCachedCopy, invalidateBrandCopy, setCachedCopy } from "./cache";
+export { buildCopyKey, buildVariantSetKey, getCachedCopy, getCachedVariantSet, invalidateBrandCopy, setCachedCopy, setCachedVariantSet } from "./cache";
 export { generateAdCopy } from "./agents/copywriter";
 export { assembleCreatives } from "./agents/creative-director";
 export { googleSearchCopy, linkedinCopy, metaAdCopy } from "./prompts/ad-copy";
@@ -11,6 +11,22 @@ export type {
   Platform,
 } from "./types";
 export { CHAR_LIMITS } from "./types";
+export {
+  PLATFORM_LIMITS,
+  META_CTAS,
+  META_CTA_LABELS,
+  GOAL_TO_CTAS,
+  validateCopyLimits,
+  isValidMetaCta,
+  normaliseMetaCta,
+  getRecommendedCtas,
+} from "./platform-limits";
+export type {
+  PlatformId,
+  MetaCta,
+  CopyFields,
+  ValidationResult,
+} from "./platform-limits";
 export {
   classifyIntent,
   estimateCost,

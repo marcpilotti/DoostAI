@@ -39,6 +39,30 @@ export function buildCopyKey(
 }
 
 /**
+ * Build a cache key for a full variant set (hero + variant_a + variant_b).
+ * Includes variant count so requesting more variants gets a fresh generation.
+ * Format: `copyset:${sha256(normalized_params).slice(0, 16)}`
+ */
+export function buildVariantSetKey(
+  brandProfileId: string,
+  platform: string,
+  objective: string,
+  variantCount: number,
+  tone?: string,
+): string {
+  const parts = [
+    brandProfileId.trim().toLowerCase(),
+    platform.trim().toLowerCase(),
+    objective.trim().toLowerCase(),
+    (tone ?? "default").trim().toLowerCase(),
+    `variants:${variantCount}`,
+  ].join("|");
+
+  const hash = createHash("sha256").update(parts).digest("hex").slice(0, 16);
+  return `copyset:${hash}`;
+}
+
+/**
  * Build a wildcard-compatible prefix for a brand profile's copy keys.
  * Used for bulk invalidation when brand profile is updated.
  */
@@ -89,6 +113,51 @@ export async function setCachedCopy(
     }
   } catch (err) {
     console.warn("[cache] Write failure:", err instanceof Error ? err.message : err);
+  }
+}
+
+/**
+ * Get cached full variant set (hero + variant_a + variant_b).
+ * Returns null on cache miss or Redis unavailable.
+ */
+export async function getCachedVariantSet(
+  cacheKey: string,
+): Promise<AdCopyResult[] | null> {
+  const redis = getRedis();
+  if (!redis) return null;
+
+  try {
+    const cached = await redis.get<AdCopyResult[]>(cacheKey);
+    return cached ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Store a full variant set in cache with TTL (24h default — variants are expensive).
+ * Also tracks the key in a brand-specific set for bulk invalidation.
+ */
+export async function setCachedVariantSet(
+  cacheKey: string,
+  results: AdCopyResult[],
+  ttlSeconds: number,
+  brandProfileId?: string,
+): Promise<void> {
+  const redis = getRedis();
+  if (!redis) return;
+
+  try {
+    await redis.setex(cacheKey, ttlSeconds, results);
+
+    // Track this key under the brand for bulk invalidation
+    if (brandProfileId) {
+      const setKey = buildBrandCopyPrefix(brandProfileId);
+      await redis.sadd(setKey, cacheKey);
+      await redis.expire(setKey, ttlSeconds + 3600);
+    }
+  } catch (err) {
+    console.warn("[cache] Variant set write failure:", err instanceof Error ? err.message : err);
   }
 }
 

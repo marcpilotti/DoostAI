@@ -5,16 +5,21 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
+  CreditCard,
   ExternalLink,
+  HeadphonesIcon,
   Linkedin,
   RefreshCw,
   Rocket,
+  UserPlus,
 } from "lucide-react";
 
 type PlatformStatus = {
   platform: string;
-  status: "deploying" | "live" | "failed" | "connect_required" | "queued";
+  status: "deploying" | "active" | "live" | "failed" | "connect_required" | "queued";
   message: string;
+  errorCode?: string;
+  action?: "retry" | "contact_support" | "add_payment" | "connect_account";
   accountType?: "auto" | "oauth";
   oauthUrl?: string;
   startedAt?: string;
@@ -54,6 +59,7 @@ function ElapsedTimer({ startedAt }: { startedAt?: string }) {
 
 function StatusIcon({ status }: { status: PlatformStatus["status"] }) {
   switch (status) {
+    case "active":
     case "live":
       return (
         <div className="deploy-icon-enter">
@@ -76,6 +82,7 @@ function StatusIcon({ status }: { status: PlatformStatus["status"] }) {
 
 function StatusBadge({ status }: { status: PlatformStatus["status"] }) {
   const styles: Record<string, string> = {
+    active: "bg-emerald-50 text-emerald-700",
     live: "bg-emerald-50 text-emerald-700",
     deploying: "bg-amber-50 text-amber-700",
     queued: "bg-gray-50 text-gray-600",
@@ -84,6 +91,7 @@ function StatusBadge({ status }: { status: PlatformStatus["status"] }) {
   };
 
   const labels: Record<string, string> = {
+    active: "Aktiv",
     live: "Live",
     deploying: "Publicerar...",
     queued: "I kö",
@@ -98,6 +106,63 @@ function StatusBadge({ status }: { status: PlatformStatus["status"] }) {
       {labels[status]}
     </span>
   );
+}
+
+function ActionButton({
+  action,
+  platform,
+  onRetry,
+  onAction,
+}: {
+  action: PlatformStatus["action"];
+  platform: string;
+  onRetry?: (platform: string) => void;
+  onAction?: (platform: string, action: string) => void;
+}) {
+  switch (action) {
+    case "retry":
+      return (
+        <button
+          onClick={() => onRetry?.(platform)}
+          className="flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-100"
+        >
+          <RefreshCw className="h-3 w-3" />
+          Försök igen
+        </button>
+      );
+    case "contact_support":
+      return (
+        <button
+          onClick={() => onAction?.(platform, "contact_support")}
+          className="flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 transition-colors hover:bg-amber-100"
+        >
+          <HeadphonesIcon className="h-3 w-3" />
+          Kontakta support
+        </button>
+      );
+    case "add_payment":
+      return (
+        <button
+          onClick={() => onAction?.(platform, "add_payment")}
+          className="flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 transition-colors hover:bg-indigo-100"
+        >
+          <CreditCard className="h-3 w-3" />
+          Lägg till betalning
+        </button>
+      );
+    case "connect_account":
+      return (
+        <button
+          onClick={() => onAction?.(platform, "connect_account")}
+          className="flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 transition-colors hover:bg-blue-100"
+        >
+          <UserPlus className="h-3 w-3" />
+          Anslut konto
+        </button>
+      );
+    default:
+      return null;
+  }
 }
 
 function Confetti() {
@@ -120,20 +185,25 @@ function Confetti() {
 export function CampaignDeploymentStatus({
   data,
   onRetry,
+  onAction,
 }: {
   data: DeploymentData;
   onRetry?: (platform: string) => void;
+  onAction?: (platform: string, action: string) => void;
 }) {
-  const allLive = data.platforms.every((p) => p.status === "live");
+  const allSuccess = data.platforms.every(
+    (p) => p.status === "live" || p.status === "active",
+  );
+  const hasErrors = data.platforms.some((p) => p.status === "failed");
   const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {
-    if (allLive) {
+    if (allSuccess) {
       setShowConfetti(true);
       const timer = setTimeout(() => setShowConfetti(false), 1500);
       return () => clearTimeout(timer);
     }
-  }, [allLive]);
+  }, [allSuccess]);
 
   return (
     <div className="relative mt-1 space-y-3">
@@ -141,10 +211,14 @@ export function CampaignDeploymentStatus({
 
       {/* Header */}
       <div className="flex items-center gap-2.5 rounded-xl bg-muted/40 p-3">
-        <Rocket className={`h-5 w-5 text-indigo-500 ${allLive ? "" : "animate-pulse"}`} />
+        <Rocket className={`h-5 w-5 text-indigo-500 ${allSuccess ? "" : "animate-pulse"}`} />
         <div className="flex-1">
           <div className="text-sm font-semibold">
-            {allLive ? "Alla kampanjer är live!" : "Kampanjdistribution"}
+            {allSuccess
+              ? "Alla kampanjer är live!"
+              : hasErrors
+                ? "Vissa plattformar behöver åtgärd"
+                : "Kampanjdistribution"}
           </div>
           {data.budget && (
             <div className="text-xs text-muted-foreground">
@@ -153,9 +227,14 @@ export function CampaignDeploymentStatus({
             </div>
           )}
         </div>
-        {allLive && (
+        {allSuccess && (
           <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-emerald-700">
             Alla live
+          </span>
+        )}
+        {hasErrors && (
+          <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-red-700">
+            Åtgärd krävs
           </span>
         )}
       </div>
@@ -167,44 +246,75 @@ export function CampaignDeploymentStatus({
           return (
             <div
               key={p.platform}
-              className="flex items-center gap-3 rounded-xl border border-border/40 bg-white/60 px-4 py-3 backdrop-blur-sm transition-all duration-300"
+              className={`rounded-xl border px-4 py-3 backdrop-blur-sm transition-all duration-300 ${
+                p.status === "failed"
+                  ? "border-red-200 bg-red-50/30"
+                  : "border-border/40 bg-white/60"
+              }`}
             >
-              <StatusIcon status={p.status} />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">
-                    {meta?.label ?? p.platform}
-                  </span>
-                  <StatusBadge status={p.status} />
-                  {p.status === "deploying" && (
-                    <ElapsedTimer startedAt={p.startedAt} />
-                  )}
+              <div className="flex items-center gap-3">
+                <StatusIcon status={p.status} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">
+                      {meta?.label ?? p.platform}
+                    </span>
+                    <StatusBadge status={p.status} />
+                    {p.status === "deploying" && (
+                      <ElapsedTimer startedAt={p.startedAt} />
+                    )}
+                  </div>
+                  <div className="mt-0.5 text-xs text-muted-foreground">
+                    {p.message}
+                  </div>
                 </div>
-                <div className="mt-0.5 text-xs text-muted-foreground">
-                  {p.message}
-                </div>
+
+                {/* OAuth connect button for connect_required */}
+                {p.status === "connect_required" && p.oauthUrl && (
+                  <a
+                    href={p.oauthUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 rounded-lg bg-[#0077B5] px-3 py-1.5 text-xs font-medium text-white"
+                  >
+                    Anslut
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
+
+                {/* Action button for failed states */}
+                {p.status === "failed" && p.action && (
+                  <ActionButton
+                    action={p.action}
+                    platform={p.platform}
+                    onRetry={onRetry}
+                    onAction={onAction}
+                  />
+                )}
+
+                {/* Fallback retry for failed without specific action */}
+                {p.status === "failed" && !p.action && onRetry && (
+                  <button
+                    onClick={() => onRetry(p.platform)}
+                    className="flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-100"
+                  >
+                    <RefreshCw className="h-3 w-3" />
+                    Försök igen
+                  </button>
+                )}
               </div>
 
-              {p.status === "connect_required" && p.oauthUrl && (
-                <a
-                  href={p.oauthUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 rounded-lg bg-[#0077B5] px-3 py-1.5 text-xs font-medium text-white"
-                >
-                  Anslut
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              )}
-
-              {p.status === "failed" && onRetry && (
-                <button
-                  onClick={() => onRetry(p.platform)}
-                  className="flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-100"
-                >
-                  <RefreshCw className="h-3 w-3" />
-                  Försök igen
-                </button>
+              {/* Error detail panel for failed states */}
+              {p.status === "failed" && p.errorCode && (
+                <div className="ml-8 mt-2 rounded-lg border border-red-100 bg-red-50/50 px-3 py-2">
+                  <div className="flex items-center gap-1.5 text-[9px] font-medium text-red-600">
+                    <AlertTriangle className="h-3 w-3" />
+                    Felkod: {p.errorCode}
+                  </div>
+                  <div className="mt-0.5 text-[9px] text-red-500/80">
+                    {getErrorDescription(p.errorCode)}
+                  </div>
+                </div>
               )}
             </div>
           );
@@ -212,6 +322,22 @@ export function CampaignDeploymentStatus({
       </div>
     </div>
   );
+}
+
+function getErrorDescription(errorCode: string): string {
+  const descriptions: Record<string, string> = {
+    AUTH_EXPIRED: "Kontots autentisering har gått ut. Vänligen anslut kontot igen.",
+    PAYMENT_REQUIRED: "Betalningsmetod saknas. Lägg till ett betalkort för att fortsätta.",
+    BUDGET_TOO_LOW: "Budgeten är under plattformens minimigräns. Öka den dagliga budgeten.",
+    CREATIVE_REJECTED: "Annonsinnehållet uppfyllde inte plattformens riktlinjer. Redigera och försök igen.",
+    ACCOUNT_SUSPENDED: "Annonskontot har blivit avstängt. Kontakta support för hjälp.",
+    RATE_LIMITED: "För många förfrågningar. Försök igen om en stund.",
+    API_ERROR: "Ett tekniskt fel uppstod vid kommunikation med plattformen.",
+    TARGETING_INVALID: "Målgruppsinställningarna kunde inte valideras av plattformen.",
+    CAMPAIGN_LIMIT: "Maxgräns för antal kampanjer har nåtts på detta konto.",
+    NETWORK_ERROR: "Nätverksfel vid kontakt med plattformen. Kontrollera anslutningen.",
+  };
+  return descriptions[errorCode] ?? "Ett oväntat fel uppstod. Försök igen eller kontakta support.";
 }
 
 export function CampaignDeploymentLoading() {

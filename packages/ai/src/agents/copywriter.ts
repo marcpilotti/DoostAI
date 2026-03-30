@@ -3,7 +3,7 @@ import { openai } from "@ai-sdk/openai";
 import { generateObject } from "ai";
 import { z } from "zod";
 
-import { buildCopyKey, getCachedCopy, setCachedCopy } from "../cache";
+import { buildCopyKey, buildVariantSetKey, getCachedCopy, getCachedVariantSet, setCachedCopy, setCachedVariantSet } from "../cache";
 import { googleSearchCopy, linkedinCopy, metaAdCopy } from "../prompts/ad-copy";
 import { createTrace, flushTraces, traceGeneration } from "../tracing";
 import type {
@@ -14,6 +14,12 @@ import type {
   Platform,
 } from "../types";
 import { CHAR_LIMITS } from "../types";
+import {
+  META_CTAS,
+  isValidMetaCta,
+  normaliseMetaCta,
+  getRecommendedCtas,
+} from "../platform-limits";
 
 // --- Schemas per platform ---
 
@@ -64,7 +70,6 @@ function validateLimits(
   platform: Platform,
   result: Record<string, unknown>,
 ): boolean {
-  const limits = CHAR_LIMITS[platform];
   if (platform === "google") {
     const r = result as z.infer<typeof googleSchema>;
     const gl = CHAR_LIMITS.google;
@@ -80,6 +85,39 @@ function validateLimits(
     r.bodyCopy.length <= ml.bodyCopy &&
     r.cta.length <= ml.cta
   );
+}
+
+/**
+ * For Meta ads, validate that the CTA is one of the accepted enum values.
+ * Returns true if CTA is valid (or platform is not meta), false otherwise.
+ */
+function validateMetaCta(
+  platform: Platform,
+  result: Record<string, unknown>,
+): boolean {
+  if (platform !== "meta") return true;
+  const r = result as { cta: string };
+  return isValidMetaCta(r.cta);
+}
+
+/**
+ * Try to fix a Meta CTA by normalising it. Returns the fixed CTA if possible,
+ * or a default fallback ("LEARN_MORE").
+ */
+function fixMetaCta(
+  cta: string,
+  objective?: string,
+): string {
+  const normalised = normaliseMetaCta(cta);
+  if (normalised) return normalised;
+
+  // Pick the first recommended CTA for the campaign goal
+  if (objective) {
+    const recommended = getRecommendedCtas(objective);
+    return recommended[0] ?? "LEARN_MORE";
+  }
+
+  return "LEARN_MORE";
 }
 
 async function generateSingleVariant(
@@ -125,6 +163,39 @@ async function generateSingleVariant(
       prompt: retryPrompt,
     });
     result = retryResponse.object as z.infer<typeof schema>;
+  }
+
+  // ── CTA validation (Meta only) ──────────────────────────────
+  // Meta requires CTA to be one of a fixed set of enum values.
+  // First try to normalise, then retry with explicit CTA list if needed.
+  if (platform === "meta" && !validateMetaCta(platform, result as Record<string, unknown>)) {
+    const r = result as { headline: string; bodyCopy: string; cta: string };
+    const fixed = fixMetaCta(r.cta, options.objective);
+    // If normalisation succeeded, patch in-place
+    if (fixed !== r.cta) {
+      (result as { cta: string }).cta = fixed;
+    }
+    // If still invalid after normalisation, retry with explicit CTA constraint
+    if (!isValidMetaCta((result as { cta: string }).cta)) {
+      retried = true;
+      const ctaList = META_CTAS.join(", ");
+      const ctaRetryPrompt = `${prompt}\n\nIMPORTANT: The CTA field MUST be one of these exact values: ${ctaList}\nDo NOT invent a custom CTA string. Pick the best match from this list.`;
+
+      const ctaRetryResponse = await generateObject({
+        model,
+        schema,
+        prompt: ctaRetryPrompt,
+      });
+      result = ctaRetryResponse.object as z.infer<typeof schema>;
+
+      // Last-resort: force a valid CTA
+      if (!isValidMetaCta((result as { cta: string }).cta)) {
+        (result as { cta: string }).cta = fixMetaCta(
+          (result as { cta: string }).cta,
+          options.objective,
+        );
+      }
+    }
   }
 
   const latencyMs = Date.now() - start;
@@ -187,9 +258,34 @@ export async function generateAdCopy(
     numVariants,
   ) as CopyVariant[];
 
+  // --- Check full variant set cache first (24h TTL) ---
+  // This catches "Fler varianter" requests that re-request the same set
+  const variantSetKey = buildVariantSetKey(brandProfileId, platform, objective, numVariants, opts.tone);
+
+  if (!skipCache) {
+    const cachedSet = await getCachedVariantSet(variantSetKey);
+    if (cachedSet && cachedSet.length >= numVariants) {
+      const trace = createTrace(`copywriter/${platform}/variantset-cached`, {
+        platform,
+        cacheHit: true,
+        cacheKey: variantSetKey,
+        variantCount: cachedSet.length,
+      });
+      traceGeneration(trace, {
+        name: `${platform}-variantset-cached`,
+        model: "cache",
+        input: variantSetKey,
+        output: cachedSet,
+        latencyMs: 0,
+      });
+      await flushTraces();
+      return cachedSet;
+    }
+  }
+
   const results: AdCopyResult[] = [];
 
-  // --- Hero variant: check cache first ---
+  // --- Hero variant: check individual cache first ---
   const cacheKey = buildCopyKey(brandProfileId, platform, objective, opts.tone);
   let cacheHit = false;
 
@@ -218,11 +314,11 @@ export async function generateAdCopy(
     const hero = await generateSingleVariant(platform, brand, opts, "hero", false);
     results.push(hero);
 
-    // Cache hero copy (1 hour TTL) — variants are NEVER cached for diversity
+    // Cache hero copy (1 hour TTL)
     await setCachedCopy(cacheKey, hero, 3600, brandProfileId);
   }
 
-  // Additional variants: GPT-4o (speed) — NEVER cached
+  // Additional variants: GPT-4o (speed)
   const additional = variants.slice(1);
   if (additional.length > 0) {
     const parallel = await Promise.all(
@@ -231,6 +327,12 @@ export async function generateAdCopy(
       ),
     );
     results.push(...parallel);
+  }
+
+  // Cache the FULL variant set (hero + variant_a + variant_b) with 24h TTL.
+  // This is longer than the hero-only 1h cache because variant generation is expensive.
+  if (!skipCache) {
+    await setCachedVariantSet(variantSetKey, results, 86400, brandProfileId);
   }
 
   await flushTraces();
