@@ -1391,345 +1391,204 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
     return ` [colors: ${parts.join(",")}]`;
   }
 
+  // State for PRO section toggle
+  const [showPro, setShowPro] = useState(false);
+
+  // Current variant index (single view, carousel-style)
+  const currentCopy = variants[mobileIndex] ?? variants[0]!;
+  const currentCopyId = currentCopy.id ?? `${currentCopy.platform}-${currentCopy.variant}`;
+
   return (
-    <div className="animate-card-in mt-2 overflow-hidden rounded-2xl border border-border/30 bg-white/80 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] backdrop-blur-xl">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-border/30 px-5 py-3">
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-pink-500 to-purple-500">
-            <Sparkles className="h-4 w-4 text-white" />
-          </div>
-          <div>
-            <div className="text-sm font-semibold">Annonsf&#246;rslag</div>
-            <div className="text-xs text-muted-foreground">V&#228;lj format, layout och variant &#8212; klicka direkt p&#229; texten f&#246;r att redigera</div>
-          </div>
-        </div>
-        {hasColorOverrides && (
-          <button
-            onClick={resetColorOverrides}
-            className="flex items-center gap-1 rounded-lg border border-border/40 bg-white px-2.5 py-1.5 text-[10px] font-medium text-muted-foreground transition-all hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700"
-          >
-            <RotateCcw className="h-3 w-3" />
-            &#197;terst&#228;ll f&#228;rger
-          </button>
-        )}
-      </div>
+    <div className="animate-card-in mt-2 flex flex-col overflow-hidden rounded-2xl border border-border/30 bg-white shadow-lg" style={{ maxHeight: "calc(100vh - 160px)" }}>
 
-      {/* Format toggle */}
-      <div className="flex gap-1 overflow-x-auto border-b border-border/30 bg-muted/20 px-4 py-2">
-        {FORMAT_TABS.map((tab) => {
-          const TabIcon = tab.icon;
-          return (
-            <button key={tab.id} onClick={() => { setFormat(tab.id); setSelectedId(null); setMobileIndex(0); }} className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${format === tab.id ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
-              <TabIcon className="h-3.5 w-3.5" />
-              {tab.label}
+      {/* ── Hero: The Ad Preview ─────────────────────────────────── */}
+      <div className="relative flex-1 overflow-hidden px-4 pt-4 pb-2">
+        {/* Variant label */}
+        <div className="mb-2 flex items-center justify-center gap-2">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/50">
+            {currentCopy.label ?? `Variant ${mobileIndex + 1}`}
+          </span>
+          {variantDiffs.get(currentCopyId)?.[0] && (
+            <span className="rounded-full bg-indigo-50 px-1.5 py-0.5 text-[8px] font-medium text-indigo-500">
+              {variantDiffs.get(currentCopyId)![0]}
+            </span>
+          )}
+        </div>
+
+        {/* Single preview — large, centered */}
+        <div className="mx-auto" style={{ maxHeight: "55vh" }}>
+          <Preview
+            key={`${format}-${layout}-${currentCopyId}`}
+            copy={getEditedCopy(currentCopy)}
+            brand={data.brand!}
+            bgImage={bgImages[currentCopyId]}
+            isSelected={true}
+            isLoser={false}
+            onPick={() => handleVariantPick(currentCopyId)}
+            layout={layout}
+            onEditField={(field, value) => updateEdit(currentCopyId, field, value, currentCopy)}
+            charLimits={getCharLimits(currentCopy.platform)}
+            colorOverrides={colorOverrides}
+            onColorChange={handleColorChange}
+            harmonyPalette={harmonyPalette}
+            logoPosition={logoPosition}
+            onLogoPositionChange={setLogoPosition}
+            diffs={variantDiffs.get(currentCopyId)}
+          />
+        </div>
+
+        {/* Variant dots — carousel-style */}
+        {variants.length > 1 && (
+          <div className="mt-3 flex items-center justify-center gap-2">
+            <button
+              onClick={() => setMobileIndex(mobileIndex > 0 ? mobileIndex - 1 : variants.length - 1)}
+              className="flex h-6 w-6 items-center justify-center rounded-full text-muted-foreground/40 transition-colors hover:bg-muted/30 hover:text-foreground"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
             </button>
-          );
-        })}
-      </div>
-
-      {/* Layout selector + view mode toggle */}
-      <div className="flex items-center gap-1 overflow-x-auto border-b border-border/20 bg-muted/10 px-4 py-1.5">
-        <span className="mr-1 self-center text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/50">Layout:</span>
-        {LAYOUT_OPTIONS.map((opt) => {
-          const LayoutIcon = opt.icon;
-          return (
-            <button key={opt.id} onClick={() => { setLayout(opt.id); if (viewMode === "compare") setViewMode("single"); }} className={`flex shrink-0 items-center gap-1 rounded-md px-2.5 py-1 text-[10px] font-medium transition-all ${layout === opt.id ? "bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200" : "text-muted-foreground hover:bg-muted/30 hover:text-foreground"}`}>
-              <LayoutIcon className="h-3 w-3" />
-              {opt.label}
-            </button>
-          );
-        })}
-
-        {/* View mode toggle */}
-        <div className="ml-auto flex shrink-0 items-center gap-0.5 rounded-lg border border-border/30 bg-white p-0.5">
-          <button
-            onClick={() => setViewMode("single")}
-            title="Enkel vy"
-            className={`flex h-6 w-6 items-center justify-center rounded-md transition-all ${
-              viewMode === "single"
-                ? "bg-indigo-50 text-indigo-600 shadow-sm"
-                : "text-muted-foreground hover:bg-muted/30 hover:text-foreground"
-            }`}
-          >
-            <Maximize2 className="h-3 w-3" />
-          </button>
-          <button
-            onClick={() => setViewMode("compare")}
-            title="Jämför layouter"
-            className={`flex h-6 w-6 items-center justify-center rounded-md transition-all ${
-              viewMode === "compare"
-                ? "bg-indigo-50 text-indigo-600 shadow-sm"
-                : "text-muted-foreground hover:bg-muted/30 hover:text-foreground"
-            }`}
-          >
-            <Grid2x2 className="h-3 w-3" />
-          </button>
-        </div>
-      </div>
-
-      {/* Color override indicator */}
-      {hasColorOverrides && (
-        <div className="flex items-center gap-2 border-b border-border/20 bg-amber-50/50 px-4 py-1.5">
-          <Palette className="h-3 w-3 text-amber-600" />
-          <span className="text-[9px] font-medium text-amber-700">Anpassade f&#228;rger aktiva</span>
-          <div className="flex gap-1">
-            {Object.entries(colorOverrides).map(([key, value]) => value ? (
-              <div key={key} className="h-3.5 w-3.5 rounded-full border border-white shadow-sm" style={{ backgroundColor: value }} title={`${key}: ${value}`} />
-            ) : null)}
-          </div>
-          <button onClick={resetColorOverrides} className="ml-auto text-[9px] font-medium text-amber-600 underline-offset-2 hover:underline">
-            &#197;terst&#228;ll
-          </button>
-        </div>
-      )}
-
-      {/* Preference insight banner */}
-      {variantPreferences.selectedCount >= 2 && (
-        <div className="flex items-center gap-1.5 border-b border-border/20 px-4 py-1.5">
-          <div className="flex items-center gap-1.5 rounded-lg bg-indigo-50 px-3 py-1.5 text-[10px] text-indigo-600">
-            <Sparkles className="h-3 w-3" />
-            Du verkar f&#246;redra {variantPreferences.preferredHeadlineLength === "short" ? "kortare" : variantPreferences.preferredHeadlineLength === "long" ? "l&#228;ngre" : "mellanl&#229;nga"} rubriker &#8212; vi anpassar framtida f&#246;rslag.
-          </div>
-        </div>
-      )}
-
-      {/* Desktop: side by side */}
-      <div className="hidden gap-4 p-4 sm:grid sm:grid-cols-2">
-        {variants.map((copy) => {
-          const copyId = copy.id ?? `${copy.platform}-${copy.variant}`;
-          return (
-            <Preview
-              key={`${format}-${layout}-${copyId}`}
-              copy={getEditedCopy(copy)}
-              brand={data.brand!}
-              bgImage={bgImages[copyId]}
-              isSelected={selectedId === copyId}
-              isLoser={selectedId !== null && selectedId !== copyId}
-              onPick={() => handleVariantPick(copyId)}
-              layout={layout}
-              onEditField={(field, value) => updateEdit(copyId, field, value, copy)}
-              charLimits={getCharLimits(copy.platform)}
-              colorOverrides={colorOverrides}
-              onColorChange={handleColorChange}
-              harmonyPalette={harmonyPalette}
-              logoPosition={logoPosition}
-              onLogoPositionChange={setLogoPosition}
-              diffs={variantDiffs.get(copyId)}
-            />
-          );
-        })}
-      </div>
-
-      {/* Mobile: swipeable */}
-      <div className="p-4 sm:hidden">
-        {variants[mobileIndex] && (() => {
-          const copy = variants[mobileIndex]!;
-          const copyId = copy.id ?? `${copy.platform}-${copy.variant}`;
-          return (
-            <div className="relative">
-              <Preview
-                copy={getEditedCopy(copy)}
-                brand={data.brand!}
-                bgImage={bgImages[copyId]}
-                isSelected={selectedId === copyId}
-                isLoser={selectedId !== null && selectedId !== copyId}
-                onPick={() => handleVariantPick(copyId)}
-                layout={layout}
-                onEditField={(field, value) => updateEdit(copyId, field, value, copy)}
-                charLimits={getCharLimits(copy.platform)}
-                colorOverrides={colorOverrides}
-                onColorChange={handleColorChange}
-                harmonyPalette={harmonyPalette}
-                logoPosition={logoPosition}
-                onLogoPositionChange={setLogoPosition}
-                diffs={variantDiffs.get(copyId)}
+            {variants.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setMobileIndex(i)}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  i === mobileIndex ? "w-6 bg-indigo-500" : "w-2 bg-border/50 hover:bg-border"
+                }`}
               />
-              {mobileIndex > 0 && (
-                <button onClick={() => setMobileIndex((i) => i - 1)} className="absolute -left-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md">
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-              )}
-              {mobileIndex < variants.length - 1 && (
-                <button onClick={() => setMobileIndex((i) => i + 1)} className="absolute -right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md">
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-          );
-        })()}
-        <div className="mt-3 flex justify-center gap-1.5">
-          {variants.map((_, i) => (
-            <button key={i} onClick={() => setMobileIndex(i)} className={`h-2 rounded-full transition-all ${i === mobileIndex ? "w-5 bg-indigo-500" : "w-2 bg-border/60"}`} />
-          ))}
-        </div>
-      </div>
-
-      {/* Template style chips */}
-      <div className="flex gap-1.5 border-t border-border/20 px-4 py-2">
-        {[
-          { id: "logo-headline", label: "Logo + rubrik" },
-          { id: "stat-impact", label: "Siffra + impact" },
-          { id: "testimonial", label: "Kundreferens" },
-          { id: "minimal", label: "Minimalistisk" },
-        ].map((t) => (
-          <button key={t.id} className="rounded-full border border-border/40 bg-white px-2.5 py-1 text-[9px] font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600" onClick={() => onSendMessage?.(`Byt till mall: ${t.label}`)}>
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Editing toolbar */}
-      <div className="border-t border-border/30 px-4 py-3">
-        <div className="flex gap-2">
-          <button onClick={() => setEditMode(editMode === "ai" ? null : "ai")} className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-all ${editMode === "ai" ? "bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200" : "bg-muted/40 text-muted-foreground hover:bg-muted/60 hover:text-foreground"}`}>
-            <Wand2 className="h-3.5 w-3.5" />
-            Redigera med AI
-          </button>
-          <button onClick={() => setEditMode(editMode === "manual" ? null : "manual")} className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-all ${editMode === "manual" ? "bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200" : "bg-muted/40 text-muted-foreground hover:bg-muted/60 hover:text-foreground"}`}>
-            <Pencil className="h-3.5 w-3.5" />
-            Redigera sj&#228;lv
-          </button>
-        </div>
-
-        {editMode === "ai" && (
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            {AI_PROMPTS.map((p) => (
-              <button key={p.label} onClick={() => onSendMessage?.(p.prompt)} className="flex items-center gap-2 rounded-xl border border-border/50 bg-white px-3 py-2.5 text-left text-xs font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600">
-                <p.icon className="h-3.5 w-3.5 shrink-0" />
-                {p.label}
-              </button>
             ))}
+            <button
+              onClick={() => setMobileIndex(mobileIndex < variants.length - 1 ? mobileIndex + 1 : 0)}
+              className="flex h-6 w-6 items-center justify-center rounded-full text-muted-foreground/40 transition-colors hover:bg-muted/30 hover:text-foreground"
+            >
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
           </div>
         )}
+      </div>
 
-        {editMode === "manual" && (
-          <div className="mt-3 space-y-3">
-            {hasAnyViolation && (
-              <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2">
-                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
-                <div className="space-y-0.5">
-                  <div className="text-[10px] font-semibold text-red-600">Teckengr&#228;nser &#246;verskrids</div>
-                  {Object.entries(allViolations).map(([copyId, violations]) => (
-                    <div key={copyId} className="text-[9px] text-red-500">{violations.join(" / ")}</div>
-                  ))}
+      {/* ── Action Buttons ───────────────────────────────────────── */}
+      <div className="flex items-center gap-3 border-t border-border/20 px-4 py-3">
+        <button
+          onClick={() => onSendMessage?.("Ändra texten")}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border/40 bg-white px-4 py-2.5 text-xs font-semibold text-muted-foreground transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600"
+        >
+          <Pencil className="h-3.5 w-3.5" />
+          Ändra
+        </button>
+        <button
+          disabled={hasAnyViolation}
+          onClick={() => {
+            if (hasAnyViolation) return;
+            const edited = getEditedCopy(currentCopy);
+            const colors = colorOverrideString();
+            const msg = `Ser bra ut, publicera! [headline: ${edited.headline}] [body: ${edited.bodyCopy}] [cta: ${edited.cta}]${colors}`;
+            onSendMessage?.(msg);
+          }}
+          className={`flex flex-[2] items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold shadow-sm transition-all ${
+            hasAnyViolation
+              ? "cursor-not-allowed bg-gray-200 text-gray-400"
+              : "bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 hover:shadow-md"
+          }`}
+        >
+          {hasAnyViolation ? (
+            <>
+              <AlertTriangle className="h-3.5 w-3.5" />
+              Teckengräns överskriden
+            </>
+          ) : (
+            <>
+              Publicera
+              <ArrowRight className="h-3.5 w-3.5" />
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* ── PRO Section (collapsed by default) ───────────────────── */}
+      <div className="border-t border-border/20">
+        <button
+          onClick={() => setShowPro(!showPro)}
+          className="flex w-full items-center gap-2 px-4 py-2 text-[10px] font-medium text-muted-foreground/60 transition-colors hover:bg-muted/10 hover:text-muted-foreground"
+        >
+          <ChevronUp className={`h-3 w-3 transition-transform duration-200 ${showPro ? "" : "rotate-180"}`} />
+          Fler alternativ
+          <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-[8px] font-bold text-indigo-400">PRO</span>
+        </button>
+
+        {showPro && (
+          <div className="space-y-2 border-t border-border/10 px-4 pb-3 pt-2">
+            {/* Format tabs */}
+            <div>
+              <div className="mb-1 text-[8px] font-semibold uppercase tracking-wider text-muted-foreground/40">Format</div>
+              <div className="flex gap-1">
+                {FORMAT_TABS.map((tab) => {
+                  const TabIcon = tab.icon;
+                  return (
+                    <button key={tab.id} onClick={() => { setFormat(tab.id); setMobileIndex(0); }} className={`flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium transition-all ${format === tab.id ? "bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200" : "text-muted-foreground hover:bg-muted/30"}`}>
+                      <TabIcon className="h-3 w-3" />
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Layout options */}
+            <div>
+              <div className="mb-1 text-[8px] font-semibold uppercase tracking-wider text-muted-foreground/40">Layout</div>
+              <div className="flex gap-1">
+                {LAYOUT_OPTIONS.map((opt) => {
+                  const LayoutIcon = opt.icon;
+                  return (
+                    <button key={opt.id} onClick={() => setLayout(opt.id)} className={`flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium transition-all ${layout === opt.id ? "bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200" : "text-muted-foreground hover:bg-muted/30"}`}>
+                      <LayoutIcon className="h-3 w-3" />
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Color overrides */}
+            {hasColorOverrides && (
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1">
+                  {Object.entries(colorOverrides).map(([key, value]) => value ? (
+                    <div key={key} className="h-4 w-4 rounded-full border border-white shadow-sm" style={{ backgroundColor: value }} />
+                  ) : null)}
                 </div>
+                <button onClick={resetColorOverrides} className="text-[9px] font-medium text-amber-600 hover:underline">
+                  Återställ färger
+                </button>
               </div>
             )}
-            <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
-              <Pencil className="h-3.5 w-3.5 shrink-0 text-blue-500" />
-              <span className="text-[10px] font-medium text-blue-700">Du kan ocks&#229; klicka direkt p&#229; texten i f&#246;rhandsgranskningen f&#246;r att redigera.</span>
-            </div>
 
-            {variants.map((copy) => {
-              const copyId = copy.id ?? `${copy.platform}-${copy.variant}`;
-              const edited = getEditedCopy(copy);
-              const headlineLimit = getLimit(copy.platform, "headline");
-              const bodyLimit = getLimit(copy.platform, "bodyCopy");
-              const ctaLimit = getLimit(copy.platform, "cta");
-              const headlineOver = edited.headline.length > headlineLimit;
-              const bodyOver = edited.bodyCopy.length > bodyLimit;
-              const ctaOver = edited.cta.length > ctaLimit;
-              const copyViolations = allViolations[copyId];
-
-              return (
-                <div key={copyId} className={`rounded-xl border bg-white p-3 space-y-2 ${copyViolations ? "border-red-300" : "border-border/50"}`}>
-                  <div className="flex items-center justify-between">
-                    <div className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/50">{copy.label}</div>
-                    <div className="text-[8px] font-medium text-muted-foreground/40">{resolvePlatform(copy.platform).toUpperCase()}</div>
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-[9px] font-medium text-muted-foreground/50">RUBRIK</span>
-                      <span className={`text-[9px] font-mono ${headlineOver ? "font-semibold text-red-500" : "text-muted-foreground/40"}`}>{edited.headline.length}/{headlineLimit}</span>
-                    </div>
-                    <input type="text" value={edited.headline} onChange={(e) => updateEdit(copyId, "headline", e.target.value, copy)} maxLength={headlineLimit} className={`w-full rounded-lg border bg-muted/5 px-2.5 py-1.5 text-xs font-medium outline-none transition-all focus:ring-1 ${headlineOver ? "border-red-300 focus:border-red-400 focus:ring-red-200" : "border-border/40 focus:border-indigo-300 focus:ring-indigo-200"}`} />
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-[9px] font-medium text-muted-foreground/50">BR&#214;DTEXT</span>
-                      <span className={`text-[9px] font-mono ${bodyOver ? "font-semibold text-red-500" : "text-muted-foreground/40"}`}>{edited.bodyCopy.length}/{bodyLimit}</span>
-                    </div>
-                    <textarea value={edited.bodyCopy} onChange={(e) => updateEdit(copyId, "bodyCopy", e.target.value, copy)} maxLength={bodyLimit} rows={2} className={`w-full resize-none rounded-lg border bg-muted/5 px-2.5 py-1.5 text-xs outline-none transition-all focus:ring-1 ${bodyOver ? "border-red-300 focus:border-red-400 focus:ring-red-200" : "border-border/40 focus:border-indigo-300 focus:ring-indigo-200"}`} />
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-[9px] font-medium text-muted-foreground/50">CTA</span>
-                      <span className={`text-[9px] font-mono ${ctaOver ? "font-semibold text-red-500" : "text-muted-foreground/40"}`}>{edited.cta.length}/{ctaLimit}</span>
-                    </div>
-                    <input type="text" value={edited.cta} onChange={(e) => updateEdit(copyId, "cta", e.target.value, copy)} maxLength={ctaLimit} className={`w-full rounded-lg border bg-muted/5 px-2.5 py-1.5 text-xs font-medium outline-none transition-all focus:ring-1 ${ctaOver ? "border-red-300 focus:border-red-400 focus:ring-red-200" : "border-border/40 focus:border-indigo-300 focus:ring-indigo-200"}`} />
-                  </div>
-                  {copyViolations && (
-                    <div className="flex items-center gap-1.5 rounded-md bg-red-50 px-2 py-1">
-                      <AlertTriangle className="h-3 w-3 shrink-0 text-red-400" />
-                      <span className="text-[9px] text-red-500">{copyViolations.join(" / ")}</span>
-                    </div>
-                  )}
-                  <button onClick={() => { setUploadTarget(copyId); fileInputRef.current?.click(); }} className="flex w-full items-center gap-2 rounded-lg border border-dashed border-border/50 bg-muted/5 px-3 py-2 text-xs text-muted-foreground transition-colors hover:border-indigo-300 hover:bg-indigo-50/20 hover:text-indigo-600">
-                    <ImagePlus className="h-3.5 w-3.5" />
-                    {bgImages[copyId] ? "Byt bakgrundsbild" : "Ladda upp bakgrundsbild"}
+            {/* Template chips */}
+            <div>
+              <div className="mb-1 text-[8px] font-semibold uppercase tracking-wider text-muted-foreground/40">Mall</div>
+              <div className="flex gap-1">
+                {[
+                  { id: "logo-headline", label: "Logo + rubrik" },
+                  { id: "stat-impact", label: "Siffra + impact" },
+                  { id: "testimonial", label: "Kundreferens" },
+                  { id: "minimal", label: "Minimalistisk" },
+                ].map((t) => (
+                  <button key={t.id} className="rounded-full border border-border/30 px-2 py-0.5 text-[9px] font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:text-indigo-600" onClick={() => onSendMessage?.(`Byt till mall: ${t.label}`)}>
+                    {t.label}
                   </button>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-      </div>
-
-      {/* QuickPicks + Footer */}
-      <div className="border-t border-border/20 px-4 py-2">
-        {selectedId ? (
-          <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1 text-[9px] font-medium text-emerald-600">
-              <Check className="h-3 w-3" /> Variant vald
-            </span>
-            <div className="ml-auto flex gap-1.5">
-              <button onClick={() => onSendMessage?.(variantPreferences.selectedCount >= 2 ? `Visa fler varianter (f\u00f6redrar ${variantPreferences.preferredHeadlineLength === "short" ? "kortare" : variantPreferences.preferredHeadlineLength === "long" ? "l\u00e4ngre" : "mellanl\u00e5nga"} rubriker)` : "Visa fler varianter")} className="rounded-full border border-border/40 bg-white px-2.5 py-1 text-[9px] font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:text-indigo-600">
-                Fler varianter
-              </button>
-              <button
-                disabled={hasAnyViolation}
-                onClick={() => {
-                  if (hasAnyViolation) return;
-                  const selected = variants.find((c) => (c.id ?? `${c.platform}-${c.variant}`) === selectedId);
-                  const edited = selected ? getEditedCopy(selected) : undefined;
-                  const colors = colorOverrideString();
-                  const msg = edited
-                    ? `Ser bra ut, publicera! [headline: ${edited.headline}] [body: ${edited.bodyCopy}] [cta: ${edited.cta}]${colors}`
-                    : `Ser bra ut, publicera!${colors}`;
-                  onSendMessage?.(msg);
-                }}
-                title={hasAnyViolation ? "Fix character limit violations before publishing" : undefined}
-                className={`flex items-center gap-1 rounded-full px-3 py-1 text-[9px] font-semibold shadow-sm transition-all ${hasAnyViolation ? "cursor-not-allowed bg-gray-300 text-gray-500" : "bg-gradient-to-r from-indigo-500 to-indigo-600 text-white hover:from-indigo-600 hover:to-indigo-700"}`}
-              >
-                {hasAnyViolation ? (
-                  <>
-                    <AlertTriangle className="h-3 w-3" />
-                    Teckengr&#228;ns &#246;verskriden
-                  </>
-                ) : (
-                  <>
-                    Ser bra ut, publicera!
-                    <ArrowRight className="h-3 w-3" />
-                  </>
-                )}
-              </button>
+                ))}
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="flex gap-1.5">
-            <button onClick={() => onSendMessage?.("\u00c4ndra texten")} className="rounded-full border border-border/40 bg-white px-2.5 py-1 text-[9px] font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:text-indigo-600">
-              &#196;ndra texten
+
+            {/* Upload background */}
+            <button onClick={() => { setUploadTarget(currentCopyId); fileInputRef.current?.click(); }} className="flex w-full items-center gap-2 rounded-lg border border-dashed border-border/40 px-3 py-1.5 text-[10px] text-muted-foreground hover:border-indigo-300 hover:text-indigo-600">
+              <ImagePlus className="h-3 w-3" />
+              {bgImages[currentCopyId] ? "Byt bakgrundsbild" : "Ladda upp bakgrundsbild"}
             </button>
-            <button onClick={() => onSendMessage?.(variantPreferences.selectedCount >= 2 ? `Visa fler varianter (f\u00f6redrar ${variantPreferences.preferredHeadlineLength === "short" ? "kortare" : variantPreferences.preferredHeadlineLength === "long" ? "l\u00e4ngre" : "mellanl\u00e5nga"} rubriker)` : "Visa fler varianter")} className="rounded-full border border-border/40 bg-white px-2.5 py-1 text-[9px] font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:text-indigo-600">
-              Fler varianter
-            </button>
-            <span className="ml-auto text-[9px] text-muted-foreground/40 self-center">V&#228;lj en variant &#8593;</span>
           </div>
         )}
       </div>
+
+      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
     </div>
   );
 }
