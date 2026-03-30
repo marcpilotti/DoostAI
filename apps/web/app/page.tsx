@@ -67,20 +67,19 @@ export default function Home() {
   const isLoading = status === "submitted" || status === "streaming";
   const flowStep = useFlowProgress(messages);
 
-  // Debounced sendMessage — prevents double-clicks and rapid-fire chaos
+  // Debounced sendMessage — prevents double-clicks but NEVER blocks component actions
   const [sending, setSending] = useState(false);
   const safeSendMessage = (text: string) => {
-    if (isLoading || sending || !text.trim()) return;
+    if (sending || !text.trim()) return; // Only block rapid double-sends, NOT isLoading
     setSending(true);
     sendMessage({ text: text.trim() });
-    // Reset after a short delay to prevent rapid double-sends
-    setTimeout(() => setSending(false), 2000);
+    setTimeout(() => setSending(false), 1000); // 1s cooldown (was 2s — too aggressive)
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = input.trim();
-    if (!trimmed || isLoading || sending) return;
+    if (!trimmed || isLoading || sending) return; // Manual typing still waits for AI
     safeSendMessage(trimmed);
     setInput("");
   };
