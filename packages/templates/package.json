@@ -18,6 +18,10 @@
     "./backgrounds": {
       "types": "./src/background-service.ts",
       "default": "./src/background-service.ts"
+    },
+    "./logo-selector": {
+      "types": "./src/logo-selector.ts",
+      "default": "./src/logo-selector.ts"
     }
   },
   "scripts": {

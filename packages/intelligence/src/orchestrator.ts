@@ -5,7 +5,7 @@
 
 import { analyzeWithVision } from "./vision-analysis";
 import { detectSocialPresence, enrichSocialProfiles } from "./social-detection";
-import { fetchLogoApis, type DownloadedLogo } from "./logo-api";
+import { fetchLogoApis, type DownloadedLogo, type LogoLibrary } from "./logo-api";
 import { cacheOgImage } from "./image-cache";
 import { auditWebsite, recalculateReadinessWithSocial } from "./website-audit";
 import { mergeIntelligence, type MergedBrandIntelligence } from "./confidence-merge";
@@ -29,6 +29,7 @@ export type PipelineInput = {
 export type PipelineResult = {
   intelligence: MergedBrandIntelligence;
   downloadedLogo: DownloadedLogo | null;
+  logoLibrary: LogoLibrary;
   schemaOrg: SchemaOrgData | null;
   competitorInsights: CompetitorAdInsight | null;
   timing: {
@@ -163,9 +164,12 @@ export async function runBrandIntelligencePipeline(
     competitorInsights,
   });
 
+  const emptyLibrary: LogoLibrary = { primary: null, variants: [] };
+
   return {
     intelligence,
     downloadedLogo: logoApi?.downloadedLogo ?? null,
+    logoLibrary: logoApi?.logoLibrary ?? emptyLibrary,
     schemaOrg,
     competitorInsights,
     timing: {

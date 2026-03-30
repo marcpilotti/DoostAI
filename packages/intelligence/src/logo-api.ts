@@ -46,6 +46,11 @@ export type DownloadedLogo = {
   quality: "high" | "medium" | "low";
 };
 
+export type LogoLibrary = {
+  primary: DownloadedLogo | null;      // best logo (highest quality, first valid)
+  variants: DownloadedLogo[];          // all downloaded logos, including primary
+};
+
 // ---------------------------------------------------------------------------
 // Redis singleton (lazy, tolerates missing env vars)
 // Same pattern as image-cache.ts
@@ -179,22 +184,37 @@ type CachedLogo = {
   quality: "high" | "medium" | "low";
 };
 
+type CachedLogoLibrary = {
+  primary: CachedLogo | null;
+  variants: CachedLogo[];
+};
+
 /**
- * Check Redis cache for a previously downloaded logo.
+ * Check Redis cache for a previously downloaded logo library.
+ * Supports both old single-logo format and new library format.
  */
-async function getCachedLogo(domain: string): Promise<DownloadedLogo | null> {
+async function getCachedLogoLibrary(domain: string): Promise<LogoLibrary | null> {
   const redis = getRedis();
   if (!redis) return null;
 
   try {
-    const raw = await redis.get<string | CachedLogo>(`${LOGO_CACHE_KEY_PREFIX}${domain}`);
+    const raw = await redis.get<string | CachedLogo | CachedLogoLibrary>(`${LOGO_CACHE_KEY_PREFIX}${domain}`);
     if (!raw) return null;
 
-    // Handle both stringified JSON and native object (Upstash may auto-parse)
-    const cached: CachedLogo = typeof raw === "string" ? JSON.parse(raw) as CachedLogo : raw;
-    if (cached.dataUrl) {
-      console.log(`[L4 Cache] HIT for ${domain} (source: ${cached.source})`);
-      return cached as DownloadedLogo;
+    const parsed = typeof raw === "string" ? JSON.parse(raw) as CachedLogo | CachedLogoLibrary : raw;
+
+    // New library format: has "variants" array
+    if ("variants" in parsed && Array.isArray(parsed.variants)) {
+      console.log(`[L4 Cache] HIT (library) for ${domain} — ${parsed.variants.length} variants`);
+      return parsed as LogoLibrary;
+    }
+
+    // Old single-logo format: wrap in library for backward compatibility
+    const single = parsed as CachedLogo;
+    if (single.dataUrl) {
+      console.log(`[L4 Cache] HIT (legacy single) for ${domain} (source: ${single.source})`);
+      const logo = single as DownloadedLogo;
+      return { primary: logo, variants: [logo] };
     }
   } catch (err) {
     console.warn("[L4 Cache] Redis read error:", err instanceof Error ? err.message : err);
@@ -203,24 +223,33 @@ async function getCachedLogo(domain: string): Promise<DownloadedLogo | null> {
 }
 
 /**
- * Store a downloaded logo in Redis cache (TTL 30 days).
+ * Store a logo library in Redis cache (TTL 30 days).
  */
-async function setCachedLogo(domain: string, logo: DownloadedLogo): Promise<void> {
+async function setCachedLogoLibrary(domain: string, library: LogoLibrary): Promise<void> {
   const redis = getRedis();
   if (!redis) return;
 
   try {
-    const value: CachedLogo = {
-      dataUrl: logo.dataUrl,
-      source: logo.source,
-      theme: logo.theme,
-      width: logo.width,
-      quality: logo.quality,
+    const value: CachedLogoLibrary = {
+      primary: library.primary ? {
+        dataUrl: library.primary.dataUrl,
+        source: library.primary.source,
+        theme: library.primary.theme,
+        width: library.primary.width,
+        quality: library.primary.quality,
+      } : null,
+      variants: library.variants.map((v) => ({
+        dataUrl: v.dataUrl,
+        source: v.source,
+        theme: v.theme,
+        width: v.width,
+        quality: v.quality,
+      })),
     };
     await redis.setex(`${LOGO_CACHE_KEY_PREFIX}${domain}`, LOGO_CACHE_TTL_SECONDS, JSON.stringify(value));
-    console.log(`[L4 Cache] Stored logo for ${domain} (source: ${logo.source}, TTL: ${LOGO_CACHE_TTL_SECONDS}s)`);
+    console.log(`[L4 Cache] Stored library for ${domain} (${library.variants.length} variants, primary: ${library.primary?.source ?? "none"}, TTL: ${LOGO_CACHE_TTL_SECONDS}s)`);
   } catch (err) {
-    // Cache write failure is non-fatal — the logo is still usable
+    // Cache write failure is non-fatal — the logos are still usable
     console.warn("[L4 Cache] Redis write error:", err instanceof Error ? err.message : err);
   }
 }
@@ -230,86 +259,112 @@ async function setCachedLogo(domain: string, logo: DownloadedLogo): Promise<void
 // ---------------------------------------------------------------------------
 
 /**
- * Download the best available logo for a domain.
+ * Download logos from ALL available sources and return a LogoLibrary.
  *
  * Phase 1 (parallel): Logo.dev + Brandfetch icon  — highest quality
  * Phase 2 (parallel): DuckDuckGo + Clearbit       — good fallbacks, no auth needed
  * Phase 3 (fallback):  Google Favicon              — always works
  *
  * All downloaded logos pass through validateLogoQuality() before acceptance.
- * The winning result is cached in Redis for 30 days.
+ * The primary is the best logo (highest quality source in priority order).
+ * Variants contain ALL valid downloads so the template system can pick
+ * the best one per background contrast.
+ *
+ * The full library is cached in Redis for 30 days.
  */
 async function downloadBestLogo(
   domain: string,
   brandfetchLogos: { url: string; type: string; theme: string }[],
-): Promise<DownloadedLogo | null> {
+): Promise<LogoLibrary> {
 
   // --- Check Redis cache first ---
-  const cached = await getCachedLogo(domain);
+  const cached = await getCachedLogoLibrary(domain);
   if (cached) return cached;
 
-  console.log(`[L4 Cache] MISS for ${domain} — downloading from sources`);
+  console.log(`[L4 Cache] MISS for ${domain} — downloading from all sources`);
+
+  // Collect all valid variants across all phases
+  const variants: DownloadedLogo[] = [];
+  let primary: DownloadedLogo | null = null;
 
   // -----------------------------------------------------------------------
   // Phase 1: Logo.dev + Brandfetch (parallel) — high quality
   // -----------------------------------------------------------------------
   const logoDevToken = process.env.LOGO_DEV_TOKEN;
 
-  const bfIcon = brandfetchLogos.find((l) => l.type === "icon" && l.theme === "light")
-    ?? brandfetchLogos.find((l) => l.type === "icon")
-    ?? brandfetchLogos.find((l) => l.theme === "light")
+  // Try to find multiple Brandfetch variants (light + dark themes)
+  const bfIconLight = brandfetchLogos.find((l) => l.type === "icon" && l.theme === "light")
+    ?? brandfetchLogos.find((l) => l.theme === "light");
+  const bfIconDark = brandfetchLogos.find((l) => l.type === "icon" && l.theme === "dark")
+    ?? brandfetchLogos.find((l) => l.theme === "dark");
+  const bfIconFallback = brandfetchLogos.find((l) => l.type === "icon")
     ?? brandfetchLogos[0];
+
+  // Deduplicate Brandfetch URLs — avoid downloading the same file twice
+  const bfUrls = new Set<string>();
+  const bfTargets: { url: string; theme: string; type: string }[] = [];
+  for (const candidate of [bfIconLight, bfIconDark, bfIconFallback]) {
+    if (candidate?.url && !bfUrls.has(candidate.url)) {
+      bfUrls.add(candidate.url);
+      bfTargets.push(candidate);
+    }
+  }
 
   const logoDevPromise = logoDevToken && logoDevToken !== "your_logo_dev_token"
     ? downloadAsDataUrl(`https://img.logo.dev/${domain}?token=${logoDevToken}&format=png&size=128`)
     : Promise.resolve(null);
 
-  const brandfetchPromise = bfIcon?.url
-    ? downloadAsDataUrl(bfIcon.url)
-    : Promise.resolve(null);
+  const brandfetchPromises = bfTargets.map((bf) => downloadAsDataUrl(bf.url));
 
-  const [logoDevResult, brandfetchResult] = await Promise.allSettled([logoDevPromise, brandfetchPromise]);
+  const [logoDevResult, ...brandfetchResults] = await Promise.allSettled([
+    logoDevPromise,
+    ...brandfetchPromises,
+  ]);
 
   const logoDevDataUrl = logoDevResult.status === "fulfilled" ? logoDevResult.value : null;
-  const brandfetchDataUrl = brandfetchResult.status === "fulfilled" ? brandfetchResult.value : null;
 
-  // Prefer Logo.dev (higher quality), then Brandfetch
+  // Process Logo.dev result
   if (logoDevDataUrl) {
     const check = validateLogoQuality(logoDevDataUrl);
     if (check.valid) {
       console.log(`[L4 Download] ${domain} → Logo.dev OK (${logoDevDataUrl.length} chars)`);
       const logo: DownloadedLogo = { dataUrl: logoDevDataUrl, source: "logo.dev", theme: "light", width: 128, quality: "high" };
-      await setCachedLogo(domain, logo);
-      return logo;
+      variants.push(logo);
+      if (!primary) primary = logo;
+    } else {
+      console.log(`[L4 Download] ${domain} → Logo.dev rejected: ${check.reason} (${logoDevDataUrl.length} chars)`);
     }
-    console.log(`[L4 Download] ${domain} → Logo.dev rejected: ${check.reason} (${logoDevDataUrl.length} chars)`);
   } else {
     console.log(`[L4 Download] ${domain} → Logo.dev failed (404 or error)`);
   }
 
-  if (brandfetchDataUrl && bfIcon) {
-    const check = validateLogoQuality(brandfetchDataUrl);
-    if (check.valid) {
-      console.log(`[L4 Download] ${domain} → Brandfetch ${bfIcon.type}/${bfIcon.theme} OK (${brandfetchDataUrl.length} chars)`);
-      const logo: DownloadedLogo = { dataUrl: brandfetchDataUrl, source: "brandfetch", theme: bfIcon.theme, width: 400, quality: "high" };
-      await setCachedLogo(domain, logo);
-      return logo;
+  // Process all Brandfetch results
+  for (let i = 0; i < brandfetchResults.length; i++) {
+    const result = brandfetchResults[i]!;
+    const bf = bfTargets[i]!;
+    const dataUrl = result.status === "fulfilled" ? result.value : null;
+
+    if (dataUrl) {
+      const check = validateLogoQuality(dataUrl);
+      if (check.valid) {
+        console.log(`[L4 Download] ${domain} → Brandfetch ${bf.type}/${bf.theme} OK (${dataUrl.length} chars)`);
+        const logo: DownloadedLogo = { dataUrl, source: "brandfetch", theme: bf.theme, width: 400, quality: "high" };
+        variants.push(logo);
+        if (!primary) primary = logo;
+      } else {
+        console.log(`[L4 Download] ${domain} → Brandfetch ${bf.type}/${bf.theme} rejected: ${check.reason} (${dataUrl.length} chars)`);
+      }
+    } else {
+      console.log(`[L4 Download] ${domain} → Brandfetch ${bf.type}/${bf.theme} failed (CDN error)`);
     }
-    console.log(`[L4 Download] ${domain} → Brandfetch rejected: ${check.reason} (${brandfetchDataUrl.length} chars)`);
-  } else if (bfIcon?.url) {
-    console.log(`[L4 Download] ${domain} → Brandfetch failed (CDN error)`);
   }
 
   // -----------------------------------------------------------------------
   // Phase 2: DuckDuckGo + Clearbit (parallel) — good fallbacks, no auth
   // -----------------------------------------------------------------------
-  console.log(`[L4 Download] ${domain} → Phase 1 exhausted, trying DuckDuckGo + Clearbit`);
+  console.log(`[L4 Download] ${domain} → Phase 2: trying DuckDuckGo + Clearbit`);
 
-  // DuckDuckGo icons — good coverage, no auth needed
   const ddgUrl = `https://icons.duckduckgo.com/ip3/${domain}.ico`;
-
-  // Clearbit — might be deprecated but still works for many domains
-  // Note: Clearbit was acquired by HubSpot, may stop working eventually
   const clearbitUrl = `https://logo.clearbit.com/${domain}`;
 
   const [ddgResult, clearbitResult] = await Promise.allSettled([
@@ -317,19 +372,19 @@ async function downloadBestLogo(
     downloadAsDataUrl(clearbitUrl),
   ]);
 
-  const ddgDataUrl = ddgResult.status === "fulfilled" ? ddgResult.value : null;
   const clearbitDataUrl = clearbitResult.status === "fulfilled" ? clearbitResult.value : null;
+  const ddgDataUrl = ddgResult.status === "fulfilled" ? ddgResult.value : null;
 
-  // Prefer Clearbit (full logo, higher res) over DuckDuckGo (favicon/icon)
   if (clearbitDataUrl) {
     const check = validateLogoQuality(clearbitDataUrl);
     if (check.valid) {
       console.log(`[L4 Download] ${domain} → Clearbit OK (${clearbitDataUrl.length} chars)`);
       const logo: DownloadedLogo = { dataUrl: clearbitDataUrl, source: "clearbit", theme: "light", width: 128, quality: "medium" };
-      await setCachedLogo(domain, logo);
-      return logo;
+      variants.push(logo);
+      if (!primary) primary = logo;
+    } else {
+      console.log(`[L4 Download] ${domain} → Clearbit rejected: ${check.reason} (${clearbitDataUrl.length} chars)`);
     }
-    console.log(`[L4 Download] ${domain} → Clearbit rejected: ${check.reason} (${clearbitDataUrl.length} chars)`);
   } else {
     console.log(`[L4 Download] ${domain} → Clearbit failed`);
   }
@@ -339,10 +394,11 @@ async function downloadBestLogo(
     if (check.valid) {
       console.log(`[L4 Download] ${domain} → DuckDuckGo OK (${ddgDataUrl.length} chars)`);
       const logo: DownloadedLogo = { dataUrl: ddgDataUrl, source: "duckduckgo", theme: "light", width: 64, quality: "medium" };
-      await setCachedLogo(domain, logo);
-      return logo;
+      variants.push(logo);
+      if (!primary) primary = logo;
+    } else {
+      console.log(`[L4 Download] ${domain} → DuckDuckGo rejected: ${check.reason} (${ddgDataUrl.length} chars)`);
     }
-    console.log(`[L4 Download] ${domain} → DuckDuckGo rejected: ${check.reason} (${ddgDataUrl.length} chars)`);
   } else {
     console.log(`[L4 Download] ${domain} → DuckDuckGo failed`);
   }
@@ -350,7 +406,7 @@ async function downloadBestLogo(
   // -----------------------------------------------------------------------
   // Phase 3: Google Favicon — universal fallback, always works (128px)
   // -----------------------------------------------------------------------
-  console.log(`[L4 Download] ${domain} → Phase 2 exhausted, trying Google Favicon fallback`);
+  console.log(`[L4 Download] ${domain} → Phase 3: trying Google Favicon fallback`);
 
   const googleUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
   const googleDataUrl = await downloadAsDataUrl(googleUrl);
@@ -360,14 +416,23 @@ async function downloadBestLogo(
     if (check.valid) {
       console.log(`[L4 Download] ${domain} → Google Favicon OK (${googleDataUrl.length} chars)`);
       const logo: DownloadedLogo = { dataUrl: googleDataUrl, source: "google", theme: "light", width: 128, quality: "low" };
-      await setCachedLogo(domain, logo);
-      return logo;
+      variants.push(logo);
+      if (!primary) primary = logo;
+    } else {
+      console.log(`[L4 Download] ${domain} → Google Favicon rejected: ${check.reason} (${googleDataUrl.length} chars)`);
     }
-    console.log(`[L4 Download] ${domain} → Google Favicon rejected: ${check.reason} (${googleDataUrl.length} chars)`);
   }
 
-  console.log(`[L4 Download] ${domain} → All 5 sources failed`);
-  return null;
+  console.log(`[L4 Download] ${domain} → Collected ${variants.length} valid variants (primary: ${primary?.source ?? "none"})`);
+
+  const library: LogoLibrary = { primary, variants };
+
+  // Cache the full library if we got at least one variant
+  if (variants.length > 0) {
+    await setCachedLogoLibrary(domain, library);
+  }
+
+  return library;
 }
 
 // ---------------------------------------------------------------------------
@@ -375,24 +440,29 @@ async function downloadBestLogo(
 // ---------------------------------------------------------------------------
 
 /**
- * Run all logo API sources: fetch Brandfetch data + download best logo.
+ * Run all logo API sources: fetch Brandfetch data + download logo library.
  *
  * The download pipeline tries 5 sources across 3 phases:
  *   Phase 1: Logo.dev + Brandfetch (parallel)
  *   Phase 2: DuckDuckGo + Clearbit (parallel)
  *   Phase 3: Google Favicon (fallback)
  *
+ * Returns a LogoLibrary with the best logo as `primary` and ALL valid
+ * downloads as `variants`. Also exposes a backward-compatible
+ * `downloadedLogo` (alias for `primary`) to avoid breaking callers.
+ *
  * Results are cached in Redis for 30 days to avoid redundant downloads.
  */
 export async function fetchLogoApis(domain: string): Promise<{
   brandfetch: BrandfetchResult | null;
   downloadedLogo: DownloadedLogo | null;
+  logoLibrary: LogoLibrary;
 }> {
   // Fetch Brandfetch first (we need its logo URLs to download from)
   const brandfetch = await fetchBrandfetch(domain).catch(() => null);
 
-  // Download the best logo from any source (with Redis cache)
-  const downloadedLogo = await downloadBestLogo(domain, brandfetch?.logos ?? []);
+  // Download ALL logos from every source (with Redis cache)
+  const logoLibrary = await downloadBestLogo(domain, brandfetch?.logos ?? []);
 
-  return { brandfetch, downloadedLogo };
+  return { brandfetch, downloadedLogo: logoLibrary.primary, logoLibrary };
 }

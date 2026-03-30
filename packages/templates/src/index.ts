@@ -25,6 +25,17 @@ export {
 export { renderLayout } from "./layout-renderer";
 
 // ---------------------------------------------------------------------------
+// Logo placement intelligence (contrast-aware variant selection)
+// ---------------------------------------------------------------------------
+export {
+  selectLogoForBackground,
+  hasAdequateContrast,
+  getLuminance,
+  contrastRatio,
+} from "./logo-selector";
+export type { LogoVariant } from "./logo-selector";
+
+// ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 export type {

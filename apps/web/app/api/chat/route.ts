@@ -5,6 +5,7 @@ import {
   buildBrandProfile,
   enrichCompany,
   scrapeBrand,
+  generateHarmonySet,
 } from "@doost/brand";
 import { runBrandIntelligencePipeline } from "@doost/intelligence";
 import {
@@ -179,6 +180,9 @@ ABSOLUTE RULES:
           const downloadedLogo = intelligence?.downloadedLogo ?? null;
           const logoDataUrl = downloadedLogo?.dataUrl ?? null;
 
+          // Logo library: all valid variants from every source, for contrast-based selection
+          const logoLibrary = intelligence?.logoLibrary ?? { primary: null, variants: [] };
+
           const finalLogo = {
             primary: logoDataUrl ?? clean.logos?.primary ?? undefined,
             icon: clean.logos?.icon,
@@ -199,13 +203,28 @@ ABSOLUTE RULES:
             ? { heading: intel.font.value.family, body: intel.font.value.family }
             : clean.fonts;
 
+          // Generate color harmony set from final brand colors
+          const _colorHarmony = generateHarmonySet(
+            finalColors.primary,
+            finalColors.secondary,
+            finalColors.accent,
+          );
+
           return {
             ...clean,
             logos: finalLogo,
             colors: finalColors,
             fonts: finalFonts,
+            _colorHarmony,
             _logoSource: downloadedLogo?.source ?? "scraped",
             _logoTheme: downloadedLogo?.theme ?? "light",
+            _logoVariants: logoLibrary.variants.map((v) => ({
+              dataUrl: v.dataUrl,
+              source: v.source,
+              theme: v.theme,
+              width: v.width,
+              quality: v.quality,
+            })),
             _analysisMs: durationMs,
             _enrichmentStatus: enrichment ? "complete" : "partial",
             _intelligence: intel ? {
@@ -291,6 +310,13 @@ ABSOLUTE RULES:
             getIndustryBackground(brand.industry ?? "").catch(() => null),
           ]);
 
+          // Generate color harmony set for the ad preview
+          const adColorHarmony = generateHarmonySet(
+            brand.colors.primary ?? "#6366f1",
+            brand.colors.secondary,
+            brand.colors.accent,
+          );
+
           return {
             copies: allCopy.flat().map((c, i) => ({
               id: `${c.platform}-${c.variant}-${i}`,
@@ -313,6 +339,7 @@ ABSOLUTE RULES:
               },
               fonts: brand.fonts,
               industry: brand.industry,
+              _colorHarmony: adColorHarmony,
             },
             backgroundUrl: bgUrl,
             platforms,

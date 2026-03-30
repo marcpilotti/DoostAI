@@ -9,3 +9,9 @@ export {
   brandScrapeResultSchema,
   companyEnrichmentSchema,
 } from "./types";
+export {
+  generateHarmonySet,
+  expandBrandPalette,
+  type ColorPalette,
+  type HarmonySet,
+} from "./color-harmony";
