@@ -111,7 +111,13 @@ ${context}`,
 
   // Post-process: only override AI fonts if CSS found specific non-system fonts
   const SYSTEM_FONTS = new Set(["arial", "helvetica", "verdana", "tahoma", "times new roman", "georgia", "segoe ui", "system-ui", "sans-serif", "serif", "monospace", "-apple-system", "blinkmacsystemfont"]);
-  const cssFonts = scrapeResult.fonts.filter((f) => !SYSTEM_FONTS.has(f.toLowerCase().trim()));
+  const cssFonts = scrapeResult.fonts.filter((f) => {
+    const lower = f.toLowerCase().trim();
+    if (SYSTEM_FONTS.has(lower)) return false;
+    if (lower.startsWith("var(")) return false;  // Filter CSS variables like var(--_1s6etqh32)
+    if (lower.startsWith("--")) return false;     // Filter CSS custom properties
+    return true;
+  });
   const finalFonts = { ...object.fonts };
   // Only override if CSS found specific named fonts (not system defaults)
   if (cssFonts.length >= 1 && cssFonts[0]) finalFonts.heading = cssFonts[0];

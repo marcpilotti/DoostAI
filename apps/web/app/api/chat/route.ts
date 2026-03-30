@@ -83,7 +83,7 @@ STEP 2: analyze_brand returns → Say "Stämmer det här? Granska din varumärke
 
 STEP 3: User sends "Profil godkänd: {JSON}" → This JSON contains the user's APPROVED brand data (they may have edited industry, colors, etc). Parse it and use these values for ALL subsequent tool calls instead of the original analyze_brand data. Say "Bra! Nu behöver jag veta två saker — vad ni vill uppnå och vilka ni vill nå." Then call show_goal_picker with the industry from the approved data.
 
-STEP 4: User picks goal + audience (message starts with "Mål:") → call generate_ad_copy with the APPROVED brand data from Step 3 (not the original analyze_brand data) and "meta" as default platform, plus the goal and audience.
+STEP 4: User picks goal + audience (message starts with "Mål:") → call generate_ad_copy with the APPROVED brand data from Step 3 (not the original analyze_brand data) and "meta" as default platform, plus the goal and audience. IMPORTANT: Generate ad copy in the same language as the user's messages. If the user writes in Swedish, ALL ad copy (headline, body, CTA) MUST be in Swedish.
 
 STEP 5: Ad previews appear with QuickPicks. User can click "Ändra texten", "Fler varianter", or "Ser bra ut, publicera!". Handle fritext edits by regenerating copy.
 
@@ -256,7 +256,7 @@ ABSOLUTE RULES:
 
       generate_ad_copy: tool({
         description:
-          "Generate ad copy text for specified platforms (fast, no images). Call this when user picks platforms. Returns copy immediately for preview.",
+          "Generate ad copy text for specified platforms (fast, no images). Call this when user picks platforms. Returns copy immediately for preview. IMPORTANT: All generated ad copy (headline, body, CTA) must be in the same language as the user's messages. If the user writes in Swedish, generate Swedish copy.",
         inputSchema: z.object({
           brand: z.object({
             name: z.string(),

@@ -37,6 +37,7 @@ STRICT CHARACTER LIMITS — exceeding these means the ad will be rejected:
 
 Write punchy, scroll-stopping copy. Use the brand voice. Focus on a single benefit.
 The headline should grab attention. The body should create urgency or curiosity.
+CTA MUST be natural, human-readable language in the same language as the ad copy — for example "Läs mer", "Kontakta oss", "Boka nu", "Handla nu". NEVER use technical enum values like "LEARN_MORE", "SHOP_NOW", "CONTACT_US".
 Count every character carefully before responding.`;
 }
 
@@ -55,6 +56,7 @@ STRICT CHARACTER LIMITS — exceeding these means the ad will be rejected:
 
 Headlines should be distinct, not repetitive. Include the brand name in one headline.
 Descriptions should expand on the value proposition with a clear call to action.
+If the ad is in Swedish, write Swedish descriptions and CTAs. NEVER use technical enum values like "LEARN_MORE" as CTA text.
 Count every character carefully before responding.`;
 }
 
@@ -74,5 +76,6 @@ STRICT CHARACTER LIMITS — exceeding these means the ad will be rejected:
 
 Write professional, thought-leadership style copy. LinkedIn audiences respond to
 data, insights, and business value. Avoid salesy language.
+CTA MUST be natural, human-readable language in the same language as the ad copy — for example "Läs mer", "Kontakta oss", "Boka nu". NEVER use technical enum values like "LEARN_MORE", "SHOP_NOW", "CONTACT_US".
 Count every character carefully before responding.`;
 }

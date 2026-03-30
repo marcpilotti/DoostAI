@@ -16,11 +16,13 @@ import type {
 import { CHAR_LIMITS } from "../types";
 import {
   META_CTAS,
+  META_CTA_LABELS,
   PLATFORM_LIMITS,
   isValidMetaCta,
   normaliseMetaCta,
   getRecommendedCtas,
 } from "../platform-limits";
+import type { MetaCta } from "../platform-limits";
 
 // --- Schemas per platform ---
 
@@ -167,36 +169,30 @@ async function generateSingleVariant(
   }
 
   // ── CTA validation (Meta only) ──────────────────────────────
-  // Meta requires CTA to be one of a fixed set of enum values.
-  // First try to normalise, then retry with explicit CTA list if needed.
-  if (platform === "meta" && !validateMetaCta(platform, result as Record<string, unknown>)) {
+  // Meta requires CTA to map to one of a fixed set of enum values for the API.
+  // However, the user-facing CTA text should be human-readable (e.g. "Läs mer", not "LEARN_MORE").
+  // We resolve to the enum internally, then convert to the display label.
+  if (platform === "meta") {
     const r = result as { headline: string; bodyCopy: string; cta: string };
-    const fixed = fixMetaCta(r.cta, options.objective);
-    // If normalisation succeeded, patch in-place
-    if (fixed !== r.cta) {
-      (result as { cta: string }).cta = fixed;
-    }
-    // If still invalid after normalisation, retry with explicit CTA constraint
-    if (!isValidMetaCta((result as { cta: string }).cta)) {
-      retried = true;
-      const ctaList = META_CTAS.join(", ");
-      const ctaRetryPrompt = `${prompt}\n\nIMPORTANT: The CTA field MUST be one of these exact values: ${ctaList}\nDo NOT invent a custom CTA string. Pick the best match from this list.`;
+    const currentCta = r.cta;
 
-      const ctaRetryResponse = await generateObject({
-        model,
-        schema,
-        prompt: ctaRetryPrompt,
-      });
-      result = ctaRetryResponse.object as z.infer<typeof schema>;
+    // Check if the AI already returned an enum value (e.g. "LEARN_MORE")
+    const isEnum = isValidMetaCta(currentCta);
+    // Try to normalise free-text CTA to an enum (e.g. "Läs mer" -> "LEARN_MORE")
+    const normalised = normaliseMetaCta(currentCta);
 
-      // Last-resort: force a valid CTA
-      if (!isValidMetaCta((result as { cta: string }).cta)) {
-        (result as { cta: string }).cta = fixMetaCta(
-          (result as { cta: string }).cta,
-          options.objective,
-        );
-      }
+    let resolvedEnum: MetaCta;
+    if (isEnum) {
+      resolvedEnum = currentCta.trim().toUpperCase().replace(/[\s-]+/g, "_") as MetaCta;
+    } else if (normalised) {
+      resolvedEnum = normalised;
+    } else {
+      // Could not match — pick a sensible default for the campaign goal
+      resolvedEnum = fixMetaCta(currentCta, options.objective) as MetaCta;
     }
+
+    // Always display the human-readable label, never the raw enum
+    (result as { cta: string }).cta = META_CTA_LABELS[resolvedEnum] ?? META_CTA_LABELS["LEARN_MORE"];
   }
 
   // ── CTA length validation (ALL platforms) ──────────────────────
@@ -233,7 +229,7 @@ async function generateSingleVariant(
     return {
       headline: g.headlines[0]!,
       bodyCopy: g.descriptions[0]!,
-      cta: "Learn More",
+      cta: options.language === "Swedish" ? "Läs mer" : "Learn More",
       variant,
       platform,
       headlines: g.headlines,

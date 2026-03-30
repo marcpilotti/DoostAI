@@ -314,6 +314,18 @@ function ColorDot({
 // ── Utility functions ───────────────────────────────────────────
 
 function getGradient(primary?: string, accent?: string): string {
+  // If primary color is very dark (near-black), use a light neutral gradient
+  // so the ad preview remains readable instead of appearing as a dark blob
+  if (primary) {
+    const c = primary.replace("#", "");
+    const r = parseInt(c.substring(0, 2), 16);
+    const g = parseInt(c.substring(2, 4), 16);
+    const b = parseInt(c.substring(4, 6), 16);
+    const brightness = (r + g + b) / 3;
+    if (brightness < 40) {
+      return `linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)`;
+    }
+  }
   if (primary && accent) {
     return `linear-gradient(135deg, ${primary} 0%, ${accent} 100%)`;
   }

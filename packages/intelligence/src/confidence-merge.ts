@@ -149,7 +149,7 @@ function mergeColors(
   const brandClusters = clustered.filter((c) => c.role === "brand");
 
   // Priority 2: Vision AI + clustered CSS agree (confidence 90)
-  if (vision && brandClusters.length >= 2) {
+  if (vision && brandClusters.length >= 1) {
     const visionPrimary = vision.dominant_colors[0]?.hex;
     const cssPrimary = brandClusters[0]!.hex;
     if (visionPrimary && cssPrimary && colorDistanceRgb(visionPrimary, cssPrimary) < 60) {
@@ -167,7 +167,7 @@ function mergeColors(
   }
 
   // Priority 3: Clustered CSS only (confidence 70)
-  if (brandClusters.length >= 2) {
+  if (brandClusters.length >= 1) {
     return {
       value: {
         primary: brandClusters[0]!.hex,
@@ -181,18 +181,29 @@ function mergeColors(
   }
 
   // Priority 4: Vision AI only (confidence 60)
-  if (vision && vision.dominant_colors.length >= 2) {
-    const colors = vision.dominant_colors;
-    return {
-      value: {
-        primary: colors[0]!.hex,
-        secondary: colors[1]?.hex ?? colors[0]!.hex,
-        accent: colors[2]?.hex ?? colors[0]!.hex,
-      },
-      confidence: 60,
-      source: "vision",
-      status: "uncertain",
-    };
+  // Filter out near-black, near-white, and grays from vision colors too
+  if (vision && vision.dominant_colors.length >= 1) {
+    const usableVision = vision.dominant_colors.filter((c) => {
+      if (!isValidHex6(c.hex)) return false;
+      const r = parseInt(c.hex.slice(1, 3), 16);
+      const g = parseInt(c.hex.slice(3, 5), 16);
+      const b = parseInt(c.hex.slice(5, 7), 16);
+      const brightness = (r + g + b) / 3;
+      const saturation = Math.max(r, g, b) - Math.min(r, g, b);
+      return brightness > 30 && brightness < 230 && saturation > 15;
+    });
+    if (usableVision.length >= 1) {
+      return {
+        value: {
+          primary: usableVision[0]!.hex,
+          secondary: usableVision[1]?.hex ?? usableVision[0]!.hex,
+          accent: usableVision[2]?.hex ?? usableVision[0]!.hex,
+        },
+        confidence: 60,
+        source: "vision",
+        status: "uncertain",
+      };
+    }
   }
 
   // Fallback: industry palette or generic default (low confidence — not real brand data)
