@@ -32,8 +32,12 @@ import {
   MousePointerClick,
   X,
 } from "lucide-react";
-import { PLATFORM_LIMITS, validateCopyLimits } from "@doost/ai/platform-limits";
+import { PLATFORM_LIMITS } from "@doost/ai/platform-limits";
 import type { PlatformId } from "@doost/ai/platform-limits";
+import { useAdValidation } from "@/hooks/use-ad-validation";
+import { useAdImageGeneration } from "@/hooks/use-ad-image-generation";
+// TODO: Replace edits/updateEdit/getEditedCopy with useAdEditor per variant
+// import { useAdEditor } from "@/hooks/use-ad-editor";
 
 type CopyData = {
   id?: string;
@@ -1284,8 +1288,6 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
   const [logoPosition, setLogoPosition] = useState<LogoPosition>("bottom-right");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editMode, setEditMode] = useState<EditMode>(null);
-  const [bgImages, setBgImages] = useState<Record<string, string>>({});
-  const [bgInitialized, setBgInitialized] = useState(false);
   const [mobileIndex, setMobileIndex] = useState(0);
 
   // Reset mobileIndex when variants length changes to prevent out-of-bounds
@@ -1296,6 +1298,7 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadTarget, setUploadTarget] = useState<string | null>(null);
+  // TODO: Replace edits/updateEdit/getEditedCopy with useAdEditor per variant
   const [edits, setEdits] = useState<Record<string, { headline: string; bodyCopy: string; cta: string }>>({});
   const [colorOverrides, setColorOverrides] = useState<ColorOverrides>({});
   const [variantPreferences, setVariantPreferences] = useState<{
@@ -1303,25 +1306,9 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
     selectedCount: number;
   }>({ preferredHeadlineLength: "medium", selectedCount: 0 });
 
-  // Initialize bgImages from data.backgroundUrl (AI-generated or Unsplash) on first render.
-  // Only runs once per component mount — user uploads take priority after initialization.
-  useEffect(() => {
-    if (bgInitialized || !data.backgroundUrl) return;
-    const initial: Record<string, string> = {};
-    for (const copy of data.copies.slice(0, 2)) {
-      const copyId = copy.id ?? `${copy.platform}-${copy.variant}`;
-      initial[copyId] = data.backgroundUrl;
-    }
-    setBgImages((prev) => {
-      // Don't overwrite user-uploaded images
-      const merged = { ...initial };
-      for (const [key, val] of Object.entries(prev)) {
-        if (val) merged[key] = val;
-      }
-      return merged;
-    });
-    setBgInitialized(true);
-  }, [data.backgroundUrl, data.copies, bgInitialized]);
+  // Image state — replaced inline bgImages/bgInitialized with useAdImageGeneration
+  const imageA = useAdImageGeneration(data.backgroundUrl);
+  const imageB = useAdImageGeneration(data.backgroundUrlB ?? data.backgroundUrl);
 
   const variantDiffs = useMemo(() => getVariantDiffs(variants), [variants]);
 
@@ -1402,20 +1389,14 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
     return { headline: getLimit(platformStr, "headline"), bodyCopy: getLimit(platformStr, "bodyCopy"), cta: getLimit(platformStr, "cta") };
   }
 
-  const allViolations = useMemo(() => {
-    const result: Record<string, string[]> = {};
-    for (const copy of variants) {
-      const copyId = copy.id ?? `${copy.platform}-${copy.variant}`;
-      const edited = getEditedCopy(copy);
-      const pid = resolvePlatform(copy.platform);
-      const validation = validateCopyLimits(pid, { headline: edited.headline, bodyCopy: edited.bodyCopy, cta: edited.cta });
-      if (!validation.valid) { result[copyId] = validation.violations; }
-    }
-    return result;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [variants, edits]);
-
-  const hasAnyViolation = Object.keys(allViolations).length > 0;
+  // Validation via useAdValidation hook — replaces inline allViolations/hasAnyViolation
+  const firstCopy = variants[0]!;
+  const firstEdited = getEditedCopy(firstCopy);
+  const firstValidation = useAdValidation(firstCopy.platform, {
+    headline: firstEdited.headline,
+    bodyCopy: firstEdited.bodyCopy,
+    cta: firstEdited.cta,
+  });
 
   if (!data.brand || variants.length === 0 || !harmonyPalette) return null;
 
@@ -1425,7 +1406,7 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
     const file = e.target.files?.[0];
     if (!file || !uploadTarget) return;
     const url = URL.createObjectURL(file);
-    setBgImages((prev) => ({ ...prev, [uploadTarget]: url }));
+    imageA.setImage(url);
     setUploadTarget(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
     if (e.target) e.target.value = "";
@@ -1470,6 +1451,15 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
         })}
       </div>
 
+      {/* Spec validation status */}
+      <div className={`flex items-center gap-1.5 px-3 py-1 text-[9px] font-medium ${
+        firstValidation.hasErrors ? "bg-red-50 text-red-600" :
+        firstValidation.hasWarnings ? "bg-amber-50 text-amber-600" :
+        "bg-emerald-50/50 text-emerald-600"
+      }`}>
+        {firstValidation.hasErrors ? "\u26a0\ufe0f" : firstValidation.hasWarnings ? "\u26a1" : "\u2713"} {firstValidation.summary}
+      </div>
+
       {/* ── Strategy insight (if available) ────────────────────── */}
       {data.strategy?.recommendation && (
         <div className="flex items-center gap-2 border-b border-border/10 bg-gradient-to-r from-indigo-50/50 to-purple-50/50 px-3 py-1.5">
@@ -1484,14 +1474,14 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
         <div className="hidden gap-3 p-3 sm:grid sm:grid-cols-2 h-full">
           {variants.map((copy, vi) => {
             const copyId = copy.id ?? `${copy.platform}-${copy.variant}`;
-            // Use different background for variant B
-            const variantBg = vi === 1 && data.backgroundUrlB ? data.backgroundUrlB : bgImages[copyId];
+            // Use imageA for variant 0, imageB for variant 1
+            const variantBg = vi === 0 ? imageA.currentImage : imageB.currentImage;
             return (
               <div key={`${format}-${layout}-${copyId}`} className="animate-card-in" style={{ animationDelay: `${vi * 150}ms`, animationFillMode: "both" }}>
               <Preview
                 copy={getEditedCopy(copy)}
                 brand={data.brand!}
-                bgImage={variantBg}
+                bgImage={variantBg ?? undefined}
                 isSelected={selectedId === copyId}
                 isLoser={selectedId !== null && selectedId !== copyId}
                 onPick={() => handleVariantPick(copyId)}
@@ -1520,7 +1510,7 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
                 <Preview
                   copy={getEditedCopy(copy)}
                   brand={data.brand!}
-                  bgImage={mobileIndex === 1 && data.backgroundUrlB ? data.backgroundUrlB : bgImages[copyId]}
+                  bgImage={(mobileIndex === 0 ? imageA.currentImage : imageB.currentImage) ?? undefined}
                     isSelected={selectedId === copyId}
                   isLoser={selectedId !== null && selectedId !== copyId}
                   onPick={() => handleVariantPick(copyId)}
@@ -1560,15 +1550,15 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
         {/* Primary actions */}
         <div className="flex items-center gap-2">
           <button
-            disabled={hasAnyViolation}
+            disabled={firstValidation.hasErrors}
             onClick={() => {
-              if (hasAnyViolation) return;
+              if (firstValidation.hasErrors) return;
               const edited = getEditedCopy(selectedCopy);
               const colors = colorOverrideString();
               onSendMessage?.(`Ser bra ut, publicera! [headline: ${edited.headline}] [body: ${edited.bodyCopy}] [cta: ${edited.cta}]${colors}`);
             }}
             className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-bold shadow-sm transition-all ${
-              hasAnyViolation
+              firstValidation.hasErrors
                 ? "cursor-not-allowed bg-gray-200 text-gray-400"
                 : "bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 hover:shadow-md"
             }`}
