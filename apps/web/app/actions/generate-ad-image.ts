@@ -12,6 +12,7 @@
  */
 
 import type { AdData, AdFormat } from "@/components/ads/ad-preview/types";
+import { setImageInCache } from "@/lib/image-cache";
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -225,15 +226,7 @@ async function callImageApi(
     // Store in memory cache for the API route to serve
     const cacheKey = `ad-img:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
     const dataUrl = `data:image/jpeg;base64,${b64}`;
-    imageMemoryCache.set(cacheKey, { dataUrl, expires: Date.now() + 2 * 60 * 60 * 1000 });
-
-    // Cleanup old entries
-    if (imageMemoryCache.size > 50) {
-      const now = Date.now();
-      for (const [k, v] of imageMemoryCache) {
-        if (v.expires < now) imageMemoryCache.delete(k);
-      }
-    }
+    setImageInCache(cacheKey, dataUrl);
 
     const imageUrl = `/api/brand/ai-image?key=${encodeURIComponent(cacheKey)}`;
 
@@ -248,19 +241,7 @@ async function callImageApi(
   }
 }
 
-// ── Image memory cache (shared with /api/brand/ai-image route) ───
-
-export const imageMemoryCache = new Map<string, { dataUrl: string; expires: number }>();
-
-export async function getImageFromCache(key: string): Promise<string | null> {
-  const entry = imageMemoryCache.get(key);
-  if (!entry) return null;
-  if (Date.now() > entry.expires) {
-    imageMemoryCache.delete(key);
-    return null;
-  }
-  return entry.dataUrl;
-}
+// Image cache moved to @/lib/image-cache.ts (server actions can't export non-async values)
 
 // ── Main export ──────────────────────────────────────────────────
 

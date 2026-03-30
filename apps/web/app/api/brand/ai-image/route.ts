@@ -6,7 +6,7 @@
  */
 
 import { getAiImageFromCache } from "@doost/templates/ai-image";
-import { getImageFromCache as getServerActionImage } from "@/app/actions/generate-ad-image";
+import { getImageFromCache as getServerActionImage } from "@/lib/image-cache";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -18,7 +18,7 @@ export async function GET(req: Request) {
 
   // Try server action cache first (ad-img: keys), then templates cache (ai-img: keys)
   const dataUrl = key.startsWith("ad-img:")
-    ? await getServerActionImage(key)
+    ? getServerActionImage(key)
     : await getAiImageFromCache(key);
   if (!dataUrl) {
     return new Response("Image not found", { status: 404 });
