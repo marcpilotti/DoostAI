@@ -1429,7 +1429,7 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
     : variants[0]!;
 
   return (
-    <div className="animate-card-in mt-2 overflow-hidden rounded-2xl border border-border/30 bg-white/80 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] backdrop-blur-xl">
+    <div className="animate-card-in mt-2 flex flex-col overflow-hidden rounded-2xl border border-border/30 bg-white/80 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] backdrop-blur-xl" style={{ maxHeight: "calc(100vh - 140px)" }}>
 
       {/* ── Format + Layout bar ──────────────────────────────────── */}
       <div className="flex items-center gap-2 overflow-x-auto border-b border-border/20 px-4 py-2">
@@ -1463,9 +1463,9 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
       )}
 
       {/* ── Two variants side by side (desktop) / carousel (mobile) */}
-      <div>
+      <div className="min-h-0 flex-1 overflow-hidden">
         {/* Desktop: side by side */}
-        <div className="hidden gap-4 p-4 sm:grid sm:grid-cols-2">
+        <div className="hidden gap-3 p-3 sm:grid sm:grid-cols-2 h-full">
           {variants.map((copy, vi) => {
             const copyId = copy.id ?? `${copy.platform}-${copy.variant}`;
             // Use different background for variant B
