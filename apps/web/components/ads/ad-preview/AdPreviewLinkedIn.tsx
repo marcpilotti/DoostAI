@@ -15,6 +15,7 @@ import { useState, useEffect, useTransition } from "react";
 import { Globe, MoreHorizontal, ThumbsUp, MessageCircle, Share2, Send, RefreshCw } from "lucide-react";
 import { generateAdImage } from "@/app/actions/generate-ad-image";
 import type { AdData, FormatPreviewProps } from "./types";
+import { getPrewarmedImage } from "@/lib/image-prewarm";
 
 // ── Utilities ────────────────────────────────────────────────────
 
@@ -152,7 +153,9 @@ export function AdPreviewLinkedIn({
   imageDelay?: number;
   onImageReady?: (url: string) => void;
 }) {
-  const initialImage = data.imageUrl && (data.imageUrl.startsWith("data:") || data.imageUrl.startsWith("https:")) ? data.imageUrl : null;
+  const prewarmed = getPrewarmedImage(data.brandName, "linkedin");
+  const propImage = data.imageUrl && (data.imageUrl.startsWith("data:") || data.imageUrl.startsWith("https:")) ? data.imageUrl : null;
+  const initialImage = propImage ?? prewarmed;
   const [imageUrl, setImageUrl] = useState<string | null>(initialImage);
   const [isGenerating, startTransition] = useTransition();
   const [imageLoading, setImageLoading] = useState(false);

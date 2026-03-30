@@ -17,6 +17,7 @@ import { useState, useEffect, useTransition } from "react";
 import { Globe, MoreHorizontal, ThumbsUp, MessageCircle, Share2, ChevronUp, RefreshCw } from "lucide-react";
 import { generateAdImage } from "@/app/actions/generate-ad-image";
 import type { AdData, AdFormat, FormatPreviewProps } from "./types";
+import { getPrewarmedImage } from "@/lib/image-prewarm";
 
 // ── Shared utilities ─────────────────────────────────────────────
 
@@ -258,8 +259,10 @@ export function AdPreviewMeta({
   imageDelay?: number;
   onImageReady?: (url: string) => void;
 }) {
-  // Only trust data: URLs (base64) or https: URLs — ignore broken /api/brand/ai-image cache refs
-  const initialImage = data.imageUrl && (data.imageUrl.startsWith("data:") || data.imageUrl.startsWith("https:")) ? data.imageUrl : null;
+  // Check for pre-warmed image first, then data prop, then null
+  const prewarmed = getPrewarmedImage(data.brandName, format);
+  const propImage = data.imageUrl && (data.imageUrl.startsWith("data:") || data.imageUrl.startsWith("https:")) ? data.imageUrl : null;
+  const initialImage = propImage ?? prewarmed;
   const [imageUrl, setImageUrl] = useState<string | null>(initialImage);
   const [isGenerating, startTransition] = useTransition();
   const [imageLoading, setImageLoading] = useState(false);

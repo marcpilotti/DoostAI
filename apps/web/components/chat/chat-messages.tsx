@@ -10,6 +10,7 @@ import {
 } from "@/components/brand/brand-profile-card";
 
 import { TypingIndicator } from "./typing-indicator";
+import { prewarmAdImages } from "@/lib/image-prewarm";
 
 // Lazy-load heavy components — only loaded when their tool results render
 const AdPreview = lazy(() => import("@/components/ads/ad-preview/AdPreview").then(m => ({ default: m.AdPreview })));
@@ -57,11 +58,21 @@ function ToolInvocation({
       if (!output.url || !output.name || !output.colors) {
         return <div className="p-4 text-sm text-red-500">Brand analysis returned incomplete data.</div>;
       }
+
+      // Pre-warm ad background images while user reviews brand profile
+      const colors = output.colors as { primary?: string } | undefined;
+      if (output.name && colors?.primary) {
+        prewarmAdImages({
+          name: output.name as string,
+          industry: output.industry as string | undefined,
+          primaryColor: colors.primary,
+        });
+      }
+
       return (
         <BrandProfileCard
           data={output as Parameters<typeof BrandProfileCard>[0]["data"]}
           onComplete={(approvedData) => {
-            // Send approved brand data as structured JSON so the AI can use it in subsequent tools
             onSendMessage?.(`Profil godkänd: ${JSON.stringify(approvedData)}`);
           }}
         />
