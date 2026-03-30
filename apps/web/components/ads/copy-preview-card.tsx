@@ -806,16 +806,20 @@ function MetaFeedPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
 
       default: // "centered"
         return (
-          <div className="relative flex aspect-[1.91/1] items-center justify-center overflow-hidden text-center" style={{ background: bgImage ? `url(${bgImage}) center/cover` : gradient }}>
-            {<div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />}
-            <ColorDot color={colorOverrides?.gradientStart ?? primary} label="Bakgrundsf&#228;rg" colorKey="gradientStart" onColorChange={onColorChange} position="top-right" />
-            <ColorDot color={colorOverrides?.gradientEnd ?? accent ?? darken(primary, 25)} label="Gradient slut" colorKey="gradientEnd" onColorChange={onColorChange} position="bottom-left" />
-            <div className="relative z-[1] space-y-4 px-6">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70">{brand.name}</div>
+          <div className="relative flex aspect-square items-end justify-center overflow-hidden" style={{ background: bgImage ? `url(${bgImage}) center/cover` : gradient }}>
+            {/* Ken Burns subtle zoom animation on background */}
+            {bgImage && <div className="absolute inset-0 animate-[kenburns_12s_ease-in-out_infinite_alternate]" style={{ background: `url(${bgImage}) center/cover` }} />}
+            {/* Gradient overlay for text readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+            <ColorDot color={colorOverrides?.gradientStart ?? primary} label="Bakgrundsfärg" colorKey="gradientStart" onColorChange={onColorChange} position="top-right" />
+            {/* Frosted glass text panel */}
+            <div className="relative z-[1] mx-3 mb-3 w-[calc(100%-24px)] space-y-2 rounded-xl px-4 py-3 text-center" style={{ background: "rgba(255,255,255,0.12)", backdropFilter: "blur(12px) saturate(180%)", WebkitBackdropFilter: "blur(12px) saturate(180%)" }}>
+              <div className="text-[8px] font-bold uppercase tracking-[0.25em] text-white/60">{brand.name}</div>
               <div className="text-white">{headlineEl}</div>
-              <div className="relative" style={{ backgroundColor: ctaBg, color: ctaTextColor, boxShadow: `0 4px 16px ${ctaBg}66, 0 0 0 1px ${ctaTextColor}15` }}>
-                {ctaEl}
-                <ColorDot color={ctaBg} label="CTA-f&#228;rg" colorKey="ctaBackground" onColorChange={onColorChange} position="center-right" />
+              {/* Frosted glass CTA button */}
+              <div className="relative mx-auto inline-flex items-center rounded-full px-5 py-1.5 text-[10px] font-bold shadow-lg transition-transform hover:scale-[1.03] active:scale-[0.97]" style={{ backgroundColor: ctaBg, color: ctaTextColor, boxShadow: `0 4px 20px ${ctaBg}55` }}>
+                <EditableText value={copy.cta} field="cta" onEditField={onEditField} charLimit={charLimits?.cta} className="inline" tagName="span" />
+                <ColorDot color={ctaBg} label="CTA-färg" colorKey="ctaBackground" onColorChange={onColorChange} position="center-right" />
               </div>
             </div>
           </div>
@@ -856,7 +860,7 @@ function MetaFeedPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
             <div className="text-[8px] uppercase text-gray-400">{cleanDomain}</div>
             <div className="truncate text-[11px] font-semibold text-gray-800">{copy.headline.slice(0, 40)}</div>
           </div>
-          <div className="shrink-0 rounded px-2.5 py-1 text-[9px] font-semibold" style={{ backgroundColor: ctaBg, color: ctaTextColor }}>
+          <div className="shrink-0 rounded-full px-3 py-1 text-[9px] font-bold shadow-sm transition-transform hover:scale-[1.03] active:scale-[0.97]" style={{ backgroundColor: ctaBg, color: ctaTextColor, boxShadow: `0 2px 8px ${ctaBg}44` }}>
             {copy.cta}
           </div>
         </div>
@@ -948,18 +952,30 @@ function MetaStoryPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, l
 
       default:
         return (
-          <div className="relative flex aspect-[9/16] flex-col items-center justify-between p-4 text-center" style={{ background: bgImage ? `url(${bgImage}) center/cover` : gradient }}>
-            <ColorDot color={colorOverrides?.gradientStart ?? primary} label="Bakgrundsf&#228;rg" colorKey="gradientStart" onColorChange={onColorChange} position="top-right" />
-            {storyBrandHeader}
-            <div className="space-y-3 px-2">
-              <EditableText value={copy.headline} field="headline" onEditField={onEditField} charLimit={charLimits?.headline} className={`${storyHeadlineSize} font-extrabold leading-tight text-white drop-shadow-lg`} tagName="div" />
-              <EditableText value={bodySnippet} field="bodyCopy" onEditField={onEditField} charLimit={charLimits?.bodyCopy} className="text-[10px] leading-snug text-white/80 drop-shadow" tagName="div" />
+          <div className="relative flex aspect-[9/16] flex-col items-center justify-between overflow-hidden text-center" style={{ background: gradient }}>
+            {/* Background with Ken Burns */}
+            {bgImage && <div className="absolute inset-0 animate-[kenburns_12s_ease-in-out_infinite_alternate]" style={{ background: `url(${bgImage}) center/cover` }} />}
+            {/* Strong gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/30" />
+            {/* Progress bar simulation */}
+            <div className="relative z-[1] flex w-full gap-1 px-3 pt-3">
+              <div className="h-0.5 flex-1 rounded-full bg-white/40" />
+              <div className="h-0.5 flex-1 rounded-full bg-white/20" />
+              <div className="h-0.5 flex-1 rounded-full bg-white/20" />
             </div>
-            <div className="flex flex-col items-center gap-1.5">
-              <ChevronUp className="h-4 w-4 animate-bounce text-white/80" />
-              <div className="relative rounded-full px-5 py-2 text-[10px] font-bold shadow-lg" style={{ backgroundColor: ctaBg, color: ctaTextColor, boxShadow: `0 4px 16px ${ctaBg}66, 0 0 0 1px ${ctaTextColor}15` }}>
+            <div className="relative z-[1] px-3 pt-1">{storyBrandHeader}</div>
+            <ColorDot color={colorOverrides?.gradientStart ?? primary} label="Bakgrundsfärg" colorKey="gradientStart" onColorChange={onColorChange} position="top-right" />
+            {/* Spacer */}
+            <div className="flex-1" />
+            {/* Bottom frosted glass panel */}
+            <div className="relative z-[1] mx-2 mb-2 w-[calc(100%-16px)] space-y-2 rounded-xl px-3 py-3 text-center" style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(16px) saturate(180%)", WebkitBackdropFilter: "blur(16px) saturate(180%)" }}>
+              <EditableText value={copy.headline} field="headline" onEditField={onEditField} charLimit={charLimits?.headline} className={`${storyHeadlineSize} font-bold leading-tight text-white drop-shadow-md`} tagName="div" />
+              <EditableText value={bodySnippet} field="bodyCopy" onEditField={onEditField} charLimit={charLimits?.bodyCopy} className="text-[9px] leading-snug text-white/70" tagName="div" />
+              {/* CTA pill */}
+              <div className="relative mx-auto inline-flex items-center gap-1 rounded-full px-4 py-1.5 text-[9px] font-bold shadow-lg transition-transform hover:scale-[1.03] active:scale-[0.97]" style={{ backgroundColor: ctaBg, color: ctaTextColor, boxShadow: `0 4px 16px ${ctaBg}55` }}>
+                <ChevronUp className="h-3 w-3" />
                 <EditableText value={copy.cta} field="cta" onEditField={onEditField} charLimit={charLimits?.cta} className="inline" tagName="span" />
-                <ColorDot color={ctaBg} label="CTA-f&#228;rg" colorKey="ctaBackground" onColorChange={onColorChange} position="center-right" />
+                <ColorDot color={ctaBg} label="CTA-färg" colorKey="ctaBackground" onColorChange={onColorChange} position="center-right" />
               </div>
             </div>
           </div>
