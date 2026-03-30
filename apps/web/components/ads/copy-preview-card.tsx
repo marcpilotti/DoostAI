@@ -1424,15 +1424,15 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
     : variants[0]!;
 
   return (
-    <div className="animate-card-in mt-2 flex flex-col overflow-hidden rounded-2xl border border-border/30 bg-white shadow-lg" style={{ maxHeight: "calc(100vh - 140px)" }}>
+    <div className="animate-card-in mt-2 overflow-hidden rounded-2xl border border-border/30 bg-white/80 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] backdrop-blur-xl">
 
-      {/* ── Format + Layout bar (compact, always visible) ────────── */}
-      <div className="flex items-center gap-2 overflow-x-auto border-b border-border/20 px-3 py-1.5">
+      {/* ── Format + Layout bar ──────────────────────────────────── */}
+      <div className="flex items-center gap-2 overflow-x-auto border-b border-border/20 px-4 py-2">
         {FORMAT_TABS.map((tab) => {
           const TabIcon = tab.icon;
           return (
-            <button key={tab.id} onClick={() => { setFormat(tab.id); setSelectedId(null); setMobileIndex(0); }} className={`flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium transition-all ${format === tab.id ? "bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200" : "text-muted-foreground hover:bg-muted/30"}`}>
-              <TabIcon className="h-3 w-3" />
+            <button key={tab.id} onClick={() => { setFormat(tab.id); setSelectedId(null); setMobileIndex(0); }} className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${format === tab.id ? "bg-white text-foreground shadow-sm ring-1 ring-border/30" : "text-muted-foreground hover:text-foreground"}`}>
+              <TabIcon className="h-3.5 w-3.5" />
               {tab.label}
             </button>
           );
@@ -1441,8 +1441,8 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
         {LAYOUT_OPTIONS.map((opt) => {
           const LayoutIcon = opt.icon;
           return (
-            <button key={opt.id} onClick={() => setLayout(opt.id)} className={`flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium transition-all ${layout === opt.id ? "bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200" : "text-muted-foreground hover:bg-muted/30"}`}>
-              <LayoutIcon className="h-3 w-3" />
+            <button key={opt.id} onClick={() => setLayout(opt.id)} className={`flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${layout === opt.id ? "bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200" : "text-muted-foreground hover:bg-muted/30"}`}>
+              <LayoutIcon className="h-3.5 w-3.5" />
               {opt.label}
             </button>
           );
@@ -1458,9 +1458,9 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
       )}
 
       {/* ── Two variants side by side (desktop) / carousel (mobile) */}
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div>
         {/* Desktop: side by side */}
-        <div className="hidden gap-3 p-3 sm:grid sm:grid-cols-2">
+        <div className="hidden gap-4 p-4 sm:grid sm:grid-cols-2">
           {variants.map((copy, vi) => {
             const copyId = copy.id ?? `${copy.platform}-${copy.variant}`;
             // Use different background for variant B
@@ -1490,7 +1490,7 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
         </div>
 
         {/* Mobile: swipeable single */}
-        <div className="p-3 sm:hidden">
+        <div className="p-4 sm:hidden">
           {variants[mobileIndex] && (() => {
             const copy = variants[mobileIndex]!;
             const copyId = copy.id ?? `${copy.platform}-${copy.variant}`;
@@ -1535,7 +1535,7 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
       </div>
 
       {/* ── Action Buttons ─────────────────────────────────────── */}
-      <div className="border-t border-border/20 px-3 py-2">
+      <div className="border-t border-border/20 px-4 py-3">
         {/* Primary actions */}
         <div className="flex items-center gap-2">
           <button
@@ -1579,7 +1579,7 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
       <div className="border-t border-border/20">
         <button
           onClick={() => setShowPro(!showPro)}
-          className="flex w-full items-center gap-2 px-3 py-1.5 text-[9px] font-medium text-muted-foreground/50 transition-colors hover:bg-muted/10 hover:text-muted-foreground"
+          className="flex w-full items-center gap-2 px-4 py-2 text-[10px] font-medium text-muted-foreground/50 transition-colors hover:bg-muted/10 hover:text-muted-foreground"
         >
           <ChevronUp className={`h-2.5 w-2.5 transition-transform duration-200 ${showPro ? "" : "rotate-180"}`} />
           Fler alternativ
