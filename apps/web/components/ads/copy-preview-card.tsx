@@ -85,6 +85,8 @@ type CopyPreviewData = {
   platforms: string[];
   brand?: BrandData;
   renderingImages?: boolean;
+  /** AI-generated or Unsplash background URL (data URL or https URL) */
+  backgroundUrl?: string | null;
 };
 
 type LogoPosition = "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center";
@@ -1230,6 +1232,7 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editMode, setEditMode] = useState<EditMode>(null);
   const [bgImages, setBgImages] = useState<Record<string, string>>({});
+  const [bgInitialized, setBgInitialized] = useState(false);
   const [mobileIndex, setMobileIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadTarget, setUploadTarget] = useState<string | null>(null);
@@ -1241,6 +1244,26 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
   }>({ preferredHeadlineLength: "medium", selectedCount: 0 });
 
   const variants = data.copies.slice(0, 2);
+
+  // Initialize bgImages from data.backgroundUrl (AI-generated or Unsplash) on first render.
+  // Only runs once per component mount — user uploads take priority after initialization.
+  useEffect(() => {
+    if (bgInitialized || !data.backgroundUrl) return;
+    const initial: Record<string, string> = {};
+    for (const copy of data.copies.slice(0, 2)) {
+      const copyId = copy.id ?? `${copy.platform}-${copy.variant}`;
+      initial[copyId] = data.backgroundUrl;
+    }
+    setBgImages((prev) => {
+      // Don't overwrite user-uploaded images
+      const merged = { ...initial };
+      for (const [key, val] of Object.entries(prev)) {
+        if (val) merged[key] = val;
+      }
+      return merged;
+    });
+    setBgInitialized(true);
+  }, [data.backgroundUrl, data.copies, bgInitialized]);
 
   const variantDiffs = useMemo(() => getVariantDiffs(variants), [variants]);
 

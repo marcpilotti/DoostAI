@@ -23,6 +23,7 @@ import {
 import type { BrandContext, Platform } from "@doost/ai";
 import { linkedinGetOAuthUrl } from "@doost/platforms";
 import { getIndustryBackground } from "@doost/templates/backgrounds";
+import { generateAdBackground } from "@doost/templates/ai-image";
 import { adAccounts, db, eq } from "@doost/db";
 import { inngest } from "@/lib/inngest/client";
 import {
@@ -297,8 +298,9 @@ ABSOLUTE RULES:
             url: brand.url,
           };
 
-          // Fetch ad copy and industry background in parallel
-          const [allCopy, bgUrl] = await Promise.all([
+          // Fetch ad copy, AI image, and Unsplash background in parallel
+          // AI image is primary; Unsplash is fallback if AI generation fails
+          const [allCopy, aiImage, unsplashBgUrl] = await Promise.all([
             Promise.all(
               platforms.map((p) =>
                 generateAdCopy(brandContext, p, objective ?? "lead generation", {
@@ -307,8 +309,22 @@ ABSOLUTE RULES:
                 }),
               ),
             ),
+            generateAdBackground({
+              industry: brand.industry ?? "",
+              brandName: brand.name,
+              primaryColor: brand.colors.primary ?? "#6366f1",
+              accentColor: brand.colors.accent,
+              style: "modern",
+              format: "square",
+            }).catch((err) => {
+              console.warn("[generate_ad_copy] AI image generation failed:", err instanceof Error ? err.message : err);
+              return null;
+            }),
             getIndustryBackground(brand.industry ?? "").catch(() => null),
           ]);
+
+          // Use AI-generated image if available, otherwise fall back to Unsplash
+          const bgUrl = aiImage?.dataUrl ?? unsplashBgUrl;
 
           // Generate color harmony set for the ad preview
           const adColorHarmony = generateHarmonySet(

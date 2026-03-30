@@ -22,6 +22,10 @@
     "./logo-selector": {
       "types": "./src/logo-selector.ts",
       "default": "./src/logo-selector.ts"
+    },
+    "./ai-image": {
+      "types": "./src/ai-image-generator.ts",
+      "default": "./src/ai-image-generator.ts"
     }
   },
   "scripts": {

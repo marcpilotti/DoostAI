@@ -36,6 +36,15 @@ export {
 export type { LogoVariant } from "./logo-selector";
 
 // ---------------------------------------------------------------------------
+// AI Image Generation (DALL-E 3 ad backgrounds)
+// ---------------------------------------------------------------------------
+export {
+  generateAdBackground,
+  invalidateAiImageCache,
+} from "./ai-image-generator";
+export type { GeneratedImage, GenerateAdBackgroundParams } from "./ai-image-generator";
+
+// ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 export type {
