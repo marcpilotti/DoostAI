@@ -26,6 +26,7 @@ export function GoalPicker({
 }) {
   const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
   const [selectedAudience, setSelectedAudience] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
 
   const filteredAudiences = data.audiences?.filter((a) => a.trim()) ?? [];
   const audiences = filteredAudiences.length > 0 ? filteredAudiences : DEFAULT_AUDIENCES;
@@ -105,11 +106,20 @@ export function GoalPicker({
       {ready && (
         <div className="animate-message-in border-t border-border/20 px-4 py-2">
           <button
-            onClick={() => onSelect?.(selectedGoal!, selectedAudience!)}
-            className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"
+            onClick={() => {
+              if (submitted) return;
+              setSubmitted(true);
+              onSelect?.(selectedGoal!, selectedAudience!);
+            }}
+            disabled={submitted}
+            className={`flex w-full items-center justify-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold shadow-sm transition-all ${
+              submitted
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-gradient-to-r from-indigo-500 to-indigo-600 text-white hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"
+            }`}
           >
-            Skapa annons
-            <ArrowRight className="h-3.5 w-3.5" />
+            {submitted ? "Skapar annons..." : "Skapa annons"}
+            {!submitted && <ArrowRight className="h-3.5 w-3.5" />}
           </button>
         </div>
       )}

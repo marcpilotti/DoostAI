@@ -291,7 +291,7 @@ export function ChatMessages({
         )}
 
         {/* Main card area — fills remaining viewport, scrolls internally */}
-        <div className="min-h-0 flex-1 overflow-y-auto pb-2">
+        <div className="min-h-0 flex-1 overflow-y-auto scroll-smooth pb-2">
           {latestToolParts.map(({ part, messageId }) => (
             <Suspense key={part.toolCallId ?? messageId} fallback={<div className="h-8" />}>
               <ToolInvocation part={part} onSendMessage={onSendMessage} />

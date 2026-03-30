@@ -67,11 +67,21 @@ export default function Home() {
   const isLoading = status === "submitted" || status === "streaming";
   const flowStep = useFlowProgress(messages);
 
+  // Debounced sendMessage — prevents double-clicks and rapid-fire chaos
+  const [sending, setSending] = useState(false);
+  const safeSendMessage = (text: string) => {
+    if (isLoading || sending || !text.trim()) return;
+    setSending(true);
+    sendMessage({ text: text.trim() });
+    // Reset after a short delay to prevent rapid double-sends
+    setTimeout(() => setSending(false), 2000);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = input.trim();
-    if (!trimmed || isLoading) return;
-    sendMessage({ text: trimmed });
+    if (!trimmed || isLoading || sending) return;
+    safeSendMessage(trimmed);
     setInput("");
   };
 
@@ -153,16 +163,14 @@ export default function Home() {
             <ChatMessages
               messages={messages}
               isLoading={isLoading}
-              onSendMessage={(text) => {
-                sendMessage({ text });
-              }}
+              onSendMessage={safeSendMessage}
             />
           </div>
           <div className="shrink-0 mx-auto w-full max-w-2xl px-4 sm:px-6">
             {!isLoading && messages.length > 0 && !input && (
               <SuggestionChips
                 suggestions={getSuggestionsForStep(flowStep)}
-                onSelect={(msg) => sendMessage({ text: msg })}
+                onSelect={safeSendMessage}
               />
             )}
           </div>
