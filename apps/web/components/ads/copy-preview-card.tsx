@@ -1478,17 +1478,10 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
         })}
       </div>
 
-      {/* Spec validation status */}
-      <div className={`flex items-center gap-1.5 px-3 py-1 text-[9px] font-medium ${
-        firstValidation.hasErrors ? "bg-red-50 text-red-600" :
-        firstValidation.hasWarnings ? "bg-amber-50 text-amber-600" :
-        "bg-emerald-50/50 text-emerald-600"
-      }`}>
-        {firstValidation.hasErrors ? "\u26a0\ufe0f" : firstValidation.hasWarnings ? "\u26a1" : "\u2713"} {firstValidation.summary}
-      </div>
+      {/* Validation + strategy removed — previews get all the space */}
 
-      {/* ── Strategy insight (if available) ────────────────────── */}
-      {data.strategy?.recommendation && (
+      {/* Validation errors only shown inline when publishing */}
+      {false && data.strategy?.recommendation && (
         <div className="flex items-center gap-2 border-b border-border/10 bg-gradient-to-r from-indigo-50/50 to-purple-50/50 px-3 py-1.5">
           <Sparkles className="h-3 w-3 shrink-0 text-indigo-500" />
           <span className="text-[10px] font-medium text-indigo-700">{data.strategy.recommendation}</span>
@@ -1624,7 +1617,7 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
       <div className="border-t border-border/20">
         <button
           onClick={() => setShowPro(!showPro)}
-          className="flex w-full items-center gap-2 px-4 py-2 text-[10px] font-medium text-muted-foreground/50 transition-colors hover:bg-muted/10 hover:text-muted-foreground"
+          className="flex w-full items-center gap-2 px-3 py-1 text-[9px] font-medium text-muted-foreground/40 transition-colors hover:bg-muted/10 hover:text-muted-foreground"
         >
           <ChevronUp className={`h-2.5 w-2.5 transition-transform duration-200 ${showPro ? "" : "rotate-180"}`} />
           Fler alternativ
