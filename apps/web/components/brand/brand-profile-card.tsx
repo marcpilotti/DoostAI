@@ -536,11 +536,32 @@ export function BrandProfileCard({
         </span>
         <button
           onClick={() => {
-            // Guard against rapid clicks stacking setTimeout chains
             if (cascading) return;
-            setCascading(true);
-            // Cascade approve: stagger each field 100ms apart
+
+            const approvedData = {
+              name: stripSuffix(data.name),
+              industry,
+              colors: { primary: colors.primary, secondary: colors.secondary, accent: colors.accent },
+              fonts: data.fonts ?? { heading: "Inter", body: "Inter" },
+              logoUrl,
+              location: data.location ?? "",
+              targetAudience: data.targetAudience ?? "",
+              url: data.url,
+              brandVoice: data.brandVoice ?? "Professional and approachable",
+              valuePropositions: data.valuePropositions ?? [],
+              description: data.description ?? "",
+            };
+
             const pending = Object.keys(approved).filter((k) => approved[k] !== "approved");
+
+            if (pending.length === 0) {
+              // All already approved — fire immediately, no setTimeout
+              onComplete?.(approvedData);
+              return;
+            }
+
+            // Cascade approve with stagger animation
+            setCascading(true);
             pending.forEach((key, i) => {
               setTimeout(() => {
                 setApproved((prev) => ({ ...prev, [key]: "approved" }));
@@ -549,19 +570,7 @@ export function BrandProfileCard({
             });
             setTimeout(() => {
               window.dispatchEvent(new CustomEvent("doost:profile-approved"));
-              onComplete?.({
-                name: stripSuffix(data.name),
-                industry,
-                colors: { primary: colors.primary, secondary: colors.secondary, accent: colors.accent },
-                fonts: data.fonts ?? { heading: "Inter", body: "Inter" },
-                logoUrl,
-                location: data.location ?? "",
-                targetAudience: data.targetAudience ?? "",
-                url: data.url,
-                brandVoice: data.brandVoice ?? "Professional and approachable",
-                valuePropositions: data.valuePropositions ?? [],
-                description: data.description ?? "",
-              });
+              onComplete?.(approvedData);
               setCascading(false);
             }, pending.length * 100 + 300);
           }}

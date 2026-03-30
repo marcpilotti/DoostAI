@@ -18,7 +18,8 @@ const brandAnalysisSchema = z.object({
     ),
   targetAudience: z
     .string()
-    .describe("Primary target audience description"),
+    .max(50)
+    .describe("Primary target audience as SHORT keywords (max 3-5 words). Examples: 'Kvinnor 25-45', 'Småföretagare', 'Föräldrar med barn'. NOT a full sentence."),
   valuePropositions: z
     .array(z.string())
     .describe("3-5 key value propositions"),
