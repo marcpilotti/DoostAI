@@ -305,8 +305,8 @@ export function ChatMessages({
           ))}
         </div>
 
-        {/* Typing indicator */}
-        {isLoading && messages[messages.length - 1]?.role === "user" && (
+        {/* Typing indicator — hidden when a tool card is already showing */}
+        {isLoading && messages[messages.length - 1]?.role === "user" && latestToolParts.length === 0 && (
           <div className="pb-4">
             <TypingIndicator />
           </div>
