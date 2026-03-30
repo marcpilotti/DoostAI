@@ -300,14 +300,25 @@ export function ChatMessages({
     return null;
   }, [messages]);
 
-  // Find latest tool parts, but ONLY from messages with completed tool results.
+  // Find latest tool parts — deduplicate by tool name (only show last instance of each tool)
   const latestToolParts = useMemo(() => {
     for (let i = messages.length - 1; i >= 0; i--) {
       const m = messages[i]!;
       if (m.role !== "assistant") continue;
       const tools = m.parts.filter(isToolPart) as ToolPart[];
       if (tools.length > 0) {
-        return tools.map((t) => ({ part: t, messageId: m.id }));
+        // Deduplicate: keep only the LAST instance of each tool name
+        const seen = new Set<string>();
+        const deduped: { part: ToolPart; messageId: string }[] = [];
+        for (let j = tools.length - 1; j >= 0; j--) {
+          const t = tools[j]!;
+          const toolName = t.toolName ?? t.type.replace("tool-", "");
+          if (!seen.has(toolName)) {
+            seen.add(toolName);
+            deduped.unshift({ part: t, messageId: m.id });
+          }
+        }
+        return deduped;
       }
     }
     return [];
