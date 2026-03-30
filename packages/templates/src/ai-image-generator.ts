@@ -240,7 +240,7 @@ export async function generateAdBackground(
 ): Promise<GeneratedImage | null> {
   const apiKey = getOpenAIApiKey();
   if (!apiKey) {
-    console.log("[AI Image] Skipped — no API key");
+    console.error("[AI Image] OPENAI_API_KEY not configured — all images will be gradients");
     return null;
   }
 
@@ -337,7 +337,10 @@ export async function generateAdBackground(
       }
       if (attempt === 0) await new Promise(r => setTimeout(r, 3000));
     }
-    if (!response?.ok) return null;
+    if (!response?.ok) {
+      console.error("[AI Image] FAILED — falling back to gradient. Reason: all attempts failed", response?.status ?? "no response");
+      return null;
+    }
 
     const data = (await response.json()) as {
       data: Array<{ b64_json?: string; revised_prompt?: string }>;
@@ -377,8 +380,8 @@ export async function generateAdBackground(
       cached: false,
     };
   } catch (err) {
-    console.warn(
-      "[AI Image] Generation failed:",
+    console.error(
+      "[AI Image] FAILED — falling back to gradient. Reason:",
       err instanceof Error ? err.message : err,
     );
     return null;

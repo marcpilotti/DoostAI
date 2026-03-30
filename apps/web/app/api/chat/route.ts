@@ -49,8 +49,17 @@ export async function POST(req: Request) {
       .map((p: { text: string }) => p.text)
       .join("") ?? "";
 
-  // Detect language from user message — Swedish if common Swedish words found
-  const isSwedish = /\b(ska|vill|och|för|med|som|att|kan|har|det|jag|vi|är|inte|den|ett|min|din|på|till|från|vara|blev|alla|mycket|också|redan|skulle|kunna|behöver|göra|hej|tack)\b/i.test(lastText);
+  // Detect language from ALL user messages — not just the last one.
+  // The last message before ad generation is often goal picker output like
+  // "Mål: Fler kunder, Målgrupp: Småföretagare" which IS Swedish, but the
+  // first message might just be a URL like "klarna.com" (no Swedish words).
+  const allUserText = [...uiMessages]
+    .filter((m: { role: string }) => m.role === "user")
+    .flatMap((m: { parts?: Array<{ type: string; text?: string }> }) =>
+      m.parts?.filter((p) => p.type === "text").map((p) => p.text ?? "") ?? []
+    )
+    .join(" ");
+  const isSwedish = /\b(ska|vill|och|för|med|som|att|kan|har|det|jag|vi|är|inte|den|ett|min|din|på|till|från|vara|blev|alla|mycket|också|redan|skulle|kunna|behöver|göra|hej|tack|fler|kunder|personal|synas|mer|mål|målgrupp)\b/i.test(allUserText);
   const detectedLanguage = isSwedish ? "Swedish" : "English";
 
   // Route to cheapest sufficient model
