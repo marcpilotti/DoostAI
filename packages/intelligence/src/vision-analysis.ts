@@ -10,6 +10,11 @@ const visionSchema = z.object({
   })).describe("Top 3-5 dominant brand colors visible on the page"),
   font_category: z.enum(["sans", "serif", "mono", "display"]).describe("Primary font category"),
   visual_style: z.enum(["modern", "classic", "playful", "premium", "neutral"]).describe("Overall visual style"),
+  detected_fonts: z.array(z.object({
+    name: z.string().describe("Exact font name if recognizable (e.g. 'Montserrat', 'Playfair Display')"),
+    role: z.enum(["heading", "body"]).describe("Whether this is used for headings or body text"),
+    confidence: z.number().describe("How confident 0-100 that this is the exact font"),
+  })).describe("Fonts detected visually from the page. Only include if you can identify the specific font."),
   industry_guess: z.string().describe("Best guess at the company's industry in Swedish"),
   tagline: z.string().optional().describe("Company tagline if visible"),
   confidence: z.number().describe("Overall confidence 0-100"),
@@ -59,6 +64,7 @@ export async function analyzeWithVision(
               text: `Analyze this website image. Extract the visual brand identity:
 - What colors dominate? List the top 3-5 as hex codes with their role (primary, accent, nav, background, text).
 - What font category is used? (sans-serif, serif, monospace, display)
+- What specific fonts are used? If you can identify them by name (e.g., Montserrat, Roboto, Playfair Display), list them with role (heading/body) and confidence. Only name fonts you're fairly sure about.
 - What visual style? (modern, classic, playful, premium, neutral)
 - What industry does this company appear to be in? Answer in Swedish.
 - Is there a visible tagline?

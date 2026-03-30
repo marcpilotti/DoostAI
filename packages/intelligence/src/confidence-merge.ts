@@ -7,6 +7,8 @@ import type { VisionAnalysis } from "./vision-analysis";
 import type { SocialProfile } from "./social-detection";
 import type { BrandfetchResult } from "./logo-api";
 import type { WebsiteAuditResult } from "./website-audit";
+import type { SchemaOrgData } from "./schema-org";
+import { clusterColors } from "./color-clustering";
 
 export type ConfidenceField<T> = {
   value: T;
@@ -104,6 +106,10 @@ function mergeLogo(
 
 /**
  * Merge colors from multiple sources.
+ *
+ * CSS colors are run through CIELAB perceptual clustering (Delta-E < 15)
+ * instead of simple brightness/saturation filtering.  This groups visually
+ * identical shades and surfaces the true brand palette.
  */
 function mergeColors(
   brandfetch: BrandfetchResult | null,
@@ -117,7 +123,6 @@ function mergeColors(
     if (c.type === "dark" || c.type === "light") return false;
     const hex = c.hex.toLowerCase();
     if (!isValidHex6(hex)) return false;
-    // Exclude near-black and near-white
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
@@ -131,37 +136,39 @@ function mergeColors(
     return { value: { primary, secondary, accent }, confidence: 95, source: "brandfetch", status: "found" };
   }
 
-  // Filter CSS colors: remove malformed hex, near-black, near-white, and grays
-  const usableCss = cssColors.filter((hex) => {
-    if (!isValidHex6(hex)) return false;
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    const brightness = (r + g + b) / 3;
-    const saturation = Math.max(r, g, b) - Math.min(r, g, b);
-    return brightness > 30 && brightness < 230 && saturation > 20;
-  });
+  // --- CIELAB clustering replaces the old usableCss brightness/saturation filter ---
+  // Cluster all CSS colors perceptually, then keep only "brand" role clusters.
+  const clustered = clusterColors(cssColors);
+  const brandClusters = clustered.filter((c) => c.role === "brand");
 
-  // Priority 2: Vision AI + CSS agree (confidence 90)
-  if (vision && usableCss.length >= 2) {
+  // Priority 2: Vision AI + clustered CSS agree (confidence 90)
+  if (vision && brandClusters.length >= 2) {
     const visionPrimary = vision.dominant_colors[0]?.hex;
-    const cssPrimary = usableCss[0];
+    const cssPrimary = brandClusters[0]!.hex;
     if (visionPrimary && cssPrimary && colorDistanceRgb(visionPrimary, cssPrimary) < 60) {
       return {
-        value: { primary: cssPrimary, secondary: usableCss[1] ?? cssPrimary, accent: usableCss[2] ?? cssPrimary },
+        value: {
+          primary: cssPrimary,
+          secondary: brandClusters[1]?.hex ?? cssPrimary,
+          accent: brandClusters[2]?.hex ?? cssPrimary,
+        },
         confidence: 90,
-        source: "vision+css",
+        source: "vision+css_clustered",
         status: "found",
       };
     }
   }
 
-  // Priority 3: CSS only (confidence 70)
-  if (usableCss.length >= 2) {
+  // Priority 3: Clustered CSS only (confidence 70)
+  if (brandClusters.length >= 2) {
     return {
-      value: { primary: usableCss[0]!, secondary: usableCss[1] ?? usableCss[0]!, accent: usableCss[2] ?? usableCss[0]! },
+      value: {
+        primary: brandClusters[0]!.hex,
+        secondary: brandClusters[1]?.hex ?? brandClusters[0]!.hex,
+        accent: brandClusters[2]?.hex ?? brandClusters[0]!.hex,
+      },
       confidence: 70,
-      source: "css",
+      source: "css_clustered",
       status: "uncertain",
     };
   }
@@ -170,7 +177,11 @@ function mergeColors(
   if (vision && vision.dominant_colors.length >= 2) {
     const colors = vision.dominant_colors;
     return {
-      value: { primary: colors[0]!.hex, secondary: colors[1]?.hex ?? colors[0]!.hex, accent: colors[2]?.hex ?? colors[0]!.hex },
+      value: {
+        primary: colors[0]!.hex,
+        secondary: colors[1]?.hex ?? colors[0]!.hex,
+        accent: colors[2]?.hex ?? colors[0]!.hex,
+      },
       confidence: 60,
       source: "vision",
       status: "uncertain",
@@ -196,12 +207,30 @@ function mergeFont(
     return { value: { family: bfFont.name, category: "sans" }, confidence: 95, source: "brandfetch", status: "found" };
   }
 
-  // Priority 2: CSS font (confidence 80)
+  // Priority 2: Vision-detected font with high confidence (confidence 85)
+  // Claude Vision can identify specific rendered fonts from the screenshot
+  if (vision?.detected_fonts?.length) {
+    const highConfidenceFonts = vision.detected_fonts.filter((f) => f.confidence >= 70);
+    // Prefer a heading font, fall back to body font
+    const bestFont = highConfidenceFonts.find((f) => f.role === "heading")
+      ?? highConfidenceFonts.find((f) => f.role === "body");
+    if (bestFont) {
+      const category = vision.font_category ?? "sans";
+      return {
+        value: { family: bestFont.name, category },
+        confidence: 85,
+        source: "vision_font",
+        status: "found",
+      };
+    }
+  }
+
+  // Priority 3: CSS font (confidence 80)
   if (cssFonts.length > 0 && cssFonts[0]) {
     return { value: { family: cssFonts[0], category: "sans" }, confidence: 80, source: "css", status: "found" };
   }
 
-  // Priority 3: Vision category (confidence 50)
+  // Priority 4: Vision category (confidence 50)
   if (vision) {
     const categoryMap: Record<string, string> = { sans: "Inter", serif: "Lora", mono: "JetBrains Mono", display: "Poppins" };
     return {
@@ -231,17 +260,34 @@ export function mergeIntelligence(input: {
   audit: WebsiteAuditResult | null;
   enrichedIndustry?: string;
   industryPalette?: { primary: string; secondary: string; accent: string };
+  schemaOrg?: SchemaOrgData | null;
 }): MergedBrandIntelligence {
   const logo = mergeLogo(input.brandfetch, input.logoDevUrl, input.scrapedLogos, input.social, input.companyName);
   const colors = mergeColors(input.brandfetch, input.vision, input.cssColors, input.industryPalette);
   const font = mergeFont(input.brandfetch, input.vision, input.cssFonts);
 
-  // Industry: enrichment > vision > default
-  const industry: ConfidenceField<string> = input.enrichedIndustry
-    ? { value: input.enrichedIndustry, confidence: 90, source: "enrichment", status: "found" }
-    : input.vision?.industry_guess
-      ? { value: input.vision.industry_guess, confidence: 60, source: "vision", status: "uncertain" }
-      : { value: "Ej identifierad", confidence: 0, source: "none", status: "missing" };
+  // Schema.org industry: strip NAICS: prefix if it's just a code (not useful as display text)
+  const schemaOrgIndustry = input.schemaOrg?.industry && !input.schemaOrg.industry.startsWith("NAICS:")
+    ? input.schemaOrg.industry
+    : undefined;
+
+  // Industry priority: Brandfetch (95) > Schema.org (92) > enrichment (90) > vision (60) > default
+  // Schema.org sits between enrichment and Brandfetch because it's authoritative structured data
+  // from the website itself, but Brandfetch has curated/verified data.
+  let industry: ConfidenceField<string>;
+  if (input.enrichedIndustry) {
+    industry = { value: input.enrichedIndustry, confidence: 90, source: "enrichment", status: "found" };
+  } else if (schemaOrgIndustry) {
+    industry = { value: schemaOrgIndustry, confidence: 92, source: "schema.org", status: "found" };
+  } else if (input.vision?.industry_guess) {
+    industry = { value: input.vision.industry_guess, confidence: 60, source: "vision", status: "uncertain" };
+  } else {
+    industry = { value: "Ej identifierad", confidence: 0, source: "none", status: "missing" };
+  }
+
+  // Merge Schema.org sameAs URLs into social profiles.
+  // These are high-confidence social links declared by the site owner.
+  const social = mergeSocialWithSchemaOrg(input.social, input.schemaOrg);
 
   const overallConfidence = Math.round(
     (logo.confidence + colors.confidence + font.confidence + industry.confidence) / 4,
@@ -254,8 +300,61 @@ export function mergeIntelligence(input: {
     industry,
     visualStyle: input.vision?.visual_style ?? "modern",
     tagline: input.vision?.tagline ?? null,
-    social: input.social,
+    social,
     audit: input.audit,
     overallConfidence,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Schema.org social URL merging
+// ---------------------------------------------------------------------------
+
+/** Known social platform URL patterns for classifying sameAs URLs. */
+const SAME_AS_PLATFORMS: [string, RegExp][] = [
+  ["facebook", /facebook\.com\//i],
+  ["instagram", /instagram\.com\//i],
+  ["linkedin", /linkedin\.com\//i],
+  ["twitter", /(?:twitter\.com|x\.com)\//i],
+  ["youtube", /youtube\.com\//i],
+  ["tiktok", /tiktok\.com\//i],
+  ["github", /github\.com\//i],
+  ["pinterest", /pinterest\.com\//i],
+];
+
+/**
+ * Merge Schema.org sameAs URLs into the existing social profiles list.
+ * Schema.org sameAs URLs get confidence 95 because they are declared by
+ * the site owner in structured data — higher than link scanning (70-90).
+ */
+function mergeSocialWithSchemaOrg(
+  existing: SocialProfile[],
+  schemaOrg?: SchemaOrgData | null,
+): SocialProfile[] {
+  if (!schemaOrg?.sameAs?.length) return existing;
+
+  const result = [...existing];
+  const seenUrls = new Set(existing.map((p) => p.url.toLowerCase()));
+
+  for (const url of schemaOrg.sameAs) {
+    const normalized = url.toLowerCase().replace(/\/$/, "");
+    if (seenUrls.has(normalized)) continue;
+
+    // Identify the platform from the URL
+    let platform = "other";
+    for (const [name, pattern] of SAME_AS_PLATFORMS) {
+      if (pattern.test(url)) {
+        platform = name;
+        break;
+      }
+    }
+
+    // Only add recognized social platforms (skip generic "other" URLs)
+    if (platform !== "other") {
+      seenUrls.add(normalized);
+      result.push({ platform, url, confidence: 95 });
+    }
+  }
+
+  return result;
 }

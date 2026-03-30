@@ -6,8 +6,10 @@
 import { analyzeWithVision } from "./vision-analysis";
 import { detectSocialPresence } from "./social-detection";
 import { fetchLogoApis, type DownloadedLogo } from "./logo-api";
+import { cacheOgImage } from "./image-cache";
 import { auditWebsite } from "./website-audit";
 import { mergeIntelligence, type MergedBrandIntelligence } from "./confidence-merge";
+import { extractSchemaOrg, type SchemaOrgData } from "./schema-org";
 
 export type PipelineInput = {
   url: string;
@@ -26,8 +28,10 @@ export type PipelineInput = {
 export type PipelineResult = {
   intelligence: MergedBrandIntelligence;
   downloadedLogo: DownloadedLogo | null;
+  schemaOrg: SchemaOrgData | null;
   timing: {
     total: number;
+    ogCache: number | null;
     vision: number | null;
     social: number | null;
     logoApi: number | null;
@@ -38,6 +42,10 @@ export type PipelineResult = {
 /**
  * Run the complete Brand Intelligence Pipeline.
  * All layers execute in parallel for maximum speed.
+ *
+ * The OG image is pre-cached at the start so that vision analysis
+ * receives a reliable base64 data-URI instead of a raw URL that
+ * could time out or fail due to CDN issues.
  */
 export async function runBrandIntelligencePipeline(
   input: PipelineInput,
@@ -49,6 +57,25 @@ export async function runBrandIntelligencePipeline(
     throw new Error(`Invalid domain extracted from URL "${input.url}": got "${domain}". Provide a valid URL like "https://example.com".`);
   }
 
+  // Extract Schema.org structured data (synchronous, fast — runs before parallel layers)
+  const schemaOrg = extractSchemaOrg(input.html);
+  if (schemaOrg) {
+    console.log(`[Intelligence] Schema.org data found: name=${schemaOrg.name ?? "?"}, industry=${schemaOrg.industry ?? "?"}, sameAs=${schemaOrg.sameAs?.length ?? 0} URLs`);
+  }
+
+  // Pre-cache OG image: download + cache so vision analysis gets a reliable
+  // base64 string instead of a raw URL that could time out or fail.
+  const ogCacheStart = Date.now();
+  const cachedOgImage = input.ogImage
+    ? await cacheOgImage(input.ogImage)
+    : null;
+  const ogCacheMs = Date.now() - ogCacheStart;
+
+  // Determine what to pass to vision: prefer screenshot, then cached OG base64,
+  // then fall back to the original OG URL (in case download failed but the LLM
+  // can still fetch it).
+  const ogForVision = cachedOgImage ?? input.ogImage;
+
   // Run all layers in parallel
   const [
     visionResult,
@@ -56,8 +83,8 @@ export async function runBrandIntelligencePipeline(
     logoApiResult,
     auditResult,
   ] = await Promise.allSettled([
-    // L1: Vision AI (analyze OG image or screenshot)
-    timed(() => analyzeWithVision(input.ogImage, input.screenshot)),
+    // L1: Vision AI (analyze OG image or screenshot — uses pre-cached base64)
+    timed(() => analyzeWithVision(ogForVision, input.screenshot)),
 
     // L3: Social media detection (from HTML)
     timed(() => Promise.resolve(detectSocialPresence(input.html, input.links))),
@@ -101,13 +128,16 @@ export async function runBrandIntelligencePipeline(
     audit,
     enrichedIndustry: input.enrichedIndustry,
     industryPalette: input.industryPalette,
+    schemaOrg,
   });
 
   return {
     intelligence,
     downloadedLogo: logoApi?.downloadedLogo ?? null,
+    schemaOrg,
     timing: {
       total: Date.now() - start,
+      ogCache: input.ogImage ? ogCacheMs : null,
       vision: visionResult.status === "fulfilled" ? visionResult.value.ms : null,
       social: socialResult.status === "fulfilled" ? socialResult.value.ms : null,
       logoApi: logoApiResult.status === "fulfilled" ? logoApiResult.value.ms : null,
