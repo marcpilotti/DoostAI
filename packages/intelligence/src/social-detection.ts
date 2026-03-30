@@ -86,7 +86,7 @@ export function detectSocialPresence(
 }
 
 function extractDomainFromHtml(html: string): string | null {
-  const match = html.match(/og:url['"]\s*content=['"](https?:\/\/[^'"]+)/i);
+  const match = html.match(/property=["']og:url["']\s+content=["'](https?:\/\/[^"']+)/i);
   if (match?.[1]) {
     try {
       return new URL(match[1]).hostname.replace(/^www\./, "");

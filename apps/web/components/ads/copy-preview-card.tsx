@@ -420,6 +420,7 @@ export function CopyPreviewCard({
     setBgImages((prev) => ({ ...prev, [uploadTarget]: url }));
     setUploadTarget(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
+    if (e.target) e.target.value = "";
   }
 
   return (
@@ -439,7 +440,9 @@ export function CopyPreviewCard({
         </div>
       </div>
 
-      {/* Format toggle */}
+      {/* Format toggle — edits intentionally persist across format switches because
+         they are keyed by copy.id, not by format. The same copies render in all formats,
+         so user edits should carry over when switching between Instagram/Facebook/Story. */}
       <div className="flex gap-1 border-b border-border/30 bg-muted/20 px-4 py-2">
         <button
           onClick={() => { setFormat("instagram"); setSelectedId(null); setMobileIndex(0); }}

@@ -29,9 +29,9 @@ export type PipelineResult = {
   timing: {
     total: number;
     vision: number | null;
-    social: number;
+    social: number | null;
     logoApi: number | null;
-    audit: number;
+    audit: number | null;
   };
 };
 
@@ -44,6 +44,10 @@ export async function runBrandIntelligencePipeline(
 ): Promise<PipelineResult> {
   const start = Date.now();
   const domain = input.url.replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0]!;
+
+  if (!domain || !domain.includes(".")) {
+    throw new Error(`Invalid domain extracted from URL "${input.url}": got "${domain}". Provide a valid URL like "https://example.com".`);
+  }
 
   // Run all layers in parallel
   const [
@@ -105,9 +109,9 @@ export async function runBrandIntelligencePipeline(
     timing: {
       total: Date.now() - start,
       vision: visionResult.status === "fulfilled" ? visionResult.value.ms : null,
-      social: socialResult.status === "fulfilled" ? socialResult.value.ms : 0,
+      social: socialResult.status === "fulfilled" ? socialResult.value.ms : null,
       logoApi: logoApiResult.status === "fulfilled" ? logoApiResult.value.ms : null,
-      audit: auditResult.status === "fulfilled" ? auditResult.value.ms : 0,
+      audit: auditResult.status === "fulfilled" ? auditResult.value.ms : null,
     },
   };
 }

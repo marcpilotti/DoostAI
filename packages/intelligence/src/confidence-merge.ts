@@ -39,10 +39,10 @@ function getStatus(confidence: number): "found" | "uncertain" | "missing" {
 }
 
 /**
- * Calculate color distance in approximate LAB space.
- * Returns deltaE value — < 15 means visually similar.
+ * Calculate Euclidean distance between two colors in RGB space.
+ * Returns a value in the range 0-441 — < 60 means visually similar in RGB space.
  */
-function colorDeltaE(hex1: string, hex2: string): number {
+function colorDistanceRgb(hex1: string, hex2: string): number {
   const toRgb = (hex: string) => {
     const h = hex.replace("#", "");
     return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)] as [number, number, number];
@@ -51,7 +51,7 @@ function colorDeltaE(hex1: string, hex2: string): number {
   const [r1, g1, b1] = toRgb(hex1);
   const [r2, g2, b2] = toRgb(hex2);
 
-  // Simple Euclidean distance in RGB (approximate, not true CIELAB but sufficient)
+  // Euclidean distance in RGB space (range 0-441)
   return Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2);
 }
 
@@ -146,7 +146,7 @@ function mergeColors(
   if (vision && usableCss.length >= 2) {
     const visionPrimary = vision.dominant_colors[0]?.hex;
     const cssPrimary = usableCss[0];
-    if (visionPrimary && cssPrimary && colorDeltaE(visionPrimary, cssPrimary) < 60) {
+    if (visionPrimary && cssPrimary && colorDistanceRgb(visionPrimary, cssPrimary) < 60) {
       return {
         value: { primary: cssPrimary, secondary: usableCss[1] ?? cssPrimary, accent: usableCss[2] ?? cssPrimary },
         confidence: 90,
@@ -192,7 +192,7 @@ function mergeFont(
 ): ConfidenceField<{ family: string; category: string }> {
   // Priority 1: Brandfetch font (confidence 95)
   const bfFont = brandfetch?.fonts.find((f) => f.type === "heading" || f.type === "body");
-  if (bfFont) {
+  if (bfFont?.name) {
     return { value: { family: bfFont.name, category: "sans" }, confidence: 95, source: "brandfetch", status: "found" };
   }
 

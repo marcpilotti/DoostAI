@@ -119,6 +119,7 @@ export function PublishCard({
     });
   }
 
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const total = budget * duration;
 
   return (
@@ -309,7 +310,7 @@ export function PublishCard({
           {/* Publish button */}
           <button
             onClick={() => {
-              if (!email || !password || password.length < 8) return;
+              if (!emailValid || !password || password.length < 8) return;
               window.dispatchEvent(new CustomEvent("doost:signup-complete"));
               onPublish?.({
                 channels: [...channels],
@@ -319,7 +320,7 @@ export function PublishCard({
                 email,
               });
             }}
-            disabled={!email || !password || password.length < 8}
+            disabled={!emailValid || !password || password.length < 8}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:from-emerald-600 hover:to-teal-600 hover:shadow-md disabled:opacity-40"
           >
             Skapa konto & publicera

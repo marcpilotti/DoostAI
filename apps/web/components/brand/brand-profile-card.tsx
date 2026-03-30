@@ -230,6 +230,8 @@ export function BrandProfileCard({
   const originalColors = data.colors;
   const logoDarkTheme = data._logoTheme === "dark";
 
+  const [cascading, setCascading] = useState(false);
+
   // Field approval states
   const [approved, setApproved] = useState<Record<string, FieldState>>({
     name: "pending",
@@ -520,6 +522,9 @@ export function BrandProfileCard({
         </span>
         <button
           onClick={() => {
+            // Guard against rapid clicks stacking setTimeout chains
+            if (cascading) return;
+            setCascading(true);
             // Cascade approve: stagger each field 100ms apart
             const pending = Object.keys(approved).filter((k) => approved[k] !== "approved");
             pending.forEach((key, i) => {
@@ -531,6 +536,7 @@ export function BrandProfileCard({
             setTimeout(() => {
               window.dispatchEvent(new CustomEvent("doost:profile-approved"));
               onComplete?.();
+              setCascading(false);
             }, pending.length * 100 + 300);
           }}
           className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold shadow-sm transition-all ${

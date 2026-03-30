@@ -15,6 +15,8 @@ import {
   trackCost,
   traceRouting,
   INDUSTRY_AUDIENCES,
+  INDUSTRY_BUDGETS,
+  DEFAULT_BUDGETS,
   sniToCategory,
 } from "@doost/ai";
 import type { BrandContext, Platform } from "@doost/ai";
@@ -293,7 +295,11 @@ ABSOLUTE RULES:
             brand: {
               name: brand.name,
               url: brand.url,
-              colors: brand.colors,
+              colors: {
+                ...brand.colors,
+                background: brand.colors.background ?? "#ffffff",
+                text: brand.colors.text ?? "#1a1a1a",
+              },
               fonts: brand.fonts,
               industry: brand.industry,
             },
@@ -380,7 +386,6 @@ ABSOLUTE RULES:
           defaultCity: z.string().optional(),
         }),
         execute: async ({ brandName, brandUrl, headline, bodyCopy, goal, audience, industryCategory, defaultCity }) => {
-          const { INDUSTRY_BUDGETS, DEFAULT_BUDGETS } = await import("@doost/ai");
           const looked = industryCategory ? INDUSTRY_BUDGETS[industryCategory] : undefined;
           const budgets = (looked && typeof looked === "object" && "low" in looked) ? looked : DEFAULT_BUDGETS;
           const cpm = 50;

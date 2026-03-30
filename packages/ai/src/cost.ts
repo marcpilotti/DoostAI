@@ -41,7 +41,7 @@ export function getCostSummary(sinceMins: number = 60) {
 
   // Estimate savings: if all calls were Sonnet instead
   const sonnetCost = recent.reduce(
-    (s, e) => s + estimateCost("claude-sonnet-4-20250514", e.inputTokens, e.outputTokens),
+    (s, e) => s + estimateCost("claude-sonnet-4-6", e.inputTokens, e.outputTokens),
     0,
   );
 

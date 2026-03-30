@@ -28,6 +28,18 @@ export async function analyzeWithVision(
   // Prefer screenshot (base64 from Firecrawl) over OG image URL
   if (!screenshotBase64 && !ogImageUrl) return null;
 
+  // Validate ogImageUrl is a real URL with a path component (not just "http://")
+  if (!screenshotBase64 && ogImageUrl) {
+    try {
+      const parsed = new URL(ogImageUrl);
+      if (!parsed.protocol.startsWith("http") || parsed.pathname.length <= 1) {
+        return null;
+      }
+    } catch {
+      return null;
+    }
+  }
+
   try {
     // Build the image content part
     const imagePart = screenshotBase64

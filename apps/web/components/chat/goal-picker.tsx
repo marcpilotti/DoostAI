@@ -27,7 +27,8 @@ export function GoalPicker({
   const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
   const [selectedAudience, setSelectedAudience] = useState<string | null>(null);
 
-  const audiences = data.audiences && data.audiences.length > 0 ? data.audiences : DEFAULT_AUDIENCES;
+  const filteredAudiences = data.audiences?.filter((a) => a.trim()) ?? [];
+  const audiences = filteredAudiences.length > 0 ? filteredAudiences : DEFAULT_AUDIENCES;
   const ready = selectedGoal && selectedAudience;
 
   return (
