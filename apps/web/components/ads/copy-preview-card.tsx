@@ -746,14 +746,14 @@ function MetaFeedPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
 
   // FIX 8: Dynamic headline sizing based on word count
   const wordCount = copy.headline.split(/\s+/).length;
-  const headlineSize = wordCount <= 4 ? "text-3xl" : wordCount <= 7 ? "text-2xl" : "text-xl";
+  const headlineSize = wordCount <= 4 ? "text-xl" : wordCount <= 7 ? "text-lg" : "text-base";
 
   function renderCreativeContent() {
     const headlineEl = (
-      <EditableText value={copy.headline} field="headline" onEditField={onEditField} charLimit={charLimits?.headline} className={`line-clamp-3 ${headlineSize} font-black leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]`} tagName="div" />
+      <EditableText value={copy.headline} field="headline" onEditField={onEditField} charLimit={charLimits?.headline} className={`line-clamp-3 ${headlineSize} font-bold leading-tight drop-shadow-[0_1px_4px_rgba(0,0,0,0.4)]`} tagName="div" />
     );
     const ctaEl = (
-      <EditableText value={copy.cta} field="cta" onEditField={onEditField} charLimit={charLimits?.cta} className="inline-flex items-center gap-1.5 rounded-lg px-5 py-2 text-xs font-bold shadow-md" tagName="div" />
+      <EditableText value={copy.cta} field="cta" onEditField={onEditField} charLimit={charLimits?.cta} className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-[10px] font-semibold shadow-sm" tagName="div" />
     );
 
     switch (layout) {
@@ -827,19 +827,19 @@ function MetaFeedPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
     <PreviewWrapper isSelected={isSelected} isLoser={isLoser} onPick={onPick}>
       <VariantLabel label={copy.label ?? "Variant"} isSelected={isSelected} isLoser={isLoser} diffs={diffs} />
       <div className="bg-white">
-        <div className="flex items-center gap-2 px-3 py-2">
-          <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white" style={{ backgroundColor: primary, boxShadow: `0 0 16px ${primary}50, 0 4px 8px rgba(0,0,0,0.3)` }}>
+        <div className="flex items-center gap-2 px-2.5 py-1.5">
+          <div className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white shadow-sm" style={{ backgroundColor: primary }}>
             {brand.name[0]}
-            <ColorDot color={primary} label="Prim&#228;rf&#228;rg" colorKey="primary" onColorChange={onColorChange} position="bottom-right" />
+            <ColorDot color={primary} label="Primärfärg" colorKey="primary" onColorChange={onColorChange} position="bottom-right" />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-bold text-gray-900">{brand.name}</div>
-            <div className="flex items-center gap-1 text-[10px] text-gray-400">Sponsrad <Globe className="inline h-2.5 w-2.5" /></div>
+            <div className="truncate text-xs font-semibold text-gray-900">{brand.name}</div>
+            <div className="flex items-center gap-1 text-[9px] text-gray-400">Sponsrad <Globe className="inline h-2 w-2" /></div>
           </div>
-          <MoreHorizontal className="h-4 w-4 shrink-0 text-gray-300" />
+          <MoreHorizontal className="h-3.5 w-3.5 shrink-0 text-gray-300" />
         </div>
-        <div className="px-3 pb-2">
-          <EditableText value={copy.bodyCopy} field="bodyCopy" onEditField={onEditField} charLimit={charLimits?.bodyCopy} className="line-clamp-4 text-[12px] leading-snug text-gray-800" tagName="div" />
+        <div className="px-2.5 pb-1.5">
+          <EditableText value={copy.bodyCopy} field="bodyCopy" onEditField={onEditField} charLimit={charLimits?.bodyCopy} className="line-clamp-3 text-[11px] leading-snug text-gray-700" tagName="div" />
         </div>
         <div ref={creativeContainerRef} className="relative">
           {renderCreativeContent()}
@@ -851,19 +851,19 @@ function MetaFeedPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
             containerRef={creativeContainerRef}
           />
         </div>
-        <div className="flex items-center justify-between bg-gray-50 px-3 py-2">
+        <div className="flex items-center justify-between bg-gray-50 px-2.5 py-1.5">
           <div className="min-w-0 flex-1">
-            <div className="text-[9px] uppercase text-gray-400">{cleanDomain}</div>
-            <div className="truncate text-xs font-semibold text-gray-800">{copy.headline.slice(0, 50)}</div>
+            <div className="text-[8px] uppercase text-gray-400">{cleanDomain}</div>
+            <div className="truncate text-[11px] font-semibold text-gray-800">{copy.headline.slice(0, 40)}</div>
           </div>
-          <div className="shrink-0 rounded px-3 py-1.5 text-[10px] font-semibold" style={{ backgroundColor: ctaBg, color: ctaTextColor, boxShadow: `0 4px 16px ${ctaBg}66, 0 0 0 1px ${ctaTextColor}15` }}>
+          <div className="shrink-0 rounded px-2.5 py-1 text-[9px] font-semibold" style={{ backgroundColor: ctaBg, color: ctaTextColor }}>
             {copy.cta}
           </div>
         </div>
-        <div className="flex justify-around border-t px-2 py-1.5 text-[10px] text-gray-400">
-          <span className="flex items-center gap-1"><ThumbsUp className="h-3.5 w-3.5" /> Gilla</span>
-          <span className="flex items-center gap-1"><MessageCircle className="h-3.5 w-3.5" /> Kommentera</span>
-          <span className="flex items-center gap-1"><Share2 className="h-3.5 w-3.5" /> Dela</span>
+        <div className="flex justify-around border-t px-2 py-1 text-[9px] text-gray-400">
+          <span className="flex items-center gap-1"><ThumbsUp className="h-3 w-3" /> Gilla</span>
+          <span className="flex items-center gap-1"><MessageCircle className="h-3 w-3" /> Kommentera</span>
+          <span className="flex items-center gap-1"><Share2 className="h-3 w-3" /> Dela</span>
         </div>
       </div>
     </PreviewWrapper>
@@ -885,12 +885,12 @@ function MetaStoryPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, l
 
   const storyBrandHeader = (
     <div className="flex w-full items-center gap-2">
-      <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white ring-2 ring-white/50" style={{ backgroundColor: primary, boxShadow: `0 0 16px ${primary}50, 0 4px 8px rgba(0,0,0,0.3)` }}>
+      <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white ring-2 ring-white/50 shadow-sm" style={{ backgroundColor: primary }}>
         {brand.name[0]}
-        <ColorDot color={primary} label="Prim&#228;rf&#228;rg" colorKey="primary" onColorChange={onColorChange} position="bottom-right" />
+        <ColorDot color={primary} label="Primärfärg" colorKey="primary" onColorChange={onColorChange} position="bottom-right" />
       </div>
       <div className="min-w-0 text-left">
-        <div className="truncate text-xs font-bold text-white drop-shadow">{brand.name}</div>
+        <div className="truncate text-[11px] font-semibold text-white drop-shadow">{brand.name}</div>
         <div className="text-[8px] text-white/60">Sponsrad</div>
       </div>
     </div>
@@ -1113,10 +1113,10 @@ function LinkedInPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
 
   function renderCreativeContent() {
     const headlineEl = (
-      <EditableText value={copy.headline} field="headline" onEditField={onEditField} charLimit={charLimits?.headline} className="text-2xl font-black leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] sm:text-3xl" tagName="div" />
+      <EditableText value={copy.headline} field="headline" onEditField={onEditField} charLimit={charLimits?.headline} className="text-2xl font-bold leading-tight drop-shadow-[0_1px_4px_rgba(0,0,0,0.4)] sm:text-3xl" tagName="div" />
     );
     const ctaEl = (
-      <EditableText value={copy.cta} field="cta" onEditField={onEditField} charLimit={charLimits?.cta} className="inline-flex items-center gap-1.5 rounded-lg px-5 py-2 text-xs font-bold shadow-md" tagName="div" />
+      <EditableText value={copy.cta} field="cta" onEditField={onEditField} charLimit={charLimits?.cta} className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-[10px] font-semibold shadow-sm" tagName="div" />
     );
 
     switch (layout) {
