@@ -69,15 +69,15 @@ STEP 1: User sends a URL or domain → call analyze_brand immediately. No confir
 
 STEP 2: analyze_brand returns → Say "Stämmer det här? Granska din varumärkesprofil och godkänn fälten — eller ändra det som inte stämmer." Then call show_onboarding. Pass hasLogo, companyName, and logos. The profile card lets users approve each field. The onboarding cards handle platform connections and account creation.
 
-STEP 3: User sends "Onboarding klar" → Say "Bra! Nu behöver jag veta två saker — vad ni vill uppnå och vilka ni vill nå." Then call show_goal_picker with the industry category from the brand analysis.
+STEP 3: User sends "Profil godkänd: {JSON}" → This JSON contains the user's APPROVED brand data (they may have edited industry, colors, etc). Parse it and use these values for ALL subsequent tool calls instead of the original analyze_brand data. Say "Bra! Nu behöver jag veta två saker — vad ni vill uppnå och vilka ni vill nå." Then call show_goal_picker with the industry from the approved data.
 
-STEP 4: User picks goal + audience (message starts with "Mål:") → call generate_ad_copy with brand data and "meta" as default platform, plus the goal and audience.
+STEP 4: User picks goal + audience (message starts with "Mål:") → call generate_ad_copy with the APPROVED brand data from Step 3 (not the original analyze_brand data) and "meta" as default platform, plus the goal and audience.
 
 STEP 5: Ad previews appear with QuickPicks. User can click "Ändra texten", "Fler varianter", or "Ser bra ut, publicera!". Handle fritext edits by regenerating copy.
 
 STEP 6: User says "Ser bra ut, publicera!" or wants to publish → IMMEDIATELY call show_publish_card with brand name, URL, headline, body, goal, audience, and industry category. Do NOT show a separate channel picker — channels are in the PublishCard.
 
-STEP 7: User submits publish config (message starts with "Publicera:") → call check_plan, then deploy_campaign.
+STEP 7: User submits publish config (message starts with "Publicera:") → call check_plan, then deploy_campaign. Include the creative data (headline, bodyCopy, cta, brandName, brandUrl, colors) from the approved ad copy in Step 5.
 
 STEP 8: After deploy_campaign returns successfully → Say: "Dina annonser är nu iväg! 🚀 Det tar vanligtvis 1-2 timmar innan de godkänns av plattformen. Jag meddelar dig så fort de första visningarna börjar rulla in. Under tiden kan du skapa fler kampanjer eller bara luta dig tillbaka."
 
@@ -507,7 +507,7 @@ ABSOLUTE RULES:
 
       deploy_campaign: tool({
         description:
-          "Deploy ad campaigns to specified platforms. Call after user approves ad previews and provides budget. ALWAYS call check_plan first.",
+          "Deploy ad campaigns to specified platforms. Call after user approves ad previews and provides budget. ALWAYS call check_plan first. Include the ad creative data from the approved ad copy.",
         inputSchema: z.object({
           orgId: z.string().describe("The organization ID"),
           campaignName: z.string().describe("Campaign name"),
@@ -523,6 +523,18 @@ ABSOLUTE RULES:
               ageMax: z.number().optional(),
             })
             .optional(),
+          creative: z.object({
+            headline: z.string().describe("Ad headline from approved copy"),
+            bodyCopy: z.string().describe("Ad body text from approved copy"),
+            cta: z.string().describe("Call to action text"),
+            brandName: z.string(),
+            brandUrl: z.string(),
+            colors: z.object({
+              primary: z.string(),
+              secondary: z.string().optional(),
+              accent: z.string().optional(),
+            }).optional(),
+          }).describe("Ad creative content from the approved ad copy"),
         }),
         execute: async ({
           orgId,
@@ -530,6 +542,7 @@ ABSOLUTE RULES:
           platforms,
           budget,
           targeting,
+          creative,
         }: {
           orgId: string;
           campaignName: string;
@@ -539,6 +552,14 @@ ABSOLUTE RULES:
             locations?: string[];
             ageMin?: number;
             ageMax?: number;
+          };
+          creative: {
+            headline: string;
+            bodyCopy: string;
+            cta: string;
+            brandName: string;
+            brandUrl: string;
+            colors?: { primary: string; secondary?: string; accent?: string };
           };
         }) => {
           // TODO: Replace with real plan/deployment logic — currently returns demo status
@@ -573,6 +594,7 @@ ABSOLUTE RULES:
             platforms: platformStatuses,
             budget,
             campaignName,
+            creative,
           };
         },
       }),

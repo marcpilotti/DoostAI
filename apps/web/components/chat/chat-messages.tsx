@@ -57,8 +57,9 @@ function ToolInvocation({
       return (
         <BrandProfileCard
           data={part.output as Parameters<typeof BrandProfileCard>[0]["data"]}
-          onComplete={() => {
-            onSendMessage?.("Onboarding klar");
+          onComplete={(approvedData) => {
+            // Send approved brand data as structured JSON so the AI can use it in subsequent tools
+            onSendMessage?.(`Profil godkänd: ${JSON.stringify(approvedData)}`);
           }}
         />
       );
@@ -263,7 +264,7 @@ export function ChatMessages({
       const m = messages[i]!;
       if (m.role !== "user") continue;
       const text = getMessageText(m);
-      if (text && (hidden.includes(text.trim()) || text.startsWith("Mål:") || text.startsWith("Skapa annonser för") || text.startsWith("Publicera:") || text.includes("publicera!") || text === "Ändra texten" || text === "Visa fler varianter")) continue;
+      if (text && (hidden.includes(text.trim()) || text.startsWith("Profil godkänd:") || text.startsWith("Mål:") || text.startsWith("Skapa annonser för") || text.startsWith("Publicera:") || text.includes("publicera!") || text === "Ändra texten" || text === "Visa fler varianter")) continue;
       if (text && !hidden.includes(text.trim())) return text;
     }
     return null;

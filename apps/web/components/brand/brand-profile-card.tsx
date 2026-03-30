@@ -216,12 +216,23 @@ function ColorSwatch({
 }
 
 // ── Main Component ──────────────────────────────────────────────
+export type ApprovedBrandData = {
+  name: string;
+  industry: string;
+  colors: { primary: string; secondary: string; accent: string };
+  fonts: { heading: string; body: string };
+  logoUrl: string | null;
+  location: string;
+  targetAudience: string;
+  url: string;
+};
+
 export function BrandProfileCard({
   data,
   onComplete,
 }: {
   data: BrandProfileData;
-  onComplete?: () => void;
+  onComplete?: (approved: ApprovedBrandData) => void;
 }) {
   const [colors, setColors] = useState(data.colors);
   const [logoUrl, setLogoUrl] = useState<string | null>(data.logos?.primary ?? data.logos?.icon ?? null);
@@ -535,7 +546,16 @@ export function BrandProfileCard({
             });
             setTimeout(() => {
               window.dispatchEvent(new CustomEvent("doost:profile-approved"));
-              onComplete?.();
+              onComplete?.({
+                name: stripSuffix(data.name),
+                industry,
+                colors: { primary: colors.primary, secondary: colors.secondary, accent: colors.accent },
+                fonts: data.fonts ?? { heading: "Inter", body: "Inter" },
+                logoUrl,
+                location: data.location ?? "",
+                targetAudience: data.targetAudience ?? "",
+                url: data.url,
+              });
               setCascading(false);
             }, pending.length * 100 + 300);
           }}
