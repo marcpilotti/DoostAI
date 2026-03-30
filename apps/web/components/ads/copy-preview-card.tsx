@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useMemo, useCallback } from "react";
+import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import {
   AlertTriangle,
   ArrowRight,
@@ -9,6 +9,9 @@ import {
   ChevronRight,
   ChevronUp,
   Globe,
+  Grid2x2,
+  GripVertical,
+  Maximize2,
   MoreHorizontal,
   ThumbsUp,
   MessageCircle,
@@ -84,6 +87,8 @@ type CopyPreviewData = {
   renderingImages?: boolean;
 };
 
+type LogoPosition = "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center";
+
 type AdFormat = "meta-feed" | "meta-story" | "google" | "linkedin";
 type EditMode = null | "ai" | "manual";
 type LayoutStyle = "centered" | "split" | "minimal" | "bold-cta";
@@ -108,6 +113,9 @@ type PreviewProps = {
   colorOverrides?: ColorOverrides;
   onColorChange?: (key: ColorOverrideKey, value: string) => void;
   harmonyPalette: ColorHarmonyPalette;
+  logoPosition: LogoPosition;
+  onLogoPositionChange: (pos: LogoPosition) => void;
+  diffs?: string[];
 };
 
 // ── Character limit badge for inline editing ───────────────────
@@ -351,6 +359,31 @@ function resolveHarmonyPalette(brand: BrandData): ColorHarmonyPalette {
   };
 }
 
+// ── Variant diff detection ───────────────────────────────────────────────
+
+function getVariantDiffs(variants: CopyData[]): Map<string, string[]> {
+  const diffs = new Map<string, string[]>();
+  const hero = variants[0];
+  if (!hero) return diffs;
+
+  variants.forEach((v, i) => {
+    const variantId = v.id ?? `${v.platform}-${v.variant}`;
+    if (i === 0) {
+      diffs.set(variantId, ["Original"]);
+      return;
+    }
+    const changes: string[] = [];
+    if (v.headline.length < hero.headline.length * 0.8) changes.push("Kortare rubrik");
+    else if (v.headline.length > hero.headline.length * 1.2) changes.push("L\u00e4ngre rubrik");
+    if (v.cta !== hero.cta) changes.push("Annan CTA");
+    if (v.bodyCopy.length < hero.bodyCopy.length * 0.7) changes.push("Kortare text");
+    if (!changes.length) changes.push("Alternativ ton");
+    diffs.set(variantId, changes);
+  });
+
+  return diffs;
+}
+
 // ── Shared sub-components ───────────────────────────────────────
 
 function SelectedBadge() {
@@ -363,12 +396,41 @@ function SelectedBadge() {
   );
 }
 
-function VariantLabel({ label, isSelected, isLoser }: { label: string; isSelected: boolean; isLoser: boolean }) {
+function DiffBadges({ diffs }: { diffs: string[] }) {
+  if (!diffs.length) return null;
+  return (
+    <div className="flex flex-wrap gap-1">
+      {diffs.map((diff) => (
+        <span
+          key={diff}
+          className="rounded-full bg-indigo-50 px-1.5 py-0.5 text-[8px] font-medium text-indigo-600"
+        >
+          {diff}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function VariantLabel({
+  label,
+  isSelected,
+  isLoser,
+  diffs,
+}: {
+  label: string;
+  isSelected: boolean;
+  isLoser: boolean;
+  diffs?: string[];
+}) {
   return (
     <div className="flex items-center justify-between bg-muted/30 px-3 py-1.5">
-      <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/60">
-        {label}
-      </span>
+      <div className="flex items-center gap-2">
+        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+          {label}
+        </span>
+        {diffs && <DiffBadges diffs={diffs} />}
+      </div>
       {!isSelected && !isLoser && (
         <span className="text-[9px] font-medium text-indigo-400 opacity-0 transition-opacity group-hover:opacity-100">
           V&#228;lj denna
@@ -398,14 +460,252 @@ function PreviewWrapper({ isSelected, isLoser, onPick, className, children }: { 
   );
 }
 
+// ── Draggable Logo ──────────────────────────────────────────────
+const LOGO_POSITION_STYLES: Record<LogoPosition, string> = {
+  "top-left": "top-2 left-2",
+  "top-right": "top-2 right-2",
+  "bottom-left": "bottom-2 left-2",
+  "bottom-right": "bottom-2 right-2",
+  center: "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
+};
+
+function snapToNearest(x: number, y: number, rect: DOMRect): LogoPosition {
+  const relX = (x - rect.left) / rect.width;
+  const relY = (y - rect.top) / rect.height;
+  if (relX < 0.33 && relY < 0.33) return "top-left";
+  if (relX > 0.66 && relY < 0.33) return "top-right";
+  if (relX < 0.33 && relY > 0.66) return "bottom-left";
+  if (relX > 0.66 && relY > 0.66) return "bottom-right";
+  return "center";
+}
+
+function DraggableLogo({
+  logoUrl,
+  brandName,
+  brandColor,
+  position,
+  onPositionChange,
+  containerRef,
+}: {
+  logoUrl?: string;
+  brandName: string;
+  brandColor: string;
+  position: LogoPosition;
+  onPositionChange: (pos: LogoPosition) => void;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+}) {
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
+  const logoRef = useRef<HTMLDivElement>(null);
+  const dragStartOffset = useRef({ x: 0, y: 0 });
+
+  function getClientCoords(e: MouseEvent | TouchEvent): { clientX: number; clientY: number } | null {
+    if ("touches" in e) {
+      const touch = e.touches[0] ?? e.changedTouches[0];
+      if (!touch) return null;
+      return { clientX: touch.clientX, clientY: touch.clientY };
+    }
+    return { clientX: e.clientX, clientY: e.clientY };
+  }
+
+  function handleDragStart(e: React.MouseEvent | React.TouchEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    const container = containerRef.current;
+    const logo = logoRef.current;
+    if (!container || !logo) return;
+
+    const nativeEvent = e.nativeEvent as MouseEvent | TouchEvent;
+    const coords = getClientCoords(nativeEvent);
+    if (!coords) return;
+
+    const logoRect = logo.getBoundingClientRect();
+    dragStartOffset.current = {
+      x: coords.clientX - logoRect.left,
+      y: coords.clientY - logoRect.top,
+    };
+
+    const containerRect = container.getBoundingClientRect();
+    setDragPos({
+      x: logoRect.left - containerRect.left,
+      y: logoRect.top - containerRect.top,
+    });
+    setIsDragging(true);
+  }
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    function handleMove(e: MouseEvent | TouchEvent) {
+      e.preventDefault();
+      const container = containerRef.current;
+      if (!container) return;
+
+      const coords = getClientCoords(e);
+      if (!coords) return;
+
+      const containerRect = container.getBoundingClientRect();
+      const logoSize = 32;
+
+      const newX = Math.max(0, Math.min(
+        coords.clientX - containerRect.left - dragStartOffset.current.x,
+        containerRect.width - logoSize,
+      ));
+      const newY = Math.max(0, Math.min(
+        coords.clientY - containerRect.top - dragStartOffset.current.y,
+        containerRect.height - logoSize,
+      ));
+
+      setDragPos({ x: newX, y: newY });
+    }
+
+    function handleEnd(e: MouseEvent | TouchEvent) {
+      const container = containerRef.current;
+      if (!container) {
+        setIsDragging(false);
+        return;
+      }
+
+      const coords = getClientCoords(e);
+      if (coords) {
+        const containerRect = container.getBoundingClientRect();
+        const snapped = snapToNearest(coords.clientX, coords.clientY, containerRect);
+        onPositionChange(snapped);
+      }
+
+      setIsDragging(false);
+    }
+
+    window.addEventListener("mousemove", handleMove, { passive: false });
+    window.addEventListener("mouseup", handleEnd);
+    window.addEventListener("touchmove", handleMove, { passive: false });
+    window.addEventListener("touchend", handleEnd);
+    window.addEventListener("touchcancel", handleEnd);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMove);
+      window.removeEventListener("mouseup", handleEnd);
+      window.removeEventListener("touchmove", handleMove);
+      window.removeEventListener("touchend", handleEnd);
+      window.removeEventListener("touchcancel", handleEnd);
+    };
+  }, [isDragging, containerRef, onPositionChange]);
+
+  const logoContent = logoUrl ? (
+    <img src={logoUrl} alt="" className="h-8 w-8 rounded object-contain drop-shadow-md" draggable={false} />
+  ) : (
+    <div
+      className="flex h-8 w-8 items-center justify-center rounded text-[10px] font-bold text-white drop-shadow-md"
+      style={{ backgroundColor: brandColor }}
+    >
+      {brandName[0]}
+    </div>
+  );
+
+  return (
+    <div
+      ref={logoRef}
+      className={`absolute z-10 select-none ${
+        isDragging
+          ? "cursor-grabbing"
+          : `cursor-grab ${LOGO_POSITION_STYLES[position]}`
+      } ${isDragging ? "" : "transition-all duration-300 ease-out"}`}
+      style={
+        isDragging
+          ? { left: dragPos.x, top: dragPos.y, position: "absolute" }
+          : undefined
+      }
+      onMouseDown={handleDragStart}
+      onTouchStart={handleDragStart}
+      role="button"
+      tabIndex={0}
+      aria-label={`Logotyp position: ${position}. Dra eller anv\u00e4nd piltangenter.`}
+      onKeyDown={(e) => {
+        const posMap: Record<string, LogoPosition> = {
+          ArrowUp: position.includes("bottom") ? (position.replace("bottom", "top") as LogoPosition) : position,
+          ArrowDown: position.includes("top") ? (position.replace("top", "bottom") as LogoPosition) : position,
+          ArrowLeft: position.includes("right") ? (position.replace("right", "left") as LogoPosition) : position,
+          ArrowRight: position.includes("left") ? (position.replace("left", "right") as LogoPosition) : position,
+        };
+        if (e.key in posMap) {
+          e.preventDefault();
+          const newPos = posMap[e.key];
+          if (newPos && newPos !== position) onPositionChange(newPos);
+        }
+        if (e.key === " " || e.key === "Enter") {
+          e.preventDefault();
+          const cycle: LogoPosition[] = ["top-left", "top-right", "bottom-right", "bottom-left", "center"];
+          const idx = cycle.indexOf(position);
+          onPositionChange(cycle[(idx + 1) % cycle.length]!);
+        }
+      }}
+    >
+      <div className={`relative rounded-lg ring-2 ring-transparent transition-all ${isDragging ? "scale-110 ring-white/60 shadow-lg" : "hover:ring-white/40 hover:shadow-md"}`}>
+        {logoContent}
+        <div className={`absolute -right-1 -top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100 ${isDragging ? "!opacity-100" : ""}`}>
+          <GripVertical className="h-2.5 w-2.5" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Logo Position Indicator ─────────────────────────────────────
+function LogoPositionIndicator({
+  position,
+  onPositionChange,
+}: {
+  position: LogoPosition;
+  onPositionChange: (pos: LogoPosition) => void;
+}) {
+  const positions: Array<{ id: LogoPosition; row: number; col: number }> = [
+    { id: "top-left", row: 0, col: 0 },
+    { id: "top-right", row: 0, col: 2 },
+    { id: "center", row: 1, col: 1 },
+    { id: "bottom-left", row: 2, col: 0 },
+    { id: "bottom-right", row: 2, col: 2 },
+  ];
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-[9px] font-medium text-muted-foreground/50">Logotyp:</span>
+      <div className="grid grid-cols-3 grid-rows-3 gap-[3px]" style={{ width: 24, height: 24 }}>
+        {Array.from({ length: 9 }).map((_, i) => {
+          const row = Math.floor(i / 3);
+          const col = i % 3;
+          const pos = positions.find((p) => p.row === row && p.col === col);
+          if (!pos) {
+            return <div key={i} className="h-[6px] w-[6px]" />;
+          }
+          const isActive = position === pos.id;
+          return (
+            <button
+              key={pos.id}
+              onClick={() => onPositionChange(pos.id)}
+              className={`h-[6px] w-[6px] rounded-full transition-all ${
+                isActive
+                  ? "bg-indigo-500 ring-1 ring-indigo-300 scale-125"
+                  : "bg-border/60 hover:bg-indigo-300"
+              }`}
+              title={pos.id}
+              aria-label={`Placera logotyp ${pos.id}`}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ── Meta Feed Preview ───────────────────────────────────────────
-function MetaFeedPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, layout, onEditField, charLimits, colorOverrides, onColorChange, harmonyPalette }: PreviewProps) {
+function MetaFeedPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, layout, onEditField, charLimits, colorOverrides, onColorChange, harmonyPalette, logoPosition, onLogoPositionChange, diffs }: PreviewProps) {
   const primary = colorOverrides?.primary ?? harmonyPalette.primary;
   const accent = colorOverrides?.accent ?? harmonyPalette.accent;
   const ctaBg = colorOverrides?.ctaBackground ?? harmonyPalette.ctaBackground;
   const ctaTextColor = getContrastText(ctaBg);
   const textColor = colorOverrides?.textColor ?? harmonyPalette.text;
   const shadowColor = harmonyPalette.shadow;
+  const creativeContainerRef = useRef<HTMLDivElement>(null);
 
   const gradient = getGradient(
     colorOverrides?.gradientStart ?? primary,
@@ -490,7 +790,7 @@ function MetaFeedPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
 
   return (
     <PreviewWrapper isSelected={isSelected} isLoser={isLoser} onPick={onPick}>
-      <VariantLabel label={copy.label ?? "Variant"} isSelected={isSelected} isLoser={isLoser} />
+      <VariantLabel label={copy.label ?? "Variant"} isSelected={isSelected} isLoser={isLoser} diffs={diffs} />
       <div className="bg-white">
         <div className="flex items-center gap-2 px-3 py-2">
           <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white shadow-sm" style={{ backgroundColor: primary }}>
@@ -506,7 +806,16 @@ function MetaFeedPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
         <div className="px-3 pb-2">
           <EditableText value={copy.bodyCopy} field="bodyCopy" onEditField={onEditField} charLimit={charLimits?.bodyCopy} className="text-[12px] leading-snug text-gray-800" tagName="div" />
         </div>
-        {renderCreativeContent()}
+        <div ref={creativeContainerRef} className="relative">
+          {renderCreativeContent()}
+          <DraggableLogo
+            brandName={brand.name}
+            brandColor={primary}
+            position={logoPosition}
+            onPositionChange={onLogoPositionChange}
+            containerRef={creativeContainerRef}
+          />
+        </div>
         <div className="flex items-center justify-between bg-gray-50 px-3 py-2">
           <div className="min-w-0 flex-1">
             <div className="text-[9px] uppercase text-gray-400">{cleanDomain}</div>
@@ -527,12 +836,13 @@ function MetaFeedPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
 }
 
 // ── Meta Story / Reel Preview ───────────────────────────────────
-function MetaStoryPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, layout, onEditField, charLimits, colorOverrides, onColorChange, harmonyPalette }: PreviewProps) {
+function MetaStoryPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, layout, onEditField, charLimits, colorOverrides, onColorChange, harmonyPalette, logoPosition, onLogoPositionChange, diffs }: PreviewProps) {
   const primary = colorOverrides?.primary ?? harmonyPalette.primary;
   const accent = colorOverrides?.accent ?? harmonyPalette.accent;
   const ctaBg = colorOverrides?.ctaBackground ?? harmonyPalette.ctaBackground;
   const ctaTextColor = getContrastText(ctaBg);
   const gradient = getGradient(colorOverrides?.gradientStart ?? primary, colorOverrides?.gradientEnd ?? accent);
+  const storyContainerRef = useRef<HTMLDivElement>(null);
 
   const storyBrandHeader = (
     <div className="flex w-full items-center gap-2">
@@ -620,13 +930,22 @@ function MetaStoryPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, l
 
   return (
     <PreviewWrapper isSelected={isSelected} isLoser={isLoser} onPick={onPick} className="mx-auto w-[200px]">
-      {renderStoryContent()}
+      <div ref={storyContainerRef} className="relative">
+        {renderStoryContent()}
+        <DraggableLogo
+          brandName={brand.name}
+          brandColor={primary}
+          position={logoPosition}
+          onPositionChange={onLogoPositionChange}
+          containerRef={storyContainerRef}
+        />
+      </div>
     </PreviewWrapper>
   );
 }
 
 // ── Google Search Ad Preview ────────────────────────────────────
-function GoogleSearchPreview({ copy, brand, isSelected, isLoser, onPick, layout, onEditField, charLimits, colorOverrides, onColorChange, harmonyPalette }: PreviewProps) {
+function GoogleSearchPreview({ copy, brand, isSelected, isLoser, onPick, layout, onEditField, charLimits, colorOverrides, onColorChange, harmonyPalette, diffs }: PreviewProps) {
   const primary = colorOverrides?.primary ?? harmonyPalette.primary;
   const cleanDomain = brand.url.replace(/^https?:\/\//, "").replace(/\/$/, "");
 
@@ -738,14 +1057,14 @@ function GoogleSearchPreview({ copy, brand, isSelected, isLoser, onPick, layout,
 
   return (
     <PreviewWrapper isSelected={isSelected} isLoser={isLoser} onPick={onPick}>
-      <VariantLabel label={copy.label ?? "Variant"} isSelected={isSelected} isLoser={isLoser} />
+      <VariantLabel label={copy.label ?? "Variant"} isSelected={isSelected} isLoser={isLoser} diffs={diffs} />
       {renderGoogleContent()}
     </PreviewWrapper>
   );
 }
 
 // ── LinkedIn Sponsored Post Preview ─────────────────────────────
-function LinkedInPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, layout, onEditField, charLimits, colorOverrides, onColorChange, harmonyPalette }: PreviewProps) {
+function LinkedInPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, layout, onEditField, charLimits, colorOverrides, onColorChange, harmonyPalette, diffs }: PreviewProps) {
   const primary = colorOverrides?.primary ?? harmonyPalette.primary;
   const accent = colorOverrides?.accent ?? harmonyPalette.accent;
   const ctaBg = colorOverrides?.ctaBackground ?? harmonyPalette.ctaBackground;
@@ -829,7 +1148,7 @@ function LinkedInPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
 
   return (
     <PreviewWrapper isSelected={isSelected} isLoser={isLoser} onPick={onPick}>
-      <VariantLabel label={copy.label ?? "Variant"} isSelected={isSelected} isLoser={isLoser} />
+      <VariantLabel label={copy.label ?? "Variant"} isSelected={isSelected} isLoser={isLoser} diffs={diffs} />
       <div className="bg-white">
         <div className="flex items-start gap-2.5 px-3 py-2.5">
           <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded text-sm font-bold text-white" style={{ backgroundColor: primary }}>
@@ -906,6 +1225,8 @@ const AI_PROMPTS = [
 export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData; onSendMessage?: (text: string) => void }) {
   const [format, setFormat] = useState<AdFormat>("meta-feed");
   const [layout, setLayout] = useState<LayoutStyle>("centered");
+  const [viewMode, setViewMode] = useState<"single" | "compare">("single");
+  const [logoPosition, setLogoPosition] = useState<LogoPosition>("bottom-right");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editMode, setEditMode] = useState<EditMode>(null);
   const [bgImages, setBgImages] = useState<Record<string, string>>({});
@@ -914,8 +1235,14 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
   const [uploadTarget, setUploadTarget] = useState<string | null>(null);
   const [edits, setEdits] = useState<Record<string, { headline: string; bodyCopy: string; cta: string }>>({});
   const [colorOverrides, setColorOverrides] = useState<ColorOverrides>({});
+  const [variantPreferences, setVariantPreferences] = useState<{
+    preferredHeadlineLength: "short" | "medium" | "long";
+    selectedCount: number;
+  }>({ preferredHeadlineLength: "medium", selectedCount: 0 });
 
   const variants = data.copies.slice(0, 2);
+
+  const variantDiffs = useMemo(() => getVariantDiffs(variants), [variants]);
 
   const harmonyPalette = useMemo(
     () => (data.brand ? resolveHarmonyPalette(data.brand) : null),
@@ -931,6 +1258,28 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
   const resetColorOverrides = useCallback(() => {
     setColorOverrides({});
   }, []);
+
+  const trackVariantSelection = useCallback((selected: CopyData, all: CopyData[]) => {
+    const avgLength = all.reduce((sum, v) => sum + v.headline.length, 0) / all.length;
+    const preference = selected.headline.length < avgLength * 0.85
+      ? "short"
+      : selected.headline.length > avgLength * 1.15
+        ? "long"
+        : "medium";
+
+    setVariantPreferences((prev) => ({
+      preferredHeadlineLength: preference,
+      selectedCount: prev.selectedCount + 1,
+    }));
+  }, []);
+
+  function handleVariantPick(copyId: string) {
+    setSelectedId(copyId);
+    const selected = variants.find((c) => (c.id ?? `${c.platform}-${c.variant}`) === copyId);
+    if (selected) {
+      trackVariantSelection(selected, variants);
+    }
+  }
 
   function getEditedCopy(copy: CopyData): CopyData {
     const copyId = copy.id ?? `${copy.platform}-${copy.variant}`;
@@ -1044,18 +1393,44 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
         })}
       </div>
 
-      {/* Layout selector */}
-      <div className="flex gap-1 overflow-x-auto border-b border-border/20 bg-muted/10 px-4 py-1.5">
+      {/* Layout selector + view mode toggle */}
+      <div className="flex items-center gap-1 overflow-x-auto border-b border-border/20 bg-muted/10 px-4 py-1.5">
         <span className="mr-1 self-center text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/50">Layout:</span>
         {LAYOUT_OPTIONS.map((opt) => {
           const LayoutIcon = opt.icon;
           return (
-            <button key={opt.id} onClick={() => setLayout(opt.id)} className={`flex shrink-0 items-center gap-1 rounded-md px-2.5 py-1 text-[10px] font-medium transition-all ${layout === opt.id ? "bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200" : "text-muted-foreground hover:bg-muted/30 hover:text-foreground"}`}>
+            <button key={opt.id} onClick={() => { setLayout(opt.id); if (viewMode === "compare") setViewMode("single"); }} className={`flex shrink-0 items-center gap-1 rounded-md px-2.5 py-1 text-[10px] font-medium transition-all ${layout === opt.id ? "bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200" : "text-muted-foreground hover:bg-muted/30 hover:text-foreground"}`}>
               <LayoutIcon className="h-3 w-3" />
               {opt.label}
             </button>
           );
         })}
+
+        {/* View mode toggle */}
+        <div className="ml-auto flex shrink-0 items-center gap-0.5 rounded-lg border border-border/30 bg-white p-0.5">
+          <button
+            onClick={() => setViewMode("single")}
+            title="Enkel vy"
+            className={`flex h-6 w-6 items-center justify-center rounded-md transition-all ${
+              viewMode === "single"
+                ? "bg-indigo-50 text-indigo-600 shadow-sm"
+                : "text-muted-foreground hover:bg-muted/30 hover:text-foreground"
+            }`}
+          >
+            <Maximize2 className="h-3 w-3" />
+          </button>
+          <button
+            onClick={() => setViewMode("compare")}
+            title="Jämför layouter"
+            className={`flex h-6 w-6 items-center justify-center rounded-md transition-all ${
+              viewMode === "compare"
+                ? "bg-indigo-50 text-indigo-600 shadow-sm"
+                : "text-muted-foreground hover:bg-muted/30 hover:text-foreground"
+            }`}
+          >
+            <Grid2x2 className="h-3 w-3" />
+          </button>
+        </div>
       </div>
 
       {/* Color override indicator */}
@@ -1074,6 +1449,16 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
         </div>
       )}
 
+      {/* Preference insight banner */}
+      {variantPreferences.selectedCount >= 2 && (
+        <div className="flex items-center gap-1.5 border-b border-border/20 px-4 py-1.5">
+          <div className="flex items-center gap-1.5 rounded-lg bg-indigo-50 px-3 py-1.5 text-[10px] text-indigo-600">
+            <Sparkles className="h-3 w-3" />
+            Du verkar f&#246;redra {variantPreferences.preferredHeadlineLength === "short" ? "kortare" : variantPreferences.preferredHeadlineLength === "long" ? "l&#228;ngre" : "mellanl&#229;nga"} rubriker &#8212; vi anpassar framtida f&#246;rslag.
+          </div>
+        </div>
+      )}
+
       {/* Desktop: side by side */}
       <div className="hidden gap-4 p-4 sm:grid sm:grid-cols-2">
         {variants.map((copy) => {
@@ -1086,13 +1471,16 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
               bgImage={bgImages[copyId]}
               isSelected={selectedId === copyId}
               isLoser={selectedId !== null && selectedId !== copyId}
-              onPick={() => setSelectedId(copyId)}
+              onPick={() => handleVariantPick(copyId)}
               layout={layout}
               onEditField={(field, value) => updateEdit(copyId, field, value, copy)}
               charLimits={getCharLimits(copy.platform)}
               colorOverrides={colorOverrides}
               onColorChange={handleColorChange}
               harmonyPalette={harmonyPalette}
+              logoPosition={logoPosition}
+              onLogoPositionChange={setLogoPosition}
+              diffs={variantDiffs.get(copyId)}
             />
           );
         })}
@@ -1111,13 +1499,16 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
                 bgImage={bgImages[copyId]}
                 isSelected={selectedId === copyId}
                 isLoser={selectedId !== null && selectedId !== copyId}
-                onPick={() => setSelectedId(copyId)}
+                onPick={() => handleVariantPick(copyId)}
                 layout={layout}
                 onEditField={(field, value) => updateEdit(copyId, field, value, copy)}
                 charLimits={getCharLimits(copy.platform)}
                 colorOverrides={colorOverrides}
                 onColorChange={handleColorChange}
                 harmonyPalette={harmonyPalette}
+                logoPosition={logoPosition}
+                onLogoPositionChange={setLogoPosition}
+                diffs={variantDiffs.get(copyId)}
               />
               {mobileIndex > 0 && (
                 <button onClick={() => setMobileIndex((i) => i - 1)} className="absolute -left-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md">
@@ -1260,7 +1651,7 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
               <Check className="h-3 w-3" /> Variant vald
             </span>
             <div className="ml-auto flex gap-1.5">
-              <button onClick={() => onSendMessage?.("Visa fler varianter")} className="rounded-full border border-border/40 bg-white px-2.5 py-1 text-[9px] font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:text-indigo-600">
+              <button onClick={() => onSendMessage?.(variantPreferences.selectedCount >= 2 ? `Visa fler varianter (f\u00f6redrar ${variantPreferences.preferredHeadlineLength === "short" ? "kortare" : variantPreferences.preferredHeadlineLength === "long" ? "l\u00e4ngre" : "mellanl\u00e5nga"} rubriker)` : "Visa fler varianter")} className="rounded-full border border-border/40 bg-white px-2.5 py-1 text-[9px] font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:text-indigo-600">
                 Fler varianter
               </button>
               <button
@@ -1297,7 +1688,7 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
             <button onClick={() => onSendMessage?.("\u00c4ndra texten")} className="rounded-full border border-border/40 bg-white px-2.5 py-1 text-[9px] font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:text-indigo-600">
               &#196;ndra texten
             </button>
-            <button onClick={() => onSendMessage?.("Visa fler varianter")} className="rounded-full border border-border/40 bg-white px-2.5 py-1 text-[9px] font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:text-indigo-600">
+            <button onClick={() => onSendMessage?.(variantPreferences.selectedCount >= 2 ? `Visa fler varianter (f\u00f6redrar ${variantPreferences.preferredHeadlineLength === "short" ? "kortare" : variantPreferences.preferredHeadlineLength === "long" ? "l\u00e4ngre" : "mellanl\u00e5nga"} rubriker)` : "Visa fler varianter")} className="rounded-full border border-border/40 bg-white px-2.5 py-1 text-[9px] font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:text-indigo-600">
               Fler varianter
             </button>
             <span className="ml-auto text-[9px] text-muted-foreground/40 self-center">V&#228;lj en variant &#8593;</span>
