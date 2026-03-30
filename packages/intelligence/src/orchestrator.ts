@@ -4,10 +4,10 @@
  */
 
 import { analyzeWithVision } from "./vision-analysis";
-import { detectSocialPresence } from "./social-detection";
+import { detectSocialPresence, enrichSocialProfiles } from "./social-detection";
 import { fetchLogoApis, type DownloadedLogo } from "./logo-api";
 import { cacheOgImage } from "./image-cache";
-import { auditWebsite } from "./website-audit";
+import { auditWebsite, recalculateReadinessWithSocial } from "./website-audit";
 import { mergeIntelligence, type MergedBrandIntelligence } from "./confidence-merge";
 import { extractSchemaOrg, type SchemaOrgData } from "./schema-org";
 
@@ -34,6 +34,7 @@ export type PipelineResult = {
     ogCache: number | null;
     vision: number | null;
     social: number | null;
+    socialEnrich: number | null;
     logoApi: number | null;
     audit: number | null;
   };
@@ -111,9 +112,28 @@ export async function runBrandIntelligencePipeline(
   }
 
   const vision = visionResult.status === "fulfilled" ? visionResult.value.result : null;
-  const social = socialResult.status === "fulfilled" ? socialResult.value.result : [];
+  const socialRaw = socialResult.status === "fulfilled" ? socialResult.value.result : [];
   const logoApi = logoApiResult.status === "fulfilled" ? logoApiResult.value.result : null;
   const audit = auditResult.status === "fulfilled" ? auditResult.value.result : null;
+
+  // L3b: Enrich social profiles — validate URLs are live (HEAD requests, 3s timeout each)
+  const socialEnrichStart = Date.now();
+  let social = socialRaw;
+  try {
+    social = await enrichSocialProfiles(socialRaw);
+    const verified = social.filter((p) => p.verified).length;
+    console.log(`[Intelligence] Social enrichment: ${verified}/${social.length} profiles verified`);
+  } catch (err) {
+    console.error("[Intelligence] Social enrichment failed, using raw profiles:", err instanceof Error ? err.message : err);
+  }
+  const socialEnrichMs = Date.now() - socialEnrichStart;
+
+  // Recalculate readiness score now that we have verified social profiles.
+  // The audit ran in parallel with social detection, so it didn't have
+  // enrichment data available during its initial calculation.
+  const auditWithSocial = audit && social.length > 0
+    ? recalculateReadinessWithSocial(audit, social)
+    : audit;
 
   // L6: Confidence merge
   const intelligence = mergeIntelligence({
@@ -125,7 +145,7 @@ export async function runBrandIntelligencePipeline(
     cssFonts: input.cssFonts,
     scrapedLogos: input.scrapedLogos,
     social: social ?? [],
-    audit,
+    audit: auditWithSocial,
     enrichedIndustry: input.enrichedIndustry,
     industryPalette: input.industryPalette,
     schemaOrg,
@@ -140,6 +160,7 @@ export async function runBrandIntelligencePipeline(
       ogCache: input.ogImage ? ogCacheMs : null,
       vision: visionResult.status === "fulfilled" ? visionResult.value.ms : null,
       social: socialResult.status === "fulfilled" ? socialResult.value.ms : null,
+      socialEnrich: socialEnrichMs,
       logoApi: logoApiResult.status === "fulfilled" ? logoApiResult.value.ms : null,
       audit: auditResult.status === "fulfilled" ? auditResult.value.ms : null,
     },

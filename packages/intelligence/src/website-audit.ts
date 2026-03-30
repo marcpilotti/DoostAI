@@ -2,6 +2,8 @@
  * L5b: Website audit — PageSpeed, pixel detection, tech stack, readiness.
  */
 
+import type { SocialProfile } from "./social-detection";
+
 export type WebsiteAuditResult = {
   mobileScore: number | null;
   desktopScore: number | null;
@@ -80,8 +82,15 @@ function detectContent(html: string, links: string[]): {
 
 /**
  * Calculate marketing readiness score (0-100).
+ *
+ * @param audit  Partial audit data from pixel/content/tech detection.
+ * @param social Optional enriched social profiles. Each verified profile
+ *               (HEAD returned 200) adds +3 points, up to a max of 15.
  */
-function calculateReadiness(audit: Partial<WebsiteAuditResult>): number {
+function calculateReadiness(
+  audit: Partial<WebsiteAuditResult>,
+  social?: SocialProfile[],
+): number {
   let score = 0;
   const max = 100;
 
@@ -99,19 +108,30 @@ function calculateReadiness(audit: Partial<WebsiteAuditResult>): number {
   if (audit.isMobileFriendly) score += 10;
   // TODO: Add real PageSpeed API integration for mobile score
 
-  // Social (20 points) — added externally
-  // This base score maxes at 80, social adds the remaining 20
+  // Social (15 points max) — bonus for validated social profiles
+  // Each verified profile (HEAD returned 200) adds +3, capped at 15.
+  if (social?.length) {
+    const verifiedCount = social.filter((p) => p.verified === true).length;
+    const socialBonus = Math.min(verifiedCount * 3, 15);
+    score += socialBonus;
+  }
 
   return Math.min(score, max);
 }
 
 /**
  * Run website audit from scraped HTML data.
+ *
+ * @param url    The target website URL.
+ * @param html   Raw HTML content of the page.
+ * @param links  All links extracted from the page.
+ * @param social Optional enriched social profiles for readiness scoring.
  */
 export function auditWebsite(
   url: string,
   html: string,
   links: string[],
+  social?: SocialProfile[],
 ): WebsiteAuditResult {
   const hasSsl = url.startsWith("https");
   const pixelsAndTech = detectPixelsAndTech(html);
@@ -131,7 +151,7 @@ export function auditWebsite(
     loadTime: null,
   };
 
-  const readinessScore = calculateReadiness(partial);
+  const readinessScore = calculateReadiness(partial, social);
 
   const issues: { severity: string; title: string; description: string }[] = [];
   if (!pixelsAndTech.hasMetaPixel) issues.push({ severity: "high", title: "Meta Pixel saknas", description: "Installera Meta Pixel för att spåra konverteringar från Facebook/Instagram-annonser" });
@@ -145,4 +165,19 @@ export function auditWebsite(
     readinessScore,
     issues,
   };
+}
+
+/**
+ * Recalculate readiness score on an existing audit result with enriched social data.
+ *
+ * This is called by the orchestrator after social enrichment completes,
+ * since the initial audit runs in parallel with social detection and
+ * doesn't have access to verified social profiles yet.
+ */
+export function recalculateReadinessWithSocial(
+  audit: WebsiteAuditResult,
+  social: SocialProfile[],
+): WebsiteAuditResult {
+  const readinessScore = calculateReadiness(audit, social);
+  return { ...audit, readinessScore };
 }
