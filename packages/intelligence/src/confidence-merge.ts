@@ -8,6 +8,7 @@ import type { SocialProfile } from "./social-detection";
 import type { BrandfetchResult } from "./logo-api";
 import type { WebsiteAuditResult } from "./website-audit";
 import type { SchemaOrgData } from "./schema-org";
+import type { CompetitorAdInsight } from "./competitor-ads";
 import { clusterColors } from "./color-clustering";
 
 export type ConfidenceField<T> = {
@@ -26,7 +27,13 @@ export type MergedBrandIntelligence = {
   tagline: string | null;
   social: SocialProfile[];
   audit: WebsiteAuditResult | null;
+  competitorInsights: CompetitorAdInsight | null;
   overallConfidence: number;
+  _confidenceBreakdown: {
+    weighted: number;
+    agreementBonus: number;
+    missingPenalty: number;
+  };
 };
 
 /** Returns true if the string is a valid 6-digit hex color (e.g. "#a1b2c3"). */
@@ -246,6 +253,49 @@ function mergeFont(
 }
 
 /**
+ * Bayesian-inspired confidence model.
+ *
+ * Instead of a simple average, this uses:
+ * 1. **Weighted importance** — colors and logo matter most for ad generation.
+ * 2. **Agreement bonus** — when multiple fields come from the same high-quality
+ *    source (brandfetch, enrichment, logo.dev) the data is internally consistent.
+ * 3. **Missing penalty** — any critical field with "missing" status drags the
+ *    overall score down hard.
+ *
+ * Result is clamped to [0, 100].
+ */
+function calculateOverallConfidence(
+  logo: ConfidenceField<unknown>,
+  colors: ConfidenceField<unknown>,
+  font: ConfidenceField<unknown>,
+  industry: ConfidenceField<unknown>,
+): { score: number; weighted: number; agreementBonus: number; missingPenalty: number } {
+  // Weighted importance: colors and logo matter most for ad generation
+  const weights = { logo: 0.25, colors: 0.30, font: 0.20, industry: 0.25 };
+
+  const weighted =
+    logo.confidence * weights.logo +
+    colors.confidence * weights.colors +
+    font.confidence * weights.font +
+    industry.confidence * weights.industry;
+
+  // Bonus: when multiple fields come from same high-quality source (brandfetch, enrichment, logo.dev)
+  // it means the data is internally consistent
+  const sources = [logo.source, colors.source, font.source, industry.source];
+  const highQualitySources = sources.filter(
+    (s) => s === "brandfetch" || s === "enrichment" || s === "logo.dev",
+  );
+  const agreementBonus = highQualitySources.length >= 3 ? 5 : highQualitySources.length >= 2 ? 2 : 0;
+
+  // Penalty: if any critical field is "missing" status, reduce overall
+  const missingPenalty = [logo, colors, font, industry].filter((f) => f.status === "missing").length * 10;
+
+  const score = Math.min(100, Math.max(0, Math.round(weighted + agreementBonus - missingPenalty)));
+
+  return { score, weighted: Math.round(weighted * 100) / 100, agreementBonus, missingPenalty };
+}
+
+/**
  * Main merge function — combines all intelligence layers.
  */
 export function mergeIntelligence(input: {
@@ -261,6 +311,7 @@ export function mergeIntelligence(input: {
   enrichedIndustry?: string;
   industryPalette?: { primary: string; secondary: string; accent: string };
   schemaOrg?: SchemaOrgData | null;
+  competitorInsights?: CompetitorAdInsight | null;
 }): MergedBrandIntelligence {
   const logo = mergeLogo(input.brandfetch, input.logoDevUrl, input.scrapedLogos, input.social, input.companyName);
   const colors = mergeColors(input.brandfetch, input.vision, input.cssColors, input.industryPalette);
@@ -289,9 +340,8 @@ export function mergeIntelligence(input: {
   // These are high-confidence social links declared by the site owner.
   const social = mergeSocialWithSchemaOrg(input.social, input.schemaOrg);
 
-  const overallConfidence = Math.round(
-    (logo.confidence + colors.confidence + font.confidence + industry.confidence) / 4,
-  );
+  const { score: overallConfidence, weighted, agreementBonus, missingPenalty } =
+    calculateOverallConfidence(logo, colors, font, industry);
 
   return {
     logo,
@@ -302,7 +352,9 @@ export function mergeIntelligence(input: {
     tagline: input.vision?.tagline ?? null,
     social,
     audit: input.audit,
+    competitorInsights: input.competitorInsights ?? null,
     overallConfidence,
+    _confidenceBreakdown: { weighted, agreementBonus, missingPenalty },
   };
 }
 

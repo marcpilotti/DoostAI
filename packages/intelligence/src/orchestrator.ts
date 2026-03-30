@@ -10,6 +10,7 @@ import { cacheOgImage } from "./image-cache";
 import { auditWebsite, recalculateReadinessWithSocial } from "./website-audit";
 import { mergeIntelligence, type MergedBrandIntelligence } from "./confidence-merge";
 import { extractSchemaOrg, type SchemaOrgData } from "./schema-org";
+import { analyzeCompetitorAds, type CompetitorAdInsight } from "./competitor-ads";
 
 export type PipelineInput = {
   url: string;
@@ -29,6 +30,7 @@ export type PipelineResult = {
   intelligence: MergedBrandIntelligence;
   downloadedLogo: DownloadedLogo | null;
   schemaOrg: SchemaOrgData | null;
+  competitorInsights: CompetitorAdInsight | null;
   timing: {
     total: number;
     ogCache: number | null;
@@ -37,6 +39,7 @@ export type PipelineResult = {
     socialEnrich: number | null;
     logoApi: number | null;
     audit: number | null;
+    competitorAds: number | null;
   };
 };
 
@@ -83,6 +86,7 @@ export async function runBrandIntelligencePipeline(
     socialResult,
     logoApiResult,
     auditResult,
+    competitorAdsResult,
   ] = await Promise.allSettled([
     // L1: Vision AI (analyze OG image or screenshot — uses pre-cached base64)
     timed(() => analyzeWithVision(ogForVision, input.screenshot)),
@@ -95,6 +99,9 @@ export async function runBrandIntelligencePipeline(
 
     // L5b: Website audit (from HTML)
     timed(() => Promise.resolve(auditWebsite(input.url, input.html, input.links))),
+
+    // L7: Competitor Ad Library analysis (stub — returns null until API access is approved)
+    timed(() => analyzeCompetitorAds(domain, input.enrichedIndustry)),
   ]);
 
   // Extract results (null if failed) and log any errors
@@ -110,11 +117,15 @@ export async function runBrandIntelligencePipeline(
   if (auditResult.status === "rejected") {
     console.error("[Intelligence] Website audit failed:", auditResult.reason instanceof Error ? auditResult.reason.message : auditResult.reason);
   }
+  if (competitorAdsResult.status === "rejected") {
+    console.error("[Intelligence] Competitor ads analysis failed:", competitorAdsResult.reason instanceof Error ? competitorAdsResult.reason.message : competitorAdsResult.reason);
+  }
 
   const vision = visionResult.status === "fulfilled" ? visionResult.value.result : null;
   const socialRaw = socialResult.status === "fulfilled" ? socialResult.value.result : [];
   const logoApi = logoApiResult.status === "fulfilled" ? logoApiResult.value.result : null;
   const audit = auditResult.status === "fulfilled" ? auditResult.value.result : null;
+  const competitorInsights = competitorAdsResult.status === "fulfilled" ? competitorAdsResult.value.result : null;
 
   // L3b: Enrich social profiles — validate URLs are live (HEAD requests, 3s timeout each)
   const socialEnrichStart = Date.now();
@@ -149,12 +160,14 @@ export async function runBrandIntelligencePipeline(
     enrichedIndustry: input.enrichedIndustry,
     industryPalette: input.industryPalette,
     schemaOrg,
+    competitorInsights,
   });
 
   return {
     intelligence,
     downloadedLogo: logoApi?.downloadedLogo ?? null,
     schemaOrg,
+    competitorInsights,
     timing: {
       total: Date.now() - start,
       ogCache: input.ogImage ? ogCacheMs : null,
@@ -163,6 +176,7 @@ export async function runBrandIntelligencePipeline(
       socialEnrich: socialEnrichMs,
       logoApi: logoApiResult.status === "fulfilled" ? logoApiResult.value.ms : null,
       audit: auditResult.status === "fulfilled" ? auditResult.value.ms : null,
+      competitorAds: competitorAdsResult.status === "fulfilled" ? competitorAdsResult.value.ms : null,
     },
   };
 }

@@ -7,3 +7,4 @@ export { cacheOgImage } from "./src/image-cache";
 export { mergeIntelligence, type MergedBrandIntelligence, type ConfidenceField } from "./src/confidence-merge";
 export { extractSchemaOrg, type SchemaOrgData } from "./src/schema-org";
 export { clusterColors, type ClusteredColor } from "./src/color-clustering";
+export { analyzeCompetitorAds, type CompetitorAdInsight, type OwnAdInsight, type CompetitorPattern } from "./src/competitor-ads";
