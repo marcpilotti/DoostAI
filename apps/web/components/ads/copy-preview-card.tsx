@@ -24,8 +24,8 @@ import {
   RotateCcw,
   Repeat2,
 } from "lucide-react";
-import { PLATFORM_LIMITS, validateCopyLimits } from "@doost/ai";
-import type { PlatformId } from "@doost/ai";
+import { PLATFORM_LIMITS, validateCopyLimits } from "@doost/ai/platform-limits";
+import type { PlatformId } from "@doost/ai/platform-limits";
 
 type CopyData = {
   id?: string;

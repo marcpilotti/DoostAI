@@ -6,6 +6,10 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./platform-limits": {
+      "types": "./src/platform-limits.ts",
+      "default": "./src/platform-limits.ts"
     }
   },
   "scripts": {
