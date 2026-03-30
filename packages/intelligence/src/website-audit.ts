@@ -97,7 +97,7 @@ function calculateReadiness(audit: Partial<WebsiteAuditResult>): number {
   // Technical (25 points)
   if (audit.hasSsl) score += 10;
   if (audit.isMobileFriendly) score += 10;
-  if ((audit.mobileScore ?? 0) > 50) score += 5;
+  // TODO: Add real PageSpeed API integration for mobile score
 
   // Social (20 points) — added externally
   // This base score maxes at 80, social adds the remaining 20

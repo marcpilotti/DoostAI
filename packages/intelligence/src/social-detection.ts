@@ -68,20 +68,6 @@ export function detectSocialPresence(
     }
   }
 
-  // Method 3: Common URL patterns (guess)
-  const domain = extractDomainFromHtml(html);
-  if (domain && found.length === 0) {
-    const name = domain.split(".")[0];
-    if (name) {
-      const guesses = [
-        { platform: "facebook", url: `https://facebook.com/${name}`, confidence: 20 },
-        { platform: "instagram", url: `https://instagram.com/${name}`, confidence: 20 },
-        { platform: "linkedin", url: `https://linkedin.com/company/${name}`, confidence: 20 },
-      ];
-      found.push(...guesses);
-    }
-  }
-
   return found;
 }
 

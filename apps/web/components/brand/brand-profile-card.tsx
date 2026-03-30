@@ -225,6 +225,9 @@ export type ApprovedBrandData = {
   location: string;
   targetAudience: string;
   url: string;
+  brandVoice: string;
+  valuePropositions: string[];
+  description: string;
 };
 
 export function BrandProfileCard({
@@ -555,6 +558,9 @@ export function BrandProfileCard({
                 location: data.location ?? "",
                 targetAudience: data.targetAudience ?? "",
                 url: data.url,
+                brandVoice: data.brandVoice ?? "Professional and approachable",
+                valuePropositions: data.valuePropositions ?? [],
+                description: data.description ?? "",
               });
               setCascading(false);
             }, pending.length * 100 + 300);
@@ -565,7 +571,7 @@ export function BrandProfileCard({
               : "bg-gradient-to-r from-indigo-500 to-indigo-600 text-white hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"
           }`}
         >
-          {allApproved ? "Allt ser bra ut" : `Godkänn ${totalFields - approvedCount === totalFields ? "alla" : `sista ${totalFields - approvedCount}`} & fortsätt`}
+          {allApproved ? "Allt ser bra ut" : `Godkänn ${approvedCount === 0 ? "alla" : `sista ${totalFields - approvedCount}`} & fortsätt`}
           <ArrowRight className="h-3.5 w-3.5" />
         </button>
       </div>

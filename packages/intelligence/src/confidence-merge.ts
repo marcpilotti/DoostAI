@@ -191,7 +191,7 @@ function mergeFont(
   cssFonts: string[],
 ): ConfidenceField<{ family: string; category: string }> {
   // Priority 1: Brandfetch font (confidence 95)
-  const bfFont = brandfetch?.fonts.find((f) => f.type === "heading" || f.type === "body");
+  const bfFont = brandfetch?.fonts?.find((f) => f.type === "heading" || f.type === "body");
   if (bfFont?.name) {
     return { value: { family: bfFont.name, category: "sans" }, confidence: 95, source: "brandfetch", status: "found" };
   }

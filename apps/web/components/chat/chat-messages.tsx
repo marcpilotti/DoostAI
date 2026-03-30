@@ -54,9 +54,13 @@ function ToolInvocation({
 
   if (name === "analyze_brand") {
     if (part.state === "output-available" && part.output) {
+      const output = part.output as Record<string, unknown>;
+      if (!output.url || !output.name || !output.colors) {
+        return <div className="p-4 text-sm text-red-500">Brand analysis returned incomplete data.</div>;
+      }
       return (
         <BrandProfileCard
-          data={part.output as Parameters<typeof BrandProfileCard>[0]["data"]}
+          data={output as Parameters<typeof BrandProfileCard>[0]["data"]}
           onComplete={(approvedData) => {
             // Send approved brand data as structured JSON so the AI can use it in subsequent tools
             onSendMessage?.(`Profil godkänd: ${JSON.stringify(approvedData)}`);
@@ -124,7 +128,7 @@ function ToolInvocation({
           data={part.output as Parameters<typeof PublishCard>[0]["data"]}
           onPublish={(config) => {
             onSendMessage?.(
-              `Publicera: ${config.dailyBudget} kr/dag, ${config.duration} dagar, ${config.channels.join("+")}`,
+              `Publicera: ${JSON.stringify({ budget: config.dailyBudget, duration: config.duration, channels: config.channels })}`,
             );
           }}
         />
@@ -245,7 +249,6 @@ export function ChatMessages({
   }, [messages]);
 
   const latestToolParts = useMemo(() => {
-    const parts: { part: ToolPart; messageId: string }[] = [];
     for (let i = messages.length - 1; i >= 0; i--) {
       const m = messages[i]!;
       if (m.role !== "assistant") continue;
@@ -254,7 +257,7 @@ export function ChatMessages({
         return tools.map((t) => ({ part: t, messageId: m.id }));
       }
     }
-    return parts;
+    return [];
   }, [messages]);
 
   // Also find the latest user message (non-hidden)

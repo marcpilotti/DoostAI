@@ -94,7 +94,7 @@ export function PublishCard({
   );
   const [duration, setDuration] = useState(14);
   const [regions, setRegions] = useState<Set<string>>(
-    new Set([data.defaultCity?.toLowerCase() === "göteborg" ? "gothenburg" : data.defaultCity?.toLowerCase() === "malmö" ? "malmo" : "stockholm"]),
+    new Set([data.defaultCity?.toLowerCase().trim() === "göteborg" ? "gothenburg" : data.defaultCity?.toLowerCase().trim() === "malmö" ? "malmo" : "stockholm"]),
   );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

@@ -43,7 +43,7 @@ export async function runBrandIntelligencePipeline(
   input: PipelineInput,
 ): Promise<PipelineResult> {
   const start = Date.now();
-  const domain = input.url.replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0]!;
+  const domain = input.url.replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0] ?? "";
 
   if (!domain || !domain.includes(".")) {
     throw new Error(`Invalid domain extracted from URL "${input.url}": got "${domain}". Provide a valid URL like "https://example.com".`);

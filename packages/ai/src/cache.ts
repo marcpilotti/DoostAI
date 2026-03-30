@@ -79,7 +79,7 @@ export async function setCachedCopy(
   if (!redis) return;
 
   try {
-    await redis.setex(cacheKey, ttlSeconds, JSON.stringify(result));
+    await redis.setex(cacheKey, ttlSeconds, result);
 
     // Track this key under the brand for bulk invalidation
     if (brandProfileId) {

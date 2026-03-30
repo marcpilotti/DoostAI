@@ -77,7 +77,7 @@ STEP 5: Ad previews appear with QuickPicks. User can click "Ändra texten", "Fle
 
 STEP 6: User says "Ser bra ut, publicera!" or wants to publish → IMMEDIATELY call show_publish_card with brand name, URL, headline, body, goal, audience, and industry category. Do NOT show a separate channel picker — channels are in the PublishCard.
 
-STEP 7: User submits publish config (message starts with "Publicera:") → call check_plan, then deploy_campaign. Include the creative data (headline, bodyCopy, cta, brandName, brandUrl, colors) from the approved ad copy in Step 5.
+STEP 7: User submits publish config (message starts with "Publicera:") → Extract budget, duration, channels from the JSON. Get the creative data (headline, bodyCopy, cta) from the generate_ad_copy result earlier in the conversation. Call check_plan, then deploy_campaign with all data.
 
 STEP 8: After deploy_campaign returns successfully → Say: "Dina annonser är nu iväg! 🚀 Det tar vanligtvis 1-2 timmar innan de godkänns av plattformen. Jag meddelar dig så fort de första visningarna börjar rulla in. Under tiden kan du skapa fler kampanjer eller bara luta dig tillbaka."
 
@@ -380,12 +380,13 @@ ABSOLUTE RULES:
           brandUrl: z.string(),
           headline: z.string(),
           bodyCopy: z.string(),
+          cta: z.string().optional(),
           goal: z.string(),
           audience: z.string(),
           industryCategory: z.string().optional(),
           defaultCity: z.string().optional(),
         }),
-        execute: async ({ brandName, brandUrl, headline, bodyCopy, goal, audience, industryCategory, defaultCity }) => {
+        execute: async ({ brandName, brandUrl, headline, bodyCopy, cta, goal, audience, industryCategory, defaultCity }) => {
           const looked = industryCategory ? INDUSTRY_BUDGETS[industryCategory] : undefined;
           const budgets = (looked && typeof looked === "object" && "low" in looked) ? looked : DEFAULT_BUDGETS;
           const cpm = 50;
@@ -395,6 +396,7 @@ ABSOLUTE RULES:
             brandUrl,
             headline,
             bodyCopy,
+            cta,
             goal,
             audience,
             defaultCity,
