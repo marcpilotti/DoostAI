@@ -38,11 +38,17 @@ async function fetchBrandfetch(domain: string): Promise<BrandfetchResult | null>
 
     if (!res.ok) return null;
 
-    const data = await res.json() as {
+    let data: {
       logos?: Array<{ formats?: Array<{ src: string; format: string }>; type?: string; theme?: string }>;
       colors?: Array<{ hex: string; type?: string }>;
       fonts?: Array<{ name: string; weight?: number; type?: string }>;
     };
+    try {
+      data = await res.json() as typeof data;
+    } catch {
+      console.warn("[L4 Brandfetch] JSON parse failed for", domain);
+      return null;
+    }
 
     // Pick best format per logo: PNG > JPEG > SVG
     const logos = (data.logos ?? []).map((logo) => {
@@ -80,7 +86,10 @@ async function downloadAsDataUrl(url: string, timeoutMs = 5000): Promise<string 
     const buf = await res.arrayBuffer();
     if (buf.byteLength === 0 || buf.byteLength > 500_000) return null; // skip empty or huge
 
-    const base64 = Buffer.from(buf).toString("base64");
+    // Node.js runtime — Buffer is available (route.ts uses Node runtime, not Edge)
+    const base64 = typeof Buffer !== "undefined"
+      ? Buffer.from(buf).toString("base64")
+      : btoa(String.fromCharCode(...new Uint8Array(buf)));
     return `data:${contentType.split(";")[0]};base64,${base64}`;
   } catch {
     return null;
@@ -96,35 +105,43 @@ async function downloadBestLogo(
   domain: string,
   brandfetchLogos: { url: string; type: string; theme: string }[],
 ): Promise<DownloadedLogo | null> {
-  // 1. Logo.dev — highest quality, designed for embedding (128px PNG)
+  // 1. Try Logo.dev and Brandfetch icon download in parallel
   const logoDevToken = process.env.LOGO_DEV_TOKEN;
-  if (logoDevToken && logoDevToken !== "your_logo_dev_token") {
-    const url = `https://img.logo.dev/${domain}?token=${logoDevToken}&format=png&size=128`;
-    const dataUrl = await downloadAsDataUrl(url);
-    if (dataUrl) {
-      console.log(`[L4 Download] ${domain} → Logo.dev ✓ (${dataUrl.length} chars)`);
-      return { dataUrl, source: "logo.dev", theme: "light", width: 128 };
-    }
-    console.log(`[L4 Download] ${domain} → Logo.dev ✗ (404 or error)`);
-  }
 
-  // 2. Brandfetch CDN — download server-side (CDN blocks browser access but allows server GET)
-  //    Prefer icon over logo, prefer light over dark
   const bfIcon = brandfetchLogos.find((l) => l.type === "icon" && l.theme === "light")
     ?? brandfetchLogos.find((l) => l.type === "icon")
     ?? brandfetchLogos.find((l) => l.theme === "light")
     ?? brandfetchLogos[0];
 
+  const logoDevPromise = logoDevToken && logoDevToken !== "your_logo_dev_token"
+    ? downloadAsDataUrl(`https://img.logo.dev/${domain}?token=${logoDevToken}&format=png&size=128`)
+    : Promise.resolve(null);
+
+  const brandfetchPromise = bfIcon?.url
+    ? downloadAsDataUrl(bfIcon.url)
+    : Promise.resolve(null);
+
+  const [logoDevResult, brandfetchResult] = await Promise.allSettled([logoDevPromise, brandfetchPromise]);
+
+  const logoDevDataUrl = logoDevResult.status === "fulfilled" ? logoDevResult.value : null;
+  const brandfetchDataUrl = brandfetchResult.status === "fulfilled" ? brandfetchResult.value : null;
+
+  // Prefer Logo.dev (higher quality), then Brandfetch
+  if (logoDevDataUrl) {
+    console.log(`[L4 Download] ${domain} → Logo.dev ✓ (${logoDevDataUrl.length} chars)`);
+    return { dataUrl: logoDevDataUrl, source: "logo.dev", theme: "light", width: 128 };
+  }
+  console.log(`[L4 Download] ${domain} → Logo.dev ✗ (404 or error)`);
+
+  if (brandfetchDataUrl && bfIcon) {
+    console.log(`[L4 Download] ${domain} → Brandfetch ${bfIcon.type}/${bfIcon.theme} ✓ (${brandfetchDataUrl.length} chars)`);
+    return { dataUrl: brandfetchDataUrl, source: "brandfetch", theme: bfIcon.theme, width: 400 };
+  }
   if (bfIcon?.url) {
-    const dataUrl = await downloadAsDataUrl(bfIcon.url);
-    if (dataUrl) {
-      console.log(`[L4 Download] ${domain} → Brandfetch ${bfIcon.type}/${bfIcon.theme} ✓ (${dataUrl.length} chars)`);
-      return { dataUrl, source: "brandfetch", theme: bfIcon.theme, width: 400 };
-    }
     console.log(`[L4 Download] ${domain} → Brandfetch ✗ (CDN error)`);
   }
 
-  // 3. Google Favicons — universal coverage, always works (128px)
+  // 2. Google Favicons — universal fallback, always works (128px)
   const googleUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
   const googleDataUrl = await downloadAsDataUrl(googleUrl);
   if (googleDataUrl) {

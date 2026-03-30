@@ -107,6 +107,20 @@ ABSOLUTE RULES:
           }
 
           const scrapeResult = scrapeSettled.value;
+
+          // Validate scrape result has the expected shape
+          if (
+            !scrapeResult ||
+            typeof scrapeResult.url !== "string" ||
+            !Array.isArray(scrapeResult.colors) ||
+            !Array.isArray(scrapeResult.fonts) ||
+            !Array.isArray(scrapeResult.logoUrls)
+          ) {
+            throw new Error(
+              `Scrape returned malformed data: missing url, colors, fonts, or logoUrls for ${url}`,
+            );
+          }
+
           const enrichment =
             enrichSettled.status === "fulfilled"
               ? enrichSettled.value
@@ -116,14 +130,13 @@ ABSOLUTE RULES:
             console.warn(
               `Enrichment failed for ${url}: ${enrichSettled.reason}`,
             );
-            // Schedule background retry
-            inngest.send({
-              name: "brand/retry-enrichment",
-              data: {
-                brandProfileId: "pending",
-                domain: url.replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0],
-              },
-            }).catch(() => {}); // fire-and-forget
+            // TODO: Implement enrichment retry once brandProfileId is available
+            // (profile has not been persisted to DB at this point, so we cannot
+            // schedule a retry job — the job would need a real brandProfileId).
+            console.warn(
+              `[brand/retry-enrichment] Enrichment retry not yet implemented. ` +
+              `Domain: ${url.replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0]}`,
+            );
           }
 
           // Run AI profile build + intelligence pipeline in parallel
@@ -300,6 +313,7 @@ ABSOLUTE RULES:
           const appUrl =
             process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
           const redirectUri = `${appUrl}/api/platforms/linkedin/callback`;
+          // TODO: Use cryptographically signed state (HMAC) to prevent tampering
           const state = btoa(JSON.stringify({ orgId }));
           try {
             const oauthUrl = linkedinGetOAuthUrl(redirectUri, state);
@@ -451,6 +465,7 @@ ABSOLUTE RULES:
           orgId: string;
           requestedPlatforms: number;
         }) => {
+          // TODO: Replace with real plan/deployment logic — currently hardcoded to "pro"
           // Demo mode: skip DB queries, allow everything
           const plan = "pro" as const;
           const campaignCheck = checkCampaignLimit(plan, 0);
@@ -521,6 +536,7 @@ ABSOLUTE RULES:
             ageMax?: number;
           };
         }) => {
+          // TODO: Replace with real plan/deployment logic — currently returns demo status
           // Demo mode: return simulated deployment status
           // In production with auth, this would check real ad accounts
           const platformStatuses = platforms.map((platform) => {

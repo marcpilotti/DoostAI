@@ -1,3 +1,4 @@
+// TODO: Wire up cost tracking — currently unused
 import { estimateCost } from "./router";
 
 type CostEntry = {

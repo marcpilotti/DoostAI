@@ -65,7 +65,20 @@ export async function runBrandIntelligencePipeline(
     timed(() => Promise.resolve(auditWebsite(input.url, input.html, input.links))),
   ]);
 
-  // Extract results (null if failed)
+  // Extract results (null if failed) and log any errors
+  if (visionResult.status === "rejected") {
+    console.error("[Intelligence] Vision analysis failed:", visionResult.reason instanceof Error ? visionResult.reason.message : visionResult.reason);
+  }
+  if (socialResult.status === "rejected") {
+    console.error("[Intelligence] Social detection failed:", socialResult.reason instanceof Error ? socialResult.reason.message : socialResult.reason);
+  }
+  if (logoApiResult.status === "rejected") {
+    console.error("[Intelligence] Logo API failed:", logoApiResult.reason instanceof Error ? logoApiResult.reason.message : logoApiResult.reason);
+  }
+  if (auditResult.status === "rejected") {
+    console.error("[Intelligence] Website audit failed:", auditResult.reason instanceof Error ? auditResult.reason.message : auditResult.reason);
+  }
+
   const vision = visionResult.status === "fulfilled" ? visionResult.value.result : null;
   const social = socialResult.status === "fulfilled" ? socialResult.value.result : [];
   const logoApi = logoApiResult.status === "fulfilled" ? logoApiResult.value.result : null;

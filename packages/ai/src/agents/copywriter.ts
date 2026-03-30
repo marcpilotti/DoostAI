@@ -89,6 +89,7 @@ async function generateSingleVariant(
   variant: CopyVariant,
   useGpt: boolean,
 ): Promise<AdCopyResult> {
+  // TODO: Route to GPT-4o when useGpt=true for speed
   const model = anthropic("claude-opus-4-6");
   const modelName = "claude-opus-4-6";
   const schema = getSchema(platform);

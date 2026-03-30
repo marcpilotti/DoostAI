@@ -265,6 +265,7 @@ export function BrandProfileCard({
   function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (f) {
+      if (logoUrl && logoUrl.startsWith('blob:')) URL.revokeObjectURL(logoUrl);
       const u = URL.createObjectURL(f);
       setLogoUrl(u);
       window.dispatchEvent(new CustomEvent("doost:logo-selected", { detail: { url: u } }));

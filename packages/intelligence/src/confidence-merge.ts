@@ -27,6 +27,11 @@ export type MergedBrandIntelligence = {
   overallConfidence: number;
 };
 
+/** Returns true if the string is a valid 6-digit hex color (e.g. "#a1b2c3"). */
+function isValidHex6(hex: string): boolean {
+  return /^#[0-9a-fA-F]{6}$/.test(hex);
+}
+
 function getStatus(confidence: number): "found" | "uncertain" | "missing" {
   if (confidence >= 80) return "found";
   if (confidence >= 50) return "uncertain";
@@ -93,8 +98,8 @@ function mergeLogo(
 
   console.log(`[L6 Merge] Logo: No sources found. Logo.dev: ${!!logoDevUrl}, scraped: ${scrapedLogos.length}`);
 
-  // Fallback: Generated initials (always works)
-  return { value: { url: null, type: "initials", initials }, confidence: 100, source: "generated", status: "found" };
+  // Fallback: Generated initials (always works, but low confidence — this is not real brand data)
+  return { value: { url: null, type: "initials", initials }, confidence: 30, source: "generated", status: "missing" };
 }
 
 /**
@@ -111,6 +116,7 @@ function mergeColors(
   const bfBrandColors = (brandfetch?.colors ?? []).filter((c) => {
     if (c.type === "dark" || c.type === "light") return false;
     const hex = c.hex.toLowerCase();
+    if (!isValidHex6(hex)) return false;
     // Exclude near-black and near-white
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
@@ -125,8 +131,9 @@ function mergeColors(
     return { value: { primary, secondary, accent }, confidence: 95, source: "brandfetch", status: "found" };
   }
 
-  // Filter CSS colors: remove near-black, near-white, and grays
+  // Filter CSS colors: remove malformed hex, near-black, near-white, and grays
   const usableCss = cssColors.filter((hex) => {
+    if (!isValidHex6(hex)) return false;
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
@@ -170,9 +177,9 @@ function mergeColors(
     };
   }
 
-  // Fallback: industry palette or generic default (confidence 100 — generated)
+  // Fallback: industry palette or generic default (low confidence — not real brand data)
   const fallback = industryPalette ?? { primary: "#6366f1", secondary: "#4f46e5", accent: "#818cf8" };
-  return { value: fallback, confidence: 100, source: industryPalette ? "industry_palette" : "default", status: "found" };
+  return { value: fallback, confidence: 30, source: industryPalette ? "industry_palette" : "default", status: "missing" };
 }
 
 /**
@@ -205,8 +212,8 @@ function mergeFont(
     };
   }
 
-  // Fallback: Inter
-  return { value: { family: "Inter", category: "sans" }, confidence: 100, source: "default", status: "found" };
+  // Fallback: Inter (low confidence — not real brand data)
+  return { value: { family: "Inter", category: "sans" }, confidence: 30, source: "default", status: "missing" };
 }
 
 /**

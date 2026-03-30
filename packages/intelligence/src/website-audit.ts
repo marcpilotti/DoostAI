@@ -50,7 +50,7 @@ function detectPixelsAndTech(html: string): {
   if (lower.includes("wix.com")) techStack.push("Wix");
   if (lower.includes("squarespace")) techStack.push("Squarespace");
   if (lower.includes("next") || lower.includes("__next")) techStack.push("Next.js");
-  if (lower.includes("react")) techStack.push("React");
+  if (lower.includes("data-reactroot") || lower.includes("_reactroot") || lower.includes("react-app") || lower.includes("_react") || lower.includes("__next_data__")) techStack.push("React");
   if (lower.includes("vue")) techStack.push("Vue");
   if (lower.includes("gatsby")) techStack.push("Gatsby");
   if (lower.includes("webflow")) techStack.push("Webflow");

@@ -9,14 +9,23 @@ export type SocialProfile = {
   confidence: number;
 };
 
-const SOCIAL_PATTERNS: Record<string, RegExp> = {
-  facebook: /(?:https?:\/\/)?(?:www\.)?facebook\.com\/[a-zA-Z0-9._-]+/gi,
-  instagram: /(?:https?:\/\/)?(?:www\.)?instagram\.com\/[a-zA-Z0-9._-]+/gi,
-  linkedin: /(?:https?:\/\/)?(?:www\.)?linkedin\.com\/(?:company|in)\/[a-zA-Z0-9._-]+/gi,
-  twitter: /(?:https?:\/\/)?(?:www\.)?(?:twitter\.com|x\.com)\/[a-zA-Z0-9._-]+/gi,
-  youtube: /(?:https?:\/\/)?(?:www\.)?youtube\.com\/(?:@|channel\/|c\/)[a-zA-Z0-9._-]+/gi,
-  tiktok: /(?:https?:\/\/)?(?:www\.)?tiktok\.com\/@[a-zA-Z0-9._-]+/gi,
+const SOCIAL_PATTERN_SOURCES: Record<string, string> = {
+  facebook: "(?:https?:\\/\\/)?(?:www\\.)?facebook\\.com\\/[a-zA-Z0-9._-]+",
+  instagram: "(?:https?:\\/\\/)?(?:www\\.)?instagram\\.com\\/[a-zA-Z0-9._-]+",
+  linkedin: "(?:https?:\\/\\/)?(?:www\\.)?linkedin\\.com\\/(?:company|in)\\/[a-zA-Z0-9._-]+",
+  twitter: "(?:https?:\\/\\/)?(?:www\\.)?(?:twitter\\.com|x\\.com)\\/[a-zA-Z0-9._-]+",
+  youtube: "(?:https?:\\/\\/)?(?:www\\.)?youtube\\.com\\/(?:@|channel\\/|c\\/)[a-zA-Z0-9._-]+",
+  tiktok: "(?:https?:\\/\\/)?(?:www\\.)?tiktok\\.com\\/@[a-zA-Z0-9._-]+",
 };
+
+/** Create fresh RegExp instances to avoid shared lastIndex state. */
+function createSocialPatterns(): Record<string, RegExp> {
+  const patterns: Record<string, RegExp> = {};
+  for (const [platform, source] of Object.entries(SOCIAL_PATTERN_SOURCES)) {
+    patterns[platform] = new RegExp(source, "gi");
+  }
+  return patterns;
+}
 
 /**
  * Extract social media URLs from raw HTML content.
@@ -29,8 +38,10 @@ export function detectSocialPresence(
   const seen = new Set<string>();
 
   // Method 1: Scan all links from the page
+  // Fresh patterns per call — no shared lastIndex state
+  const linkPatterns = createSocialPatterns();
   for (const link of links) {
-    for (const [platform, pattern] of Object.entries(SOCIAL_PATTERNS)) {
+    for (const [platform, pattern] of Object.entries(linkPatterns)) {
       pattern.lastIndex = 0;
       const match = pattern.exec(link);
       if (match) {
@@ -44,8 +55,9 @@ export function detectSocialPresence(
   }
 
   // Method 2: Scan raw HTML for social links
-  for (const [platform, pattern] of Object.entries(SOCIAL_PATTERNS)) {
-    pattern.lastIndex = 0;
+  // Fresh patterns — Method 1 patterns may have advanced lastIndex
+  const htmlPatterns = createSocialPatterns();
+  for (const [platform, pattern] of Object.entries(htmlPatterns)) {
     let match;
     while ((match = pattern.exec(html)) !== null) {
       const url = match[0].startsWith("http") ? match[0] : `https://${match[0]}`;
