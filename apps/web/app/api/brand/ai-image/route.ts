@@ -1,19 +1,25 @@
 /**
- * Serves AI-generated ad background images from Redis cache.
- * Usage: GET /api/brand/ai-image?key=ai-img:IT%20%26%20Tech:#6366f1:square
+ * Serves AI-generated ad background images from cache.
+ * Supports both:
+ * - ai-img: keys (from packages/templates pipeline)
+ * - ad-img: keys (from app/actions/generate-ad-image server action)
  */
 
 import { getAiImageFromCache } from "@doost/templates/ai-image";
+import { getImageFromCache as getServerActionImage } from "@/app/actions/generate-ad-image";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const key = searchParams.get("key");
 
-  if (!key || !key.startsWith("ai-img:")) {
-    return new Response("Missing or invalid key", { status: 400 });
+  if (!key) {
+    return new Response("Missing key", { status: 400 });
   }
 
-  const dataUrl = await getAiImageFromCache(key);
+  // Try server action cache first (ad-img: keys), then templates cache (ai-img: keys)
+  const dataUrl = key.startsWith("ad-img:")
+    ? getServerActionImage(key)
+    : await getAiImageFromCache(key);
   if (!dataUrl) {
     return new Response("Image not found", { status: 404 });
   }
