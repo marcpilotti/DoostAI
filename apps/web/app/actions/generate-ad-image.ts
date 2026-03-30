@@ -33,11 +33,12 @@ const classificationCache = new Map<string, IndustryClassification>();
 
 // ── Format-specific composition hints ────────────────────────────
 
+// gpt-image-1 supported sizes: 1024x1024, 1024x1536, 1536x1024, auto
 const FORMAT_CONFIG: Record<string, { size: string; composition: string }> = {
   "meta-feed": { size: "1024x1024", composition: "square, centered subject" },
-  "meta-stories": { size: "1024x1792", composition: "vertical, subject in upper third" },
-  "google-search": { size: "1024x1024", composition: "square" }, // Not used, but defined
-  "linkedin": { size: "1792x1024", composition: "horizontal, professional setting" },
+  "meta-stories": { size: "1024x1536", composition: "vertical, subject in upper third" },
+  "google-search": { size: "1024x1024", composition: "square" },
+  "linkedin": { size: "1536x1024", composition: "horizontal, professional setting" },
 };
 
 // ── Step 1: Classify industry from ad copy ───────────────────────
