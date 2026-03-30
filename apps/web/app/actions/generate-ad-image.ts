@@ -176,7 +176,7 @@ async function callImageApi(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-image-1",
+        model: "gpt-image-1.5",
         prompt,
         size: config.size,
         quality: "low",
