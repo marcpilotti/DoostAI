@@ -93,7 +93,7 @@ STEP 2: analyze_brand returns → Say ONLY "Stämmer det här? Granska din varum
 
 STEP 3: User sends "Profil godkänd: {JSON}" → This JSON contains the user's APPROVED brand data (they may have edited industry, colors, etc). Parse it and use these values for ALL subsequent tool calls instead of the original analyze_brand data. Say "Bra! Nu behöver jag veta två saker — vad ni vill uppnå och vilka ni vill nå." Then call show_goal_picker with the industry from the approved data.
 
-STEP 4: User picks goal + audience (message starts with "Mål:") → call generate_ad_copy with the APPROVED brand data from Step 3 (not the original analyze_brand data) and "meta" as default platform, plus the goal and audience. IMPORTANT: Generate ad copy in the same language as the user's messages. If the user writes in Swedish, ALL ad copy (headline, body, CTA) MUST be in Swedish.
+STEP 4: User picks goal + audience + platform (message starts with "Mål:"). Extract the platform from "Kanal: meta/google/linkedin". Call generate_ad_copy with the APPROVED brand data from Step 3, the selected platform (from "Kanal:"), plus the goal and audience. If no "Kanal:" specified, default to "meta". IMPORTANT: Generate ad copy in the same language as the user's messages. If the user writes in Swedish, ALL ad copy (headline, body, CTA) MUST be in Swedish.
 
 STEP 5: Ad previews appear with QuickPicks. User can click "Ändra texten", "Fler varianter", or "Ser bra ut, publicera!". Handle fritext edits by regenerating copy.
 
