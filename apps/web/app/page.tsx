@@ -85,9 +85,12 @@ export default function Home() {
   };
 
   const [savedSession, setSavedSession] = useState<{ companyName?: string } | null>(null);
+  const [sessionChecked, setSessionChecked] = useState(false);
 
   // Check for saved session on mount
   useEffect(() => {
+    if (sessionChecked) return;
+    setSessionChecked(true);
     try {
       const draft = localStorage.getItem("doost:draft-session");
       if (draft && messages.length === 0) {
@@ -102,7 +105,7 @@ export default function Home() {
         }
       }
     } catch {}
-  }, [messages.length]);
+  }, []);
 
   const isEmpty = messages.length === 0 && !savedSession;
 

@@ -378,8 +378,6 @@ export async function generateAdBackground(
       source: "openai",
       cached: false,
     };
-    console.warn("[AI Image] No image data in OpenAI response");
-    return null;
   } catch (err) {
     console.warn(
       "[AI Image] Generation failed:",

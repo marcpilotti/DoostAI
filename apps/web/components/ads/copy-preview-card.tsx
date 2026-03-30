@@ -1271,6 +1271,13 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
   const [bgImages, setBgImages] = useState<Record<string, string>>({});
   const [bgInitialized, setBgInitialized] = useState(false);
   const [mobileIndex, setMobileIndex] = useState(0);
+
+  // Reset mobileIndex when variants length changes to prevent out-of-bounds
+  const variants = data.copies.slice(0, 2);
+  useEffect(() => {
+    if (mobileIndex >= variants.length) setMobileIndex(0);
+  }, [variants.length, mobileIndex]);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadTarget, setUploadTarget] = useState<string | null>(null);
   const [edits, setEdits] = useState<Record<string, { headline: string; bodyCopy: string; cta: string }>>({});
@@ -1279,8 +1286,6 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
     preferredHeadlineLength: "short" | "medium" | "long";
     selectedCount: number;
   }>({ preferredHeadlineLength: "medium", selectedCount: 0 });
-
-  const variants = data.copies.slice(0, 2);
 
   // Initialize bgImages from data.backgroundUrl (AI-generated or Unsplash) on first render.
   // Only runs once per component mount — user uploads take priority after initialization.
@@ -1450,7 +1455,7 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
       </div>
 
       {/* ── Strategy insight (if available) ────────────────────── */}
-      {data.strategy && (
+      {data.strategy?.recommendation && (
         <div className="flex items-center gap-2 border-b border-border/10 bg-gradient-to-r from-indigo-50/50 to-purple-50/50 px-3 py-1.5">
           <Sparkles className="h-3 w-3 shrink-0 text-indigo-500" />
           <span className="text-[10px] font-medium text-indigo-700">{data.strategy.recommendation}</span>
@@ -1499,7 +1504,7 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
                 <Preview
                   copy={getEditedCopy(copy)}
                   brand={data.brand!}
-                  bgImage={bgImages[copyId]}
+                  bgImage={mobileIndex === 1 && data.backgroundUrlB ? data.backgroundUrlB : bgImages[copyId]}
                     isSelected={selectedId === copyId}
                   isLoser={selectedId !== null && selectedId !== copyId}
                   onPick={() => handleVariantPick(copyId)}

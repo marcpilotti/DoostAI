@@ -170,7 +170,7 @@ ABSOLUTE RULES:
               companyName: enrichment?.name ?? url.split("/")[0] ?? "",
               enrichedIndustry: enrichment?.industry,
             }).catch((err) => {
-              console.error("[Intelligence Pipeline] FAILED:", err instanceof Error ? err.message : err);
+              console.warn("[Intelligence Pipeline] FAILED — returning null, brand analysis continues without intelligence:", err instanceof Error ? err.message : err);
               return null;
             }),
           ]);
@@ -235,6 +235,7 @@ ABSOLUTE RULES:
             })),
             _analysisMs: durationMs,
             _enrichmentStatus: enrichment ? "complete" : "partial",
+            _intelligenceStatus: intel ? "complete" : "failed",
             _intelligence: intel ? {
               overallConfidence: intel.overallConfidence,
               logo: { source: intel.logo.source, confidence: intel.logo.confidence, status: intel.logo.status },

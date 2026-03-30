@@ -150,23 +150,25 @@ Finally, recommend which variant to start with and why (one sentence).`;
     return {
       variantA: {
         concept: `${brand.name} — ${goal}`,
-        hook: "Discover something new",
-        emotionalTrigger: "curiosity",
+        hook: language === "Swedish" ? "Upptäck något nytt" : "Discover something new",
+        emotionalTrigger: language === "Swedish" ? "nyfikenhet" : "curiosity",
         keyMessage: brand.valuePropositions[0] ?? brand.description ?? "",
-        visualDirection: "Clean, modern, professional",
-        ctaStrategy: "Direct action that matches the goal",
+        visualDirection: language === "Swedish" ? "Rent, modernt, professionellt" : "Clean, modern, professional",
+        ctaStrategy: language === "Swedish" ? "Direkt handling som matchar målet" : "Direct action that matches the goal",
         angle: "emotional",
       },
       variantB: {
-        concept: `${brand.name} — the smart choice`,
-        hook: "Why thousands trust us",
-        emotionalTrigger: "trust",
+        concept: `${brand.name} — ${language === "Swedish" ? "det smarta valet" : "the smart choice"}`,
+        hook: language === "Swedish" ? "Varför tusentals litar på oss" : "Why thousands trust us",
+        emotionalTrigger: language === "Swedish" ? "förtroende" : "trust",
         keyMessage: brand.valuePropositions[1] ?? brand.description ?? "",
-        visualDirection: "Warm, inviting, trustworthy",
-        ctaStrategy: "Low-commitment entry point",
+        visualDirection: language === "Swedish" ? "Varmt, inbjudande, trovärdigt" : "Warm, inviting, trustworthy",
+        ctaStrategy: language === "Swedish" ? "Lågtröskel-ingång" : "Low-commitment entry point",
         angle: "social-proof",
       },
-      recommendation: "Start with Variant A — direct emotional appeal typically performs best for this audience.",
+      recommendation: language === "Swedish"
+        ? "Börja med Variant A — direkt emotionell approach fungerar bäst för denna målgrupp."
+        : "Start with Variant A — direct emotional appeal typically performs best for this audience.",
       imagePromptA: `Professional advertisement background for ${brand.industry ?? "business"}. Modern, clean. Brand colors. No text.`,
       imagePromptB: `Warm, inviting advertisement background for ${brand.industry ?? "business"}. Trustworthy feel. Brand colors. No text.`,
     };

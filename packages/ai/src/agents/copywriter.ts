@@ -183,7 +183,7 @@ async function generateSingleVariant(
 
     let resolvedEnum: MetaCta;
     if (isEnum) {
-      resolvedEnum = currentCta.trim().toUpperCase().replace(/[\s-]+/g, "_") as MetaCta;
+      resolvedEnum = currentCta as MetaCta;
     } else if (normalised) {
       resolvedEnum = normalised;
     } else {
