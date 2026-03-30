@@ -18,7 +18,7 @@ export async function GET(req: Request) {
 
   // Try server action cache first (ad-img: keys), then templates cache (ai-img: keys)
   const dataUrl = key.startsWith("ad-img:")
-    ? getServerActionImage(key)
+    ? await getServerActionImage(key)
     : await getAiImageFromCache(key);
   if (!dataUrl) {
     return new Response("Image not found", { status: 404 });

@@ -252,7 +252,7 @@ async function callImageApi(
 
 export const imageMemoryCache = new Map<string, { dataUrl: string; expires: number }>();
 
-export function getImageFromCache(key: string): string | null {
+export async function getImageFromCache(key: string): Promise<string | null> {
   const entry = imageMemoryCache.get(key);
   if (!entry) return null;
   if (Date.now() > entry.expires) {
