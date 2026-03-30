@@ -21,7 +21,7 @@ import {
 } from "@doost/ai";
 import type { BrandContext, Platform } from "@doost/ai";
 import { linkedinGetOAuthUrl } from "@doost/platforms";
-import { getIndustryBackground } from "@doost/templates";
+import { getIndustryBackground } from "@doost/templates/backgrounds";
 import { adAccounts, db, eq } from "@doost/db";
 import { inngest } from "@/lib/inngest/client";
 import {
