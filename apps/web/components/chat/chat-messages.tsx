@@ -19,7 +19,6 @@ const LinkedInConnect = lazy(() => import("@/components/ads/linkedin-connect").t
 const UpgradePrompt = lazy(() => import("@/components/ads/upgrade-prompt").then(m => ({ default: m.UpgradePrompt })));
 const BrandProfileCard = lazy(() => import("@/components/brand/brand-profile-card").then(m => ({ default: m.BrandProfileCard })));
 const GoalPicker = lazy(() => import("./goal-picker").then(m => ({ default: m.GoalPicker })));
-const OnboardingCards = lazy(() => import("./onboarding-cards").then(m => ({ default: m.OnboardingCards })));
 
 function getMessageText(message: UIMessage): string {
   return message.parts
@@ -69,12 +68,6 @@ function ToolInvocation({
       );
     }
     return <BrandProfileLoading />;
-  }
-
-  if (name === "show_onboarding") {
-    // Skip onboarding cards — brand profile card handles approval + proceed
-    if (part.state === "output-available") return null;
-    return null;
   }
 
   if (name === "show_goal_picker") {
@@ -249,16 +242,11 @@ export function ChatMessages({
   }, [messages]);
 
   // Find latest tool parts, but ONLY from messages with completed tool results.
-  // Skip tools that render as null (show_onboarding) to avoid flashing.
   const latestToolParts = useMemo(() => {
-    // Tool names that render as null — skip them to avoid empty flashes
-    const skipTools = new Set(["show_onboarding"]);
-
     for (let i = messages.length - 1; i >= 0; i--) {
       const m = messages[i]!;
       if (m.role !== "assistant") continue;
-      const tools = (m.parts.filter(isToolPart) as ToolPart[])
-        .filter((t) => !skipTools.has(t.toolName ?? t.type.replace("tool-", "")));
+      const tools = m.parts.filter(isToolPart) as ToolPart[];
       if (tools.length > 0) {
         return tools.map((t) => ({ part: t, messageId: m.id }));
       }

@@ -65,7 +65,7 @@ export async function runBrandIntelligencePipeline(
   // Extract Schema.org structured data (synchronous, fast — runs before parallel layers)
   const schemaOrg = extractSchemaOrg(input.html);
   if (schemaOrg) {
-    console.log(`[Intelligence] Schema.org data found: name=${schemaOrg.name ?? "?"}, industry=${schemaOrg.industry ?? "?"}, sameAs=${schemaOrg.sameAs?.length ?? 0} URLs`);
+    console.log(`[Intelligence] Schema.org found: name=${schemaOrg.name ?? "?"}, industry=${schemaOrg.industry ?? "?"}`);
   }
 
   // Pre-cache OG image: download + cache so vision analysis gets a reliable

@@ -96,7 +96,6 @@ STEP 8: After deploy_campaign returns successfully → Say: "Dina annonser är n
 
 ABSOLUTE RULES:
 - After analyze_brand, do NOT repeat the brand data — the profile card shows it.
-- Do NOT call show_onboarding — it is deprecated. The brand profile card handles everything.
 - Do NOT ask text questions about logo, font, connectors, or budget. The UI cards handle everything.
 - After "Profil godkänd:", call show_goal_picker immediately.
 - Keep ALL text responses to 1-2 sentences max. Let the UI components do the talking.
@@ -143,16 +142,9 @@ ABSOLUTE RULES:
               : null;
 
           if (enrichSettled.status === "rejected") {
-            console.warn(
-              `Enrichment failed for ${url}: ${enrichSettled.reason}`,
-            );
             // TODO: Implement enrichment retry once brandProfileId is available
-            // (profile has not been persisted to DB at this point, so we cannot
-            // schedule a retry job — the job would need a real brandProfileId).
-            console.warn(
-              `[brand/retry-enrichment] Enrichment retry not yet implemented. ` +
-              `Domain: ${url.replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0]}`,
-            );
+            const domain = url.replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0];
+            console.warn(`[Chat] Enrichment failed for ${domain}, retry not yet implemented`);
           }
 
           // Run AI profile build + intelligence pipeline in parallel
@@ -170,7 +162,7 @@ ABSOLUTE RULES:
               companyName: enrichment?.name ?? url.split("/")[0] ?? "",
               enrichedIndustry: enrichment?.industry,
             }).catch((err) => {
-              console.warn("[Intelligence Pipeline] FAILED — returning null, brand analysis continues without intelligence:", err instanceof Error ? err.message : err);
+              console.warn("[Chat] Intelligence pipeline failed, continuing without:", err instanceof Error ? err.message : err);
               return null;
             }),
           ]);
@@ -181,24 +173,18 @@ ABSOLUTE RULES:
 
           // Override profile with higher-confidence intelligence data
           const intel = intelligence?.intelligence;
-          console.log("[Brand Analysis] Intel:", intel ? `logo=${intel.logo.source}(${intel.logo.confidence}) colors=${intel.colors.source}(${intel.colors.confidence}) font=${intel.font.source}(${intel.font.confidence})` : "NULL - pipeline failed or returned null");
+          console.log("[Chat] Intel sources:", intel ? `logo=${intel.logo.source}(${intel.logo.confidence}), colors=${intel.colors.source}(${intel.colors.confidence}), font=${intel.font.source}(${intel.font.confidence})` : "none");
 
           // Use downloaded logo (base64 data URL) — guaranteed to render in browser.
           // Downloaded server-side from Logo.dev → Brandfetch CDN → Google Favicons.
           const downloadedLogo = intelligence?.downloadedLogo ?? null;
           const logoDataUrl = downloadedLogo?.dataUrl ?? null;
 
-          // Logo library: all valid variants from every source, for contrast-based selection
-          const logoLibrary = intelligence?.logoLibrary ?? { primary: null, variants: [] };
-
           const finalLogo = {
             primary: logoDataUrl ?? clean.logos?.primary ?? undefined,
             icon: clean.logos?.icon,
             dark: clean.logos?.dark,
           };
-          console.log("[Brand Analysis] Logo:", downloadedLogo
-            ? `${downloadedLogo.source} (${downloadedLogo.theme}, ${downloadedLogo.dataUrl.length} chars)`
-            : "no downloaded logo, using scraped");
 
           // Use best color source — intel pipeline uses Brandfetch/Vision which understands
           // actual brand colors, not just CSS frequency. Override if any confidence.
@@ -218,22 +204,15 @@ ABSOLUTE RULES:
             finalColors.accent,
           );
 
+          console.log(`[Chat] analyze_brand completed in ${durationMs}ms, logo=${downloadedLogo?.source ?? "scraped"}(${downloadedLogo?.theme ?? "unknown"})`);
+
           return {
             ...clean,
             logos: finalLogo,
             colors: finalColors,
             fonts: finalFonts,
             _colorHarmony,
-            _logoSource: downloadedLogo?.source ?? "scraped",
             _logoTheme: downloadedLogo?.theme ?? "light",
-            _logoVariants: logoLibrary.variants.map((v) => ({
-              dataUrl: v.dataUrl,
-              source: v.source,
-              theme: v.theme,
-              width: v.width,
-              quality: v.quality,
-            })),
-            _analysisMs: durationMs,
             _enrichmentStatus: enrichment ? "complete" : "partial",
             _intelligenceStatus: intel ? "complete" : "failed",
             _intelligence: intel ? {
@@ -315,11 +294,11 @@ ABSOLUTE RULES:
             audience: audience ?? brand.targetAudience,
             language: detectedLanguage,
           }).catch((err) => {
-            console.warn("[generate_ad_copy] Strategy generation failed:", err instanceof Error ? err.message : err);
+            console.warn("[Chat] Ad strategy generation failed:", err instanceof Error ? err.message : err);
             return null;
           });
 
-          console.log("[Ad Strategy]", strategy ? `Generated: A=${strategy.variantA.angle}, B=${strategy.variantB.angle}` : "Failed, using default");
+          console.log("[Chat] Strategy:", strategy ? `A=${strategy.variantA.angle}, B=${strategy.variantB.angle}` : "fallback");
 
           // STEP 2: Generate copy + images in parallel
           // Use strategy-specific image prompts when available
@@ -371,7 +350,7 @@ ABSOLUTE RULES:
   <circle cx="880" cy="880" r="300" fill="url(#g2)" opacity="0.5"/>
   <circle cx="540" cy="540" r="200" fill="${a}15"/>
 </svg>`)}`;
-            console.log("[generate_ad_copy] Using branded SVG gradient fallback (DALL-E + Unsplash both failed)");
+            console.log("[Chat] Using SVG gradient fallback for ad background");
           }
 
           return {
@@ -448,23 +427,6 @@ ABSOLUTE RULES:
                 "LinkedIn-integrationen är inte konfigurerad ännu.",
             };
           }
-        },
-      }),
-
-      show_onboarding: tool({
-        description:
-          "Show sequential onboarding cards after brand analysis. Cards let user pick from scraped logos, upload font, and connect ad platforms — one step at a time. Call this RIGHT AFTER analyze_brand returns.",
-        inputSchema: z.object({
-          hasLogo: z.boolean().describe("Whether the brand analysis found a logo"),
-          companyName: z.string().describe("The company name from brand analysis"),
-          logos: z.object({
-            primary: z.string().optional().describe("Primary logo URL from scrape"),
-            icon: z.string().optional().describe("Icon/favicon URL from scrape"),
-            dark: z.string().optional().describe("Dark/alternative logo URL from scrape"),
-          }).describe("Logo URLs found during brand analysis"),
-        }),
-        execute: async ({ hasLogo, companyName, logos }: { hasLogo: boolean; companyName: string; logos: { primary?: string; icon?: string; dark?: string } }) => {
-          return { hasLogo, companyName, logos };
         },
       }),
 

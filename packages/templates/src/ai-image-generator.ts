@@ -240,7 +240,7 @@ export async function generateAdBackground(
 ): Promise<GeneratedImage | null> {
   const apiKey = getOpenAIApiKey();
   if (!apiKey) {
-    console.log("[AI Image] No OPENAI_API_KEY configured, skipping");
+    console.log("[AI Image] Skipped — no API key");
     return null;
   }
 
@@ -254,7 +254,7 @@ export async function generateAdBackground(
   } = params;
 
   if (!industry || !primaryColor) {
-    console.warn("[AI Image] Missing industry or primaryColor, skipping");
+    console.warn("[AI Image] Skipped — missing industry or primaryColor");
     return null;
   }
 
@@ -264,7 +264,7 @@ export async function generateAdBackground(
   // ── 1. Check memory cache first (instant, no network) ─────
   const memCached = getFromMemoryCache(cacheKey);
   if (memCached) {
-    console.log(`[AI Image] Memory cache HIT for "${industry}"`);
+    console.log(`[AI Image] Memory HIT: ${industry}`);
     return {
       cacheKey,
       imageUrl: `/api/brand/ai-image?key=${encodeURIComponent(cacheKey)}`,
@@ -279,7 +279,7 @@ export async function generateAdBackground(
     try {
       const cached = await redis.get<string>(cacheKey);
       if (cached) {
-        console.log(`[AI Image] Cache HIT for "${industry}" (${primaryColor}, ${format})`);
+        console.log(`[AI Image] Redis HIT: ${industry} (${format})`);
         return {
           cacheKey,
           imageUrl: `/api/brand/ai-image?key=${encodeURIComponent(cacheKey)}`,
@@ -297,9 +297,7 @@ export async function generateAdBackground(
     }
   }
 
-  console.log(
-    `[AI Image] Cache MISS — generating for "${brandName}" (${industry}, ${primaryColor}, ${format})`,
-  );
+  console.log(`[AI Image] Cache MISS — generating for ${industry} (${format})`);
 
   // ── 2. Build prompt ─────────────────────────────────────────
   const prompt = buildPrompt({ industry, primaryColor, accentColor, style });
@@ -355,20 +353,20 @@ export async function generateAdBackground(
 
     // gpt-image-1 with JPEG output: ~64KB base64 — small enough for memory cache
     const dataUrl = `data:image/jpeg;base64,${imageData.b64_json}`;
-    console.log(`[AI Image] Generated for "${brandName}" (${industry}), ${(dataUrl.length / 1024).toFixed(0)}KB`);
+    console.log(`[AI Image] Generated: ${industry}, ${(dataUrl.length / 1024).toFixed(0)}KB`);
 
     // Cache in Redis if available, otherwise in-memory (2h TTL)
     if (redis) {
       try {
         await redis.setex(cacheKey, AI_IMAGE_CACHE_TTL_SECONDS, dataUrl);
-        console.log(`[AI Image] Cached in Redis "${cacheKey}"`);
+        console.log("[AI Image] Cached in Redis");
       } catch (err) {
-        console.warn("[AI Image] Redis write error:", err instanceof Error ? err.message : err);
+        console.warn("[AI Image] Redis write failed:", err instanceof Error ? err.message : err);
         setInMemoryCache(cacheKey, dataUrl);
       }
     } else {
       setInMemoryCache(cacheKey, dataUrl);
-      console.log(`[AI Image] Cached in memory "${cacheKey}" (2h TTL)`);
+      console.log("[AI Image] Cached in memory (2h TTL)");
     }
 
     return {
@@ -402,7 +400,7 @@ export async function invalidateAiImageCache(
   const cacheKey = toCacheKey(industry, primaryColor, format);
   try {
     await redis.del(cacheKey);
-    console.log(`[AI Image] Cache invalidated: "${cacheKey}"`);
+    console.log(`[AI Image] Cache invalidated: ${cacheKey}`);
     return true;
   } catch (err) {
     console.warn(
