@@ -148,7 +148,8 @@ export function AdPreviewLinkedIn({
   data: AdData;
   autoGenerateImage?: boolean;
 }) {
-  const [imageUrl, setImageUrl] = useState<string | null>(data.imageUrl ?? null);
+  const initialImage = data.imageUrl && (data.imageUrl.startsWith("data:") || data.imageUrl.startsWith("https:")) ? data.imageUrl : null;
+  const [imageUrl, setImageUrl] = useState<string | null>(initialImage);
   const [isGenerating, startTransition] = useTransition();
   const [imageLoading, setImageLoading] = useState(false);
 
