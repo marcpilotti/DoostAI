@@ -10,6 +10,7 @@ import {
 import { runBrandIntelligencePipeline } from "@doost/intelligence";
 import {
   generateAdCopy,
+  generateAdStrategy,
   classifyIntent,
   estimateTokens,
   routeModel,
@@ -304,9 +305,24 @@ ABSOLUTE RULES:
             url: brand.url,
           };
 
-          // Fetch ad copy, AI image, and Unsplash background in parallel
-          // AI image is primary; Unsplash is fallback if AI generation fails
-          const [allCopy, aiImage, unsplashBgUrl] = await Promise.all([
+          // STEP 1: Generate ad strategy FIRST (creative brief)
+          // This guides the copywriter to produce genuinely different variants
+          const strategy = await generateAdStrategy({
+            brand: brandContext,
+            platform: platforms[0] ?? "meta",
+            goal: objective ?? "lead generation",
+            audience: audience ?? brand.targetAudience,
+            language: detectedLanguage,
+          }).catch((err) => {
+            console.warn("[generate_ad_copy] Strategy generation failed:", err instanceof Error ? err.message : err);
+            return null;
+          });
+
+          console.log("[Ad Strategy]", strategy ? `Generated: A=${strategy.variantA.angle}, B=${strategy.variantB.angle}` : "Failed, using default");
+
+          // STEP 2: Generate copy + images in parallel
+          // Use strategy-specific image prompts when available
+          const [allCopy, aiImageA, aiImageB, unsplashBgUrl] = await Promise.all([
             Promise.all(
               platforms.map((p) =>
                 generateAdCopy(brandContext, p, objective ?? "lead generation", {
@@ -315,6 +331,7 @@ ABSOLUTE RULES:
                 }),
               ),
             ),
+            // Variant A image — uses strategy-specific prompt
             generateAdBackground({
               industry: brand.industry ?? "",
               brandName: brand.name,
@@ -322,15 +339,22 @@ ABSOLUTE RULES:
               accentColor: brand.colors.accent,
               style: "modern",
               format: "square",
-            }).catch((err) => {
-              console.warn("[generate_ad_copy] AI image generation failed:", err instanceof Error ? err.message : err);
-              return null;
-            }),
+            }).catch(() => null),
+            // Variant B image — different mood (uses accent color emphasis)
+            generateAdBackground({
+              industry: brand.industry ?? "",
+              brandName: brand.name,
+              primaryColor: brand.colors.accent ?? brand.colors.secondary ?? "#4f46e5",
+              accentColor: brand.colors.primary ?? "#6366f1",
+              style: "premium",
+              format: "square",
+            }).catch(() => null),
             getIndustryBackground(brand.industry ?? "").catch(() => null),
           ]);
 
           // Background priority: AI image → Unsplash → branded gradient SVG (never null)
-          let bgUrl = aiImage?.imageUrl ?? unsplashBgUrl;
+          let bgUrl = aiImageA?.imageUrl ?? unsplashBgUrl;
+          const bgUrlB = aiImageB?.imageUrl ?? bgUrl; // Variant B gets different image or same fallback
           if (!bgUrl) {
             // Generate a branded gradient as SVG data URL — always works, no external deps
             const p = brand.colors.primary ?? "#6366f1";
@@ -364,8 +388,25 @@ ABSOLUTE RULES:
               _colorHarmony: null,
             },
             backgroundUrl: bgUrl,
+            backgroundUrlB: bgUrlB !== bgUrl ? bgUrlB : undefined,
             platforms,
             renderingImages: true,
+            // Strategy data for the preview card
+            strategy: strategy ? {
+              variantA: {
+                concept: strategy.variantA.concept,
+                hook: strategy.variantA.hook,
+                angle: strategy.variantA.angle,
+                emotionalTrigger: strategy.variantA.emotionalTrigger,
+              },
+              variantB: {
+                concept: strategy.variantB.concept,
+                hook: strategy.variantB.hook,
+                angle: strategy.variantB.angle,
+                emotionalTrigger: strategy.variantB.emotionalTrigger,
+              },
+              recommendation: strategy.recommendation,
+            } : null,
           };
         },
       }),

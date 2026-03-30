@@ -1,5 +1,7 @@
 export { buildCopyKey, buildVariantSetKey, getCachedCopy, getCachedVariantSet, invalidateBrandCopy, setCachedCopy, setCachedVariantSet } from "./cache";
 export { generateAdCopy } from "./agents/copywriter";
+export { generateAdStrategy } from "./agents/ad-strategist";
+export type { AdStrategy, AdStrategySet } from "./agents/ad-strategist";
 export { assembleCreatives } from "./agents/creative-director";
 export { googleSearchCopy, linkedinCopy, metaAdCopy } from "./prompts/ad-copy";
 export { createTrace, flushTraces, traceGeneration } from "./tracing";

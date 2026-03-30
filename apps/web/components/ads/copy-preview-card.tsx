@@ -80,6 +80,13 @@ type BrandData = {
   _colorHarmony?: ColorHarmonySet;
 };
 
+type VariantStrategy = {
+  concept: string;
+  hook: string;
+  angle: string;
+  emotionalTrigger: string;
+};
+
 type CopyPreviewData = {
   copies: CopyData[];
   platforms: string[];
@@ -87,6 +94,14 @@ type CopyPreviewData = {
   renderingImages?: boolean;
   /** AI-generated or Unsplash background URL (data URL or https URL) */
   backgroundUrl?: string | null;
+  /** Different background for variant B */
+  backgroundUrlB?: string;
+  /** Ad strategy — creative brief for each variant */
+  strategy?: {
+    variantA: VariantStrategy;
+    variantB: VariantStrategy;
+    recommendation: string;
+  } | null;
 };
 
 type LogoPosition = "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center";
@@ -1424,18 +1439,28 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
         })}
       </div>
 
+      {/* ── Strategy insight (if available) ────────────────────── */}
+      {data.strategy && (
+        <div className="flex items-center gap-2 border-b border-border/10 bg-gradient-to-r from-indigo-50/50 to-purple-50/50 px-3 py-1.5">
+          <Sparkles className="h-3 w-3 shrink-0 text-indigo-500" />
+          <span className="text-[10px] font-medium text-indigo-700">{data.strategy.recommendation}</span>
+        </div>
+      )}
+
       {/* ── Two variants side by side (desktop) / carousel (mobile) */}
       <div className="min-h-0 flex-1 overflow-y-auto">
         {/* Desktop: side by side */}
         <div className="hidden gap-3 p-3 sm:grid sm:grid-cols-2">
-          {variants.map((copy) => {
+          {variants.map((copy, vi) => {
             const copyId = copy.id ?? `${copy.platform}-${copy.variant}`;
+            // Use different background for variant B
+            const variantBg = vi === 1 && data.backgroundUrlB ? data.backgroundUrlB : bgImages[copyId];
             return (
               <Preview
                 key={`${format}-${layout}-${copyId}`}
                 copy={getEditedCopy(copy)}
                 brand={data.brand!}
-                bgImage={bgImages[copyId]}
+                bgImage={variantBg}
                 isSelected={selectedId === copyId}
                 isLoser={selectedId !== null && selectedId !== copyId}
                 onPick={() => handleVariantPick(copyId)}
@@ -1498,38 +1523,45 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
         </div>
       </div>
 
-      {/* ── Action Buttons (always visible, compact) ─────────────── */}
-      <div className="flex items-center gap-2 border-t border-border/20 px-3 py-2">
-        <button
-          onClick={() => onSendMessage?.("Ändra texten")}
-          className="flex items-center justify-center gap-1 rounded-lg border border-border/40 bg-white px-3 py-2 text-[11px] font-semibold text-muted-foreground transition-all hover:border-indigo-300 hover:text-indigo-600"
-        >
-          <Pencil className="h-3 w-3" />
-          Ändra
-        </button>
-        <button
-          onClick={() => onSendMessage?.("Visa fler varianter")}
-          className="flex items-center justify-center gap-1 rounded-lg border border-border/40 bg-white px-3 py-2 text-[11px] font-semibold text-muted-foreground transition-all hover:border-indigo-300 hover:text-indigo-600"
-        >
-          Fler varianter
-        </button>
-        <button
-          disabled={hasAnyViolation}
-          onClick={() => {
-            if (hasAnyViolation) return;
-            const edited = getEditedCopy(selectedCopy);
-            const colors = colorOverrideString();
-            onSendMessage?.(`Ser bra ut, publicera! [headline: ${edited.headline}] [body: ${edited.bodyCopy}] [cta: ${edited.cta}]${colors}`);
-          }}
-          className={`ml-auto flex items-center justify-center gap-1 rounded-lg px-4 py-2 text-[11px] font-bold shadow-sm transition-all ${
-            hasAnyViolation
-              ? "cursor-not-allowed bg-gray-200 text-gray-400"
-              : "bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 hover:shadow-md"
-          }`}
-        >
-          Publicera
-          <ArrowRight className="h-3 w-3" />
-        </button>
+      {/* ── Action Buttons ─────────────────────────────────────── */}
+      <div className="border-t border-border/20 px-3 py-2">
+        {/* Primary actions */}
+        <div className="flex items-center gap-2">
+          <button
+            disabled={hasAnyViolation}
+            onClick={() => {
+              if (hasAnyViolation) return;
+              const edited = getEditedCopy(selectedCopy);
+              const colors = colorOverrideString();
+              onSendMessage?.(`Ser bra ut, publicera! [headline: ${edited.headline}] [body: ${edited.bodyCopy}] [cta: ${edited.cta}]${colors}`);
+            }}
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-bold shadow-sm transition-all ${
+              hasAnyViolation
+                ? "cursor-not-allowed bg-gray-200 text-gray-400"
+                : "bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 hover:shadow-md"
+            }`}
+          >
+            Publicera
+            <ArrowRight className="h-3.5 w-3.5" />
+          </button>
+        </div>
+        {/* Retention quickpicks — drives iteration and engagement */}
+        <div className="mt-1.5 flex gap-1.5 overflow-x-auto">
+          {[
+            { label: "Gör mer premium", prompt: "Gör annonsen mer premium och exklusiv" },
+            { label: "Mer aggressiv", prompt: "Gör annonsen mer aggressiv med starkare CTA" },
+            { label: "Kortare text", prompt: "Gör texten kortare och punchigare" },
+            { label: "Fler varianter", prompt: "Visa fler varianter" },
+          ].map((q) => (
+            <button
+              key={q.label}
+              onClick={() => onSendMessage?.(q.prompt)}
+              className="shrink-0 rounded-full border border-border/30 bg-muted/10 px-2.5 py-1 text-[9px] font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600"
+            >
+              {q.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* ── PRO Section (collapsed) ──────────────────────────────── */}
