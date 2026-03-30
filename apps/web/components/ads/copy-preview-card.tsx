@@ -810,7 +810,7 @@ function MetaFeedPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
 
       default: // "centered"
         return (
-          <div className="relative flex aspect-square items-end justify-center overflow-hidden" style={{ background: bgImage ? `url(${bgImage}) center/cover` : gradient }}>
+          <div className="relative flex aspect-[4/3] items-end justify-center overflow-hidden" style={{ background: bgImage ? `url(${bgImage}) center/cover` : gradient }}>
             {/* Ken Burns subtle zoom animation on background */}
             {bgImage && <div className="absolute inset-0 animate-[kenburns_12s_ease-in-out_infinite_alternate]" style={{ background: `url(${bgImage}) center/cover` }} />}
             {/* Gradient overlay for text readability */}
@@ -1478,13 +1478,12 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
         })}
       </div>
 
-      {/* Validation + strategy removed — previews get all the space */}
+      {/* Validation + strategy banners removed — previews get maximum space */}
 
-      {/* Validation errors only shown inline when publishing */}
-      {false && data.strategy?.recommendation && (
-        <div className="flex items-center gap-2 border-b border-border/10 bg-gradient-to-r from-indigo-50/50 to-purple-50/50 px-3 py-1.5">
-          <Sparkles className="h-3 w-3 shrink-0 text-indigo-500" />
-          <span className="text-[10px] font-medium text-indigo-700">{data.strategy.recommendation}</span>
+      {/* Strategy hidden — kept as data for future tooltip */}
+      {null && (
+        <div className="hidden">
+          <span>{data.strategy?.recommendation ?? ""}</span>
         </div>
       )}
 
