@@ -56,7 +56,7 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model,
-    stopWhen: stepCountIs(5),
+    stopWhen: stepCountIs(10),
     system: `You are Doost AI, a friendly and knowledgeable marketing assistant. You help companies create and manage ad campaigns across Meta, Google, and LinkedIn.
 
 You speak naturally and concisely. Communicate in both Swedish and English — match the user's language.

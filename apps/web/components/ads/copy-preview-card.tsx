@@ -387,8 +387,28 @@ export function CopyPreviewCard({
   const [mobileIndex, setMobileIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadTarget, setUploadTarget] = useState<string | null>(null);
+  const [edits, setEdits] = useState<Record<string, { headline: string; bodyCopy: string; cta: string }>>({});
 
   const variants = data.copies.slice(0, 2);
+
+  function getEditedCopy(copy: CopyData): CopyData {
+    const copyId = copy.id ?? `${copy.platform}-${copy.variant}`;
+    const edit = edits[copyId];
+    if (!edit) return copy;
+    return { ...copy, headline: edit.headline, bodyCopy: edit.bodyCopy, cta: edit.cta };
+  }
+
+  function updateEdit(copyId: string, field: "headline" | "bodyCopy" | "cta", value: string, original: CopyData) {
+    setEdits((prev) => ({
+      ...prev,
+      [copyId]: {
+        headline: prev[copyId]?.headline ?? original.headline,
+        bodyCopy: prev[copyId]?.bodyCopy ?? original.bodyCopy,
+        cta: prev[copyId]?.cta ?? original.cta,
+        [field]: value,
+      },
+    }));
+  }
   if (!data.brand || variants.length === 0) return null;
 
   const Preview = format === "story" ? StoryPreview : format === "instagram" ? InstagramPreview : FacebookPreview;
@@ -472,7 +492,7 @@ export function CopyPreviewCard({
           return (
             <Preview
               key={`${format}-${copyId}`}
-              copy={copy}
+              copy={getEditedCopy(copy)}
               brand={data.brand!}
               bgImage={bgImages[copyId]}
               isSelected={selectedId === copyId}
@@ -491,7 +511,7 @@ export function CopyPreviewCard({
           return (
             <div className="relative">
               <Preview
-                copy={copy}
+                copy={getEditedCopy(copy)}
                 brand={data.brand!}
                 bgImage={bgImages[copyId]}
                 isSelected={selectedId === copyId}
@@ -584,6 +604,7 @@ export function CopyPreviewCard({
           <div className="mt-3 space-y-3">
             {variants.map((copy, vi) => {
               const copyId = copy.id ?? `${copy.platform}-${copy.variant}`;
+              const edited = getEditedCopy(copy);
               return (
                 <div key={copyId} className="rounded-xl border border-border/50 bg-white p-3 space-y-2">
                   <div className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/50">
@@ -593,13 +614,14 @@ export function CopyPreviewCard({
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-[9px] font-medium text-muted-foreground/50">RUBRIK</span>
-                      <span className={`text-[9px] font-mono ${copy.headline.length > 40 ? "text-red-500" : "text-muted-foreground/40"}`}>
-                        {copy.headline.length}/40
+                      <span className={`text-[9px] font-mono ${edited.headline.length > 40 ? "text-red-500" : "text-muted-foreground/40"}`}>
+                        {edited.headline.length}/40
                       </span>
                     </div>
                     <input
                       type="text"
-                      defaultValue={copy.headline}
+                      value={edited.headline}
+                      onChange={(e) => updateEdit(copyId, "headline", e.target.value, copy)}
                       maxLength={40}
                       className="w-full rounded-lg border border-border/40 bg-muted/5 px-2.5 py-1.5 text-xs font-medium outline-none transition-all focus:border-indigo-300 focus:ring-1 focus:ring-indigo-200"
                     />
@@ -608,12 +630,13 @@ export function CopyPreviewCard({
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-[9px] font-medium text-muted-foreground/50">BRÖDTEXT</span>
-                      <span className={`text-[9px] font-mono ${copy.bodyCopy.length > 125 ? "text-red-500" : "text-muted-foreground/40"}`}>
-                        {copy.bodyCopy.length}/125
+                      <span className={`text-[9px] font-mono ${edited.bodyCopy.length > 125 ? "text-red-500" : "text-muted-foreground/40"}`}>
+                        {edited.bodyCopy.length}/125
                       </span>
                     </div>
                     <textarea
-                      defaultValue={copy.bodyCopy}
+                      value={edited.bodyCopy}
+                      onChange={(e) => updateEdit(copyId, "bodyCopy", e.target.value, copy)}
                       maxLength={125}
                       rows={2}
                       className="w-full resize-none rounded-lg border border-border/40 bg-muted/5 px-2.5 py-1.5 text-xs outline-none transition-all focus:border-indigo-300 focus:ring-1 focus:ring-indigo-200"
@@ -623,13 +646,14 @@ export function CopyPreviewCard({
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-[9px] font-medium text-muted-foreground/50">CTA</span>
-                      <span className={`text-[9px] font-mono ${copy.cta.length > 20 ? "text-red-500" : "text-muted-foreground/40"}`}>
-                        {copy.cta.length}/20
+                      <span className={`text-[9px] font-mono ${edited.cta.length > 20 ? "text-red-500" : "text-muted-foreground/40"}`}>
+                        {edited.cta.length}/20
                       </span>
                     </div>
                     <input
                       type="text"
-                      defaultValue={copy.cta}
+                      value={edited.cta}
+                      onChange={(e) => updateEdit(copyId, "cta", e.target.value, copy)}
                       maxLength={20}
                       className="w-full rounded-lg border border-border/40 bg-muted/5 px-2.5 py-1.5 text-xs font-medium outline-none transition-all focus:border-indigo-300 focus:ring-1 focus:ring-indigo-200"
                     />
@@ -677,8 +701,9 @@ export function CopyPreviewCard({
               <button
                 onClick={() => {
                   const selected = variants.find((c) => (c.id ?? `${c.platform}-${c.variant}`) === selectedId);
-                  const msg = selected
-                    ? `Ser bra ut, publicera! [headline: ${selected.headline}] [body: ${selected.bodyCopy}] [cta: ${selected.cta}]`
+                  const edited = selected ? getEditedCopy(selected) : undefined;
+                  const msg = edited
+                    ? `Ser bra ut, publicera! [headline: ${edited.headline}] [body: ${edited.bodyCopy}] [cta: ${edited.cta}]`
                     : "Ser bra ut, publicera!";
                   onSendMessage?.(msg);
                 }}

@@ -123,7 +123,7 @@ function ToolInvocation({
           data={part.output as Parameters<typeof PublishCard>[0]["data"]}
           onPublish={(config) => {
             onSendMessage?.(
-              `Publicera: ${config.dailyBudget} kr/dag, ${config.duration} dagar, ${config.channels.join("+")}${config.email ? `, email: ${config.email}` : ""}`,
+              `Publicera: ${config.dailyBudget} kr/dag, ${config.duration} dagar, ${config.channels.join("+")}`,
             );
           }}
         />
