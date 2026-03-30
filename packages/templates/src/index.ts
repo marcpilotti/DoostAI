@@ -41,6 +41,7 @@ export type { LogoVariant } from "./logo-selector";
 export {
   generateAdBackground,
   invalidateAiImageCache,
+  getAiImageFromCache,
 } from "./ai-image-generator";
 export type { GeneratedImage, GenerateAdBackgroundParams } from "./ai-image-generator";
 

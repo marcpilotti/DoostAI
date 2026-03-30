@@ -323,8 +323,8 @@ ABSOLUTE RULES:
             getIndustryBackground(brand.industry ?? "").catch(() => null),
           ]);
 
-          // Use AI-generated image if available, otherwise fall back to Unsplash
-          const bgUrl = aiImage?.dataUrl ?? unsplashBgUrl;
+          // Use AI-generated image URL (small reference, not base64) or fall back to Unsplash
+          const bgUrl = aiImage?.imageUrl ?? unsplashBgUrl;
 
           // Generate color harmony set for the ad preview
           const adColorHarmony = generateHarmonySet(

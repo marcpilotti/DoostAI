@@ -21,8 +21,10 @@ import { Redis } from "@upstash/redis";
 // ── Types ────────────────────────────────────────────────────────
 
 export type GeneratedImage = {
-  /** base64 data URL for direct embedding (permanent, cached) */
-  dataUrl: string;
+  /** Cache key to fetch the image via /api/brand/ai-image?key=xxx */
+  cacheKey: string;
+  /** URL to fetch the image (relative to app origin) */
+  imageUrl: string;
   /** The prompt that was actually used (may be revised by DALL-E 3) */
   prompt: string;
   /** Always "openai" for this generator */
@@ -30,6 +32,21 @@ export type GeneratedImage = {
   /** Whether this was served from cache */
   cached: boolean;
 };
+
+/**
+ * Retrieve a cached AI image from Redis by its cache key.
+ * Used by the /api/brand/ai-image route to serve images.
+ */
+export async function getAiImageFromCache(key: string): Promise<string | null> {
+  const redis = getRedis();
+  if (!redis) return null;
+  try {
+    const cached = await redis.get<string>(key);
+    return cached ?? null;
+  } catch {
+    return null;
+  }
+}
 
 export type GenerateAdBackgroundParams = {
   /** Industry category (e.g. "IT & Tech", "Hotell & Restaurang") */
@@ -212,7 +229,8 @@ export async function generateAdBackground(
       if (cached) {
         console.log(`[AI Image] Cache HIT for "${industry}" (${primaryColor}, ${format})`);
         return {
-          dataUrl: cached,
+          cacheKey,
+          imageUrl: `/api/brand/ai-image?key=${encodeURIComponent(cacheKey)}`,
           prompt: "(cached)",
           source: "openai",
           cached: true,
@@ -296,9 +314,10 @@ export async function generateAdBackground(
       }
     }
 
-    // ── 5. Return result ────────────────────────────────────────
+    // ── 5. Return result (reference, not the actual image data) ─
     return {
-      dataUrl,
+      cacheKey,
+      imageUrl: `/api/brand/ai-image?key=${encodeURIComponent(cacheKey)}`,
       prompt: usedPrompt,
       source: "openai",
       cached: false,
