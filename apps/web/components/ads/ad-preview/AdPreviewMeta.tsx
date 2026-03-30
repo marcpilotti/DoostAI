@@ -71,10 +71,10 @@ function MetaFeedPreview({ data, imageUrl, isImageLoading, onRegenerateImage, is
         </p>
       </div>
 
-      {/* Creative area — AI background + frosted glass */}
+      {/* Creative area — AI background + frosted glass (1:1 aspect for feed) */}
       <div
-        className="relative flex flex-1 items-end justify-center overflow-hidden"
-        style={{ background: imageUrl ? undefined : gradient }}
+        className="relative flex items-end justify-center overflow-hidden"
+        style={{ aspectRatio: "1/1", background: imageUrl ? undefined : gradient }}
       >
         {/* AI background with Ken Burns */}
         {imageUrl && (
@@ -163,7 +163,7 @@ function MetaStoriesPreview({ data, imageUrl, isImageLoading, onRegenerateImage 
   const bodySnippet = data.primaryText.slice(0, 60) + (data.primaryText.length > 60 ? "…" : "");
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden rounded-xl shadow-sm" style={{ aspectRatio: "9/16" }}>
+    <div className="flex w-full flex-col overflow-hidden rounded-xl shadow-sm" style={{ aspectRatio: "9/16", maxHeight: "100%" }}>
       <div className="relative flex flex-1 flex-col overflow-hidden" style={{ background: gradient }}>
         {/* AI background with Ken Burns */}
         {imageUrl && (
