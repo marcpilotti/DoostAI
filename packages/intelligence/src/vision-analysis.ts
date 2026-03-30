@@ -23,6 +23,20 @@ const visionSchema = z.object({
 export type VisionAnalysis = z.infer<typeof visionSchema>;
 
 /**
+ * Simple retry wrapper — retries `fn` up to `retries` times with a delay between attempts.
+ */
+async function withRetry<T>(fn: () => Promise<T>, retries = 1, delayMs = 3000): Promise<T> {
+  try {
+    return await fn();
+  } catch (err) {
+    if (retries <= 0) throw err;
+    console.warn(`[Vision] Retrying after error: ${err instanceof Error ? err.message : err}`);
+    await new Promise(r => setTimeout(r, delayMs));
+    return withRetry(fn, retries - 1, delayMs);
+  }
+}
+
+/**
  * L1: Analyze a website screenshot/OG image using Claude Vision.
  * Falls back to analyzing the OG image URL if no screenshot is available.
  */
@@ -51,7 +65,7 @@ export async function analyzeWithVision(
       ? { type: "image" as const, image: screenshotBase64 }
       : { type: "image" as const, image: ogImageUrl! };
 
-    const { object } = await generateObject({
+    const { object } = await withRetry(() => generateObject({
       model: anthropic("claude-sonnet-4-6"),
       schema: visionSchema,
       messages: [
@@ -74,7 +88,7 @@ Be precise with hex color codes.`,
           ],
         },
       ],
-    });
+    }));
 
     return object;
   } catch (err) {

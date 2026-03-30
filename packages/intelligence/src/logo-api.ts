@@ -275,6 +275,7 @@ async function setCachedLogoLibrary(domain: string, library: LogoLibrary): Promi
 async function downloadBestLogo(
   domain: string,
   brandfetchLogos: { url: string; type: string; theme: string }[],
+  scrapedLogoUrls?: string[],
 ): Promise<LogoLibrary> {
 
   // --- Check Redis cache first ---
@@ -282,6 +283,24 @@ async function downloadBestLogo(
   if (cached) return cached;
 
   console.log(`[L4 Cache] MISS for ${domain} — downloading from all sources`);
+
+  // Total timeout: return whatever we have if we exceed 12 seconds
+  const startTime = Date.now();
+  const TOTAL_TIMEOUT = 12000; // 12s max for all logo downloads
+
+  function isTimedOut() {
+    return Date.now() - startTime > TOTAL_TIMEOUT;
+  }
+
+  /** Helper: build and cache the library from whatever we have so far */
+  function buildLibrary(variants: DownloadedLogo[], primary: DownloadedLogo | null): LogoLibrary {
+    const library: LogoLibrary = { primary, variants };
+    if (variants.length > 0) {
+      // Fire-and-forget cache write (don't block return on timeout path)
+      void setCachedLogoLibrary(domain, library);
+    }
+    return library;
+  }
 
   // Collect all valid variants across all phases
   const variants: DownloadedLogo[] = [];
@@ -362,6 +381,10 @@ async function downloadBestLogo(
   // -----------------------------------------------------------------------
   // Phase 2: DuckDuckGo + Clearbit (parallel) — good fallbacks, no auth
   // -----------------------------------------------------------------------
+  if (isTimedOut()) {
+    console.log(`[L4 Download] ${domain} → Total timeout (${TOTAL_TIMEOUT}ms) reached after Phase 1, returning ${variants.length} variants`);
+    return buildLibrary(variants, primary);
+  }
   console.log(`[L4 Download] ${domain} → Phase 2: trying DuckDuckGo + Clearbit`);
 
   const ddgUrl = `https://icons.duckduckgo.com/ip3/${domain}.ico`;
@@ -406,7 +429,36 @@ async function downloadBestLogo(
   // -----------------------------------------------------------------------
   // Phase 3: Google Favicon — universal fallback, always works (128px)
   // -----------------------------------------------------------------------
-  console.log(`[L4 Download] ${domain} → Phase 3: trying Google Favicon fallback`);
+  if (isTimedOut()) {
+    console.log(`[L4 Download] ${domain} → Total timeout (${TOTAL_TIMEOUT}ms) reached after Phase 2, returning ${variants.length} variants`);
+    return buildLibrary(variants, primary);
+  }
+  console.log(`[L4 Download] ${domain} → Phase 3: trying scraped logos + Google Favicon fallback`);
+
+  // Try scraped logos from the pipeline input as a fallback before Google Favicon
+  if (scrapedLogoUrls && scrapedLogoUrls.length > 0) {
+    for (const scrapedUrl of scrapedLogoUrls.slice(0, 3)) { // try up to 3 scraped logos
+      if (isTimedOut()) break;
+      const scrapedDataUrl = await downloadAsDataUrl(scrapedUrl, 3000);
+      if (scrapedDataUrl) {
+        const check = validateLogoQuality(scrapedDataUrl);
+        if (check.valid) {
+          console.log(`[L4 Download] ${domain} → Scraped logo OK (${scrapedDataUrl.length} chars)`);
+          const logo: DownloadedLogo = { dataUrl: scrapedDataUrl, source: "scraped", theme: "light", width: 128, quality: "medium" };
+          variants.push(logo);
+          if (!primary) primary = logo;
+          break; // one good scraped logo is enough
+        } else {
+          console.log(`[L4 Download] ${domain} → Scraped logo rejected: ${check.reason}`);
+        }
+      }
+    }
+  }
+
+  if (isTimedOut()) {
+    console.log(`[L4 Download] ${domain} → Total timeout (${TOTAL_TIMEOUT}ms) reached during Phase 3 scraped logos, returning ${variants.length} variants`);
+    return buildLibrary(variants, primary);
+  }
 
   const googleUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
   const googleDataUrl = await downloadAsDataUrl(googleUrl);
@@ -423,16 +475,9 @@ async function downloadBestLogo(
     }
   }
 
-  console.log(`[L4 Download] ${domain} → Collected ${variants.length} valid variants (primary: ${primary?.source ?? "none"})`);
+  console.log(`[L4 Download] ${domain} → Collected ${variants.length} valid variants (primary: ${primary?.source ?? "none"}, elapsed: ${Date.now() - startTime}ms)`);
 
-  const library: LogoLibrary = { primary, variants };
-
-  // Cache the full library if we got at least one variant
-  if (variants.length > 0) {
-    await setCachedLogoLibrary(domain, library);
-  }
-
-  return library;
+  return buildLibrary(variants, primary);
 }
 
 // ---------------------------------------------------------------------------
@@ -453,7 +498,7 @@ async function downloadBestLogo(
  *
  * Results are cached in Redis for 30 days to avoid redundant downloads.
  */
-export async function fetchLogoApis(domain: string): Promise<{
+export async function fetchLogoApis(domain: string, scrapedLogoUrls?: string[]): Promise<{
   brandfetch: BrandfetchResult | null;
   downloadedLogo: DownloadedLogo | null;
   logoLibrary: LogoLibrary;
@@ -462,7 +507,8 @@ export async function fetchLogoApis(domain: string): Promise<{
   const brandfetch = await fetchBrandfetch(domain).catch(() => null);
 
   // Download ALL logos from every source (with Redis cache)
-  const logoLibrary = await downloadBestLogo(domain, brandfetch?.logos ?? []);
+  // Pass scraped logos as a fallback source before Google Favicon
+  const logoLibrary = await downloadBestLogo(domain, brandfetch?.logos ?? [], scrapedLogoUrls);
 
   return { brandfetch, downloadedLogo: logoLibrary.primary, logoLibrary };
 }

@@ -19,6 +19,8 @@ function getRedis(): Redis | null {
 
 /**
  * Build a deterministic cache key from copy generation parameters.
+ * Includes an optional color fingerprint so that two brands with the same
+ * name but different palettes (or industries) never collide.
  * Format: `copy:${sha256(normalized_params).slice(0, 16)}`
  */
 export function buildCopyKey(
@@ -26,12 +28,15 @@ export function buildCopyKey(
   platform: string,
   objective: string,
   tone?: string,
+  colors?: string,
 ): string {
+  const colorSuffix = colors ? `:${colors.slice(0, 7)}` : "";
   const parts = [
     brandProfileId.trim().toLowerCase(),
     platform.trim().toLowerCase(),
     objective.trim().toLowerCase(),
     (tone ?? "default").trim().toLowerCase(),
+    colorSuffix,
   ].join("|");
 
   const hash = createHash("sha256").update(parts).digest("hex").slice(0, 16);
@@ -41,6 +46,7 @@ export function buildCopyKey(
 /**
  * Build a cache key for a full variant set (hero + variant_a + variant_b).
  * Includes variant count so requesting more variants gets a fresh generation.
+ * Includes an optional color fingerprint to prevent cross-brand collisions.
  * Format: `copyset:${sha256(normalized_params).slice(0, 16)}`
  */
 export function buildVariantSetKey(
@@ -49,13 +55,16 @@ export function buildVariantSetKey(
   objective: string,
   variantCount: number,
   tone?: string,
+  colors?: string,
 ): string {
+  const colorSuffix = colors ? `:${colors.slice(0, 7)}` : "";
   const parts = [
     brandProfileId.trim().toLowerCase(),
     platform.trim().toLowerCase(),
     objective.trim().toLowerCase(),
     (tone ?? "default").trim().toLowerCase(),
     `variants:${variantCount}`,
+    colorSuffix,
   ].join("|");
 
   const hash = createHash("sha256").update(parts).digest("hex").slice(0, 16);

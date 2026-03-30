@@ -63,6 +63,11 @@ export async function POST(req: Request) {
   });
   traceRouting({ provider: "anthropic", modelId, reason, model }, Date.now() - routeStart);
 
+  // Basic chat tracing — log model routing decision for observability
+  // Full Langfuse streaming integration requires their SDK wrapper (future change)
+  const chatTrace = { id: `chat-${Date.now()}`, model: modelId, intent, startTime: Date.now() };
+  console.log(`[Chat] Starting stream: model=${modelId}, intent=${intent}, reason=${reason}`);
+
   const result = streamText({
     model,
     stopWhen: stepCountIs(10),
@@ -326,13 +331,6 @@ ABSOLUTE RULES:
           // Use AI-generated image URL (small reference, not base64) or fall back to Unsplash
           const bgUrl = aiImage?.imageUrl ?? unsplashBgUrl;
 
-          // Generate color harmony set for the ad preview
-          const adColorHarmony = generateHarmonySet(
-            brand.colors.primary ?? "#6366f1",
-            brand.colors.secondary,
-            brand.colors.accent,
-          );
-
           return {
             copies: allCopy.flat().map((c, i) => ({
               id: `${c.platform}-${c.variant}-${i}`,
@@ -355,7 +353,7 @@ ABSOLUTE RULES:
               },
               fonts: brand.fonts,
               industry: brand.industry,
-              _colorHarmony: adColorHarmony,
+              _colorHarmony: null,
             },
             backgroundUrl: bgUrl,
             platforms,
@@ -627,6 +625,35 @@ ABSOLUTE RULES:
             colors?: { primary: string; secondary?: string; accent?: string };
           };
         }) => {
+          // Check that ad accounts are ready before deploying
+          const accounts = await db
+            .select({ platform: adAccounts.platform, status: adAccounts.status })
+            .from(adAccounts)
+            .where(eq(adAccounts.orgId, orgId));
+
+          // Only check for pending accounts if accounts exist (demo mode has none)
+          if (accounts.length > 0) {
+            const pendingPlatforms = platforms.filter(p => {
+              const account = accounts.find(a => a.platform === p);
+              return account?.status === "pending" || account?.status === "error";
+            });
+
+            if (pendingPlatforms.length > 0) {
+              return {
+                platforms: pendingPlatforms.map(p => ({
+                  platform: p,
+                  status: "connect_required" as const,
+                  message: `Kontot för ${p === "meta" ? "Meta" : p === "google" ? "Google" : "LinkedIn"} håller på att kopplas upp. Försök igen om några sekunder.`,
+                  accountType: "auto" as const,
+                  action: "retry" as const,
+                })),
+                budget,
+                campaignName,
+                creative,
+              };
+            }
+          }
+
           // TODO: Replace with real plan/deployment logic — currently returns demo status
           // Demo mode: return simulated deployment status
           // In production with auth, this would check real ad accounts
@@ -692,6 +719,8 @@ ABSOLUTE RULES:
     },
     messages,
   });
+
+  console.log(`[Chat] Stream created: trace=${chatTrace.id}, elapsed=${Date.now() - chatTrace.startTime}ms`);
 
   return result.toUIMessageStreamResponse();
 }

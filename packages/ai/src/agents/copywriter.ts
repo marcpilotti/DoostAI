@@ -16,6 +16,7 @@ import type {
 import { CHAR_LIMITS } from "../types";
 import {
   META_CTAS,
+  PLATFORM_LIMITS,
   isValidMetaCta,
   normaliseMetaCta,
   getRecommendedCtas,
@@ -198,6 +199,14 @@ async function generateSingleVariant(
     }
   }
 
+  // ── CTA length validation (ALL platforms) ──────────────────────
+  // Truncate CTA if it exceeds the platform's character limit.
+  // This covers Google and LinkedIn which lack the Meta enum check above.
+  const ctaLimit = PLATFORM_LIMITS[platform]?.cta;
+  if (ctaLimit && (result as { cta?: string }).cta && (result as { cta: string }).cta.length > ctaLimit) {
+    (result as { cta: string }).cta = (result as { cta: string }).cta.slice(0, ctaLimit);
+  }
+
   const latencyMs = Date.now() - start;
 
   traceGeneration(trace, {
@@ -243,7 +252,7 @@ async function generateSingleVariant(
 }
 
 export async function generateAdCopy(
-  brand: BrandContext,
+  brand: BrandContext & { colors?: { primary?: string } },
   platform: Platform,
   objective: string,
   options: CopyOptions = {},
@@ -252,6 +261,7 @@ export async function generateAdCopy(
   const opts: CopyOptions = { ...options, objective };
   const skipCache = options.skipCache ?? false;
   const brandProfileId = options.brandProfileId ?? brand.name;
+  const primaryColor = brand.colors?.primary;
 
   const variants: CopyVariant[] = ["hero", "variant_a", "variant_b"].slice(
     0,
@@ -260,7 +270,7 @@ export async function generateAdCopy(
 
   // --- Check full variant set cache first (24h TTL) ---
   // This catches "Fler varianter" requests that re-request the same set
-  const variantSetKey = buildVariantSetKey(brandProfileId, platform, objective, numVariants, opts.tone);
+  const variantSetKey = buildVariantSetKey(brandProfileId, platform, objective, numVariants, opts.tone, primaryColor);
 
   if (!skipCache) {
     const cachedSet = await getCachedVariantSet(variantSetKey);
@@ -286,7 +296,7 @@ export async function generateAdCopy(
   const results: AdCopyResult[] = [];
 
   // --- Hero variant: check individual cache first ---
-  const cacheKey = buildCopyKey(brandProfileId, platform, objective, opts.tone);
+  const cacheKey = buildCopyKey(brandProfileId, platform, objective, opts.tone, primaryColor);
   let cacheHit = false;
 
   if (!skipCache) {

@@ -73,7 +73,7 @@ const CACHE_KEY_PREFIX = "ai-img:";
 const OPENAI_IMAGES_API = "https://api.openai.com/v1/images/generations";
 
 /** Timeout for OpenAI image generation — DALL-E 3 can take 15-25s */
-const GENERATION_TIMEOUT_MS = 45_000;
+const GENERATION_TIMEOUT_MS = 60_000;
 
 // ── Redis singleton (lazy, tolerates missing env vars) ───────────
 
@@ -252,33 +252,42 @@ export async function generateAdBackground(
   // ── 2. Build prompt ─────────────────────────────────────────
   const prompt = buildPrompt({ industry, primaryColor, accentColor, style });
 
-  // ── 3. Call OpenAI Images API ───────────────────────────────
+  // ── 3. Call OpenAI Images API (with 1 retry) ──────────────
   try {
-    const response = await fetch(OPENAI_IMAGES_API, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "dall-e-3",
-        prompt,
-        n: 1,
-        size: formatToSize(format),
-        quality: "standard", // $0.04/image — "hd" is $0.08
-        response_format: "b64_json",
-      }),
-      signal: AbortSignal.timeout(GENERATION_TIMEOUT_MS),
-    });
-
-    if (!response.ok) {
-      const errorBody = await response.text().catch(() => "");
-      console.warn(
-        `[AI Image] OpenAI API error: HTTP ${response.status}`,
-        errorBody.slice(0, 300),
-      );
-      return null;
+    // Try generation with 1 retry
+    let response: Response | null = null;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        response = await fetch(OPENAI_IMAGES_API, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "dall-e-3",
+            prompt,
+            n: 1,
+            size: formatToSize(format),
+            quality: "standard", // $0.04/image — "hd" is $0.08
+            response_format: "b64_json",
+          }),
+          signal: AbortSignal.timeout(GENERATION_TIMEOUT_MS),
+        });
+        if (response.ok) break;
+        console.warn(`[AI Image] Attempt ${attempt + 1} failed: ${response.status}`);
+      } catch (err) {
+        const isTimeout =
+          (err instanceof DOMException && err.name === "AbortError") ||
+          (err instanceof Error && err.name === "TimeoutError");
+        console.warn(
+          `[AI Image] Attempt ${attempt + 1} ${isTimeout ? "timed out" : "error"}: ${err instanceof Error ? err.message : err}`,
+        );
+        response = null;
+      }
+      if (attempt === 0) await new Promise(r => setTimeout(r, 3000));
     }
+    if (!response?.ok) return null;
 
     const data = (await response.json()) as {
       data: Array<{ b64_json?: string; url?: string; revised_prompt?: string }>;
@@ -323,20 +332,10 @@ export async function generateAdBackground(
       cached: false,
     };
   } catch (err) {
-    if (err instanceof DOMException && err.name === "AbortError") {
-      console.warn(
-        `[AI Image] Generation timed out after ${GENERATION_TIMEOUT_MS}ms`,
-      );
-    } else if (err instanceof Error && err.name === "TimeoutError") {
-      console.warn(
-        `[AI Image] Generation timed out after ${GENERATION_TIMEOUT_MS}ms`,
-      );
-    } else {
-      console.warn(
-        "[AI Image] Generation failed:",
-        err instanceof Error ? err.message : err,
-      );
-    }
+    console.warn(
+      "[AI Image] Generation failed:",
+      err instanceof Error ? err.message : err,
+    );
     return null;
   }
 }

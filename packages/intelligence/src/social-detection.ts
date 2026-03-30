@@ -76,7 +76,7 @@ export function detectSocialPresence(
 /**
  * Enrich social profiles by validating that detected URLs are actually live.
  *
- * Uses HEAD requests with a 3-second timeout per URL. Profiles that respond
+ * Uses HEAD requests with a 2-second timeout per URL. Profiles that respond
  * with HTTP 200 get `verified: true`; anything else (timeout, 404, redirect
  * loops, network errors) gets `verified: false`.
  *
@@ -89,40 +89,23 @@ export async function enrichSocialProfiles(
 ): Promise<SocialProfile[]> {
   if (profiles.length === 0) return profiles;
 
-  const TIMEOUT_MS = 3_000;
-
   const results = await Promise.allSettled(
-    profiles.map(async (profile): Promise<SocialProfile> => {
+    profiles.map(async (profile) => {
       try {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-
-        const response = await fetch(profile.url, {
+        const res = await fetch(profile.url, {
           method: "HEAD",
-          signal: controller.signal,
+          signal: AbortSignal.timeout(2000),
           redirect: "follow",
-          headers: {
-            // Use a browser-like UA to avoid being blocked by social platforms
-            "User-Agent":
-              "Mozilla/5.0 (compatible; DoostBot/1.0; +https://doost.tech)",
-          },
         });
-
-        clearTimeout(timer);
-
-        // HTTP 200 means the page exists and is accessible
-        const verified = response.status === 200;
-
-        return { ...profile, verified };
+        return { ...profile, verified: res.ok };
       } catch {
-        // Network error, timeout, or abort — mark as unverified but keep the profile
         return { ...profile, verified: false };
       }
-    }),
+    })
   );
 
-  return results.map((result, i) =>
-    result.status === "fulfilled" ? result.value : { ...profiles[i]!, verified: false },
+  return results.map((r, i) =>
+    r.status === "fulfilled" ? r.value : { ...profiles[i]!, verified: false }
   );
 }
 
