@@ -1306,9 +1306,31 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
     selectedCount: number;
   }>({ preferredHeadlineLength: "medium", selectedCount: 0 });
 
-  // Image state — replaced inline bgImages/bgInitialized with useAdImageGeneration
+  // Image state
   const imageA = useAdImageGeneration(data.backgroundUrl);
   const imageB = useAdImageGeneration(data.backgroundUrlB ?? data.backgroundUrl);
+
+  // Undo stack for inline editing
+  const [undoStack, setUndoStack] = useState<Array<{ copyId: string; field: string; value: string }>>([]);
+  const hasUnsavedEdits = Object.keys(edits).length > 0;
+
+  // Cmd/Ctrl+Z keyboard undo
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "z" && undoStack.length > 0) {
+        e.preventDefault();
+        const last = undoStack[undoStack.length - 1]!;
+        setEdits((prev) => {
+          const entry = prev[last.copyId];
+          if (!entry) return prev;
+          return { ...prev, [last.copyId]: { ...entry, [last.field]: last.value } };
+        });
+        setUndoStack((s) => s.slice(0, -1));
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [undoStack]);
 
   const variantDiffs = useMemo(() => getVariantDiffs(variants), [variants]);
 
@@ -1357,6 +1379,11 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
   }
 
   const updateEdit = useCallback((copyId: string, field: EditableField, value: string, original: CopyData) => {
+    // Push previous value to undo stack (max 20)
+    setUndoStack((s) => {
+      const prev = edits[copyId]?.[field] ?? original[field];
+      return [...s.slice(-19), { copyId, field, value: prev as string }];
+    });
     setEdits((prev) => ({
       ...prev,
       [copyId]: {
@@ -1546,7 +1573,14 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
       </div>
 
       {/* ── Action Buttons ─────────────────────────────────────── */}
-      <div className="border-t border-border/20 px-4 py-3">
+      <div className="border-t border-border/20 px-3 py-2">
+        {/* Unsaved changes indicator */}
+        {hasUnsavedEdits && (
+          <div className="mb-1.5 flex items-center justify-between">
+            <span className="text-[9px] font-medium text-amber-600">Osparade ändringar</span>
+            <button onClick={() => { setEdits({}); setUndoStack([]); }} className="text-[9px] text-muted-foreground hover:text-foreground">Ångra alla</button>
+          </div>
+        )}
         {/* Primary actions */}
         <div className="flex items-center gap-2">
           <button
@@ -1557,7 +1591,7 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
               const colors = colorOverrideString();
               onSendMessage?.(`Ser bra ut, publicera! [headline: ${edited.headline}] [body: ${edited.bodyCopy}] [cta: ${edited.cta}]${colors}`);
             }}
-            className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-bold shadow-sm transition-all ${
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold shadow-sm transition-all ${
               firstValidation.hasErrors
                 ? "cursor-not-allowed bg-gray-200 text-gray-400"
                 : "bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 hover:shadow-md"
