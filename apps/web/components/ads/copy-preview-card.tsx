@@ -1391,162 +1391,160 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
     return ` [colors: ${parts.join(",")}]`;
   }
 
-  // State for PRO section toggle
   const [showPro, setShowPro] = useState(false);
 
-  // Current variant index (single view, carousel-style)
-  const currentCopy = variants[mobileIndex] ?? variants[0]!;
-  const currentCopyId = currentCopy.id ?? `${currentCopy.platform}-${currentCopy.variant}`;
+  // For publish: use selected variant or first
+  const selectedCopy = selectedId
+    ? variants.find((c) => (c.id ?? `${c.platform}-${c.variant}`) === selectedId) ?? variants[0]!
+    : variants[0]!;
 
   return (
-    <div className="animate-card-in mt-2 flex flex-col overflow-hidden rounded-2xl border border-border/30 bg-white shadow-lg" style={{ maxHeight: "calc(100vh - 160px)" }}>
+    <div className="animate-card-in mt-2 flex flex-col overflow-hidden rounded-2xl border border-border/30 bg-white shadow-lg" style={{ maxHeight: "calc(100vh - 140px)" }}>
 
-      {/* ── Hero: The Ad Preview ─────────────────────────────────── */}
-      <div className="relative flex-1 overflow-hidden px-4 pt-4 pb-2">
-        {/* Variant label */}
-        <div className="mb-2 flex items-center justify-center gap-2">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/50">
-            {currentCopy.label ?? `Variant ${mobileIndex + 1}`}
-          </span>
-          {variantDiffs.get(currentCopyId)?.[0] && (
-            <span className="rounded-full bg-indigo-50 px-1.5 py-0.5 text-[8px] font-medium text-indigo-500">
-              {variantDiffs.get(currentCopyId)![0]}
-            </span>
-          )}
-        </div>
-
-        {/* Single preview — large, centered */}
-        <div className="mx-auto" style={{ maxHeight: "55vh" }}>
-          <Preview
-            key={`${format}-${layout}-${currentCopyId}`}
-            copy={getEditedCopy(currentCopy)}
-            brand={data.brand!}
-            bgImage={bgImages[currentCopyId]}
-            isSelected={true}
-            isLoser={false}
-            onPick={() => handleVariantPick(currentCopyId)}
-            layout={layout}
-            onEditField={(field, value) => updateEdit(currentCopyId, field, value, currentCopy)}
-            charLimits={getCharLimits(currentCopy.platform)}
-            colorOverrides={colorOverrides}
-            onColorChange={handleColorChange}
-            harmonyPalette={harmonyPalette}
-            logoPosition={logoPosition}
-            onLogoPositionChange={setLogoPosition}
-            diffs={variantDiffs.get(currentCopyId)}
-          />
-        </div>
-
-        {/* Variant dots — carousel-style */}
-        {variants.length > 1 && (
-          <div className="mt-3 flex items-center justify-center gap-2">
-            <button
-              onClick={() => setMobileIndex(mobileIndex > 0 ? mobileIndex - 1 : variants.length - 1)}
-              className="flex h-6 w-6 items-center justify-center rounded-full text-muted-foreground/40 transition-colors hover:bg-muted/30 hover:text-foreground"
-            >
-              <ChevronLeft className="h-3.5 w-3.5" />
+      {/* ── Format + Layout bar (compact, always visible) ────────── */}
+      <div className="flex items-center gap-2 overflow-x-auto border-b border-border/20 px-3 py-1.5">
+        {FORMAT_TABS.map((tab) => {
+          const TabIcon = tab.icon;
+          return (
+            <button key={tab.id} onClick={() => { setFormat(tab.id); setSelectedId(null); setMobileIndex(0); }} className={`flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium transition-all ${format === tab.id ? "bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200" : "text-muted-foreground hover:bg-muted/30"}`}>
+              <TabIcon className="h-3 w-3" />
+              {tab.label}
             </button>
-            {variants.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setMobileIndex(i)}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  i === mobileIndex ? "w-6 bg-indigo-500" : "w-2 bg-border/50 hover:bg-border"
-                }`}
-              />
-            ))}
-            <button
-              onClick={() => setMobileIndex(mobileIndex < variants.length - 1 ? mobileIndex + 1 : 0)}
-              className="flex h-6 w-6 items-center justify-center rounded-full text-muted-foreground/40 transition-colors hover:bg-muted/30 hover:text-foreground"
-            >
-              <ChevronRight className="h-3.5 w-3.5" />
+          );
+        })}
+        <div className="mx-1 h-4 w-px bg-border/30" />
+        {LAYOUT_OPTIONS.map((opt) => {
+          const LayoutIcon = opt.icon;
+          return (
+            <button key={opt.id} onClick={() => setLayout(opt.id)} className={`flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium transition-all ${layout === opt.id ? "bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200" : "text-muted-foreground hover:bg-muted/30"}`}>
+              <LayoutIcon className="h-3 w-3" />
+              {opt.label}
             </button>
-          </div>
-        )}
+          );
+        })}
       </div>
 
-      {/* ── Action Buttons ───────────────────────────────────────── */}
-      <div className="flex items-center gap-3 border-t border-border/20 px-4 py-3">
+      {/* ── Two variants side by side (desktop) / carousel (mobile) */}
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        {/* Desktop: side by side */}
+        <div className="hidden gap-3 p-3 sm:grid sm:grid-cols-2">
+          {variants.map((copy) => {
+            const copyId = copy.id ?? `${copy.platform}-${copy.variant}`;
+            return (
+              <Preview
+                key={`${format}-${layout}-${copyId}`}
+                copy={getEditedCopy(copy)}
+                brand={data.brand!}
+                bgImage={bgImages[copyId]}
+                isSelected={selectedId === copyId}
+                isLoser={selectedId !== null && selectedId !== copyId}
+                onPick={() => handleVariantPick(copyId)}
+                layout={layout}
+                onEditField={(field, value) => updateEdit(copyId, field, value, copy)}
+                charLimits={getCharLimits(copy.platform)}
+                colorOverrides={colorOverrides}
+                onColorChange={handleColorChange}
+                harmonyPalette={harmonyPalette}
+                logoPosition={logoPosition}
+                onLogoPositionChange={setLogoPosition}
+                diffs={variantDiffs.get(copyId)}
+              />
+            );
+          })}
+        </div>
+
+        {/* Mobile: swipeable single */}
+        <div className="p-3 sm:hidden">
+          {variants[mobileIndex] && (() => {
+            const copy = variants[mobileIndex]!;
+            const copyId = copy.id ?? `${copy.platform}-${copy.variant}`;
+            return (
+              <div className="relative">
+                <Preview
+                  copy={getEditedCopy(copy)}
+                  brand={data.brand!}
+                  bgImage={bgImages[copyId]}
+                    isSelected={selectedId === copyId}
+                  isLoser={selectedId !== null && selectedId !== copyId}
+                  onPick={() => handleVariantPick(copyId)}
+                  layout={layout}
+                  onEditField={(field, value) => updateEdit(copyId, field, value, copy)}
+                  charLimits={getCharLimits(copy.platform)}
+                  colorOverrides={colorOverrides}
+                  onColorChange={handleColorChange}
+                  harmonyPalette={harmonyPalette}
+                  logoPosition={logoPosition}
+                  onLogoPositionChange={setLogoPosition}
+                  diffs={variantDiffs.get(copyId)}
+                />
+                {mobileIndex > 0 && (
+                  <button onClick={() => setMobileIndex((i) => i - 1)} className="absolute -left-1 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md">
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                  </button>
+                )}
+                {mobileIndex < variants.length - 1 && (
+                  <button onClick={() => setMobileIndex((i) => i + 1)} className="absolute -right-1 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md">
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+            );
+          })()}
+          <div className="mt-2 flex justify-center gap-1.5">
+            {variants.map((_, i) => (
+              <button key={i} onClick={() => setMobileIndex(i)} className={`h-1.5 rounded-full transition-all ${i === mobileIndex ? "w-5 bg-indigo-500" : "w-1.5 bg-border/50"}`} />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Action Buttons (always visible, compact) ─────────────── */}
+      <div className="flex items-center gap-2 border-t border-border/20 px-3 py-2">
         <button
           onClick={() => onSendMessage?.("Ändra texten")}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border/40 bg-white px-4 py-2.5 text-xs font-semibold text-muted-foreground transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600"
+          className="flex items-center justify-center gap-1 rounded-lg border border-border/40 bg-white px-3 py-2 text-[11px] font-semibold text-muted-foreground transition-all hover:border-indigo-300 hover:text-indigo-600"
         >
-          <Pencil className="h-3.5 w-3.5" />
+          <Pencil className="h-3 w-3" />
           Ändra
+        </button>
+        <button
+          onClick={() => onSendMessage?.("Visa fler varianter")}
+          className="flex items-center justify-center gap-1 rounded-lg border border-border/40 bg-white px-3 py-2 text-[11px] font-semibold text-muted-foreground transition-all hover:border-indigo-300 hover:text-indigo-600"
+        >
+          Fler varianter
         </button>
         <button
           disabled={hasAnyViolation}
           onClick={() => {
             if (hasAnyViolation) return;
-            const edited = getEditedCopy(currentCopy);
+            const edited = getEditedCopy(selectedCopy);
             const colors = colorOverrideString();
-            const msg = `Ser bra ut, publicera! [headline: ${edited.headline}] [body: ${edited.bodyCopy}] [cta: ${edited.cta}]${colors}`;
-            onSendMessage?.(msg);
+            onSendMessage?.(`Ser bra ut, publicera! [headline: ${edited.headline}] [body: ${edited.bodyCopy}] [cta: ${edited.cta}]${colors}`);
           }}
-          className={`flex flex-[2] items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold shadow-sm transition-all ${
+          className={`ml-auto flex items-center justify-center gap-1 rounded-lg px-4 py-2 text-[11px] font-bold shadow-sm transition-all ${
             hasAnyViolation
               ? "cursor-not-allowed bg-gray-200 text-gray-400"
               : "bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 hover:shadow-md"
           }`}
         >
-          {hasAnyViolation ? (
-            <>
-              <AlertTriangle className="h-3.5 w-3.5" />
-              Teckengräns överskriden
-            </>
-          ) : (
-            <>
-              Publicera
-              <ArrowRight className="h-3.5 w-3.5" />
-            </>
-          )}
+          Publicera
+          <ArrowRight className="h-3 w-3" />
         </button>
       </div>
 
-      {/* ── PRO Section (collapsed by default) ───────────────────── */}
+      {/* ── PRO Section (collapsed) ──────────────────────────────── */}
       <div className="border-t border-border/20">
         <button
           onClick={() => setShowPro(!showPro)}
-          className="flex w-full items-center gap-2 px-4 py-2 text-[10px] font-medium text-muted-foreground/60 transition-colors hover:bg-muted/10 hover:text-muted-foreground"
+          className="flex w-full items-center gap-2 px-3 py-1.5 text-[9px] font-medium text-muted-foreground/50 transition-colors hover:bg-muted/10 hover:text-muted-foreground"
         >
-          <ChevronUp className={`h-3 w-3 transition-transform duration-200 ${showPro ? "" : "rotate-180"}`} />
+          <ChevronUp className={`h-2.5 w-2.5 transition-transform duration-200 ${showPro ? "" : "rotate-180"}`} />
           Fler alternativ
-          <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-[8px] font-bold text-indigo-400">PRO</span>
+          <span className="rounded bg-indigo-50 px-1 py-0.5 text-[7px] font-bold text-indigo-400">PRO</span>
         </button>
 
         {showPro && (
-          <div className="space-y-2 border-t border-border/10 px-4 pb-3 pt-2">
-            {/* Format tabs */}
-            <div>
-              <div className="mb-1 text-[8px] font-semibold uppercase tracking-wider text-muted-foreground/40">Format</div>
-              <div className="flex gap-1">
-                {FORMAT_TABS.map((tab) => {
-                  const TabIcon = tab.icon;
-                  return (
-                    <button key={tab.id} onClick={() => { setFormat(tab.id); setMobileIndex(0); }} className={`flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium transition-all ${format === tab.id ? "bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200" : "text-muted-foreground hover:bg-muted/30"}`}>
-                      <TabIcon className="h-3 w-3" />
-                      {tab.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Layout options */}
-            <div>
-              <div className="mb-1 text-[8px] font-semibold uppercase tracking-wider text-muted-foreground/40">Layout</div>
-              <div className="flex gap-1">
-                {LAYOUT_OPTIONS.map((opt) => {
-                  const LayoutIcon = opt.icon;
-                  return (
-                    <button key={opt.id} onClick={() => setLayout(opt.id)} className={`flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium transition-all ${layout === opt.id ? "bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200" : "text-muted-foreground hover:bg-muted/30"}`}>
-                      <LayoutIcon className="h-3 w-3" />
-                      {opt.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+          <div className="space-y-2 border-t border-border/10 px-3 pb-2 pt-1.5">
 
             {/* Color overrides */}
             {hasColorOverrides && (
@@ -1580,9 +1578,9 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
             </div>
 
             {/* Upload background */}
-            <button onClick={() => { setUploadTarget(currentCopyId); fileInputRef.current?.click(); }} className="flex w-full items-center gap-2 rounded-lg border border-dashed border-border/40 px-3 py-1.5 text-[10px] text-muted-foreground hover:border-indigo-300 hover:text-indigo-600">
+            <button onClick={() => { const cid = selectedCopy.id ?? `${selectedCopy.platform}-${selectedCopy.variant}`; setUploadTarget(cid); fileInputRef.current?.click(); }} className="flex w-full items-center gap-2 rounded-lg border border-dashed border-border/40 px-3 py-1.5 text-[10px] text-muted-foreground hover:border-indigo-300 hover:text-indigo-600">
               <ImagePlus className="h-3 w-3" />
-              {bgImages[currentCopyId] ? "Byt bakgrundsbild" : "Ladda upp bakgrundsbild"}
+              Ladda upp bakgrundsbild
             </button>
           </div>
         )}
