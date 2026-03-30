@@ -144,25 +144,30 @@ function LinkedInPreview({ data, imageUrl, isImageLoading, onRegenerateImage }: 
 export function AdPreviewLinkedIn({
   data,
   autoGenerateImage = true,
+  imageDelay = 0,
 }: {
   data: AdData;
   autoGenerateImage?: boolean;
+  imageDelay?: number;
 }) {
   const initialImage = data.imageUrl && (data.imageUrl.startsWith("data:") || data.imageUrl.startsWith("https:")) ? data.imageUrl : null;
   const [imageUrl, setImageUrl] = useState<string | null>(initialImage);
   const [isGenerating, startTransition] = useTransition();
   const [imageLoading, setImageLoading] = useState(false);
 
-  // Auto-generate image on mount
+  // Auto-generate image on mount (with optional delay for variant B)
   useEffect(() => {
     if (imageUrl || !autoGenerateImage) return;
-    setImageLoading(true);
-    generateAdImage(
-      { id: data.id, headline: data.headline, primaryText: data.primaryText, brandName: data.brandName },
-      "linkedin",
-    ).then((result) => {
-      if (result?.imageUrl) setImageUrl(result.imageUrl);
-    }).finally(() => setImageLoading(false));
+    const timer = setTimeout(() => {
+      setImageLoading(true);
+      generateAdImage(
+        { id: data.id, headline: data.headline, primaryText: data.primaryText, brandName: data.brandName },
+        "linkedin",
+      ).then((result) => {
+        if (result?.imageUrl) setImageUrl(result.imageUrl);
+      }).finally(() => setImageLoading(false));
+    }, imageDelay);
+    return () => clearTimeout(timer);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -160,7 +160,7 @@ export function AdPreview({
             /* Side-by-side: both variants at ~50% */
             <div className="grid grid-cols-2 gap-2 p-3">
               <div className="relative">
-                <FormatRenderer data={variantA} format={format} autoGenerateImage={autoGenerateImage} />
+                <FormatRenderer data={variantA} format={format} autoGenerateImage={autoGenerateImage} imageDelay={0} />
                 {/* Winner select */}
                 <button
                   onClick={() => handleWinnerSelect("A")}
@@ -174,7 +174,7 @@ export function AdPreview({
                 </button>
               </div>
               <div className="relative">
-                <FormatRenderer data={variantB!} format={format} autoGenerateImage={autoGenerateImage} />
+                <FormatRenderer data={variantB!} format={format} autoGenerateImage={autoGenerateImage} imageDelay={3000} />
                 <button
                   onClick={() => handleWinnerSelect("B")}
                   className={`absolute -top-1 left-1/2 z-10 -translate-x-1/2 rounded-full px-2 py-0.5 text-[8px] font-bold shadow transition-all ${
@@ -220,21 +220,23 @@ function FormatRenderer({
   data,
   format,
   autoGenerateImage,
+  imageDelay = 0,
 }: {
   data: AdData;
   format: AdFormat;
   autoGenerateImage: boolean;
+  imageDelay?: number;
 }) {
   switch (format) {
     case "meta-feed":
     case "meta-stories":
-      return <AdPreviewMeta data={data} format={format} autoGenerateImage={autoGenerateImage} />;
+      return <AdPreviewMeta data={data} format={format} autoGenerateImage={autoGenerateImage} imageDelay={imageDelay} />;
     case "google-search":
       return <AdPreviewGoogle data={data} />;
     case "linkedin":
-      return <AdPreviewLinkedIn data={data} autoGenerateImage={autoGenerateImage} />;
+      return <AdPreviewLinkedIn data={data} autoGenerateImage={autoGenerateImage} imageDelay={imageDelay} />;
     default:
-      return <AdPreviewMeta data={data} format="meta-feed" autoGenerateImage={autoGenerateImage} />;
+      return <AdPreviewMeta data={data} format="meta-feed" autoGenerateImage={autoGenerateImage} imageDelay={imageDelay} />;
   }
 }
 

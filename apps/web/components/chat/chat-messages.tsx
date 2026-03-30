@@ -12,7 +12,6 @@ import {
 import { TypingIndicator } from "./typing-indicator";
 
 // Lazy-load heavy components — only loaded when their tool results render
-const CopyPreviewCard = lazy(() => import("@/components/ads/copy-preview-card").then(m => ({ default: m.CopyPreviewCard })));
 const AdPreview = lazy(() => import("@/components/ads/ad-preview/AdPreview").then(m => ({ default: m.AdPreview })));
 const PublishCard = lazy(() => import("@/components/ads/publish-card").then(m => ({ default: m.PublishCard })));
 const CampaignDeploymentStatus = lazy(() => import("@/components/ads/campaign-deployment-status").then(m => ({ default: m.CampaignDeploymentStatus })));

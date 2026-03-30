@@ -249,10 +249,12 @@ export function AdPreviewMeta({
   data,
   format,
   autoGenerateImage = true,
+  imageDelay = 0,
 }: {
   data: AdData;
   format: "meta-feed" | "meta-stories";
   autoGenerateImage?: boolean;
+  imageDelay?: number;
 }) {
   // Only trust data: URLs (base64) or https: URLs — ignore broken /api/brand/ai-image cache refs
   const initialImage = data.imageUrl && (data.imageUrl.startsWith("data:") || data.imageUrl.startsWith("https:")) ? data.imageUrl : null;
@@ -260,20 +262,23 @@ export function AdPreviewMeta({
   const [isGenerating, startTransition] = useTransition();
   const [imageLoading, setImageLoading] = useState(false);
 
-  // Auto-generate image on mount if none provided
+  // Auto-generate image on mount if none provided (with optional delay for variant B)
   useEffect(() => {
     if (imageUrl || !autoGenerateImage) return;
-    console.log("[AdPreviewMeta] No image, generating...", { id: data.id, format });
-    setImageLoading(true);
-    generateAdImage(
-      { id: data.id, headline: data.headline, primaryText: data.primaryText, brandName: data.brandName },
-      format,
-    ).then((result) => {
-      console.log("[AdPreviewMeta] Image result:", result ? `${result.imageUrl.slice(0, 30)}... (${result.imageUrl.length} chars)` : "NULL");
-      if (result?.imageUrl) setImageUrl(result.imageUrl);
-    }).catch((err) => {
-      console.error("[AdPreviewMeta] Image generation error:", err);
-    }).finally(() => setImageLoading(false));
+    const timer = setTimeout(() => {
+      console.log("[AdPreviewMeta] No image, generating...", { id: data.id, format, imageDelay });
+      setImageLoading(true);
+      generateAdImage(
+        { id: data.id, headline: data.headline, primaryText: data.primaryText, brandName: data.brandName },
+        format,
+      ).then((result) => {
+        console.log("[AdPreviewMeta] Image result:", result ? `${result.imageUrl.slice(0, 30)}... (${result.imageUrl.length} chars)` : "NULL");
+        if (result?.imageUrl) setImageUrl(result.imageUrl);
+      }).catch((err) => {
+        console.error("[AdPreviewMeta] Image generation error:", err);
+      }).finally(() => setImageLoading(false));
+    }, imageDelay);
+    return () => clearTimeout(timer);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
