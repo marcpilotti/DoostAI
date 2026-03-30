@@ -13,6 +13,7 @@ import { TypingIndicator } from "./typing-indicator";
 
 // Lazy-load heavy components — only loaded when their tool results render
 const CopyPreviewCard = lazy(() => import("@/components/ads/copy-preview-card").then(m => ({ default: m.CopyPreviewCard })));
+const AdPreview = lazy(() => import("@/components/ads/ad-preview/AdPreview").then(m => ({ default: m.AdPreview })));
 const PublishCard = lazy(() => import("@/components/ads/publish-card").then(m => ({ default: m.PublishCard })));
 const CampaignDeploymentStatus = lazy(() => import("@/components/ads/campaign-deployment-status").then(m => ({ default: m.CampaignDeploymentStatus })));
 const LinkedInConnect = lazy(() => import("@/components/ads/linkedin-connect").then(m => ({ default: m.LinkedInConnect })));
@@ -86,10 +87,55 @@ function ToolInvocation({
 
   if (name === "generate_ad_copy") {
     if (part.state === "output-available" && part.output) {
+      // Map old CopyPreviewData → new AdPreviewProps
+      const raw = part.output as {
+        copies: Array<{ id?: string; platform: string; variant?: string; headline: string; bodyCopy: string; cta: string; headlines?: string[]; descriptions?: string[] }>;
+        brand?: { name: string; url: string; colors: { primary: string; secondary?: string; accent?: string }; fonts?: { heading: string; body: string }; industry?: string };
+        backgroundUrl?: string | null;
+        backgroundUrlB?: string;
+        strategy?: { variantA: { concept: string; hook: string; angle: string; emotionalTrigger: string }; variantB: { concept: string; hook: string; angle: string; emotionalTrigger: string }; recommendation: string } | null;
+      };
+
+      const brand = raw.brand;
+      const copies = raw.copies.slice(0, 2);
+      const copyA = copies[0];
+      const copyB = copies[1];
+
+      if (!copyA || !brand) {
+        return <div className="p-4 text-sm text-red-500">Annonsdata saknas.</div>;
+      }
+
+      // Map platform string to AdFormat
+      const platformToFormat = (p: string): "meta-feed" | "meta-stories" | "google-search" | "linkedin" => {
+        const lower = p.toLowerCase();
+        if (lower === "google") return "google-search";
+        if (lower === "linkedin") return "linkedin";
+        return "meta-feed";
+      };
+
+      const mapToAdData = (copy: typeof copyA, bgUrl?: string | null) => ({
+        id: copy.id ?? `${copy.platform}-${copy.variant ?? "hero"}`,
+        headline: copy.headline,
+        primaryText: copy.bodyCopy,
+        cta: copy.cta,
+        brandName: brand.name,
+        brandUrl: brand.url,
+        brandColor: brand.colors.primary ?? "#6366f1",
+        brandAccent: brand.colors.accent ?? brand.colors.secondary,
+        imageUrl: bgUrl ?? null,
+        headlines: copy.headlines,
+        descriptions: copy.descriptions,
+      });
+
       return (
-        <CopyPreviewCard
-          data={part.output as Parameters<typeof CopyPreviewCard>[0]["data"]}
-          onSendMessage={onSendMessage}
+        <AdPreview
+          variantA={mapToAdData(copyA, raw.backgroundUrl)}
+          variantB={copyB ? mapToAdData(copyB, raw.backgroundUrlB ?? raw.backgroundUrl) : undefined}
+          format={platformToFormat(copyA.platform)}
+          strategy={raw.strategy}
+          onPublish={(variant) => {
+            onSendMessage?.(`Ser bra ut, publicera! [headline: ${variant.headline}] [body: ${variant.primaryText}] [cta: ${variant.cta}]`);
+          }}
         />
       );
     }
