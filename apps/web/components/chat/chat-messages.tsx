@@ -235,7 +235,7 @@ export function ChatMessages({
   isLoading: boolean;
   onSendMessage?: (text: string) => void;
 }) {
-  // Find the latest AI text and latest tool card to show
+  // Find the latest COMPLETE AI text (not streaming — prevents jumping)
   const latestText = useMemo(() => {
     for (let i = messages.length - 1; i >= 0; i--) {
       const m = messages[i]!;
@@ -248,11 +248,17 @@ export function ChatMessages({
     return null;
   }, [messages]);
 
+  // Find latest tool parts, but ONLY from messages with completed tool results.
+  // Skip tools that render as null (show_onboarding) to avoid flashing.
   const latestToolParts = useMemo(() => {
+    // Tool names that render as null — skip them to avoid empty flashes
+    const skipTools = new Set(["show_onboarding"]);
+
     for (let i = messages.length - 1; i >= 0; i--) {
       const m = messages[i]!;
       if (m.role !== "assistant") continue;
-      const tools = m.parts.filter(isToolPart) as ToolPart[];
+      const tools = (m.parts.filter(isToolPart) as ToolPart[])
+        .filter((t) => !skipTools.has(t.toolName ?? t.type.replace("tool-", "")));
       if (tools.length > 0) {
         return tools.map((t) => ({ part: t, messageId: m.id }));
       }
@@ -278,8 +284,8 @@ export function ChatMessages({
       <div className="mx-auto flex w-full min-h-0 max-w-2xl flex-1 flex-col">
         {/* User messages hidden — the cards speak for themselves */}
 
-        {/* Latest AI text — brief message above card */}
-        {latestText && (
+        {/* Latest AI text — brief message above card. Hidden while streaming to prevent jumping. */}
+        {latestText && !isLoading && (
           <div className="animate-message-in flex items-start gap-2 pb-1">
             <img src="/symbol.svg" alt="" width={20} height={20} className="mt-0.5 h-5 w-5 shrink-0" aria-hidden />
             <div className="prose prose-xs prose-neutral max-w-none text-xs text-foreground/80 [&_p]:leading-relaxed [&_p]:my-0">
