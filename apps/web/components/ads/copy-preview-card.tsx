@@ -1455,24 +1455,14 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
   return (
     <div className="animate-card-in mt-2 flex flex-col overflow-hidden rounded-2xl border border-border/30 bg-white/80 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] backdrop-blur-xl" style={{ maxHeight: "calc(100vh - 140px)" }}>
 
-      {/* ── Format + Layout bar ──────────────────────────────────── */}
-      <div className="flex items-center gap-2 overflow-x-auto border-b border-border/20 px-4 py-2">
+      {/* ── Format tabs only (layout moved below previews) ──────── */}
+      <div className="flex items-center gap-1 overflow-x-auto border-b border-border/20 px-3 py-1.5">
         {FORMAT_TABS.map((tab) => {
           const TabIcon = tab.icon;
           return (
             <button key={tab.id} onClick={() => { setFormat(tab.id); setSelectedId(null); setMobileIndex(0); }} className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${format === tab.id ? "bg-white text-foreground shadow-sm ring-1 ring-border/30" : "text-muted-foreground hover:text-foreground"}`}>
               <TabIcon className="h-3.5 w-3.5" />
               {tab.label}
-            </button>
-          );
-        })}
-        <div className="mx-1 h-4 w-px bg-border/30" />
-        {LAYOUT_OPTIONS.map((opt) => {
-          const LayoutIcon = opt.icon;
-          return (
-            <button key={opt.id} onClick={() => setLayout(opt.id)} className={`flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${layout === opt.id ? "bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200" : "text-muted-foreground hover:bg-muted/30"}`}>
-              <LayoutIcon className="h-3.5 w-3.5" />
-              {opt.label}
             </button>
           );
         })}
@@ -1555,52 +1545,38 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
         </div>
       </div>
 
-      {/* ── Action Buttons ─────────────────────────────────────── */}
-      <div className="border-t border-border/20 px-3 py-2">
-        {/* Unsaved changes indicator */}
-        {hasUnsavedEdits && (
-          <div className="mb-1.5 flex items-center justify-between">
-            <span className="text-[9px] font-medium text-amber-600">Osparade ändringar</span>
-            <button onClick={() => { setEdits({}); setUndoStack([]); }} className="text-[9px] text-muted-foreground hover:text-foreground">Ångra alla</button>
-          </div>
-        )}
-        {/* Primary actions */}
-        <div className="flex items-center gap-2">
-          <button
-            disabled={firstValidation.hasErrors}
-            onClick={() => {
-              if (firstValidation.hasErrors) return;
-              const edited = getEditedCopy(selectedCopy);
-              const colors = colorOverrideString();
-              onSendMessage?.(`Ser bra ut, publicera! [headline: ${edited.headline}] [body: ${edited.bodyCopy}] [cta: ${edited.cta}]${colors}`);
-            }}
-            className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold shadow-sm transition-all ${
-              firstValidation.hasErrors
-                ? "cursor-not-allowed bg-gray-200 text-gray-400"
-                : "bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 hover:shadow-md"
-            }`}
-          >
-            Publicera
-            <ArrowRight className="h-3.5 w-3.5" />
-          </button>
-        </div>
-        {/* Retention quickpicks — drives iteration and engagement */}
-        <div className="mt-1.5 flex gap-1.5 overflow-x-auto">
-          {[
-            { label: "Gör mer premium", prompt: "Gör annonsen mer premium och exklusiv" },
-            { label: "Mer aggressiv", prompt: "Gör annonsen mer aggressiv med starkare CTA" },
-            { label: "Kortare text", prompt: "Gör texten kortare och punchigare" },
-            { label: "Fler varianter", prompt: "Visa fler varianter" },
-          ].map((q) => (
-            <button
-              key={q.label}
-              onClick={() => onSendMessage?.(q.prompt)}
-              className="shrink-0 rounded-full border border-border/30 bg-muted/10 px-2.5 py-1 text-[9px] font-medium text-muted-foreground transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600"
-            >
-              {q.label}
+      {/* ── Layout options (below previews) ─────────────────────── */}
+      <div className="flex items-center justify-center gap-1 border-t border-border/20 px-3 py-1.5">
+        {LAYOUT_OPTIONS.map((opt) => {
+          const LayoutIcon = opt.icon;
+          return (
+            <button key={opt.id} onClick={() => setLayout(opt.id)} className={`flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-medium transition-all ${layout === opt.id ? "bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200" : "text-muted-foreground hover:bg-muted/30"}`}>
+              <LayoutIcon className="h-3 w-3" />
+              {opt.label}
             </button>
-          ))}
-        </div>
+          );
+        })}
+      </div>
+
+      {/* ── Publicera ─────────────────────────────────────────── */}
+      <div className="px-3 py-2">
+        <button
+          disabled={firstValidation.hasErrors}
+          onClick={() => {
+            if (firstValidation.hasErrors) return;
+            const edited = getEditedCopy(selectedCopy);
+            const colors = colorOverrideString();
+            onSendMessage?.(`Ser bra ut, publicera! [headline: ${edited.headline}] [body: ${edited.bodyCopy}] [cta: ${edited.cta}]${colors}`);
+          }}
+          className={`flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold shadow-sm transition-all ${
+            firstValidation.hasErrors
+              ? "cursor-not-allowed bg-gray-200 text-gray-400"
+              : "bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 hover:shadow-md"
+          }`}
+        >
+          Publicera
+          <ArrowRight className="h-3.5 w-3.5" />
+        </button>
       </div>
 
       {/* ── PRO Section (collapsed) ──────────────────────────────── */}
