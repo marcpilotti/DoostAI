@@ -1478,15 +1478,6 @@ export function CopyPreviewCard({ data, onSendMessage }: { data: CopyPreviewData
         })}
       </div>
 
-      {/* Validation + strategy banners removed — previews get maximum space */}
-
-      {/* Strategy hidden — kept as data for future tooltip */}
-      {null && (
-        <div className="hidden">
-          <span>{data.strategy?.recommendation ?? ""}</span>
-        </div>
-      )}
-
       {/* ── Two variants side by side (desktop) / carousel (mobile) */}
       <div className="min-h-0 flex-1 overflow-hidden">
         {/* Desktop: side by side */}
