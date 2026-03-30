@@ -224,12 +224,9 @@ async function callImageApi(
       return null;
     }
 
-    // Store in memory cache for the API route to serve
-    const cacheKey = `ad-img:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
-    const dataUrl = `data:image/jpeg;base64,${b64}`;
-    setImageInCache(cacheKey, dataUrl);
-
-    const imageUrl = `/api/brand/ai-image?key=${encodeURIComponent(cacheKey)}`;
+    // Return base64 data URL directly — in-memory cache doesn't work
+    // across Vercel serverless instances (server action ≠ API route)
+    const imageUrl = `data:image/jpeg;base64,${b64}`;
 
     return { imageUrl, prompt };
   } catch (err) {
