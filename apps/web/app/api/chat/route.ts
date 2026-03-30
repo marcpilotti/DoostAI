@@ -31,7 +31,7 @@ import {
   checkChannelLimit,
 } from "@/lib/stripe/plan-limits";
 
-export const maxDuration = 60; // Allow up to 60s for tool calls (Firecrawl + AI)
+export const maxDuration = 90; // Allow up to 90s for tool calls (Firecrawl + AI + DALL-E image)
 
 export async function POST(req: Request) {
 
@@ -328,8 +328,15 @@ ABSOLUTE RULES:
             getIndustryBackground(brand.industry ?? "").catch(() => null),
           ]);
 
-          // Use AI-generated image URL (small reference, not base64) or fall back to Unsplash
-          const bgUrl = aiImage?.imageUrl ?? unsplashBgUrl;
+          // Background priority: AI image → Unsplash → branded gradient SVG (never null)
+          let bgUrl = aiImage?.imageUrl ?? unsplashBgUrl;
+          if (!bgUrl) {
+            // Generate a branded gradient as SVG data URL — always works, no external deps
+            const p = brand.colors.primary ?? "#6366f1";
+            const a = brand.colors.accent ?? brand.colors.secondary ?? "#4f46e5";
+            bgUrl = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="${p}"/><stop offset="50%" stop-color="${a}"/><stop offset="100%" stop-color="${p}88"/></linearGradient></defs><rect width="1080" height="1080" fill="url(#g)"/><circle cx="200" cy="800" r="300" fill="${a}33"/><circle cx="900" cy="200" r="250" fill="${p}22"/></svg>`)}`;
+            console.log("[generate_ad_copy] Using branded SVG gradient fallback (DALL-E + Unsplash both failed)");
+          }
 
           return {
             copies: allCopy.flat().map((c, i) => ({
