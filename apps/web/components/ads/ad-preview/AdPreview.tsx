@@ -45,6 +45,19 @@ export function AdPreview({
     variantB ? defaultCompareMode : "toggle",
   );
 
+  // Image cache per format+variant — avoids regenerating on format switch
+  const [imageCache, setImageCache] = useState<Record<string, string>>({});
+
+  const getImageCacheKey = (f: AdFormat, v: "A" | "B") => `${f}:${v}`;
+
+  const handleImageGenerated = (imageUrl: string, f: AdFormat, v: "A" | "B") => {
+    setImageCache((prev) => ({ ...prev, [getImageCacheKey(f, v)]: imageUrl }));
+  };
+
+  // Get cached image for current format (passed to sub-components)
+  const cachedImageA = imageCache[getImageCacheKey(format, "A")] ?? null;
+  const cachedImageB = imageCache[getImageCacheKey(format, "B")] ?? null;
+
   // Container ref for dynamic scaling
   const containerRef = useRef<HTMLDivElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
@@ -160,7 +173,7 @@ export function AdPreview({
             /* Side-by-side: both variants at ~50% */
             <div className="grid grid-cols-2 gap-2 p-3">
               <div className="relative">
-                <FormatRenderer data={variantA} format={format} autoGenerateImage={autoGenerateImage} imageDelay={0} />
+                <FormatRenderer data={variantA} format={format} autoGenerateImage={autoGenerateImage} imageDelay={0} cachedImage={cachedImageA} onImageReady={(url) => handleImageGenerated(url, format, "A")} />
                 {/* Winner select */}
                 <button
                   onClick={() => handleWinnerSelect("A")}
@@ -174,7 +187,7 @@ export function AdPreview({
                 </button>
               </div>
               <div className="relative">
-                <FormatRenderer data={variantB!} format={format} autoGenerateImage={autoGenerateImage} imageDelay={3000} />
+                <FormatRenderer data={variantB!} format={format} autoGenerateImage={autoGenerateImage} imageDelay={3000} cachedImage={cachedImageB} onImageReady={(url) => handleImageGenerated(url, format, "B")} />
                 <button
                   onClick={() => handleWinnerSelect("B")}
                   className={`absolute -top-1 left-1/2 z-10 -translate-x-1/2 rounded-full px-2 py-0.5 text-[8px] font-bold shadow transition-all ${
@@ -194,6 +207,8 @@ export function AdPreview({
                 data={currentData}
                 format={format}
                 autoGenerateImage={autoGenerateImage}
+                cachedImage={activeVariant === "B" ? cachedImageB : cachedImageA}
+                onImageReady={(url) => handleImageGenerated(url, format, activeVariant)}
               />
             </div>
           )}
@@ -221,22 +236,29 @@ function FormatRenderer({
   format,
   autoGenerateImage,
   imageDelay = 0,
+  cachedImage,
+  onImageReady,
 }: {
   data: AdData;
   format: AdFormat;
   autoGenerateImage: boolean;
   imageDelay?: number;
+  cachedImage?: string | null;
+  onImageReady?: (url: string) => void;
 }) {
+  // Pass cached image as initial imageUrl in data (overrides broken pipeline URLs)
+  const dataWithImage = cachedImage ? { ...data, imageUrl: cachedImage } : data;
+
   switch (format) {
     case "meta-feed":
     case "meta-stories":
-      return <AdPreviewMeta data={data} format={format} autoGenerateImage={autoGenerateImage} imageDelay={imageDelay} />;
+      return <AdPreviewMeta data={dataWithImage} format={format} autoGenerateImage={autoGenerateImage} imageDelay={imageDelay} onImageReady={onImageReady} />;
     case "google-search":
-      return <AdPreviewGoogle data={data} />;
+      return <AdPreviewGoogle data={dataWithImage} />;
     case "linkedin":
-      return <AdPreviewLinkedIn data={data} autoGenerateImage={autoGenerateImage} imageDelay={imageDelay} />;
+      return <AdPreviewLinkedIn data={dataWithImage} autoGenerateImage={autoGenerateImage} imageDelay={imageDelay} onImageReady={onImageReady} />;
     default:
-      return <AdPreviewMeta data={data} format="meta-feed" autoGenerateImage={autoGenerateImage} imageDelay={imageDelay} />;
+      return <AdPreviewMeta data={dataWithImage} format="meta-feed" autoGenerateImage={autoGenerateImage} imageDelay={imageDelay} onImageReady={onImageReady} />;
   }
 }
 

@@ -250,11 +250,13 @@ export function AdPreviewMeta({
   format,
   autoGenerateImage = true,
   imageDelay = 0,
+  onImageReady,
 }: {
   data: AdData;
   format: "meta-feed" | "meta-stories";
   autoGenerateImage?: boolean;
   imageDelay?: number;
+  onImageReady?: (url: string) => void;
 }) {
   // Only trust data: URLs (base64) or https: URLs — ignore broken /api/brand/ai-image cache refs
   const initialImage = data.imageUrl && (data.imageUrl.startsWith("data:") || data.imageUrl.startsWith("https:")) ? data.imageUrl : null;
@@ -272,8 +274,7 @@ export function AdPreviewMeta({
         { id: data.id, headline: data.headline, primaryText: data.primaryText, brandName: data.brandName },
         format,
       ).then((result) => {
-        console.log("[AdPreviewMeta] Image result:", result ? `${result.imageUrl.slice(0, 30)}... (${result.imageUrl.length} chars)` : "NULL");
-        if (result?.imageUrl) setImageUrl(result.imageUrl);
+        if (result?.imageUrl) { setImageUrl(result.imageUrl); onImageReady?.(result.imageUrl); }
       }).catch((err) => {
         console.error("[AdPreviewMeta] Image generation error:", err);
       }).finally(() => setImageLoading(false));
@@ -289,7 +290,7 @@ export function AdPreviewMeta({
         { id: `${data.id}-${Date.now()}`, headline: data.headline, primaryText: data.primaryText, brandName: data.brandName },
         format,
       );
-      if (result?.imageUrl) setImageUrl(result.imageUrl);
+      if (result?.imageUrl) { setImageUrl(result.imageUrl); onImageReady?.(result.imageUrl); }
       setImageLoading(false);
     });
   }

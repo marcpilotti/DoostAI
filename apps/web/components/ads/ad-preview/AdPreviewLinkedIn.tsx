@@ -145,10 +145,12 @@ export function AdPreviewLinkedIn({
   data,
   autoGenerateImage = true,
   imageDelay = 0,
+  onImageReady,
 }: {
   data: AdData;
   autoGenerateImage?: boolean;
   imageDelay?: number;
+  onImageReady?: (url: string) => void;
 }) {
   const initialImage = data.imageUrl && (data.imageUrl.startsWith("data:") || data.imageUrl.startsWith("https:")) ? data.imageUrl : null;
   const [imageUrl, setImageUrl] = useState<string | null>(initialImage);
@@ -164,7 +166,7 @@ export function AdPreviewLinkedIn({
         { id: data.id, headline: data.headline, primaryText: data.primaryText, brandName: data.brandName },
         "linkedin",
       ).then((result) => {
-        if (result?.imageUrl) setImageUrl(result.imageUrl);
+        if (result?.imageUrl) { setImageUrl(result.imageUrl); onImageReady?.(result.imageUrl); }
       }).finally(() => setImageLoading(false));
     }, imageDelay);
     return () => clearTimeout(timer);
@@ -178,7 +180,7 @@ export function AdPreviewLinkedIn({
         { id: `${data.id}-${Date.now()}`, headline: data.headline, primaryText: data.primaryText, brandName: data.brandName },
         "linkedin",
       );
-      if (result?.imageUrl) setImageUrl(result.imageUrl);
+      if (result?.imageUrl) { setImageUrl(result.imageUrl); onImageReady?.(result.imageUrl); }
       setImageLoading(false);
     });
   }
