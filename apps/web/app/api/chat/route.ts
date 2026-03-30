@@ -359,7 +359,17 @@ ABSOLUTE RULES:
             // Generate a branded gradient as SVG data URL — always works, no external deps
             const p = brand.colors.primary ?? "#6366f1";
             const a = brand.colors.accent ?? brand.colors.secondary ?? "#4f46e5";
-            bgUrl = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="${p}"/><stop offset="50%" stop-color="${a}"/><stop offset="100%" stop-color="${p}88"/></linearGradient></defs><rect width="1080" height="1080" fill="url(#g)"/><circle cx="200" cy="800" r="300" fill="${a}33"/><circle cx="900" cy="200" r="250" fill="${p}22"/></svg>`)}`;
+            bgUrl = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080">
+  <defs>
+    <radialGradient id="g1" cx="30%" cy="20%"><stop offset="0%" stop-color="${p}dd"/><stop offset="100%" stop-color="${a}44"/></radialGradient>
+    <radialGradient id="g2" cx="70%" cy="80%"><stop offset="0%" stop-color="${a}99"/><stop offset="100%" stop-color="${p}22"/></radialGradient>
+    <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%"><stop offset="0%" stop-color="${p}"/><stop offset="50%" stop-color="${a}"/><stop offset="100%" stop-color="${p}cc"/></linearGradient>
+  </defs>
+  <rect width="1080" height="1080" fill="url(#bg)"/>
+  <circle cx="200" cy="200" r="350" fill="url(#g1)" opacity="0.6"/>
+  <circle cx="880" cy="880" r="300" fill="url(#g2)" opacity="0.5"/>
+  <circle cx="540" cy="540" r="200" fill="${a}15"/>
+</svg>`)}`;
             console.log("[generate_ad_copy] Using branded SVG gradient fallback (DALL-E + Unsplash both failed)");
           }
 

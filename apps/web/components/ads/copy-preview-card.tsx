@@ -484,7 +484,7 @@ function PreviewWrapper({ isSelected, isLoser, onPick, className, children }: { 
       role="button"
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onPick(); }}
-      className={`group relative w-full overflow-hidden rounded-2xl border-2 text-left transition-all duration-300 ${isSelected ? "border-emerald-400 shadow-lg ring-2 ring-emerald-200" : isLoser ? "border-border/20 opacity-40 hover:opacity-60" : "border-border/40 hover:border-indigo-300 hover:shadow-md"} ${className ?? ""}`}
+      className={`group relative w-full overflow-hidden rounded-2xl border-2 text-left transition-all duration-300 ${isSelected ? "scale-[1.02] ring-2 ring-emerald-400 shadow-xl shadow-emerald-100 border-emerald-400" : isLoser ? "scale-[0.97] opacity-50 border-border/20" : "hover:scale-[1.01] hover:shadow-md border-border/40 hover:border-indigo-300"} ${className ?? ""}`}
     >
       {isSelected && <SelectedBadge />}
       {children}
@@ -736,7 +736,6 @@ function MetaFeedPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
   const ctaBg = colorOverrides?.ctaBackground ?? harmonyPalette.ctaBackground;
   const ctaTextColor = getContrastText(ctaBg);
   const textColor = colorOverrides?.textColor ?? harmonyPalette.text;
-  const shadowColor = harmonyPalette.shadow;
   const creativeContainerRef = useRef<HTMLDivElement>(null);
 
   const gradient = getGradient(
@@ -745,9 +744,13 @@ function MetaFeedPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
   );
   const cleanDomain = brand.url.replace(/^https?:\/\//, "").replace(/\/$/, "");
 
+  // FIX 8: Dynamic headline sizing based on word count
+  const wordCount = copy.headline.split(/\s+/).length;
+  const headlineSize = wordCount <= 4 ? "text-3xl" : wordCount <= 7 ? "text-2xl" : "text-xl";
+
   function renderCreativeContent() {
     const headlineEl = (
-      <EditableText value={copy.headline} field="headline" onEditField={onEditField} charLimit={charLimits?.headline} className="text-2xl font-black leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] sm:text-3xl" tagName="div" />
+      <EditableText value={copy.headline} field="headline" onEditField={onEditField} charLimit={charLimits?.headline} className={`line-clamp-3 ${headlineSize} font-black leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]`} tagName="div" />
     );
     const ctaEl = (
       <EditableText value={copy.cta} field="cta" onEditField={onEditField} charLimit={charLimits?.cta} className="inline-flex items-center gap-1.5 rounded-lg px-5 py-2 text-xs font-bold shadow-md" tagName="div" />
@@ -760,7 +763,7 @@ function MetaFeedPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
             <div className="flex w-1/2 flex-col justify-center gap-3 bg-white px-5 py-4">
               <div className="text-[10px] font-semibold uppercase tracking-[0.2em]" style={{ color: primary }}>{brand.name}</div>
               <div style={{ color: textColor }}>{headlineEl}</div>
-              <div className="relative" style={{ backgroundColor: ctaBg, color: ctaTextColor, boxShadow: `0 4px 12px ${shadowColor}` }}>
+              <div className="relative" style={{ backgroundColor: ctaBg, color: ctaTextColor, boxShadow: `0 4px 16px ${ctaBg}66, 0 0 0 1px ${ctaTextColor}15` }}>
                 {ctaEl}
                 <ColorDot color={ctaBg} label="CTA-f&#228;rg" colorKey="ctaBackground" onColorChange={onColorChange} position="center-right" />
               </div>
@@ -777,7 +780,7 @@ function MetaFeedPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
             <div className="mb-4 h-1 w-12 rounded-full" style={{ backgroundColor: primary }} />
             <div style={{ color: textColor }}>{headlineEl}</div>
             <div className="mt-3 text-xs text-gray-500">{brand.name}</div>
-            <div className="relative mt-4 self-start" style={{ backgroundColor: ctaBg, color: ctaTextColor, boxShadow: `0 4px 12px ${shadowColor}` }}>
+            <div className="relative mt-4 self-start" style={{ backgroundColor: ctaBg, color: ctaTextColor, boxShadow: `0 4px 16px ${ctaBg}66, 0 0 0 1px ${ctaTextColor}15` }}>
               {ctaEl}
               <ColorDot color={primary} label="Prim&#228;rf&#228;rg" colorKey="primary" onColorChange={onColorChange} position="center-right" />
             </div>
@@ -787,13 +790,13 @@ function MetaFeedPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
       case "bold-cta":
         return (
           <div className="relative flex aspect-[1.91/1] flex-col items-center justify-between overflow-hidden py-4 text-center" style={{ background: bgImage ? `url(${bgImage}) center/cover` : gradient }}>
-            {<div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />}
+            {<div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />}
             <ColorDot color={colorOverrides?.gradientStart ?? primary} label="Bakgrundsf&#228;rg" colorKey="gradientStart" onColorChange={onColorChange} position="top-right" />
             <div className="relative z-[1] px-6">
               <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70">{brand.name}</div>
               <div className="mt-2 text-white">{headlineEl}</div>
             </div>
-            <div className="relative z-[1] w-[70%] rounded-xl px-6 py-4 text-center" style={{ backgroundColor: ctaBg, color: ctaTextColor, boxShadow: `0 8px 24px ${shadowColor}` }}>
+            <div className="relative z-[1] w-[70%] rounded-xl px-6 py-4 text-center" style={{ backgroundColor: ctaBg, color: ctaTextColor, boxShadow: `0 4px 16px ${ctaBg}66, 0 0 0 1px ${ctaTextColor}15` }}>
               <EditableText value={copy.cta} field="cta" onEditField={onEditField} charLimit={charLimits?.cta} className="text-base font-extrabold" tagName="div" />
               <ArrowRight className="mx-auto mt-1 h-4 w-4" />
               <ColorDot color={ctaBg} label="CTA-f&#228;rg" colorKey="ctaBackground" onColorChange={onColorChange} position="top-right" />
@@ -804,13 +807,13 @@ function MetaFeedPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
       default: // "centered"
         return (
           <div className="relative flex aspect-[1.91/1] items-center justify-center overflow-hidden text-center" style={{ background: bgImage ? `url(${bgImage}) center/cover` : gradient }}>
-            {<div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />}
+            {<div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />}
             <ColorDot color={colorOverrides?.gradientStart ?? primary} label="Bakgrundsf&#228;rg" colorKey="gradientStart" onColorChange={onColorChange} position="top-right" />
             <ColorDot color={colorOverrides?.gradientEnd ?? accent ?? darken(primary, 25)} label="Gradient slut" colorKey="gradientEnd" onColorChange={onColorChange} position="bottom-left" />
             <div className="relative z-[1] space-y-4 px-6">
               <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70">{brand.name}</div>
               <div className="text-white">{headlineEl}</div>
-              <div className="relative" style={{ backgroundColor: ctaBg, color: ctaTextColor, boxShadow: `0 4px 12px ${shadowColor}` }}>
+              <div className="relative" style={{ backgroundColor: ctaBg, color: ctaTextColor, boxShadow: `0 4px 16px ${ctaBg}66, 0 0 0 1px ${ctaTextColor}15` }}>
                 {ctaEl}
                 <ColorDot color={ctaBg} label="CTA-f&#228;rg" colorKey="ctaBackground" onColorChange={onColorChange} position="center-right" />
               </div>
@@ -825,18 +828,18 @@ function MetaFeedPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
       <VariantLabel label={copy.label ?? "Variant"} isSelected={isSelected} isLoser={isLoser} diffs={diffs} />
       <div className="bg-white">
         <div className="flex items-center gap-2 px-3 py-2">
-          <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white shadow-sm" style={{ backgroundColor: primary }}>
+          <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white" style={{ backgroundColor: primary, boxShadow: `0 0 16px ${primary}50, 0 4px 8px rgba(0,0,0,0.3)` }}>
             {brand.name[0]}
             <ColorDot color={primary} label="Prim&#228;rf&#228;rg" colorKey="primary" onColorChange={onColorChange} position="bottom-right" />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-[13px] font-semibold text-gray-900">{brand.name}</div>
+            <div className="truncate text-sm font-bold text-gray-900">{brand.name}</div>
             <div className="flex items-center gap-1 text-[10px] text-gray-400">Sponsrad <Globe className="inline h-2.5 w-2.5" /></div>
           </div>
           <MoreHorizontal className="h-4 w-4 shrink-0 text-gray-300" />
         </div>
         <div className="px-3 pb-2">
-          <EditableText value={copy.bodyCopy} field="bodyCopy" onEditField={onEditField} charLimit={charLimits?.bodyCopy} className="text-[12px] leading-snug text-gray-800" tagName="div" />
+          <EditableText value={copy.bodyCopy} field="bodyCopy" onEditField={onEditField} charLimit={charLimits?.bodyCopy} className="line-clamp-4 text-[12px] leading-snug text-gray-800" tagName="div" />
         </div>
         <div ref={creativeContainerRef} className="relative">
           {renderCreativeContent()}
@@ -853,7 +856,7 @@ function MetaFeedPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
             <div className="text-[9px] uppercase text-gray-400">{cleanDomain}</div>
             <div className="truncate text-xs font-semibold text-gray-800">{copy.headline.slice(0, 50)}</div>
           </div>
-          <div className="shrink-0 rounded px-3 py-1.5 text-[10px] font-semibold" style={{ backgroundColor: ctaBg, color: ctaTextColor }}>
+          <div className="shrink-0 rounded px-3 py-1.5 text-[10px] font-semibold" style={{ backgroundColor: ctaBg, color: ctaTextColor, boxShadow: `0 4px 16px ${ctaBg}66, 0 0 0 1px ${ctaTextColor}15` }}>
             {copy.cta}
           </div>
         </div>
@@ -876,14 +879,18 @@ function MetaStoryPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, l
   const gradient = getGradient(colorOverrides?.gradientStart ?? primary, colorOverrides?.gradientEnd ?? accent);
   const storyContainerRef = useRef<HTMLDivElement>(null);
 
+  // FIX 8: Dynamic headline sizing based on word count
+  const wordCount = copy.headline.split(/\s+/).length;
+  const storyHeadlineSize = wordCount <= 4 ? "text-xl" : wordCount <= 7 ? "text-lg" : "text-base";
+
   const storyBrandHeader = (
     <div className="flex w-full items-center gap-2">
-      <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white ring-2 ring-white/50" style={{ backgroundColor: primary }}>
+      <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white ring-2 ring-white/50" style={{ backgroundColor: primary, boxShadow: `0 0 16px ${primary}50, 0 4px 8px rgba(0,0,0,0.3)` }}>
         {brand.name[0]}
         <ColorDot color={primary} label="Prim&#228;rf&#228;rg" colorKey="primary" onColorChange={onColorChange} position="bottom-right" />
       </div>
       <div className="min-w-0 text-left">
-        <div className="truncate text-[10px] font-semibold text-white drop-shadow">{brand.name}</div>
+        <div className="truncate text-xs font-bold text-white drop-shadow">{brand.name}</div>
         <div className="text-[8px] text-white/60">Sponsrad</div>
       </div>
     </div>
@@ -931,7 +938,7 @@ function MetaStoryPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, l
             <EditableText value={copy.headline} field="headline" onEditField={onEditField} charLimit={charLimits?.headline} className="px-2 text-sm font-extrabold leading-tight text-white drop-shadow-lg" tagName="div" />
             <div className="flex w-full flex-col items-center gap-2">
               <ChevronUp className="h-5 w-5 animate-bounce text-white/80" />
-              <div className="relative w-full rounded-2xl px-4 py-4 text-center shadow-lg" style={{ backgroundColor: ctaBg, color: ctaTextColor }}>
+              <div className="relative w-full rounded-2xl px-4 py-4 text-center shadow-lg" style={{ backgroundColor: ctaBg, color: ctaTextColor, boxShadow: `0 4px 16px ${ctaBg}66, 0 0 0 1px ${ctaTextColor}15` }}>
                 <EditableText value={copy.cta} field="cta" onEditField={onEditField} charLimit={charLimits?.cta} className="text-base font-extrabold" tagName="div" />
                 <ColorDot color={ctaBg} label="CTA-f&#228;rg" colorKey="ctaBackground" onColorChange={onColorChange} position="top-right" />
               </div>
@@ -945,12 +952,12 @@ function MetaStoryPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, l
             <ColorDot color={colorOverrides?.gradientStart ?? primary} label="Bakgrundsf&#228;rg" colorKey="gradientStart" onColorChange={onColorChange} position="top-right" />
             {storyBrandHeader}
             <div className="space-y-3 px-2">
-              <EditableText value={copy.headline} field="headline" onEditField={onEditField} charLimit={charLimits?.headline} className="text-lg font-extrabold leading-tight text-white drop-shadow-lg" tagName="div" />
+              <EditableText value={copy.headline} field="headline" onEditField={onEditField} charLimit={charLimits?.headline} className={`${storyHeadlineSize} font-extrabold leading-tight text-white drop-shadow-lg`} tagName="div" />
               <EditableText value={bodySnippet} field="bodyCopy" onEditField={onEditField} charLimit={charLimits?.bodyCopy} className="text-[10px] leading-snug text-white/80 drop-shadow" tagName="div" />
             </div>
             <div className="flex flex-col items-center gap-1.5">
               <ChevronUp className="h-4 w-4 animate-bounce text-white/80" />
-              <div className="relative rounded-full px-5 py-2 text-[10px] font-bold shadow-lg" style={{ backgroundColor: ctaBg, color: ctaTextColor }}>
+              <div className="relative rounded-full px-5 py-2 text-[10px] font-bold shadow-lg" style={{ backgroundColor: ctaBg, color: ctaTextColor, boxShadow: `0 4px 16px ${ctaBg}66, 0 0 0 1px ${ctaTextColor}15` }}>
                 <EditableText value={copy.cta} field="cta" onEditField={onEditField} charLimit={charLimits?.cta} className="inline" tagName="span" />
                 <ColorDot color={ctaBg} label="CTA-f&#228;rg" colorKey="ctaBackground" onColorChange={onColorChange} position="center-right" />
               </div>
@@ -1146,7 +1153,7 @@ function LinkedInPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
       case "bold-cta":
         return (
           <div className="relative flex aspect-[1.91/1] flex-col items-center justify-between overflow-hidden py-4 text-center" style={{ background: bgImage ? `url(${bgImage}) center/cover` : gradient }}>
-            {<div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />}
+            {<div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />}
             <ColorDot color={colorOverrides?.gradientStart ?? primary} label="Bakgrundsf&#228;rg" colorKey="gradientStart" onColorChange={onColorChange} position="top-right" />
             <div className="relative z-[1] px-6">
               <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70">{brand.name}</div>
@@ -1163,7 +1170,7 @@ function LinkedInPreview({ copy, brand, bgImage, isSelected, isLoser, onPick, la
       default:
         return (
           <div className="relative flex aspect-[1.91/1] items-center justify-center overflow-hidden text-center" style={{ background: bgImage ? `url(${bgImage}) center/cover` : gradient }}>
-            {<div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />}
+            {<div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />}
             <ColorDot color={colorOverrides?.gradientStart ?? primary} label="Bakgrundsf&#228;rg" colorKey="gradientStart" onColorChange={onColorChange} position="top-right" />
             <div className="relative z-[1] space-y-4 px-6">
               <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70">{brand.name}</div>

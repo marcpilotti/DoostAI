@@ -173,14 +173,24 @@ function buildPrompt(params: {
   const { industry, primaryColor, accentColor, style } = params;
   const mood = getIndustryMood(industry);
 
+  const styleMood: Record<string, string> = {
+    modern: "aspirational, forward-looking, tech-forward energy",
+    classic: "timeless elegance, refined heritage, enduring quality",
+    playful: "vibrant energy, joyful movement, dynamic composition",
+    premium: "luxury, exclusive, high-end sophistication, rich textures",
+  };
+  const moodDesc = styleMood[style] ?? "professional, polished, commercial appeal";
+
   return [
-    `Professional advertisement background for a ${industry} company.`,
+    `Cinematic composition, rule-of-thirds, professional advertisement background for a ${industry} company.`,
     `Color palette: ${primaryColor}${accentColor ? ` and ${accentColor}` : ""}.`,
-    `Style: ${style}, clean, commercial quality.`,
-    `Requirements: Abstract and atmospheric, suitable as background for text overlay.`,
+    `Style: ${style} — ${moodDesc}. Premium and sophisticated.`,
+    `Visual approach: abstract geometric patterns or clean product-focused environment.`,
+    `Glossy, studio-quality lighting with soft shadows and depth of field.`,
+    `Requirements: Atmospheric and layered, suitable as background for white text overlay. Leave breathing room in center and bottom third.`,
     `DO NOT include any text, words, letters, numbers, logos, or watermarks.`,
     `The image should evoke ${mood}.`,
-    `High quality, photorealistic, studio lighting.`,
+    `High quality, photorealistic, glossy studio-quality lighting, 8K render.`,
   ].join("\n");
 }
 
