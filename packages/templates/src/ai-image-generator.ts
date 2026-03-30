@@ -270,7 +270,7 @@ export async function generateAdBackground(
             n: 1,
             size: formatToSize(format),
             quality: "standard", // $0.04/image — "hd" is $0.08
-            response_format: "b64_json",
+            response_format: redis ? "b64_json" : "url", // Use URL when no Redis (avoids needing cache)
           }),
           signal: AbortSignal.timeout(GENERATION_TIMEOUT_MS),
         });
@@ -294,43 +294,44 @@ export async function generateAdBackground(
     };
 
     const imageData = data.data[0];
-    if (!imageData?.b64_json) {
-      console.warn("[AI Image] No b64_json in OpenAI response");
-      return null;
-    }
+    const usedPrompt = imageData?.revised_prompt ?? prompt;
 
-    const dataUrl = `data:image/png;base64,${imageData.b64_json}`;
-    const usedPrompt = imageData.revised_prompt ?? prompt;
+    // Handle both response formats: b64_json (when Redis available) or url (when no Redis)
+    if (imageData?.b64_json && redis) {
+      // With Redis: cache the base64 and serve via our API route
+      const dataUrl = `data:image/png;base64,${imageData.b64_json}`;
+      console.log(`[AI Image] Generated for "${brandName}" (${industry}), ${dataUrl.length} chars, caching in Redis`);
 
-    console.log(
-      `[AI Image] Generated for "${brandName}" (${industry}), ` +
-        `data URL length: ${dataUrl.length} chars`,
-    );
-
-    // ── 4. Cache in Redis ───────────────────────────────────────
-    if (redis) {
       try {
         await redis.setex(cacheKey, AI_IMAGE_CACHE_TTL_SECONDS, dataUrl);
-        console.log(
-          `[AI Image] Cached "${cacheKey}" (TTL ${AI_IMAGE_CACHE_TTL_SECONDS}s / 30 days)`,
-        );
+        console.log(`[AI Image] Cached "${cacheKey}" (TTL ${AI_IMAGE_CACHE_TTL_SECONDS}s / 30 days)`);
       } catch (err) {
-        console.warn(
-          "[AI Image] Redis write error:",
-          err instanceof Error ? err.message : err,
-        );
-        // Non-fatal — we still have the data URL
+        console.warn("[AI Image] Redis write error:", err instanceof Error ? err.message : err);
       }
+
+      return {
+        cacheKey,
+        imageUrl: `/api/brand/ai-image?key=${encodeURIComponent(cacheKey)}`,
+        prompt: usedPrompt,
+        source: "openai",
+        cached: false,
+      };
     }
 
-    // ── 5. Return result (reference, not the actual image data) ─
-    return {
-      cacheKey,
-      imageUrl: `/api/brand/ai-image?key=${encodeURIComponent(cacheKey)}`,
-      prompt: usedPrompt,
-      source: "openai",
-      cached: false,
-    };
+    if (imageData?.url) {
+      // Without Redis: use OpenAI's temporary URL directly (valid ~1 hour)
+      console.log(`[AI Image] Generated for "${brandName}" (${industry}), using temporary OpenAI URL (no Redis)`);
+      return {
+        cacheKey,
+        imageUrl: imageData.url,
+        prompt: usedPrompt,
+        source: "openai",
+        cached: false,
+      };
+    }
+
+    console.warn("[AI Image] No image data in OpenAI response");
+    return null;
   } catch (err) {
     console.warn(
       "[AI Image] Generation failed:",
