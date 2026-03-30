@@ -21,6 +21,7 @@ import {
 } from "@doost/ai";
 import type { BrandContext, Platform } from "@doost/ai";
 import { linkedinGetOAuthUrl } from "@doost/platforms";
+import { getIndustryBackground } from "@doost/templates";
 import { adAccounts, db, eq } from "@doost/db";
 import { inngest } from "@/lib/inngest/client";
 import {
@@ -276,14 +277,20 @@ ABSOLUTE RULES:
             valuePropositions: brand.valuePropositions,
             url: brand.url,
           };
-          const allCopy = await Promise.all(
-            platforms.map((p) =>
-              generateAdCopy(brandContext, p, objective ?? "lead generation", {
-                language: detectedLanguage,
-                variants: 2,
-              }),
+
+          // Fetch ad copy and industry background in parallel
+          const [allCopy, bgUrl] = await Promise.all([
+            Promise.all(
+              platforms.map((p) =>
+                generateAdCopy(brandContext, p, objective ?? "lead generation", {
+                  language: detectedLanguage,
+                  variants: 2,
+                }),
+              ),
             ),
-          );
+            getIndustryBackground(brand.industry ?? "").catch(() => null),
+          ]);
+
           return {
             copies: allCopy.flat().map((c, i) => ({
               id: `${c.platform}-${c.variant}-${i}`,
@@ -307,6 +314,7 @@ ABSOLUTE RULES:
               fonts: brand.fonts,
               industry: brand.industry,
             },
+            backgroundUrl: bgUrl,
             platforms,
             renderingImages: true,
           };
