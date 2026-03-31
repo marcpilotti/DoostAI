@@ -128,7 +128,7 @@ export function BrandSlide({ profile, onConfirm }: { profile: BrandProfile; onCo
               {logoUrl ? (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={logoUrl} alt={name} className="h-10 max-w-[80%] object-contain" />
+                  <img src={logoUrl} alt={name} className="h-16 max-w-[90%] object-contain" />
                   <span className="text-[10px] text-muted-foreground/30 opacity-0 group-hover:opacity-100">Byt</span>
                 </>
               ) : (
