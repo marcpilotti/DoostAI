@@ -1,15 +1,11 @@
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
-
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 
-export default async function DashboardLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { userId } = await auth();
-  if (!userId) redirect("/sign-in");
-
+  // Auth check removed — Clerk middleware handles protection.
+  // This layout just wraps content in the shell.
   return <DashboardShell>{children}</DashboardShell>;
 }
