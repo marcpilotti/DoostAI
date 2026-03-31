@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { motion, useMotionValue, useTransform, useReducedMotion } from "framer-motion";
 
 import { AIMessage } from "./AIMessage";
 import type { AdData, AdFormat } from "@/components/ads/ad-preview/types";
@@ -26,37 +25,39 @@ const REGIONS = [
   { id: "sweden", label: "Hela Sverige" },
 ];
 
-function SlideToPublish({ onConfirm, disabled }: { onConfirm: () => void; disabled?: boolean }) {
-  const prefersReduced = useReducedMotion();
-  const x = useMotionValue(0);
-  const maxDrag = 212;
-  const bgOpacity = useTransform(x, [0, maxDrag], [0, 1]);
-  const textOpacity = useTransform(x, [0, maxDrag * 0.4], [0.5, 0]);
+// #7 One-tap publish with countdown
+function CountdownPublish({ onConfirm }: { onConfirm: () => void }) {
+  const [counting, setCounting] = useState(false);
+  const [count, setCount] = useState(3);
 
-  const handleDragEnd = useCallback(() => {
-    if (x.get() >= maxDrag * 0.85) onConfirm();
-  }, [x, maxDrag, onConfirm]);
+  useEffect(() => {
+    if (!counting) return;
+    if (count <= 0) { onConfirm(); return; }
+    const timer = setTimeout(() => setCount((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [counting, count, onConfirm]);
 
-  if (disabled) return null;
+  if (counting) {
+    return (
+      <div className="flex flex-col items-center gap-2">
+        <button
+          onClick={() => { setCounting(false); setCount(3); }}
+          className="flex w-full max-w-xs items-center justify-center gap-2 rounded-full bg-foreground px-6 py-3.5 text-[14px] font-semibold text-white tabular-nums active:scale-[0.98]"
+        >
+          Publicerar om {count}... — Avbryt
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="relative mx-auto h-[52px] w-[260px] overflow-hidden rounded-full bg-muted-foreground/5">
-      <motion.div className="absolute inset-0 rounded-full bg-foreground" style={{ opacity: bgOpacity }} />
-      <motion.div className="absolute inset-0 flex items-center justify-center text-[13px] font-medium text-muted-foreground" style={{ opacity: textOpacity }}>
-        Dra för att publicera →
-      </motion.div>
-      <motion.div
-        drag={prefersReduced ? false : "x"}
-        dragConstraints={{ left: 0, right: maxDrag }}
-        dragElastic={0}
-        dragMomentum={false}
-        onDragEnd={handleDragEnd}
-        style={{ x }}
-        className="absolute left-0 top-0 flex h-[52px] w-[52px] cursor-grab items-center justify-center rounded-full bg-foreground text-white shadow-lg active:cursor-grabbing"
-      >
-        <ArrowRight className="h-5 w-5" />
-      </motion.div>
-    </div>
+    <button
+      onClick={() => setCounting(true)}
+      className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-6 py-3.5 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-[0.98]"
+    >
+      Publicera nu
+      <ArrowRight className="h-4 w-4" />
+    </button>
   );
 }
 
@@ -155,14 +156,23 @@ export function PublishSlide({
           </div>
         </div>
 
-        {/* AI + Slide to publish */}
-        <div className="mt-6 mb-4">
-          <AIMessage text="Redo att nå tusentals nya kunder?" />
+        {/* #8 AI summary */}
+        <div className="mt-4 rounded-xl bg-white px-5 py-3 text-center shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+          <p className="text-[12px] leading-relaxed text-muted-foreground/50">
+            {platformLabel}-annons för <span className="font-medium text-foreground/60">{brandName}</span>,{" "}
+            {budget} kr/dag i {durationDays > 0 ? `${durationDays} dagar` : "löpande"},{" "}
+            {REGIONS.find((r) => r.id === selectedRegion)?.label}
+            {total ? ` — beräknad räckvidd: ${Math.round(total * 10).toLocaleString("sv-SE")} visningar` : ""}
+          </p>
         </div>
-        <SlideToPublish onConfirm={handlePublish} />
+
+        {/* #7 Countdown publish */}
+        <div className="mt-5">
+          <CountdownPublish onConfirm={handlePublish} />
+        </div>
 
         {/* Back */}
-        <div className="mt-5 text-center">
+        <div className="mt-4 text-center">
           <button onClick={onBack} className="text-[12px] text-muted-foreground/40 hover:text-muted-foreground">
             <ArrowLeft className="mr-1 inline h-3 w-3" /> Tillbaka
           </button>

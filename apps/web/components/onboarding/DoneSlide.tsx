@@ -50,9 +50,33 @@ export function DoneSlide({ brandName, onDashboard }: { brandName?: string; onDa
         </motion.p>
       )}
 
-      <div className="mb-8 flex flex-col items-center gap-2">
+      <div className="mb-6 flex flex-col items-center gap-2">
         {DONE_MESSAGES.map((msg) => <AIMessage key={msg.text} text={msg.text} delay={msg.delay} />)}
       </div>
+
+      {/* #10 Post-publish insights teaser */}
+      <motion.div
+        initial={prefersReduced ? false : { opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.5 }}
+        className="mb-6 w-full max-w-xs overflow-hidden rounded-2xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+      >
+        <div className="px-5 py-3">
+          <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/30">Om 24 timmar visar vi</p>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: "Räckvidd", value: "—" },
+              { label: "Klick", value: "—" },
+              { label: "CPC", value: "—" },
+            ].map((stat) => (
+              <div key={stat.label} className="text-center">
+                <div className="h-5 w-full animate-pulse rounded bg-muted-foreground/5" />
+                <div className="mt-1 text-[10px] text-muted-foreground/30">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </motion.div>
 
       <motion.button
         initial={prefersReduced ? false : { opacity: 0, y: 6 }}

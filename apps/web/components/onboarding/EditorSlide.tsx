@@ -163,13 +163,21 @@ export function EditorSlide({
               setAiMessages((prev) => [...prev, data.message]);
             }
 
+            // #1 Show copy immediately when it arrives (before images)
             if (data.event === "copy" && data.copies) {
-              // Show copy immediately — partial result
-              setAiMessages((prev) => [...prev, "Skriver klart texten..."]);
+              const partialResult: GenerateResult = {
+                copies: data.copies,
+                brand: { name: getBrandPayload().name, url: getBrandPayload().url, colors: { primary: profile.colors.primary, secondary: profile.colors.secondary, accent: profile.colors.accent } },
+                platform: platform.id,
+                strategy: null,
+              };
+              setResult(partialResult);
+              setState("ready");
+              setAiMessages(["Skapar AI-bakgrund..."]);
             }
 
             if (data.event === "image_a") {
-              setAiMessages((prev) => [...prev, "AI-bakgrund klar!"]);
+              setAiMessages(["AI-bakgrund klar!"]);
             }
 
             if (data.event === "complete" && data.result) {
@@ -364,48 +372,53 @@ export function EditorSlide({
   );
 }
 
-// ── Loading skeleton ────────────────────────────────────────────
+// #5 Smart skeleton — mimics the shape of the actual ad preview
 
 function LoadingSkeleton({ platformLabel }: { platformLabel: string }) {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-6">
-      {/* Phone-shaped mockup skeleton */}
-      <div className="w-72 overflow-hidden rounded-2xl border border-border/30 bg-white/80 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_12px_32px_rgba(0,0,0,0.06)] backdrop-blur-xl">
-        {/* Header */}
-        <div className="flex items-center gap-2 px-4 py-3">
-          <div className="h-8 w-8 animate-shimmer rounded-full bg-gradient-to-r from-indigo-100 via-purple-50 to-indigo-100 bg-[length:200%_100%]" />
-          <div className="space-y-1.5">
-            <div className="h-2.5 w-20 animate-shimmer rounded bg-gradient-to-r from-muted via-muted/40 to-muted bg-[length:200%_100%]" />
-            <div className="h-2 w-14 animate-shimmer rounded bg-gradient-to-r from-muted/60 via-muted/20 to-muted/60 bg-[length:200%_100%]" />
-          </div>
-        </div>
-        {/* Creative area */}
-        <div className="aspect-square animate-shimmer bg-gradient-to-br from-indigo-50 via-purple-50/50 to-indigo-50 bg-[length:200%_100%]">
-          <div className="flex h-full flex-col items-center justify-center gap-3 p-8">
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-200 border-t-indigo-500" />
-            <div className="h-3 w-32 animate-shimmer rounded bg-gradient-to-r from-indigo-100 via-white to-indigo-100 bg-[length:200%_100%]" />
-            <div className="h-2 w-40 animate-shimmer rounded bg-gradient-to-r from-indigo-50 via-white to-indigo-50 bg-[length:200%_100%]" />
-          </div>
-        </div>
-        {/* Footer */}
-        <div className="flex items-center justify-between px-4 py-2.5">
-          <div className="space-y-1">
-            <div className="h-2 w-16 animate-shimmer rounded bg-gradient-to-r from-muted/50 via-muted/20 to-muted/50 bg-[length:200%_100%]" />
-            <div className="h-2.5 w-24 animate-shimmer rounded bg-gradient-to-r from-muted via-muted/40 to-muted bg-[length:200%_100%]" />
-          </div>
-          <div className="h-7 w-16 animate-shimmer rounded-full bg-gradient-to-r from-indigo-100 via-indigo-50 to-indigo-100 bg-[length:200%_100%]" />
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)]">
+      {/* Fake ad header */}
+      <div className="flex items-center gap-2.5 px-4 py-3">
+        <div className="h-8 w-8 animate-pulse rounded-full bg-muted-foreground/8" />
+        <div className="space-y-1.5 flex-1">
+          <div className="h-3 w-24 animate-pulse rounded bg-muted-foreground/8" />
+          <div className="h-2 w-16 animate-pulse rounded bg-muted-foreground/5" />
         </div>
       </div>
 
-      {/* Status text */}
-      <div className="flex items-center gap-2">
-        <div className="relative h-2 w-2">
-          <div className="absolute inset-0 animate-ping rounded-full bg-indigo-400/40" />
-          <div className="relative h-2 w-2 rounded-full bg-indigo-500" />
+      {/* Fake body text */}
+      <div className="px-4 pb-3 space-y-1.5">
+        <div className="h-2.5 w-full animate-pulse rounded bg-muted-foreground/6" />
+        <div className="h-2.5 w-3/4 animate-pulse rounded bg-muted-foreground/5" />
+      </div>
+
+      {/* Fake creative — fills remaining space */}
+      <div className="flex-1 min-h-0 mx-3 mb-3 animate-pulse rounded-xl bg-muted-foreground/5 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground/10 border-t-muted-foreground/30" />
+          <p className="text-[11px] text-muted-foreground/25">Genererar {platformLabel}-annons...</p>
         </div>
-        <p className="text-xs font-medium text-muted-foreground/60">
-          Genererar {platformLabel}-annons med AI...
-        </p>
+      </div>
+
+      {/* Fake footer */}
+      <div className="flex items-center justify-between border-t border-muted-foreground/5 px-4 py-2.5">
+        <div className="space-y-1">
+          <div className="h-2 w-20 animate-pulse rounded bg-muted-foreground/6" />
+          <div className="h-2.5 w-28 animate-pulse rounded bg-muted-foreground/8" />
+        </div>
+        <div className="h-7 w-16 animate-pulse rounded-full bg-muted-foreground/6" />
+      </div>
+
+      {/* Fake platform tabs */}
+      <div className="flex justify-center gap-2 border-t border-muted-foreground/5 px-4 py-2.5">
+        <div className="h-6 w-20 animate-pulse rounded-lg bg-muted-foreground/8" />
+        <div className="h-6 w-16 animate-pulse rounded-lg bg-muted-foreground/4" />
+        <div className="h-6 w-16 animate-pulse rounded-lg bg-muted-foreground/4" />
+      </div>
+
+      {/* Fake publish button */}
+      <div className="border-t border-muted-foreground/5 px-5 py-4">
+        <div className="h-12 w-full animate-pulse rounded-full bg-muted-foreground/8" />
       </div>
     </div>
   );

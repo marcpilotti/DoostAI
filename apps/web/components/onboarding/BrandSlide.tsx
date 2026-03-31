@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ArrowRight,
   ChevronDown,
@@ -70,6 +70,21 @@ export function BrandSlide({ profile, onConfirm }: { profile: BrandProfile; onCo
   );
   const [logoUrl, setLogoUrl] = useState<string | null>(profile.logo?.url ?? profile.logos?.primary ?? null);
 
+  // #9 Confidence animation — count up from 0
+  const targetConfidence = profile._intelligence?.overallConfidence ?? 0;
+  const [displayedConfidence, setDisplayedConfidence] = useState(0);
+  useEffect(() => {
+    if (!targetConfidence) return;
+    let current = 0;
+    const step = targetConfidence / 25;
+    const interval = setInterval(() => {
+      current += step;
+      if (current >= targetConfidence) { setDisplayedConfidence(targetConfidence); clearInterval(interval); }
+      else setDisplayedConfidence(Math.round(current));
+    }, 40);
+    return () => clearInterval(interval);
+  }, [targetConfidence]);
+
   const name = stripSuffix(profile.name);
   const domain = profile.url.replace(/^https?:\/\//, "").replace(/\/$/, "");
 
@@ -91,7 +106,14 @@ export function BrandSlide({ profile, onConfirm }: { profile: BrandProfile; onCo
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`} alt="" className="h-6 w-6 shrink-0 rounded" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
             <div className="min-w-0 flex-1">
-              <h3 className="truncate text-xl font-bold tracking-tight">{name}</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="truncate text-xl font-bold tracking-tight">{name}</h3>
+                {displayedConfidence > 0 && (
+                  <span className="rounded-full bg-foreground/5 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-foreground/40">
+                    {displayedConfidence}% match
+                  </span>
+                )}
+              </div>
               <p className="text-[13px] text-muted-foreground/50">{domain}</p>
             </div>
             <a href={profile.url.startsWith("http") ? profile.url : `https://${profile.url}`} target="_blank" rel="noopener noreferrer" className="rounded-lg p-1.5 text-muted-foreground/20 hover:bg-muted/30 hover:text-muted-foreground/50">
