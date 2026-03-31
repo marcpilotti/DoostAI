@@ -1,159 +1,79 @@
 "use client";
 
-import { Copy, Pause, Play, Trash2 } from "lucide-react";
+import { Copy, MoreHorizontal, Pause, Play, Plus } from "lucide-react";
+import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
+import { MOCK_CAMPAIGNS } from "@/lib/mock-data";
+import type { Campaign } from "@/lib/mock-data";
 
-type CampaignStatus = "draft" | "live" | "paused" | "completed" | "failed";
-
-const STATUS_STYLES: Record<CampaignStatus, { bg: string; text: string; label: string }> = {
-  draft: { bg: "bg-gray-100", text: "text-gray-600", label: "Utkast" },
-  live: { bg: "bg-emerald-50", text: "text-emerald-700", label: "Live" },
-  paused: { bg: "bg-amber-50", text: "text-amber-700", label: "Pausad" },
-  completed: { bg: "bg-blue-50", text: "text-blue-700", label: "Avslutad" },
-  failed: { bg: "bg-red-50", text: "text-red-700", label: "Misslyckad" },
+const STATUS_STYLES: Record<Campaign["status"], { bg: string; text: string; label: string }> = {
+  live: { bg: "bg-[var(--doost-bg-badge-ready)]", text: "text-[var(--doost-text-positive)]", label: "Live" },
+  paused: { bg: "bg-[var(--doost-bg-badge-review)]", text: "text-[#E65100]", label: "Paused" },
+  review: { bg: "bg-[var(--doost-bg-badge-review)]", text: "text-[#E65100]", label: "In review" },
+  draft: { bg: "bg-[var(--doost-bg-secondary)]", text: "text-[var(--doost-text-secondary)]", label: "Draft" },
+  completed: { bg: "bg-[var(--doost-bg-secondary)]", text: "text-[var(--doost-text-secondary)]", label: "Completed" },
 };
 
-const MOCK_CAMPAIGNS = [
-  {
-    id: "1",
-    name: "Planacy - Lead Gen Q1",
-    status: "live" as CampaignStatus,
-    channels: ["meta", "google"],
-    budget: "500 SEK/dag",
-    impressions: 12_450,
-    clicks: 340,
-    ctr: 2.73,
-    spend: "3 200 SEK",
-    updatedAt: "2026-03-24",
-  },
-  {
-    id: "2",
-    name: "Planacy - Brand Awareness",
-    status: "paused" as CampaignStatus,
-    channels: ["linkedin"],
-    budget: "300 SEK/dag",
-    impressions: 5_800,
-    clicks: 95,
-    ctr: 1.64,
-    spend: "1 400 SEK",
-    updatedAt: "2026-03-22",
-  },
-  {
-    id: "3",
-    name: "Planacy - Retargeting",
-    status: "draft" as CampaignStatus,
-    channels: ["meta"],
-    budget: "-",
-    impressions: 0,
-    clicks: 0,
-    ctr: 0,
-    spend: "-",
-    updatedAt: "2026-03-20",
-  },
-];
-
-const CHANNEL_LABELS: Record<string, string> = {
-  meta: "Meta",
-  google: "Google",
-  linkedin: "LinkedIn",
-};
-
-function StatusBadge({ status }: { status: CampaignStatus }) {
-  const s = STATUS_STYLES[status];
-  return (
-    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${s.bg} ${s.text}`}>
-      {s.label}
-    </span>
-  );
+function PlatformIcon({ platform }: { platform: string }) {
+  if (platform === "google") return <div className="h-4 w-4 rounded-full bg-[#4285F4]" />;
+  if (platform === "linkedin") return <div className="h-4 w-4 rounded-sm bg-[#0A66C2]" />;
+  return <div className="h-4 w-4 rounded-full bg-[#0081FB]" />;
 }
 
 export default function CampaignsPage() {
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+    <div className="p-6">
       <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="font-heading text-2xl font-bold">Kampanjer</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Hantera alla dina annonskampanjer.
-          </p>
-        </div>
-        <Button asChild>
-          <a href="/chat">Skapa ny kampanj</a>
-        </Button>
+        <h2 className="text-[18px] font-semibold text-[var(--doost-text)]">Campaigns</h2>
+        <Link href="/" className="flex items-center gap-1.5 rounded-lg bg-[var(--doost-bg-active)] px-3 py-2 text-[12px] font-medium text-white hover:opacity-90">
+          <Plus className="h-3.5 w-3.5" /> New campaign
+        </Link>
       </div>
 
-      <div className="space-y-3">
-        {MOCK_CAMPAIGNS.map((campaign) => (
-          <div
-            key={campaign.id}
-            className="group flex items-center gap-4 rounded-xl border border-border/60 bg-white/60 p-4 backdrop-blur-sm transition-colors hover:bg-white/80"
-          >
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold">{campaign.name}</h3>
-                <StatusBadge status={campaign.status} />
-              </div>
-              <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                <span>{campaign.channels.map((c) => CHANNEL_LABELS[c] ?? c).join(", ")}</span>
-                <span>Budget: {campaign.budget}</span>
-                <span>Uppdaterad {campaign.updatedAt}</span>
-              </div>
-            </div>
-
-            {/* Metrics */}
-            {campaign.status !== "draft" && (
-              <div className="hidden items-center gap-6 text-center sm:flex">
-                <div>
-                  <div className="text-sm font-semibold">
-                    {campaign.impressions.toLocaleString("sv-SE")}
-                  </div>
-                  <div className="text-[10px] text-muted-foreground">
-                    Visningar
-                  </div>
-                </div>
-                <div>
-                  <div className="text-sm font-semibold">
-                    {campaign.clicks.toLocaleString("sv-SE")}
-                  </div>
-                  <div className="text-[10px] text-muted-foreground">
-                    Klick
-                  </div>
-                </div>
-                <div>
-                  <div className="text-sm font-semibold">
-                    {campaign.ctr.toFixed(1)}%
-                  </div>
-                  <div className="text-[10px] text-muted-foreground">CTR</div>
-                </div>
-                <div>
-                  <div className="text-sm font-semibold">{campaign.spend}</div>
-                  <div className="text-[10px] text-muted-foreground">Spend</div>
-                </div>
-              </div>
-            )}
-
-            {/* Actions */}
-            <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-              {campaign.status === "live" && (
-                <button className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted" title="Pausa">
-                  <Pause className="h-4 w-4" />
-                </button>
-              )}
-              {campaign.status === "paused" && (
-                <button className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted" title="Återuppta">
-                  <Play className="h-4 w-4" />
-                </button>
-              )}
-              <button className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted" title="Duplicera">
-                <Copy className="h-4 w-4" />
-              </button>
-              <button className="rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" title="Ta bort">
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        ))}
+      {/* Table */}
+      <div className="overflow-hidden rounded-[var(--doost-radius-card)] bg-[var(--doost-bg)]" style={{ border: `1px solid var(--doost-border)` }}>
+        <table className="w-full text-[13px]">
+          <thead>
+            <tr className="border-b text-left text-[11px] font-medium uppercase tracking-wider text-[var(--doost-text-muted)]" style={{ borderColor: "var(--doost-border)" }}>
+              <th className="px-4 py-3">Campaign</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3 text-right">Budget</th>
+              <th className="px-4 py-3 text-right">Spend</th>
+              <th className="px-4 py-3 text-right">ROAS</th>
+              <th className="px-4 py-3 text-right">Clicks</th>
+              <th className="px-4 py-3 text-right">CTR</th>
+              <th className="px-4 py-3 w-10" />
+            </tr>
+          </thead>
+          <tbody>
+            {MOCK_CAMPAIGNS.map((c) => {
+              const s = STATUS_STYLES[c.status];
+              return (
+                <tr key={c.id} className="border-b last:border-0 transition-colors hover:bg-[var(--doost-bg-secondary)]" style={{ borderColor: "var(--doost-border)" }}>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <PlatformIcon platform={c.platform} />
+                      <span className="font-medium text-[var(--doost-text)]">{c.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${s.bg} ${s.text}`}>{s.label}</span>
+                  </td>
+                  <td className="px-4 py-3 text-right text-[var(--doost-text)]">${c.dailyBudget}/d</td>
+                  <td className="px-4 py-3 text-right text-[var(--doost-text)]">${c.totalSpend.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right font-semibold text-[var(--doost-text)]">{c.roas > 0 ? `${c.roas}x` : "—"}</td>
+                  <td className="px-4 py-3 text-right text-[var(--doost-text)]">{c.clicks > 0 ? c.clicks.toLocaleString() : "—"}</td>
+                  <td className="px-4 py-3 text-right text-[var(--doost-text)]">{c.ctr > 0 ? `${c.ctr}%` : "—"}</td>
+                  <td className="px-4 py-3">
+                    <button className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--doost-text-muted)] hover:bg-[var(--doost-bg-secondary)]">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );
