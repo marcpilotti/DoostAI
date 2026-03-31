@@ -41,13 +41,13 @@ export function AuthModal({
             onClick={onClose}
           />
 
-          {/* Modal */}
+          {/* Modal — centered */}
           <motion.div
             initial={{ opacity: 0, y: 40, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.97 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="fixed inset-x-4 bottom-4 top-auto z-50 mx-auto max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2"
+            className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl bg-white shadow-2xl"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-6 pt-5 pb-2">
