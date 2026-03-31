@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useToast } from "@/components/ui/toast";
 import {
   ArrowRight,
   Check,
@@ -43,6 +44,7 @@ export default function ActionsPage() {
   const [actions, setActions] = useState<Action[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(false);
+  const toast = useToast();
 
   // Generate actions on first visit
   useEffect(() => {
@@ -86,9 +88,12 @@ export default function ActionsPage() {
       });
 
       if (res.ok) {
+        const data = await res.json();
         setActions((prev) => prev.map((a) => a.id === action.id ? { ...a, status: "done" } : a));
+        toast.success("Action executed", data.message ?? action.title);
       } else {
         setActions((prev) => prev.map((a) => a.id === action.id ? { ...a, status: "failed" } : a));
+        toast.error("Action failed", `Could not execute: ${action.title}`);
       }
     } catch {
       setActions((prev) => prev.map((a) => a.id === action.id ? { ...a, status: "failed" } : a));

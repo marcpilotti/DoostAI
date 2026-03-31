@@ -6,6 +6,7 @@ import { Menu } from "lucide-react";
 import { Sidebar } from "./sidebar";
 import { TopBar } from "./top-bar";
 import { AIPanel } from "./ai-panel";
+import { ToastProvider } from "@/components/ui/toast";
 import { useAIPanelStore } from "@/lib/stores/ai-panel";
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
@@ -13,6 +14,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const { open: aiPanelOpen, toggle: toggleAI, setOpen: setAIPanelOpen } = useAIPanelStore();
 
   return (
+    <ToastProvider>
     <div className="flex h-screen bg-[var(--doost-bg-secondary)]">
       {sidebarOpen && (
         <button
@@ -55,5 +57,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         </div>
       </div>
     </div>
+    </ToastProvider>
   );
 }

@@ -49,7 +49,7 @@ export default function CampaignsPage() {
             {MOCK_CAMPAIGNS.map((c) => {
               const s = STATUS_STYLES[c.status];
               return (
-                <tr key={c.id} className="border-b last:border-0 transition-colors hover:bg-[var(--doost-bg-secondary)]" style={{ borderColor: "var(--doost-border)" }}>
+                <tr key={c.id} className="cursor-pointer border-b last:border-0 transition-colors hover:bg-[var(--doost-bg-secondary)]" style={{ borderColor: "var(--doost-border)" }} onClick={() => window.location.href = `/dashboard/campaigns/${c.id}`}>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <PlatformIcon platform={c.platform} />
