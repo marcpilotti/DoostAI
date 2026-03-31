@@ -87,6 +87,9 @@ export function EditorSlide({
   const platform = PLATFORMS[platformIdx]!;
   const abortRef = useRef<AbortController | null>(null);
 
+  // Cache results per platform — switching doesn't re-generate
+  const resultCacheRef = useRef<Record<string, GenerateResult>>({});
+
   // ── Map profile → brand context for API ──────────────────────
 
   const getBrandPayload = useCallback(() => {
@@ -171,6 +174,7 @@ export function EditorSlide({
                 platform: platform.id,
                 strategy: null,
               };
+              resultCacheRef.current[platform.id] = partialResult;
               setResult(partialResult);
               setState("ready");
               setAiMessages(["Skapar AI-bakgrund..."]);
@@ -196,9 +200,49 @@ export function EditorSlide({
       }
 
       if (finalResult) {
+        resultCacheRef.current[platform.id] = finalResult;
         setResult(finalResult);
         setAiMessages(["Här är ert annonsförslag — redigera direkt i texten"]);
         setState("ready");
+
+        // Pre-generate other platforms in background for instant switching
+        if (!isRegeneration) {
+          const otherPlatforms = PLATFORMS.filter((p) => p.id !== platform.id);
+          for (const other of otherPlatforms) {
+            if (resultCacheRef.current[other.id]) continue;
+            fetch("/api/ad/generate", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                brand: getBrandPayload(),
+                platform: other.id,
+                objective: goal,
+                language: "sv",
+              }),
+            }).then(async (res) => {
+              if (!res.ok || !res.body) return;
+              const reader = res.body.getReader();
+              const decoder = new TextDecoder();
+              let buf = "";
+              let bgResult: GenerateResult | null = null;
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buf += decoder.decode(value, { stream: true });
+                const lines = buf.split("\n");
+                buf = lines.pop() ?? "";
+                for (const line of lines) {
+                  if (!line.startsWith("data: ")) continue;
+                  try {
+                    const d = JSON.parse(line.slice(6));
+                    if (d.event === "complete" && d.result) bgResult = d.result;
+                  } catch { /* skip */ }
+                }
+              }
+              if (bgResult) resultCacheRef.current[other.id] = bgResult;
+            }).catch(() => { /* non-critical */ });
+          }
+        }
       }
     } catch (err) {
       if ((err as Error).name === "AbortError") return;
@@ -214,16 +258,36 @@ export function EditorSlide({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Regenerate when goal or platform changes (after initial load)
+  // Platform switch: use cache if available, else generate
   const hasGeneratedRef = useRef(false);
   useEffect(() => {
     if (!hasGeneratedRef.current) {
       hasGeneratedRef.current = true;
       return;
     }
+    const cached = resultCacheRef.current[platform.id];
+    if (cached) {
+      // Instant switch — no loading, no API call
+      setResult(cached);
+      setEditedA(null);
+      setEditedB(null);
+      setAiMessages(["Här är ert annonsförslag — redigera direkt i texten"]);
+      setState("ready");
+    } else {
+      generate(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [platformIdx]);
+
+  // Goal change: clear cache and regenerate for current platform
+  const prevGoalRef = useRef(goal);
+  useEffect(() => {
+    if (prevGoalRef.current === goal) return;
+    prevGoalRef.current = goal;
+    resultCacheRef.current = {};
     generate(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [goal, platformIdx]);
+  }, [goal]);
 
   // ── Map result → AdData ──────────────────────────────────────
 
