@@ -10,22 +10,29 @@ const inputSchema = z.object({
     content: z.string(),
   })),
   model: z.string().optional(),
+  pageContext: z.string().optional(),
 });
 
 /**
  * POST /api/ai/chat
- * Dashboard AI panel — streaming chat.
- * Image generation tool available when user asks for ad images.
+ * Dashboard AI panel — streaming chat with action execution.
+ *
+ * The AI can recommend and execute marketing actions. When it mentions
+ * an action, it formats it as a structured block that the client renders
+ * as an executable button.
  */
 export async function POST(req: Request) {
-  const body = await req.json();
-  const parsed = inputSchema.safeParse(body);
+  let body: unknown;
+  try { body = await req.json(); } catch {
+    return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400 });
+  }
 
+  const parsed = inputSchema.safeParse(body);
   if (!parsed.success) {
     return new Response(JSON.stringify({ error: "Invalid input" }), { status: 400 });
   }
 
-  const { messages, model: modelId } = parsed.data;
+  const { messages, model: modelId, pageContext } = parsed.data;
 
   const modelMap: Record<string, string> = {
     "claude-haiku-4-5-20251001": "claude-haiku-4-5-20251001",
@@ -35,10 +42,36 @@ export async function POST(req: Request) {
 
   const resolvedModel = modelMap[modelId ?? "claude-sonnet-4-6"] ?? "claude-sonnet-4-6";
 
+  // Inject action execution capability into system prompt
+  const actionSystemPrompt = `
+
+When you recommend an action that can be executed, format it as a markdown action block like this:
+
+**Recommended action:** [action title]
+> [one-line description]
+> Type: [scale_budget|pause_campaign|refresh_creative|new_audience|consolidate|adjust_targeting]
+> Target: [campaign or creative name]
+
+This helps the user understand what you're recommending. Be specific about WHY and the expected impact.
+
+Available action types:
+- scale_budget: Increase daily budget by a percentage
+- pause_campaign: Pause an underperforming campaign
+- refresh_creative: Generate new creative variants
+- new_audience: Create a lookalike audience
+- consolidate: Merge overlapping campaigns
+- adjust_targeting: Refine audience targeting`;
+
+  const systemMessage = messages.find((m) => m.role === "system");
+  const otherMessages = messages.filter((m) => m.role !== "system");
+
+  const fullSystem = (systemMessage?.content ?? "") + actionSystemPrompt;
+
   const result = streamText({
     model: anthropic(resolvedModel),
-    messages: messages.map((m) => ({
-      role: m.role as "system" | "user" | "assistant",
+    system: fullSystem,
+    messages: otherMessages.map((m) => ({
+      role: m.role as "user" | "assistant",
       content: m.content,
     })),
   });

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { ArrowUp, ChevronDown, ChevronRight, MoreHorizontal, X } from "lucide-react";
+import { ArrowUp, Check, ChevronDown, ChevronRight, MoreHorizontal, X, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
 import ReactMarkdown from "react-markdown";
@@ -123,6 +123,49 @@ function ReasoningToggle({ reasoning }: { reasoning: string }) {
 
 // ── Message component ────────────────────────────────────────────
 
+// ── Action block parser ──────────────────────────────────────────
+
+function ActionBlock({ type, target }: { type: string; target: string }) {
+  const [status, setStatus] = useState<"idle" | "executing" | "done">("idle");
+
+  async function execute() {
+    setStatus("executing");
+    try {
+      const res = await fetch("/api/actions/execute", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ actionId: `chat_${Date.now()}`, type, target, params: {} }),
+      });
+      setStatus(res.ok ? "done" : "idle");
+    } catch {
+      setStatus("idle");
+    }
+  }
+
+  if (status === "done") {
+    return (
+      <div className="my-1.5 flex items-center gap-2 rounded-lg bg-[var(--doost-bg-badge-ready)] px-3 py-2 text-[11px] font-medium text-[var(--doost-text-positive)]">
+        <Check className="h-3 w-3" /> Executed: {target}
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={execute}
+      disabled={status === "executing"}
+      className="my-1.5 flex items-center gap-2 rounded-lg bg-[var(--doost-bg-active)] px-3 py-2 text-[11px] font-medium text-white hover:opacity-90 disabled:opacity-50"
+    >
+      {status === "executing" ? (
+        <div className="h-3 w-3 animate-spin rounded-full border-[1.5px] border-white/30 border-t-white" />
+      ) : (
+        <Zap className="h-3 w-3" />
+      )}
+      Execute: {target}
+    </button>
+  );
+}
+
 function ChatMessage({ message }: { message: Message }) {
   if (message.role === "user") {
     return (
@@ -134,12 +177,16 @@ function ChatMessage({ message }: { message: Message }) {
     );
   }
 
+  // Parse action blocks from AI response: "> Type: scale_budget\n> Target: Holiday Sale"
+  const actionMatch = message.content.match(/> Type: (\w+)\n> Target: (.+)/);
+
   return (
     <div className="mt-1">
       {message.reasoning && <ReasoningToggle reasoning={message.reasoning} />}
       <div className="prose-sm text-[13px] leading-relaxed text-[var(--doost-text-secondary)] [&_strong]:text-[var(--doost-text)] [&_h3]:mt-3 [&_h3]:text-[14px] [&_h3]:font-semibold [&_h3]:text-[var(--doost-text)] [&_ul]:mt-1.5 [&_ul]:space-y-1 [&_li]:flex [&_li]:items-start [&_li]:gap-2 [&_p]:mt-1.5">
         <ReactMarkdown>{message.content}</ReactMarkdown>
       </div>
+      {actionMatch && <ActionBlock type={actionMatch[1]!} target={actionMatch[2]!} />}
     </div>
   );
 }
