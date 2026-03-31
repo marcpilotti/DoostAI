@@ -36,25 +36,34 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
         Klistra in din hemsida — vi analyserar ditt varumärke och skapar en annons med AI.
       </p>
 
-      {/* Input card */}
-      <div className="mt-10 w-full max-w-md">
+      {/* Input card — 48px min touch height */}
+      <div className="mt-10 w-full max-w-md px-2 sm:px-0">
         <form ref={formRef} onSubmit={handleSubmit}>
-          <div className="flex items-center gap-2 rounded-2xl bg-white px-4 py-3 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)]">
+          <div className="flex items-center gap-3 rounded-2xl bg-white px-5 py-4 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)]">
             <input
               ref={inputRef}
-              type="text"
+              type="url"
+              inputMode="url"
+              autoComplete="url"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              onPaste={() => {
+                // Auto-submit 600ms after paste
+                setTimeout(() => { if (inputRef.current?.value.trim()) formRef.current?.requestSubmit(); }, 600);
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") { e.preventDefault(); if (input.trim()) formRef.current?.requestSubmit(); }
               }}
               placeholder="företag.se"
-              className="min-w-0 flex-1 bg-transparent text-[15px] font-medium text-foreground outline-none placeholder:text-muted-foreground/40"
+              className="min-h-[28px] min-w-0 flex-1 bg-transparent text-[16px] font-medium text-foreground outline-none placeholder:text-muted-foreground/40"
             />
             <button
               type="submit"
               disabled={!input.trim()}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-foreground text-white transition-opacity disabled:opacity-20"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-foreground text-white transition-opacity active:scale-95 disabled:opacity-20"
             >
               <ArrowRight className="h-4 w-4" />
             </button>

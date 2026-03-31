@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 import { URLSlide } from "./URLSlide";
@@ -130,31 +130,81 @@ function TransitionMessage({ text }: { text: string }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="flex h-screen items-center justify-center"
+      className="flex h-full items-center justify-center"
     >
       <p className="text-center text-sm text-muted-foreground">{text}</p>
     </motion.div>
   );
 }
 
+// ── Session persistence (survives refresh, max 2h) ───────────────
+
+const SESSION_KEY = "doost:onboarding";
+const SESSION_MAX_AGE = 2 * 60 * 60 * 1000;
+
+type SavedSession = {
+  step: Step;
+  url: string;
+  brand: BrandProfile | null;
+  savedAt: number;
+};
+
+function loadSession(): SavedSession | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw) as SavedSession;
+    if (Date.now() - data.savedAt > SESSION_MAX_AGE) {
+      localStorage.removeItem(SESSION_KEY);
+      return null;
+    }
+    // Only restore to brand or editor (not loading/publish/done)
+    if (data.step === "brand" || data.step === "editor") return data;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function saveSession(step: Step, url: string, brand: BrandProfile | null) {
+  if (typeof window === "undefined") return;
+  if (!step || step === "loading" || step === "done") return;
+  try {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({
+      step, url, brand, savedAt: Date.now(),
+    } satisfies SavedSession));
+  } catch { /* quota exceeded — ignore */ }
+}
+
+function clearSession() {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(SESSION_KEY);
+}
+
 // ── Shell ────────────────────────────────────────────────────────
 
 export function OnboardingShell() {
-  const [step, setStep] = useState<Step>("url");
-  const [transitionMessage, setTransitionMessage] = useState<string | null>(
-    null,
-  );
+  // Restore saved session
+  const [saved] = useState(() => loadSession());
+  const [step, setStep] = useState<Step>(saved?.step ?? "url");
+  const [transitionMessage, setTransitionMessage] = useState<string | null>(null);
   const prefersReduced = useReducedMotion();
 
   // ── Shared state between slides ─────────────────────────────
 
-  const urlRef = useRef<string>("");
-  const brandRef = useRef<BrandProfile | null>(null);
+  const urlRef = useRef<string>(saved?.url ?? "");
+  const brandRef = useRef<BrandProfile | null>(saved?.brand ?? null);
   const selectedAdRef = useRef<{
     adData: AdData;
     format: AdFormat;
     goal: string;
   } | null>(null);
+
+  // Persist on step changes
+  useEffect(() => {
+    saveSession(step, urlRef.current, brandRef.current);
+  }, [step]);
 
   // ── Transition helper ───────────────────────────────────────
 
@@ -229,7 +279,7 @@ export function OnboardingShell() {
   // ── Slide 6: Done → Dashboard ───────────────────────────────
 
   const handleDashboard = useCallback(() => {
-    // Navigate to dashboard
+    clearSession();
     if (typeof window !== "undefined") {
       window.location.href = "/campaigns";
     }
@@ -238,7 +288,7 @@ export function OnboardingShell() {
   // ── Render ────────────────────────────────────────────────────
 
   return (
-    <div className="h-screen overflow-hidden bg-background">
+    <div className="h-[100dvh] overflow-hidden bg-background pb-[env(safe-area-inset-bottom)]">
       <AnimatePresence mode="wait">
         {transitionMessage && (
           <TransitionMessage
@@ -254,7 +304,7 @@ export function OnboardingShell() {
             initial="enter"
             animate="center"
             exit="exit"
-            className="h-screen"
+            className="h-full"
           >
             <URLSlide onSubmit={handleURLSubmit} />
           </motion.div>
@@ -267,7 +317,7 @@ export function OnboardingShell() {
             initial="enter"
             animate="center"
             exit="exit"
-            className="h-screen"
+            className="h-full"
           >
             <LoadingSlide
               url={urlRef.current}
@@ -283,7 +333,7 @@ export function OnboardingShell() {
             initial="enter"
             animate="center"
             exit="exit"
-            className="h-screen"
+            className="h-full"
           >
             <BrandSlide
               profile={brandRef.current}
@@ -299,7 +349,7 @@ export function OnboardingShell() {
             initial="enter"
             animate="center"
             exit="exit"
-            className="h-screen"
+            className="h-full"
           >
             <EditorSlide
               profile={brandRef.current}
@@ -316,7 +366,7 @@ export function OnboardingShell() {
             initial="enter"
             animate="center"
             exit="exit"
-            className="h-screen"
+            className="h-full"
           >
             <PublishSlide
               adData={selectedAdRef.current.adData}
@@ -341,7 +391,7 @@ export function OnboardingShell() {
             initial="enter"
             animate="center"
             exit="exit"
-            className="h-screen"
+            className="h-full"
           >
             <DoneSlide
               brandName={brandRef.current?.name}
