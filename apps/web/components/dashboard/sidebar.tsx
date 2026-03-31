@@ -6,79 +6,144 @@ import { usePathname } from "next/navigation";
 import { UserButton, useUser } from "@clerk/nextjs";
 import {
   BarChart3,
-  MessageSquare,
+  ChevronDown,
+  Home,
+  Image as ImageIcon,
+  LayoutGrid,
+  LineChart,
+  Package,
+  Search,
   Settings,
+  ShoppingBag,
   TrendingUp,
+  Users,
+  Wallet,
   X,
+  Zap,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-const navItems = [
-  { href: "/chat", label: "Chat", icon: MessageSquare, external: true },
-  { href: "/dashboard/campaigns", label: "Kampanjer", icon: BarChart3 },
-  { href: "/dashboard/analytics", label: "Analys", icon: TrendingUp },
-  { href: "/dashboard/settings", label: "Inställningar", icon: Settings },
+// ── Nav config — matches reference image exactly ─────────────────
+
+const mainNav = [
+  { href: "/dashboard", label: "Home", icon: Home, exact: true },
+  { href: "/dashboard/analytics", label: "Analytics", icon: LineChart },
+  { href: "/dashboard/actions", label: "Actions", icon: Zap },
+  { href: "/dashboard/performance", label: "Performance", icon: TrendingUp },
+  { href: "/dashboard/campaigns", label: "Campaigns", icon: BarChart3 },
+  { href: "/dashboard/audiences", label: "Audiences", icon: Users },
+  { href: "/dashboard/creatives", label: "Creatives", icon: ImageIcon },
+  { href: "/dashboard/products", label: "Products", icon: ShoppingBag },
 ];
+
+const bottomNav = [
+  { href: "/dashboard/integrations", label: "Integrations", icon: LayoutGrid },
+  { href: "/dashboard/wallet", label: "Wallet", icon: Wallet },
+  { href: "/dashboard/settings", label: "Settings", icon: Settings },
+];
+
+// ── Component ────────────────────────────────────────────────────
 
 export function Sidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
   const { user } = useUser();
 
+  function isActive(href: string, exact?: boolean) {
+    if (exact) return pathname === href;
+    return pathname === href || pathname.startsWith(`${href}/`);
+  }
+
   return (
-    <aside className="flex h-full w-64 flex-col border-r bg-card">
-      <div className="flex items-center justify-between p-6">
-        <Link href="/chat" className="flex items-center" onClick={onClose}>
-          <Image src="/logo.svg" alt="Doost AI" width={120} height={28} className="h-7 w-auto" />
+    <aside
+      className="flex h-full flex-col bg-[var(--doost-bg)] border-r"
+      style={{ width: "var(--doost-sidebar-w)", borderColor: "var(--doost-border)" }}
+    >
+      {/* Logo + Search */}
+      <div className="flex items-center justify-between px-4 pt-5 pb-4">
+        <Link href="/dashboard" className="flex items-center" onClick={onClose}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/symbol.svg" alt="Doost AI" className="h-7 w-7" />
         </Link>
+        <div className="flex items-center gap-1">
+          <button className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--doost-text-muted)] hover:bg-[var(--doost-bg-secondary)]">
+            <Search className="h-4 w-4" />
+          </button>
+          <kbd className="hidden sm:inline-flex h-5 items-center rounded border px-1.5 text-[10px] font-medium text-[var(--doost-text-muted)]" style={{ borderColor: "var(--doost-border)" }}>
+            ⌘K
+          </kbd>
+        </div>
         {onClose && (
-          <button
-            onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted md:hidden"
-          >
+          <button onClick={onClose} className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--doost-text-muted)] hover:bg-[var(--doost-bg-secondary)] md:hidden">
             <X className="h-4 w-4" />
           </button>
         )}
       </div>
 
-      <nav className="flex-1 space-y-1 px-3">
-        {navItems.map((item) => {
-          const isActive =
-            pathname === item.href || pathname.startsWith(`${item.href}/`);
+      {/* Main nav */}
+      <nav className="flex-1 space-y-0.5 px-2">
+        {mainNav.map((item) => {
+          const active = isActive(item.href, item.exact);
           return (
             <Link
               key={item.href}
               href={item.href}
               onClick={onClose}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors",
+                active
+                  ? "bg-[var(--doost-bg-active)] text-white"
+                  : "text-[var(--doost-text-secondary)] hover:bg-[var(--doost-bg-secondary)] hover:text-[var(--doost-text)]",
               )}
             >
-              <item.icon className="h-4 w-4" />
+              <item.icon className="h-[18px] w-[18px]" />
               {item.label}
             </Link>
           );
         })}
       </nav>
 
-      <div className="border-t p-4">
-        <div className="flex items-center gap-3">
+      {/* Divider */}
+      <div className="mx-4 h-px bg-[var(--doost-border)]" />
+
+      {/* Bottom nav */}
+      <nav className="space-y-0.5 px-2 py-3">
+        {bottomNav.map((item) => {
+          const active = isActive(item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={onClose}
+              className={cn(
+                "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors",
+                active
+                  ? "bg-[var(--doost-bg-active)] text-white"
+                  : "text-[var(--doost-text-secondary)] hover:bg-[var(--doost-bg-secondary)] hover:text-[var(--doost-text)]",
+              )}
+            >
+              <item.icon className="h-[18px] w-[18px]" />
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* User */}
+      <div className="border-t px-3 py-3" style={{ borderColor: "var(--doost-border)" }}>
+        <div className="flex items-center gap-2.5">
           <UserButton
-            appearance={{
-              elements: { avatarBox: "h-8 w-8" },
-            }}
+            appearance={{ elements: { avatarBox: "h-8 w-8" } }}
           />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium">
+            <p className="truncate text-[13px] font-medium text-[var(--doost-text)]">
               {user?.fullName ?? "..."}
             </p>
-            <p className="truncate text-xs text-muted-foreground">
-              {user?.primaryEmailAddress?.emailAddress}
+            <p className="truncate text-[11px] text-[var(--doost-text-muted)]">
+              Doost AI
             </p>
           </div>
+          <ChevronDown className="h-3.5 w-3.5 text-[var(--doost-text-muted)]" />
         </div>
       </div>
     </aside>
