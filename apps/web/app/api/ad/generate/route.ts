@@ -15,9 +15,9 @@ const inputSchema = z.object({
     name: z.string(),
     description: z.string().optional(),
     industry: z.string().optional(),
-    brandVoice: z.string(),
-    targetAudience: z.string(),
-    valuePropositions: z.array(z.string()),
+    brandVoice: z.string().optional(),
+    targetAudience: z.string().optional(),
+    valuePropositions: z.array(z.string()).optional(),
     url: z.string(),
     colors: z.object({
       primary: z.string(),
@@ -73,11 +73,13 @@ export async function POST(req: Request) {
       try {
         const brandContext: BrandContext = {
           name: brand.name,
-          description: brand.description,
-          industry: brand.industry,
-          brandVoice: brand.brandVoice,
-          targetAudience: audience ?? brand.targetAudience,
-          valuePropositions: brand.valuePropositions,
+          description: brand.description ?? `${brand.name} — ${brand.industry ?? "kvalitetsprodukter"}`,
+          industry: brand.industry ?? "Allmänt",
+          brandVoice: brand.brandVoice ?? "Professional, approachable and modern",
+          targetAudience: audience ?? (brand.targetAudience || "Swedish consumers 25-55"),
+          valuePropositions: brand.valuePropositions?.length
+            ? brand.valuePropositions
+            : ["Quality", "Reliability", "Great value"],
           url: brand.url,
         };
 
@@ -88,7 +90,7 @@ export async function POST(req: Request) {
           brand: brandContext,
           platform,
           goal: objective ?? "lead generation",
-          audience: audience ?? brand.targetAudience,
+          audience: audience ?? brand.targetAudience ?? "Swedish consumers 25-55",
           language: detectedLanguage,
         }).catch((err) => {
           console.warn("[AdGenerate] Strategy failed:", err instanceof Error ? err.message : err);
@@ -102,7 +104,7 @@ export async function POST(req: Request) {
         // ── Step 2: Copy + Images in parallel ────────────────────
         send({ event: "progress", message: "Skriver rubrik och text...", progress: 30 });
 
-        const [copyResults, aiImageA, aiImageB, unsplashBgUrl] = await Promise.all([
+        const [copySettled, aiImageA, aiImageB, unsplashBgUrl] = await Promise.allSettled([
           generateAdCopy(brandContext, platform as Platform, objective ?? "lead generation", {
             language: detectedLanguage,
             variants: 2,
@@ -114,7 +116,7 @@ export async function POST(req: Request) {
             accentColor: brand.colors.accent,
             style: "modern",
             format: "square",
-          }).catch(() => null),
+          }),
           generateAdBackground({
             industry: brand.industry ?? "",
             brandName: brand.name,
@@ -122,9 +124,22 @@ export async function POST(req: Request) {
             accentColor: brand.colors.primary ?? "#6366f1",
             style: "premium",
             format: "square",
-          }).catch(() => null),
-          getIndustryBackground(brand.industry ?? "").catch(() => null),
+          }),
+          getIndustryBackground(brand.industry ?? ""),
         ]);
+
+        // Handle copy generation failure
+        if (copySettled.status === "rejected") {
+          console.error("[AdGenerate] Copy generation failed:", copySettled.reason);
+          send({
+            event: "error",
+            message: "Kunde inte generera annonstext. Försök igen.",
+          });
+          controller.close();
+          return;
+        }
+
+        const copyResults = copySettled.value;
 
         // Send copy as soon as it's ready
         const copies = copyResults.map((c, i) => ({
@@ -144,8 +159,12 @@ export async function POST(req: Request) {
         // ── Step 3: Resolve images ───────────────────────────────
         send({ event: "progress", message: "Skapar AI-bakgrund i era färger...", progress: 70 });
 
-        let bgUrl = aiImageA?.imageUrl ?? unsplashBgUrl;
-        const bgUrlB = aiImageB?.imageUrl ?? bgUrl;
+        const imgA = aiImageA.status === "fulfilled" ? aiImageA.value : null;
+        const imgB = aiImageB.status === "fulfilled" ? aiImageB.value : null;
+        const unsplashBg = unsplashBgUrl.status === "fulfilled" ? unsplashBgUrl.value : null;
+
+        let bgUrl = imgA?.imageUrl ?? unsplashBg;
+        const bgUrlB = imgB?.imageUrl ?? bgUrl;
 
         if (!bgUrl) {
           const p = brand.colors.primary ?? "#6366f1";
@@ -163,11 +182,11 @@ export async function POST(req: Request) {
 </svg>`)}`;
         }
 
-        if (aiImageA?.imageUrl) {
-          send({ event: "image_a", imageUrl: aiImageA.imageUrl, progress: 85 });
+        if (imgA?.imageUrl) {
+          send({ event: "image_a", imageUrl: imgA.imageUrl, progress: 85 });
         }
-        if (aiImageB?.imageUrl && aiImageB.imageUrl !== aiImageA?.imageUrl) {
-          send({ event: "image_b", imageUrl: aiImageB.imageUrl, progress: 90 });
+        if (imgB?.imageUrl && imgB.imageUrl !== imgA?.imageUrl) {
+          send({ event: "image_b", imageUrl: imgB.imageUrl, progress: 90 });
         }
 
         // ── Complete ─────────────────────────────────────────────
@@ -210,9 +229,10 @@ export async function POST(req: Request) {
           },
         });
       } catch (err) {
+        console.error("[AdGenerate] Unhandled error:", err);
         send({
           event: "error",
-          message: err instanceof Error ? err.message : "Något gick fel vid annonsgenerering.",
+          message: "Kunde inte generera annons. Försök igen.",
         });
       } finally {
         controller.close();
