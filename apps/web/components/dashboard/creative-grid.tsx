@@ -58,7 +58,7 @@ export function CreativeGrid({
     : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
 
   return (
-    <div className={`grid gap-5 ${cols}`}>
+    <div className={`grid gap-x-5 gap-y-8 ${cols}`}>
       {creatives.map((c) => (
         <CreativeCard
           key={c.id}

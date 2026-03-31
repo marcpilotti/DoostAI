@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import {
+  ArrowDownUp,
   Calendar,
   ChevronDown,
+  DollarSign,
   LayoutGrid,
   LayoutList,
   Grid3X3,
@@ -21,7 +23,7 @@ const SORT_OPTIONS = [
 ];
 
 const SPEND_RANGES = [
-  { id: "all", label: "All spend" },
+  { id: "all", label: "Spend range" },
   { id: "0-500", label: "$0 – $500" },
   { id: "500-2000", label: "$500 – $2,000" },
   { id: "2000+", label: "$2,000+" },
@@ -29,6 +31,12 @@ const SPEND_RANGES = [
 
 type ViewMode = "grid" | "list" | "compact";
 
+/**
+ * Matches reference exactly:
+ * - rounded-full pills with icon + text + chevron
+ * - white bg, subtle border
+ * - view toggles: 3 square buttons, rightmost group
+ */
 export function CreativeFilters({
   timeRange,
   sort,
@@ -48,7 +56,6 @@ export function CreativeFilters({
   onSpendRangeChange: (id: string) => void;
   onViewChange: (view: ViewMode) => void;
 }) {
-  // Persist view mode
   useEffect(() => {
     const saved = localStorage.getItem("doost:creative-view");
     if (saved && ["grid", "list", "compact"].includes(saved)) {
@@ -62,13 +69,10 @@ export function CreativeFilters({
     onViewChange(v);
   }
 
-  const filterPill = "relative flex items-center gap-1.5 rounded-lg bg-[var(--doost-bg)] px-3 py-2 text-[13px] font-medium text-[var(--doost-text)]";
-  const filterBorder = { border: `1px solid var(--doost-border)` };
-
   return (
-    <div className="flex items-center gap-2">
-      {/* Time range */}
-      <div className={filterPill} style={filterBorder}>
+    <div className="flex items-center gap-2.5">
+      {/* Time range pill */}
+      <div className="relative flex items-center gap-2 rounded-full bg-[var(--doost-bg)] px-4 py-2 text-[13px] font-medium text-[var(--doost-text)]" style={{ border: `1px solid var(--doost-border)` }}>
         <Calendar className="h-3.5 w-3.5 text-[var(--doost-text-muted)]" />
         <select
           value={timeRange}
@@ -79,11 +83,12 @@ export function CreativeFilters({
             <option key={t.id} value={t.id}>{t.label}</option>
           ))}
         </select>
-        <ChevronDown className="pointer-events-none absolute right-2 h-3.5 w-3.5 text-[var(--doost-text-muted)]" />
+        <ChevronDown className="pointer-events-none absolute right-3 h-3.5 w-3.5 text-[var(--doost-text-muted)]" />
       </div>
 
-      {/* Sort */}
-      <div className={filterPill} style={filterBorder}>
+      {/* Sort pill */}
+      <div className="relative flex items-center gap-2 rounded-full bg-[var(--doost-bg)] px-4 py-2 text-[13px] font-medium text-[var(--doost-text)]" style={{ border: `1px solid var(--doost-border)` }}>
+        <ArrowDownUp className="h-3.5 w-3.5 text-[var(--doost-text-muted)]" />
         <select
           value={sort}
           onChange={(e) => onSortChange(e.target.value)}
@@ -93,11 +98,12 @@ export function CreativeFilters({
             <option key={s.id} value={s.id}>{s.label}</option>
           ))}
         </select>
-        <ChevronDown className="pointer-events-none absolute right-2 h-3.5 w-3.5 text-[var(--doost-text-muted)]" />
+        <ChevronDown className="pointer-events-none absolute right-3 h-3.5 w-3.5 text-[var(--doost-text-muted)]" />
       </div>
 
-      {/* Spend range */}
-      <div className={filterPill} style={filterBorder}>
+      {/* Spend range pill */}
+      <div className="relative flex items-center gap-2 rounded-full bg-[var(--doost-bg)] px-4 py-2 text-[13px] font-medium text-[var(--doost-text)]" style={{ border: `1px solid var(--doost-border)` }}>
+        <DollarSign className="h-3.5 w-3.5 text-[var(--doost-text-muted)]" />
         <select
           value={spendRange}
           onChange={(e) => onSpendRangeChange(e.target.value)}
@@ -107,27 +113,27 @@ export function CreativeFilters({
             <option key={s.id} value={s.id}>{s.label}</option>
           ))}
         </select>
-        <ChevronDown className="pointer-events-none absolute right-2 h-3.5 w-3.5 text-[var(--doost-text-muted)]" />
+        <ChevronDown className="pointer-events-none absolute right-3 h-3.5 w-3.5 text-[var(--doost-text-muted)]" />
       </div>
 
-      {/* Spacer */}
       <div className="flex-1" />
 
-      {/* View toggles */}
-      <div className="flex rounded-lg" style={filterBorder}>
+      {/* View toggles — match reference: 3 square buttons in a group */}
+      <div className="flex overflow-hidden rounded-lg" style={{ border: `1px solid var(--doost-border)` }}>
         {([
           { id: "list" as const, icon: LayoutList },
           { id: "grid" as const, icon: LayoutGrid },
           { id: "compact" as const, icon: Grid3X3 },
-        ]).map(({ id, icon: Icon }) => (
+        ]).map(({ id, icon: Icon }, i) => (
           <button
             key={id}
             onClick={() => setView(id)}
             className={`flex h-9 w-9 items-center justify-center transition-colors ${
               view === id
                 ? "bg-[var(--doost-bg-active)] text-white"
-                : "text-[var(--doost-text-muted)] hover:text-[var(--doost-text)]"
-            } ${id === "list" ? "rounded-l-lg" : id === "compact" ? "rounded-r-lg" : ""}`}
+                : "bg-[var(--doost-bg)] text-[var(--doost-text-muted)] hover:text-[var(--doost-text)]"
+            } ${i > 0 ? "border-l" : ""}`}
+            style={i > 0 ? { borderColor: "var(--doost-border)" } : undefined}
           >
             <Icon className="h-4 w-4" />
           </button>

@@ -31,9 +31,7 @@ const mainNav = [
   { href: "/dashboard", label: "Home", icon: Home, exact: true },
   { href: "/dashboard/analytics", label: "Analytics", icon: LineChart },
   { href: "/dashboard/actions", label: "Actions", icon: Zap },
-  { href: "/dashboard/performance", label: "Performance", icon: TrendingUp },
   { href: "/dashboard/campaigns", label: "Campaigns", icon: BarChart3 },
-  { href: "/dashboard/audiences", label: "Audiences", icon: Users },
   { href: "/dashboard/creatives", label: "Creatives", icon: ImageIcon },
   { href: "/dashboard/products", label: "Products", icon: ShoppingBag },
 ];
