@@ -196,12 +196,12 @@ export function BrandSlide({
   return (
     <div className="flex h-full flex-col items-center justify-center px-4 sm:px-6">
       <div className="w-full max-w-2xl">
-        {/* Card */}
+        {/* Card with glow effect */}
         <motion.div
           initial={prefersReduced ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
-          className="overflow-hidden rounded-2xl border border-border/30 bg-white/80 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] backdrop-blur-xl"
+          className="brand-card-glow overflow-hidden rounded-2xl border border-border/20 bg-white/90 shadow-[0_2px_8px_rgba(0,0,0,0.03),0_16px_48px_rgba(0,0,0,0.05)] backdrop-blur-xl"
         >
           {/* Row 1: Logo + Name + Domain + Favicon */}
           <div className="flex items-center gap-4 px-5 py-4">
@@ -385,22 +385,22 @@ export function BrandSlide({
           </div>
 
           {/* CTA footer */}
-          <div className="border-t border-border/20 px-4 py-3">
+          <div className="border-t border-border/10 bg-gradient-to-r from-indigo-50/30 to-purple-50/20 px-5 py-4">
             <button
               onClick={handleConfirm}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-200/40 transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-xl hover:shadow-indigo-300/40"
             >
               Stämmer — skapa min annons
               <ArrowRight className="h-4 w-4" />
             </button>
-            <p className="mt-2 text-center text-[11px] text-muted-foreground/50">
-              Något stämmer inte? Klicka på valfritt fält för att ändra.
+            <p className="mt-2.5 text-center text-[11px] text-muted-foreground/40">
+              Något stämmer inte? Klicka direkt på fältet du vill ändra.
             </p>
           </div>
         </motion.div>
 
         {/* AI message below card */}
-        <div className="mt-4">
+        <div className="mt-5">
           <AIMessage text="Stämmer det här med ert varumärke?" />
         </div>
       </div>

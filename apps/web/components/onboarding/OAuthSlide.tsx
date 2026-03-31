@@ -126,19 +126,27 @@ export function OAuthSlide({
         transition={{ duration: 0.4 }}
         className="w-full max-w-sm"
       >
-        {/* Title */}
-        <h2 className="mb-6 text-center text-lg font-bold tracking-tight">
-          Koppla ditt annonskonto
-        </h2>
+        {/* Icon + Title */}
+        <div className="mb-6 flex flex-col items-center gap-3">
+          <div
+            className="flex h-12 w-12 items-center justify-center rounded-2xl text-lg font-bold text-white shadow-lg"
+            style={{ backgroundColor: config.color, boxShadow: `0 8px 24px ${config.color}33` }}
+          >
+            {config.icon}
+          </div>
+          <h2 className="text-center text-xl font-bold tracking-tight">
+            Koppla ditt annonskonto
+          </h2>
+        </div>
 
         {/* Connect button */}
         <button
           onClick={handleConnect}
           disabled={connecting || connected}
-          className="flex w-full items-center gap-3 rounded-xl border border-border/30 bg-white/80 px-5 py-4 shadow-sm backdrop-blur-xl transition-all hover:border-indigo-300 hover:shadow-md disabled:opacity-60"
+          className="flex w-full items-center gap-4 rounded-2xl border border-border/20 bg-white/90 px-5 py-5 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_12px_32px_rgba(0,0,0,0.06)] backdrop-blur-xl transition-all hover:border-indigo-200 hover:shadow-[0_4px_12px_rgba(0,0,0,0.06),0_16px_40px_rgba(0,0,0,0.08)] disabled:opacity-60"
         >
           <div
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-sm font-bold text-white"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-bold text-white shadow-md"
             style={{ backgroundColor: config.color }}
           >
             {connected ? (

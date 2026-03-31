@@ -9,7 +9,7 @@ import { motion, useReducedMotion } from "framer-motion";
  * NOT a chat bubble. NOT with an avatar. Just muted text that appears
  * with a subtle y-offset — like a status line with personality.
  *
- * Style: text-sm, muted color, centered, fade-in. Max one line.
+ * Style: text-sm, muted color, centered, fade-in with subtle letter-spacing.
  */
 export function AIMessage({
   text,
@@ -36,10 +36,14 @@ export function AIMessage({
 
   return (
     <motion.p
-      initial={prefersReduced ? false : { opacity: 0, y: 8 }}
-      animate={{ opacity: isLatest ? 1 : 0.4, y: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="text-center text-sm text-muted-foreground"
+      initial={prefersReduced ? false : { opacity: 0, y: 6, filter: "blur(4px)" }}
+      animate={{
+        opacity: isLatest ? 0.8 : 0.3,
+        y: 0,
+        filter: "blur(0px)",
+      }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="text-center text-[13px] tracking-[-0.01em] text-muted-foreground"
     >
       {text}
     </motion.p>

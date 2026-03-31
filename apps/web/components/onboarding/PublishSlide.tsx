@@ -164,113 +164,120 @@ export function PublishSlide({
     <div className="flex h-full flex-col items-center justify-center px-4 sm:px-6">
       <div className="w-full max-w-lg">
         {/* Header */}
-        <div className="mb-4 flex items-center justify-center gap-2">
-          <Zap className="h-5 w-5 text-indigo-500" />
-          <h2 className="text-lg font-bold tracking-tight">Publicera kampanj</h2>
+        <div className="mb-5 flex flex-col items-center gap-2">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 shadow-lg shadow-emerald-200/40">
+            <Zap className="h-5 w-5 text-white" />
+          </div>
+          <h2 className="text-xl font-bold tracking-tight">Publicera kampanj</h2>
         </div>
 
-        {/* Ad summary */}
-        <div className="mb-4 rounded-xl border border-border/30 bg-white/60 px-4 py-3 backdrop-blur-sm">
-          <div className="text-xs font-semibold text-foreground">
-            &ldquo;{adData.headline}&rdquo;
-          </div>
-          <div className="mt-0.5 flex items-center gap-2 text-[10px] text-muted-foreground">
-            <span>→ {adData.brandUrl.replace(/^https?:\/\//, "")}</span>
-            <span>·</span>
-            <span>{platformLabel}</span>
-          </div>
-        </div>
-
-        {/* Budget */}
-        <div className="mb-3">
-          <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-foreground/50">
-            <Wallet className="h-3 w-3" />
-            Budget
-          </div>
-          <div className="flex gap-2">
-            {BUDGETS.map((b) => (
-              <button
-                key={b.daily}
-                onClick={() => setBudget(b.daily)}
-                className={`relative flex-1 rounded-lg border px-3 py-2.5 text-center transition-all ${
-                  budget === b.daily
-                    ? "border-indigo-400 bg-indigo-50/50 ring-1 ring-indigo-200"
-                    : "border-border/40 bg-white hover:border-indigo-300"
-                }`}
-              >
-                {b.recommended && (
-                  <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 rounded-full bg-indigo-500 px-1.5 py-px text-[8px] font-semibold text-white">
-                    ★
-                  </span>
-                )}
-                <div className="text-sm font-bold">{b.daily} kr/d</div>
-                <div className="text-[9px] text-muted-foreground">{b.label}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Duration + Region side by side */}
-        <div className="mb-3 grid grid-cols-2 gap-3">
-          {/* Duration */}
-          <div>
-            <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-foreground/50">
-              <CalendarDays className="h-3 w-3" />
-              Tid
+        {/* Card container */}
+        <div className="overflow-hidden rounded-2xl border border-border/20 bg-white/80 shadow-[0_2px_8px_rgba(0,0,0,0.03),0_16px_48px_rgba(0,0,0,0.05)] backdrop-blur-xl">
+          {/* Ad summary */}
+          <div className="border-b border-border/10 px-5 py-3">
+            <div className="text-sm font-semibold text-foreground">
+              &ldquo;{adData.headline}&rdquo;
             </div>
-            <div className="flex gap-1">
-              {DURATIONS.map((d) => (
+            <div className="mt-1 flex items-center gap-2 text-[11px] text-muted-foreground">
+              <span>→ {adData.brandUrl.replace(/^https?:\/\//, "")}</span>
+              <span className="h-1 w-1 rounded-full bg-muted-foreground/30" />
+              <span>{platformLabel}</span>
+            </div>
+          </div>
+
+          {/* Budget */}
+          <div className="border-b border-border/10 px-5 py-4">
+            <div className="mb-2.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-foreground/40">
+              <Wallet className="h-3 w-3" />
+              Budget
+            </div>
+            <div className="flex gap-2">
+              {BUDGETS.map((b) => (
                 <button
-                  key={d.days}
-                  onClick={() => setDurationDays(d.days)}
-                  className={`flex-1 rounded-md border px-1.5 py-1.5 text-[10px] font-medium transition-all ${
-                    durationDays === d.days
-                      ? "border-indigo-400 bg-indigo-50/50 text-indigo-700"
-                      : "border-border/40 text-muted-foreground hover:border-indigo-300"
+                  key={b.daily}
+                  onClick={() => setBudget(b.daily)}
+                  className={`relative flex-1 rounded-xl border px-3 py-3 text-center transition-all ${
+                    budget === b.daily
+                      ? "border-indigo-300 bg-gradient-to-b from-indigo-50/80 to-white shadow-sm ring-1 ring-indigo-200/60"
+                      : "border-border/30 bg-white hover:border-indigo-200 hover:shadow-sm"
                   }`}
                 >
-                  {d.label}
-                  {d.recommended && " ★"}
+                  {b.recommended && (
+                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 px-2.5 py-0.5 text-[8px] font-bold text-white shadow-sm">
+                      Rekommenderad
+                    </span>
+                  )}
+                  <div className="text-base font-bold text-foreground">{b.daily} kr</div>
+                  <div className="text-[10px] text-muted-foreground/60">/dag</div>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Region */}
-          <div>
-            <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-foreground/50">
-              <MapPin className="h-3 w-3" />
-              Region
+          {/* Duration + Region */}
+          <div className="grid grid-cols-2 divide-x divide-border/10 border-b border-border/10">
+            <div className="px-5 py-4">
+              <div className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-foreground/40">
+                <CalendarDays className="h-3 w-3" />
+                Tid
+              </div>
+              <div className="flex gap-1.5">
+                {DURATIONS.map((d) => (
+                  <button
+                    key={d.days}
+                    onClick={() => setDurationDays(d.days)}
+                    className={`flex-1 rounded-lg border px-2 py-2 text-[11px] font-medium transition-all ${
+                      durationDays === d.days
+                        ? "border-indigo-300 bg-indigo-50/60 text-indigo-700 shadow-sm"
+                        : "border-border/30 text-muted-foreground hover:border-indigo-200"
+                    }`}
+                  >
+                    {d.label}
+                  </button>
+                ))}
+              </div>
             </div>
-            <select
-              value={selectedRegion}
-              onChange={(e) => setSelectedRegion(e.target.value)}
-              className="w-full appearance-none rounded-lg border border-border/40 bg-white px-3 py-1.5 text-xs font-medium text-foreground outline-none transition-all hover:border-border/60 focus:border-indigo-300 focus:ring-1 focus:ring-indigo-200"
-            >
-              {REGIONS.map((r) => (
-                <option key={r.id} value={r.id}>{r.label}</option>
-              ))}
-            </select>
-          </div>
-        </div>
 
-        {/* Cost summary */}
-        <div className="mb-4 flex items-center justify-between rounded-lg bg-muted/30 px-4 py-2">
-          <div>
-            <div className="text-[10px] text-muted-foreground">Annonsbudget</div>
-            <div className="text-sm font-bold">
-              {total
-                ? `${budget} × ${durationDays} = ${total.toLocaleString("sv-SE")} kr`
-                : `${budget} kr/dag (löpande)`}
+            <div className="px-5 py-4">
+              <div className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-foreground/40">
+                <MapPin className="h-3 w-3" />
+                Region
+              </div>
+              <select
+                value={selectedRegion}
+                onChange={(e) => setSelectedRegion(e.target.value)}
+                className="w-full appearance-none rounded-lg border border-border/30 bg-white px-3 py-2 text-xs font-medium text-foreground outline-none transition-all hover:border-indigo-200 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+              >
+                {REGIONS.map((r) => (
+                  <option key={r.id} value={r.id}>{r.label}</option>
+                ))}
+              </select>
             </div>
           </div>
-          <div className="text-right text-[10px] text-muted-foreground">
-            Doost AI: Gratis
+
+          {/* Cost summary */}
+          <div className="flex items-center justify-between bg-gradient-to-r from-indigo-50/40 to-purple-50/30 px-5 py-3">
+            <div>
+              <div className="text-[10px] font-medium text-muted-foreground/50">Total kampanjbudget</div>
+              <div className="text-lg font-bold tracking-tight text-foreground">
+                {total
+                  ? `${total.toLocaleString("sv-SE")} kr`
+                  : `${budget} kr/dag`}
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-[10px] font-medium text-muted-foreground/50">
+                {total ? `${budget} kr/dag × ${durationDays} dagar` : "Löpande"}
+              </div>
+              <div className="mt-0.5 rounded-full bg-emerald-100/60 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">
+                Doost AI: Gratis
+              </div>
+            </div>
           </div>
         </div>
 
         {/* AI message */}
-        <div className="mb-4">
+        <div className="my-5">
           <AIMessage text="Redo att nå tusentals nya kunder?" />
         </div>
 
@@ -278,10 +285,10 @@ export function PublishSlide({
         <SlideToPublish onConfirm={handlePublish} />
 
         {/* Back */}
-        <div className="mt-4 text-center">
+        <div className="mt-5 text-center">
           <button
             onClick={onBack}
-            className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+            className="text-xs font-medium text-muted-foreground/50 transition-colors hover:text-muted-foreground"
           >
             <ArrowLeft className="mr-1 inline h-3 w-3" />
             Tillbaka till editorn
