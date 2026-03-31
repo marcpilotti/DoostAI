@@ -6,20 +6,21 @@ import { KPICards } from "@/components/dashboard/kpi-cards";
 import { PerformanceChart } from "@/components/dashboard/performance-chart";
 import { ActivityFeed } from "@/components/dashboard/activity-feed";
 import { ChannelFilter } from "@/components/dashboard/channel-filter";
-import {
-  MOCK_KPIS,
-  MOCK_CHART_DATA,
-  MOCK_ACTIVITY,
-} from "@/lib/mock-data";
+import { useKPIs } from "@/hooks/use-kpis";
+import { useCampaignActivity } from "@/hooks/use-campaign-activity";
+import { useROASChart } from "@/hooks/use-roas-chart";
 
 export default function DashboardPage() {
   const [selectedKPI, setSelectedKPI] = useState("roas");
   const [timeRange, setTimeRange] = useState("6m");
   const [channel, setChannel] = useState("all");
 
+  const { kpis } = useKPIs({ timeRange, channel });
+  const { items: activityItems } = useCampaignActivity({ limit: 10 });
+  const { data: chartData, metricSuffix } = useROASChart({ metric: selectedKPI, timeRange, channel });
+
   return (
     <div className="p-6">
-      {/* Filter bar */}
       <div className="mb-6">
         <ChannelFilter
           timeRange={timeRange}
@@ -29,24 +30,18 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* KPI row */}
       <KPICards
-        kpis={MOCK_KPIS}
+        kpis={kpis}
         selectedId={selectedKPI}
         onSelect={setSelectedKPI}
       />
 
-      {/* Chart */}
       <div className="mt-6">
-        <PerformanceChart
-          data={MOCK_CHART_DATA}
-          metricSuffix="x"
-        />
+        <PerformanceChart data={chartData} metricSuffix={metricSuffix} />
       </div>
 
-      {/* Activity feed */}
       <div className="mt-8">
-        <ActivityFeed items={MOCK_ACTIVITY} />
+        <ActivityFeed items={activityItems} />
       </div>
     </div>
   );

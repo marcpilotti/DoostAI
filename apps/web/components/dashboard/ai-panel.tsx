@@ -172,15 +172,15 @@ export function AIPanel({ open, onClose }: { open: boolean; onClose: () => void 
     if (!text.trim() || isStreaming) return;
 
     const userMsg: Message = { id: Date.now().toString(), role: "user", content: text.trim() };
+    const aiMsgId = `${Date.now()}-ai`;
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsStreaming(true);
 
-    // Build system context
     const systemContext = `You are the Doost AI marketing assistant. The user is on the ${ctx.page} page. Context: ${ctx.summary}. Respond in the same language as the user. Be concise and actionable. Use markdown for formatting.`;
 
     try {
-      const res = await fetch("/api/chat", {
+      const res = await fetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -193,24 +193,34 @@ export function AIPanel({ open, onClose }: { open: boolean; onClose: () => void 
         }),
       });
 
-      if (!res.ok) throw new Error("Chat failed");
+      if (!res.ok || !res.body) throw new Error("Chat failed");
 
-      // For now, handle as non-streaming JSON response
-      // Full streaming comes when chat route is adapted
-      const data = await res.json();
-      const assistantContent = data?.text ?? data?.choices?.[0]?.message?.content ?? "Jag kunde inte generera ett svar just nu.";
+      // Stream the response — Vercel AI SDK data stream format
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let fullText = "";
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `${Date.now()}-ai`,
-          role: "assistant",
-          content: assistantContent,
-          reasoning: data?.reasoning,
-        },
-      ]);
+      // Add empty assistant message that we'll update
+      setMessages((prev) => [...prev, { id: aiMsgId, role: "assistant", content: "" }]);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        fullText += chunk;
+        const captured = fullText;
+        setMessages((prev) =>
+          prev.map((m) => m.id === aiMsgId ? { ...m, content: captured } : m),
+        );
+      }
+
+      // Final update
+      setMessages((prev) =>
+        prev.map((m) => m.id === aiMsgId ? { ...m, content: fullText || "Jag kunde inte generera ett svar." } : m),
+      );
     } catch {
-      // Fallback: show a helpful static response based on context
+      // Fallback static responses
       const fallbackResponses: Record<string, string> = {
         home: "Baserat på dina KPIs ser jag att **ROAS ligger på 12.5x** med +16% tillväxt. Din bästa kampanj **Holiday Sale 2025** driver majoriteten av intäkterna.\n\n### Rekommendation\nÖka budgeten på Holiday Sale med 20% — den har stabil ROAS och utrymme att skala.",
         creatives: "Jag har jämfört dina kreativ baserat på ROAS, spend och CTR.\n\n### Bäst att skala\n**Weekend Ritual** sticker ut med 5.2x ROAS och 2.2% CTR — det är din starkaste kandidat.\n\n### Sekundära kreativ\n- **Curated Essentials** (4.9x ROAS) — bra stöd\n- **Weekend Gold** (3.2x) — stabil men dyrare",
@@ -218,12 +228,12 @@ export function AIPanel({ open, onClose }: { open: boolean; onClose: () => void 
       };
 
       setMessages((prev) => [
-        ...prev,
+        ...prev.filter((m) => m.id !== aiMsgId),
         {
-          id: `${Date.now()}-ai`,
+          id: aiMsgId,
           role: "assistant",
           content: fallbackResponses[ctx.page] ?? "Jag hjälper dig gärna med din marknadsföring. Vad vill du veta?",
-          reasoning: "Använder lokalt fallback-svar baserat på sidkontexten. Anslut API-nycklar för riktiga AI-svar.",
+          reasoning: "Använder lokalt fallback-svar. Anslut ANTHROPIC_API_KEY för riktiga AI-svar.",
         },
       ]);
     } finally {

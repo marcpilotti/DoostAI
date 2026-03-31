@@ -27,21 +27,35 @@
     --brand-blue: 216 70% 55%;
     --brand-teal: 170 100% 39%;
 
-    /* Doost Dashboard tokens */
+    /* Doost Dashboard tokens — full set per spec */
     --doost-bg: #FFFFFF;
     --doost-bg-secondary: #F7F7F5;
+    --doost-bg-card: #FFFFFF;
+    --doost-bg-sidebar: #FFFFFF;
     --doost-bg-active: #1A1A1A;
+    --doost-bg-ai-panel: #F7F7F5;
+    --doost-bg-user-msg: #E8E8E4;
     --doost-bg-kpi-highlight: #F0FAF0;
     --doost-bg-badge-review: #FFF3E0;
     --doost-bg-badge-ready: #E8F5E9;
     --doost-text: #1A1A1A;
     --doost-text-secondary: #6B6B6B;
     --doost-text-muted: #9B9B9B;
+    --doost-text-on-dark: #FFFFFF;
+    --doost-text-positive: #2E7D32;
+    --doost-text-negative: #C62828;
     --doost-border: #E5E5E3;
+    --doost-border-card: #EBEBEB;
+    --doost-border-input: #D5D5D3;
+    --doost-border-active: #1A1A1A;
     --doost-chart-current: #2E7D32;
     --doost-chart-previous: #C8C8C8;
-    --doost-sidebar-w: 220px;
+    --doost-sidebar-w: 200px;
     --doost-ai-panel-w: 380px;
+    --doost-radius-sm: 6px;
+    --doost-radius-md: 8px;
+    --doost-radius-lg: 12px;
+    --doost-radius-card: 10px;
   }
 
   .dark {

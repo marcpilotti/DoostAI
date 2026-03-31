@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Instrument_Sans, Permanent_Marker } from "next/font/google";
+import { Inter, Permanent_Marker } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { CommandPalette } from "@/components/command-palette";
 import { PostHogProvider } from "@/lib/posthog/provider";
@@ -7,9 +7,9 @@ import { QueryProvider } from "@/lib/query-provider";
 
 import "./globals.css";
 
-const instrumentSans = Instrument_Sans({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-instrument-sans",
+  variable: "--font-inter",
   display: "swap",
 });
 
@@ -46,7 +46,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
       <body
-        className={`${instrumentSans.variable} ${marker.variable} font-sans antialiased`}
+        className={`${inter.variable} ${marker.variable} font-sans antialiased`}
       >
         <ClerkProvider>
           <QueryProvider>
