@@ -1,6 +1,49 @@
 "use client";
 
 import { MOCK_CAMPAIGNS } from "@/lib/mock-data";
+import type { Campaign } from "@/lib/mock-data";
+
+// ── Funnel visualization ─────────────────────────────────────────
+
+function Funnel({ campaign }: { campaign: Campaign }) {
+  const steps = [
+    { label: "Impressions", value: campaign.impressions, color: "var(--doost-bg-active)" },
+    { label: "Clicks", value: campaign.clicks, color: "var(--doost-chart-current)" },
+    { label: "Conversions", value: Math.round(campaign.clicks * 0.08), color: "#7C3AED" },
+  ];
+
+  const maxValue = steps[0]?.value ?? 1;
+
+  return (
+    <div className="mt-4 space-y-2">
+      {steps.map((step, i) => {
+        const pct = maxValue > 0 ? (step.value / maxValue) * 100 : 0;
+        const dropoff = i > 0 ? Math.round((1 - step.value / (steps[i - 1]?.value ?? 1)) * 100) : 0;
+        return (
+          <div key={step.label}>
+            <div className="mb-1 flex items-center justify-between text-[11px]">
+              <span className="text-[var(--doost-text-secondary)]">{step.label}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-[var(--doost-text)]">{step.value.toLocaleString()}</span>
+                {i > 0 && dropoff > 0 && (
+                  <span className="text-[var(--doost-text-negative)]">-{dropoff}%</span>
+                )}
+              </div>
+            </div>
+            <div className="h-3 w-full overflow-hidden rounded-full bg-[var(--doost-bg-secondary)]">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{ width: `${Math.max(pct, 2)}%`, backgroundColor: step.color }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Page ─────────────────────────────────────────────────────────
 
 export default function PerformancePage() {
   const liveCampaigns = MOCK_CAMPAIGNS.filter((c) => c.status === "live" || c.status === "completed");
@@ -22,6 +65,7 @@ export default function PerformancePage() {
               </span>
             </div>
 
+            {/* KPI row */}
             <div className="mt-4 grid grid-cols-5 gap-4">
               {[
                 { label: "Impressions", value: c.impressions.toLocaleString() },
@@ -36,6 +80,9 @@ export default function PerformancePage() {
                 </div>
               ))}
             </div>
+
+            {/* Funnel */}
+            {c.impressions > 0 && <Funnel campaign={c} />}
           </div>
         ))}
       </div>

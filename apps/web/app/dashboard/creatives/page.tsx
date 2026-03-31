@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { CreativeGrid } from "@/components/dashboard/creative-grid";
 import { CreativeFilters } from "@/components/dashboard/creative-filters";
@@ -9,13 +10,31 @@ import { useCreatives } from "@/hooks/use-creatives";
 type ViewMode = "grid" | "list" | "compact";
 
 export default function CreativesPage() {
-  const [timeRange, setTimeRange] = useState("30d");
-  const [sort, setSort] = useState("roas_desc");
-  const [spendRange, setSpendRange] = useState("all");
-  const [view, setView] = useState<ViewMode>("grid");
-  const [page, setPage] = useState(1);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const { creatives, total, totalPages } = useCreatives({
+  // Read state from URL search params (with defaults)
+  const timeRange = searchParams.get("range") ?? "30d";
+  const sort = searchParams.get("sort") ?? "roas_desc";
+  const spendRange = searchParams.get("spend") ?? "all";
+  const view = (searchParams.get("view") as ViewMode) ?? "grid";
+  const page = Number(searchParams.get("page") ?? "1");
+
+  // Update URL when filters change
+  const updateParam = useCallback((key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (key !== "page") params.set("page", "1"); // reset page on filter change
+    params.set(key, value);
+    router.replace(`/dashboard/creatives?${params.toString()}`, { scroll: false });
+  }, [router, searchParams]);
+
+  const setPage = useCallback((p: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", String(p));
+    router.replace(`/dashboard/creatives?${params.toString()}`, { scroll: false });
+  }, [router, searchParams]);
+
+  const { creatives, totalPages } = useCreatives({
     timeRange,
     sort,
     spendRange,
@@ -30,21 +49,20 @@ export default function CreativesPage() {
         sort={sort}
         spendRange={spendRange}
         view={view}
-        onTimeRangeChange={setTimeRange}
-        onSortChange={setSort}
-        onSpendRangeChange={setSpendRange}
-        onViewChange={setView}
+        onTimeRangeChange={(v) => updateParam("range", v)}
+        onSortChange={(v) => updateParam("sort", v)}
+        onSpendRangeChange={(v) => updateParam("spend", v)}
+        onViewChange={(v) => updateParam("view", v)}
       />
 
       <div className="mt-6">
         <CreativeGrid creatives={creatives} view={view} />
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="mt-6 flex items-center justify-center gap-2">
           <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            onClick={() => setPage(Math.max(1, page - 1))}
             disabled={page <= 1}
             className="rounded-lg px-3 py-1.5 text-[12px] font-medium text-[var(--doost-text-secondary)] hover:bg-[var(--doost-bg)] disabled:opacity-30"
           >
@@ -54,7 +72,7 @@ export default function CreativesPage() {
             {page} / {totalPages}
           </span>
           <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            onClick={() => setPage(Math.min(totalPages, page + 1))}
             disabled={page >= totalPages}
             className="rounded-lg px-3 py-1.5 text-[12px] font-medium text-[var(--doost-text-secondary)] hover:bg-[var(--doost-bg)] disabled:opacity-30"
           >

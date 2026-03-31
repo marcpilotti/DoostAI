@@ -1,7 +1,8 @@
 "use client";
 
+import { useCallback } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
-import { MOCK_CHART_DATA } from "@/lib/mock-data";
+import { MOCK_CHART_DATA, MOCK_KPIS } from "@/lib/mock-data";
 
 const channelData = [
   { name: "Meta", clicks: 48200, spend: 3200, roas: 4.2 },
@@ -9,12 +10,40 @@ const channelData = [
   { name: "LinkedIn", clicks: 3253, spend: 904, roas: 1.8 },
 ];
 
+function downloadCSV(filename: string, rows: Record<string, string | number>[]) {
+  if (rows.length === 0) return;
+  const headers = Object.keys(rows[0]!);
+  const csv = [
+    headers.join(","),
+    ...rows.map((r) => headers.map((h) => `"${r[h] ?? ""}"`).join(",")),
+  ].join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function AnalyticsPage() {
+  const handleExport = useCallback(() => {
+    const rows = [
+      ...MOCK_CHART_DATA.map((d) => ({ Month: d.month, "Current ROAS": d.current, "Previous ROAS": d.previous })),
+    ];
+    const channelRows = channelData.map((c) => ({ Channel: c.name, Clicks: c.clicks, Spend: c.spend, ROAS: c.roas }));
+    downloadCSV("doost-analytics.csv", [...rows, {}, ...channelRows] as Record<string, string | number>[]);
+  }, []);
+
   return (
     <div className="p-6">
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-[18px] font-semibold text-[var(--doost-text)]">Analytics</h2>
-        <button className="rounded-lg bg-[var(--doost-bg)] px-3 py-2 text-[12px] font-medium text-[var(--doost-text)]" style={{ border: `1px solid var(--doost-border)` }}>
+        <button
+          onClick={handleExport}
+          className="rounded-lg bg-[var(--doost-bg)] px-3 py-2 text-[12px] font-medium text-[var(--doost-text)] transition-colors hover:bg-[var(--doost-bg-secondary)]"
+          style={{ border: `1px solid var(--doost-border)` }}
+        >
           Export CSV
         </button>
       </div>

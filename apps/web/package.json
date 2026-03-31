@@ -44,7 +44,8 @@
     "stripe": "^20.4.1",
     "tailwind-merge": "^2",
     "xstate": "^5.29.0",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+    "zustand": "^5.0.12"
   },
   "devDependencies": {
     "@doost/config": "workspace:*",
