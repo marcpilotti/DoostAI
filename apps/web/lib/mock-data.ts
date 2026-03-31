@@ -71,12 +71,12 @@ export type Creative = {
 };
 
 export const MOCK_CREATIVES: Creative[] = [
-  { id: "1", name: "Weekend Gold", imageUrl: "https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=400&h=400&fit=crop", roas: 3.2, spend: 2018, ctr: 1.8 },
-  { id: "2", name: "Weekend Ritual", imageUrl: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=400&fit=crop", roas: 5.2, spend: 972, ctr: 2.2 },
-  { id: "3", name: "Weekend Still Life", imageUrl: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400&h=400&fit=crop", roas: 3.2, spend: 117, ctr: 1.8 },
-  { id: "4", name: "Seasonal Indulgence", imageUrl: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400&h=400&fit=crop", roas: 2.8, spend: 1574, ctr: 1.5 },
-  { id: "5", name: "Curated Essentials", imageUrl: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400&h=400&fit=crop", roas: 4.9, spend: 192, ctr: 2.5 },
-  { id: "6", name: "Curated Selection", imageUrl: "https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=400&h=400&fit=crop", roas: 3.0, spend: 720, ctr: 1.7 },
+  { id: "1", name: "Weekend Gold", imageUrl: "/creatives/weekend-gold.png", roas: 3.2, spend: 2018, ctr: 1.8 },
+  { id: "2", name: "Weekend Ritual", imageUrl: "/creatives/weekend-ritual.png", roas: 5.2, spend: 972, ctr: 2.2 },
+  { id: "3", name: "Weekend Still Life", imageUrl: "/creatives/weekend-still-life.png", roas: 3.2, spend: 117, ctr: 1.8 },
+  { id: "4", name: "Seasonal Indulgence", imageUrl: "/creatives/seasonal-indulgence.png", roas: 2.8, spend: 1574, ctr: 1.5 },
+  { id: "5", name: "Curated Essentials", imageUrl: "/creatives/curated-essentials.png", roas: 4.9, spend: 192, ctr: 2.5 },
+  { id: "6", name: "Curated Selection", imageUrl: "/creatives/curated-selection.png", roas: 3.0, spend: 720, ctr: 1.7 },
 ];
 
 // ── Campaigns ────────────────────────────────────────────────────
