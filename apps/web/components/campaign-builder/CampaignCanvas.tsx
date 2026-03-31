@@ -1,11 +1,10 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import {
   ReactFlow,
   Background,
   BackgroundVariant,
-  Controls,
   type OnNodesChange,
   type OnEdgesChange,
   type OnConnect,
@@ -23,8 +22,8 @@ import { CampaignSettingsNode } from "./nodes/CampaignSettingsNode";
 import { AnimatedEdge } from "./edges/AnimatedEdge";
 import { BuilderTopBar } from "./BuilderTopBar";
 import { BuilderBottomBar } from "./BuilderBottomBar";
-
-// ── Node + Edge type registries ──────────────────────────────────
+import { NodePropertiesPanel } from "./panels/NodePropertiesPanel";
+import { BuilderAIChat } from "./panels/BuilderAIChat";
 
 const nodeTypes = {
   prompt: PromptNode,
@@ -37,10 +36,9 @@ const edgeTypes = {
   animated: AnimatedEdge,
 };
 
-// ── Canvas ───────────────────────────────────────────────────────
-
 export function CampaignCanvas() {
-  const { nodes, edges, setNodes, setEdges, selectNode } = useCampaignBuilderStore();
+  const { nodes, edges, setNodes, setEdges, selectNode, selectedNodeId } = useCampaignBuilderStore();
+  const [aiChatOpen, setAiChatOpen] = useState(true);
 
   const onNodesChange: OnNodesChange = useCallback(
     (changes) => setNodes(applyNodeChanges(changes, nodes)),
@@ -66,35 +64,39 @@ export function CampaignCanvas() {
 
   return (
     <div className="flex h-full flex-col">
-      <BuilderTopBar onExecute={() => { /* Phase 5 */ }} />
+      <BuilderTopBar
+        onExecute={() => {}}
+        onToggleAI={() => setAiChatOpen(!aiChatOpen)}
+        aiOpen={aiChatOpen}
+      />
 
-      <div className="flex-1 overflow-hidden">
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onNodeClick={onNodeClick}
-          onPaneClick={onPaneClick}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          defaultEdgeOptions={{ type: "animated" }}
-          fitView
-          fitViewOptions={{ padding: 0.3 }}
-          snapToGrid
-          snapGrid={[16, 16]}
-          minZoom={0.3}
-          maxZoom={2}
-          proOptions={{ hideAttribution: true }}
-        >
-          <Background
-            variant={BackgroundVariant.Dots}
-            gap={20}
-            size={1}
-            color="var(--doost-border)"
-          />
-        </ReactFlow>
+      <div className="flex flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden">
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onNodeClick={onNodeClick}
+            onPaneClick={onPaneClick}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            defaultEdgeOptions={{ type: "animated" }}
+            fitView
+            fitViewOptions={{ padding: 0.3 }}
+            snapToGrid
+            snapGrid={[16, 16]}
+            minZoom={0.3}
+            maxZoom={2}
+            proOptions={{ hideAttribution: true }}
+          >
+            <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="var(--doost-border)" />
+          </ReactFlow>
+        </div>
+
+        {selectedNodeId && !aiChatOpen && <NodePropertiesPanel />}
+        <BuilderAIChat open={aiChatOpen} onClose={() => setAiChatOpen(false)} />
       </div>
 
       <BuilderBottomBar />
