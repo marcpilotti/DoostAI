@@ -2,8 +2,10 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { useAuth } from "@clerk/nextjs";
 
 import { AIMessage } from "./AIMessage";
+import { AuthModal } from "./AuthModal";
 import type { AdData, AdFormat } from "@/components/ads/ad-preview/types";
 
 const BUDGETS = [
@@ -68,8 +70,10 @@ export function PublishSlide({
   onBack: () => void;
   onPublish: (config: { dailyBudget: number; duration: number; regions: string[]; channel: string }) => void;
 }) {
+  const { isSignedIn } = useAuth();
   const [budget, setBudget] = useState(150);
   const [durationDays, setDurationDays] = useState(14);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState(() => {
     if (brandLocation) {
       const l = brandLocation.toLowerCase();
@@ -83,7 +87,7 @@ export function PublishSlide({
   const platformLabel = format.startsWith("meta") ? "Instagram" : format === "google-search" ? "Google" : "LinkedIn";
   const total = durationDays > 0 ? budget * durationDays : null;
 
-  function handlePublish() {
+  function doPublish() {
     onPublish({
       dailyBudget: budget,
       duration: durationDays,
@@ -92,8 +96,26 @@ export function PublishSlide({
     });
   }
 
+  function handlePublish() {
+    if (!isSignedIn) {
+      setShowAuthModal(true);
+      return;
+    }
+    doPublish();
+  }
+
   return (
     <div className="flex h-full flex-col items-center justify-center px-4 sm:px-6">
+      {/* Auth modal — shows when unauthenticated user tries to publish */}
+      <AuthModal
+        open={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onAuthenticated={() => {
+          setShowAuthModal(false);
+          doPublish();
+        }}
+      />
+
       <div className="w-full max-w-md">
         {/* Title */}
         <h2 className="mb-6 text-center text-2xl font-bold tracking-tight">Publicera kampanj</h2>

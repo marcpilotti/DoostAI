@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Instrument_Sans, Permanent_Marker } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
 import { CommandPalette } from "@/components/command-palette";
 import { PostHogProvider } from "@/lib/posthog/provider";
 import { QueryProvider } from "@/lib/query-provider";
@@ -47,12 +48,14 @@ export default function RootLayout({
       <body
         className={`${instrumentSans.variable} ${marker.variable} font-sans antialiased`}
       >
-        <QueryProvider>
-          <PostHogProvider>
-            {children}
-            <CommandPalette />
-          </PostHogProvider>
-        </QueryProvider>
+        <ClerkProvider>
+          <QueryProvider>
+            <PostHogProvider>
+              {children}
+              <CommandPalette />
+            </PostHogProvider>
+          </QueryProvider>
+        </ClerkProvider>
       </body>
     </html>
   );
