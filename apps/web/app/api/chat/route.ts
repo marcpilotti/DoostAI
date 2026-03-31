@@ -36,7 +36,17 @@ export const maxDuration = 90; // Allow up to 90s for tool calls (Firecrawl + AI
 
 export async function POST(req: Request) {
 
-  const { messages: uiMessages } = await req.json();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let uiMessages: any[];
+  try {
+    const body = await req.json();
+    if (!Array.isArray(body?.messages)) {
+      return new Response(JSON.stringify({ success: false, error: "messages must be an array" }), { status: 400, headers: { "Content-Type": "application/json" } });
+    }
+    uiMessages = body.messages;
+  } catch {
+    return new Response(JSON.stringify({ success: false, error: "Invalid JSON body" }), { status: 400, headers: { "Content-Type": "application/json" } });
+  }
   const messages = await convertToModelMessages(uiMessages);
 
   // Extract last user message for intent classification
@@ -567,9 +577,8 @@ ABSOLUTE RULES:
           orgId: string;
           requestedPlatforms: number;
         }) => {
-          // TODO: Replace with real plan/deployment logic — currently hardcoded to "pro"
-          // Demo mode: skip DB queries, allow everything
-          const plan = "pro" as const;
+          // Default to "free" plan — upgrade to real plan lookup when org/user DB is wired
+          const plan = "free" as const;
           const campaignCheck = checkCampaignLimit(plan, 0);
           const channelCheck = checkChannelLimit(plan, requestedPlatforms);
 

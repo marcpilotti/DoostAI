@@ -1,24 +1,32 @@
+import { z } from "zod";
 import { brandProfiles, db, eq } from "@doost/db";
 import { invalidateBrandCopy } from "@doost/ai";
 import { invalidateBrandCache } from "@/lib/cache/brand-cache";
 
-export async function POST(req: Request) {
-  const { brandProfileId, colors } = (await req.json()) as {
-    brandProfileId: string;
-    colors: {
-      primary: string;
-      secondary: string;
-      accent: string;
-      background: string;
-      text: string;
-    };
-  };
+const inputSchema = z.object({
+  brandProfileId: z.string().uuid(),
+  colors: z.object({
+    primary: z.string(),
+    secondary: z.string(),
+    accent: z.string(),
+    background: z.string(),
+    text: z.string(),
+  }),
+});
 
-  if (!brandProfileId || !colors) {
-    return Response.json({ error: "Missing brandProfileId or colors" }, { status: 400 });
+export async function POST(req: Request) {
+  let body: unknown;
+  try { body = await req.json(); } catch {
+    return Response.json({ success: false, error: "Invalid JSON" }, { status: 400 });
   }
 
-  // Update brand profile colors
+  const parsed = inputSchema.safeParse(body);
+  if (!parsed.success) {
+    return Response.json({ success: false, error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
+  }
+
+  const { brandProfileId, colors } = parsed.data;
+
   const [updated] = await db
     .update(brandProfiles)
     .set({ colors, updatedAt: new Date() })
@@ -26,12 +34,11 @@ export async function POST(req: Request) {
     .returning({ id: brandProfiles.id, orgId: brandProfiles.orgId });
 
   if (!updated) {
-    return Response.json({ error: "Brand profile not found" }, { status: 404 });
+    return Response.json({ success: false, error: "Brand profile not found" }, { status: 404 });
   }
 
-  // Invalidate caches so new colors are picked up
   invalidateBrandCache(updated.orgId);
   await invalidateBrandCopy(brandProfileId);
 
-  return Response.json({ success: true, brandProfileId: updated.id });
+  return Response.json({ success: true, data: { brandProfileId: updated.id } });
 }

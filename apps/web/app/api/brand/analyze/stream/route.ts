@@ -44,6 +44,17 @@ export async function POST(req: Request) {
     url = `https://${url}`;
   }
 
+  // Server-side SSRF protection
+  const hostname = new URL(url).hostname.toLowerCase();
+  const blocked = /^(localhost|127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|169\.254\.|0\.0\.0\.0|::1|\[::1\])/.test(hostname)
+    || hostname.endsWith(".internal") || hostname.endsWith(".local");
+  if (blocked) {
+    return new Response(JSON.stringify({ error: "URL not allowed" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {

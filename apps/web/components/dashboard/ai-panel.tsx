@@ -163,16 +163,22 @@ export function AIPanel({ open, onClose }: { open: boolean; onClose: () => void 
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  // Focus input when panel opens
+  // Focus input when panel opens (with cleanup)
   useEffect(() => {
-    if (open) setTimeout(() => inputRef.current?.focus(), 300);
+    if (!open) return;
+    const timer = setTimeout(() => inputRef.current?.focus(), 300);
+    return () => clearTimeout(timer);
   }, [open]);
+
+  // Unique ID counter
+  const idRef = useRef(0);
+  function nextId(suffix?: string) { return `msg_${++idRef.current}${suffix ?? ""}`; }
 
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || isStreaming) return;
 
-    const userMsg: Message = { id: Date.now().toString(), role: "user", content: text.trim() };
-    const aiMsgId = `${Date.now()}-ai`;
+    const userMsg: Message = { id: nextId(), role: "user", content: text.trim() };
+    const aiMsgId = nextId("-ai");
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsStreaming(true);
@@ -222,9 +228,9 @@ export function AIPanel({ open, onClose }: { open: boolean; onClose: () => void 
     } catch {
       // Fallback static responses
       const fallbackResponses: Record<string, string> = {
-        home: "Baserat på dina KPIs ser jag att **ROAS ligger på 12.5x** med +16% tillväxt. Din bästa kampanj **Holiday Sale 2025** driver majoriteten av intäkterna.\n\n### Rekommendation\nÖka budgeten på Holiday Sale med 20% — den har stabil ROAS och utrymme att skala.",
-        creatives: "Jag har jämfört dina kreativ baserat på ROAS, spend och CTR.\n\n### Bäst att skala\n**Weekend Ritual** sticker ut med 5.2x ROAS och 2.2% CTR — det är din starkaste kandidat.\n\n### Sekundära kreativ\n- **Curated Essentials** (4.9x ROAS) — bra stöd\n- **Weekend Gold** (3.2x) — stabil men dyrare",
-        campaigns: "Dina kampanjer presterar bra överlag. **Holiday Sale 2025** är din toppkampanj. Jag rekommenderar att pausa kampanjer med ROAS under 1.5x.",
+        home: "Jag kunde inte ansluta till AI just nu. Kontrollera att ANTHROPIC_API_KEY är konfigurerad. Jag kan hjälpa dig analysera dina KPIs, kampanjer och kreativ när anslutningen fungerar.",
+        creatives: "Jag kunde inte ansluta till AI just nu. Kontrollera att ANTHROPIC_API_KEY är konfigurerad. Jag kan hjälpa dig analysera och skala dina kreativ.",
+        campaigns: "Jag kunde inte ansluta till AI just nu. Kontrollera att ANTHROPIC_API_KEY är konfigurerad.",
       };
 
       setMessages((prev) => [

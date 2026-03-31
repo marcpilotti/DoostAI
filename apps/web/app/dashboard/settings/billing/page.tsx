@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, CreditCard, ExternalLink, Sparkles } from "lucide-react";
+// TODO: Wire orgId from Clerk user/org when DB is connected
 
 import { Button } from "@/components/ui/button";
 import {
@@ -49,7 +50,7 @@ function PlanCard({
     const res = await fetch("/api/stripe/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan, orgId: "demo-org" }),
+      body: JSON.stringify({ plan, orgId: "pending" }),
     });
     const data = await res.json();
     if (data.url) window.location.href = data.url;
@@ -108,7 +109,6 @@ function PlanCard({
 }
 
 export default function BillingPage() {
-  // In production, fetch from org via Clerk + DB
   const currentPlan: Plan = "free";
 
   async function handlePortal() {

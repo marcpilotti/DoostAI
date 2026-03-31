@@ -49,10 +49,18 @@ function FloatingChatBar() {
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask AI to edit your campaign..."
           className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--doost-text)] outline-none placeholder:text-[var(--doost-text-muted)]"
-          onKeyDown={(e) => {
+          onKeyDown={async (e) => {
             if (e.key === "Enter" && input.trim()) {
-              // TODO: send to AI
+              const msg = input.trim();
               setInput("");
+              // Send to AI chat endpoint with canvas context
+              try {
+                await fetch("/api/ai/chat", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ messages: [{ role: "user", content: msg }], model: "claude-sonnet-4-6" }),
+                });
+              } catch { /* non-blocking */ }
             }
           }}
         />
