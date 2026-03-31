@@ -260,8 +260,8 @@ export function EditorSlide({
 
   return (
     <div className="flex h-full flex-col px-4 py-4 sm:px-6">
-      {/* ── Preview area (no toolbar above) ─────────────────────── */}
-      <div className="relative mx-auto w-full max-w-2xl min-h-0 flex-1 overflow-hidden rounded-2xl">
+      {/* ── Card container ─────────────────────────────────────── */}
+      <div className="relative mx-auto w-full max-w-2xl min-h-0 flex-1 overflow-hidden">
         {state === "loading" && !variantA ? (
           <LoadingSkeleton platformLabel={platform.label} />
         ) : variantA ? (
@@ -269,17 +269,49 @@ export function EditorSlide({
             initial={prefersReduced ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
-            className="h-full"
-            style={{ maxHeight: "52vh" }}
+            className="flex h-full flex-col overflow-hidden rounded-2xl border border-border/15 bg-white shadow-[0_4px_12px_rgba(0,0,0,0.03),0_20px_60px_rgba(99,102,241,0.07)]"
           >
-            <AdPreview
-              variantA={variantA}
-              variantB={variantB ?? undefined}
-              format={platform.format}
-              strategy={result?.strategy}
-              autoGenerateImage={false}
-              editable
-            />
+            {/* Ad preview — fills available space */}
+            <div className="min-h-0 flex-1 overflow-hidden">
+              <AdPreview
+                variantA={variantA}
+                variantB={variantB ?? undefined}
+                format={platform.format}
+                strategy={result?.strategy}
+                autoGenerateImage={false}
+                editable
+              />
+            </div>
+
+            {/* Platform tabs — inside card, below preview */}
+            <div className="shrink-0 border-t border-border/10 px-4 py-2">
+              <div className="flex items-center justify-center gap-1">
+                {PLATFORMS.map((p, idx) => (
+                  <button
+                    key={p.id}
+                    onClick={() => setPlatformIdx(idx)}
+                    className={`rounded-lg px-3.5 py-1.5 text-[11px] font-semibold transition-all ${
+                      idx === platformIdx
+                        ? "bg-indigo-50 text-indigo-600"
+                        : "text-muted-foreground/50 hover:text-muted-foreground"
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Publish button — inside card */}
+            <div className="shrink-0 border-t border-border/10 px-4 py-3">
+              <button
+                onClick={() => { if (variantA) handlePublish(variantA); }}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-200/40 transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-xl hover:shadow-indigo-300/40"
+              >
+                Publicera
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
           </motion.div>
         ) : (
           /* Error state with retry */
@@ -288,12 +320,8 @@ export function EditorSlide({
               <Sparkles className="h-6 w-6 text-red-400" />
             </div>
             <div className="text-center">
-              <p className="text-sm font-medium text-foreground/70">
-                Kunde inte generera annons
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground/50">
-                AI:n kunde inte skapa annonstext just nu
-              </p>
+              <p className="text-sm font-medium text-foreground/70">Kunde inte generera annons</p>
+              <p className="mt-1 text-xs text-muted-foreground/50">AI:n kunde inte skapa annonstext just nu</p>
             </div>
             <button
               onClick={() => generate()}
@@ -314,101 +342,28 @@ export function EditorSlide({
           >
             <div className="flex flex-col items-center gap-2">
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-200 border-t-indigo-600" />
-              <p className="text-xs font-medium text-muted-foreground">
-                Anpassar din annons...
-              </p>
+              <p className="text-xs font-medium text-muted-foreground">Anpassar din annons...</p>
             </div>
           </motion.div>
         )}
       </div>
 
-      {/* ── Controls below card — hidden during loading ──────── */}
-      {state !== "loading" && (
-        <div className="mx-auto w-full max-w-2xl shrink-0 pt-3 pb-1">
-          <div className="flex items-center justify-center gap-3">
-            {/* Platform tabs */}
-            <div className="flex rounded-xl border border-border/20 bg-white/60 p-1 shadow-sm backdrop-blur-sm">
-              {PLATFORMS.map((p, idx) => (
-                <button
-                  key={p.id}
-                  onClick={() => setPlatformIdx(idx)}
-                  className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition-all ${
-                    idx === platformIdx
-                      ? "bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Goal dropdown */}
-            <div className="relative">
-              <select
-                value={goal}
-                onChange={(e) => setGoal(e.target.value)}
-                className="appearance-none rounded-xl border border-border/20 bg-white/60 py-1.5 pl-3 pr-7 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur-sm transition-all hover:border-indigo-200 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-              >
-                {GOALS.map((g) => (
-                  <option key={g.id} value={g.id}>{g.label}</option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground/30" />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── AI message — hidden during loading (skeleton has its own) */}
+      {/* ── AI message — only when ready ────────────────────────── */}
       {state !== "loading" && aiMessages.length > 0 && (
         <div className="mx-auto w-full max-w-2xl shrink-0 py-2">
-          <AIMessage
-            text={aiMessages[aiMessages.length - 1]!}
-            isLatest
-          />
+          <AIMessage text={aiMessages[aiMessages.length - 1]!} isLatest />
         </div>
       )}
 
-      {/* ── Action bar — hidden during loading ──────────────────── */}
-      <div className={`mx-auto flex w-full max-w-2xl shrink-0 items-center justify-between gap-3 pb-2 transition-opacity ${state === "loading" ? "pointer-events-none opacity-0" : "opacity-100"}`}>
+      {/* ── Back button — minimal, below everything ──────────────── */}
+      <div className={`mx-auto w-full max-w-2xl shrink-0 pb-2 transition-opacity ${state === "loading" ? "pointer-events-none opacity-0" : "opacity-100"}`}>
         <button
           onClick={onBack}
-          className="flex items-center gap-1.5 rounded-xl border border-border/30 bg-white/60 px-4 py-2.5 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur-sm transition-all hover:bg-white hover:shadow-md"
+          className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground/50 transition-colors hover:text-muted-foreground"
         >
-          <ArrowLeft className="h-3.5 w-3.5" />
+          <ArrowLeft className="h-3 w-3" />
           Tillbaka
         </button>
-
-        <div className="flex items-center gap-2">
-          {/* Locked features */}
-          <button
-            className="flex items-center gap-1.5 rounded-xl border border-border/20 bg-muted/10 px-3 py-2 text-[10px] font-medium text-muted-foreground/40"
-            title="Ladda ner — Pro"
-          >
-            <Lock className="h-2.5 w-2.5" />
-            PNG
-          </button>
-          <button
-            className="flex items-center gap-1.5 rounded-xl border border-border/20 bg-muted/10 px-3 py-2 text-[10px] font-medium text-muted-foreground/40"
-            title="Dela — Pro"
-          >
-            <Lock className="h-2.5 w-2.5" />
-            Dela
-          </button>
-
-          {/* Main CTA */}
-          <button
-            onClick={() => {
-              if (variantA) handlePublish(variantA);
-            }}
-            disabled={!variantA || state === "loading"}
-            className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-200/40 transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-xl hover:shadow-indigo-300/40 disabled:opacity-40 disabled:shadow-none"
-          >
-            Publicera
-            <ArrowRight className="h-4 w-4" />
-          </button>
-        </div>
       </div>
     </div>
   );
