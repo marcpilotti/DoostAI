@@ -322,56 +322,56 @@ export function EditorSlide({
         )}
       </div>
 
-      {/* ── Controls below card: Platform + Goal ────────────────── */}
-      <div className="mx-auto w-full max-w-2xl shrink-0 pt-3 pb-1">
-        <div className="flex items-center justify-center gap-3">
-          {/* Platform tabs */}
-          <div className="flex rounded-xl border border-border/20 bg-white/60 p-1 shadow-sm backdrop-blur-sm">
-            {PLATFORMS.map((p, idx) => (
-              <button
-                key={p.id}
-                onClick={() => setPlatformIdx(idx)}
-                disabled={state === "loading"}
-                className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition-all disabled:opacity-50 ${
-                  idx === platformIdx
-                    ? "bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Goal dropdown */}
-          <div className="relative">
-            <select
-              value={goal}
-              onChange={(e) => setGoal(e.target.value)}
-              disabled={state === "loading"}
-              className="appearance-none rounded-xl border border-border/20 bg-white/60 py-1.5 pl-3 pr-7 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur-sm transition-all hover:border-indigo-200 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100 disabled:opacity-50"
-            >
-              {GOALS.map((g) => (
-                <option key={g.id} value={g.id}>{g.label}</option>
+      {/* ── Controls below card — hidden during loading ──────── */}
+      {state !== "loading" && (
+        <div className="mx-auto w-full max-w-2xl shrink-0 pt-3 pb-1">
+          <div className="flex items-center justify-center gap-3">
+            {/* Platform tabs */}
+            <div className="flex rounded-xl border border-border/20 bg-white/60 p-1 shadow-sm backdrop-blur-sm">
+              {PLATFORMS.map((p, idx) => (
+                <button
+                  key={p.id}
+                  onClick={() => setPlatformIdx(idx)}
+                  className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition-all ${
+                    idx === platformIdx
+                      ? "bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {p.label}
+                </button>
               ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground/30" />
+            </div>
+
+            {/* Goal dropdown */}
+            <div className="relative">
+              <select
+                value={goal}
+                onChange={(e) => setGoal(e.target.value)}
+                className="appearance-none rounded-xl border border-border/20 bg-white/60 py-1.5 pl-3 pr-7 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur-sm transition-all hover:border-indigo-200 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+              >
+                {GOALS.map((g) => (
+                  <option key={g.id} value={g.id}>{g.label}</option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground/30" />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* ── AI message ──────────────────────────────────────────── */}
-      <div className="mx-auto w-full max-w-2xl shrink-0 py-2">
-        {aiMessages.length > 0 && (
+      {/* ── AI message — hidden during loading (skeleton has its own) */}
+      {state !== "loading" && aiMessages.length > 0 && (
+        <div className="mx-auto w-full max-w-2xl shrink-0 py-2">
           <AIMessage
             text={aiMessages[aiMessages.length - 1]!}
             isLatest
           />
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* ── Action bar ──────────────────────────────────────────── */}
-      <div className="mx-auto flex w-full max-w-2xl shrink-0 items-center justify-between gap-3 pb-2">
+      {/* ── Action bar — hidden during loading ──────────────────── */}
+      <div className={`mx-auto flex w-full max-w-2xl shrink-0 items-center justify-between gap-3 pb-2 transition-opacity ${state === "loading" ? "pointer-events-none opacity-0" : "opacity-100"}`}>
         <button
           onClick={onBack}
           className="flex items-center gap-1.5 rounded-xl border border-border/30 bg-white/60 px-4 py-2.5 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur-sm transition-all hover:bg-white hover:shadow-md"
