@@ -4,8 +4,6 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import {
   ArrowLeft,
   ArrowRight,
-  ChevronDown,
-  Lock,
   Sparkles,
 } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
@@ -269,7 +267,7 @@ export function EditorSlide({
             initial={prefersReduced ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
-            className="flex h-full flex-col overflow-hidden rounded-2xl border border-border/15 bg-white shadow-[0_4px_12px_rgba(0,0,0,0.03),0_20px_60px_rgba(99,102,241,0.07)]"
+            className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)]"
           >
             {/* Ad preview — fills available space */}
             <div className="min-h-0 flex-1 overflow-hidden">
@@ -284,17 +282,17 @@ export function EditorSlide({
               />
             </div>
 
-            {/* Platform tabs — inside card, below preview */}
-            <div className="shrink-0 border-t border-border/10 px-4 py-2">
+            {/* Platform tabs */}
+            <div className="shrink-0 border-t border-border/8 px-5 py-2.5">
               <div className="flex items-center justify-center gap-1">
                 {PLATFORMS.map((p, idx) => (
                   <button
                     key={p.id}
                     onClick={() => setPlatformIdx(idx)}
-                    className={`rounded-lg px-3.5 py-1.5 text-[11px] font-semibold transition-all ${
+                    className={`rounded-lg px-4 py-1.5 text-[12px] font-medium transition-all ${
                       idx === platformIdx
-                        ? "bg-indigo-50 text-indigo-600"
-                        : "text-muted-foreground/50 hover:text-muted-foreground"
+                        ? "bg-foreground text-white"
+                        : "text-muted-foreground/40 hover:text-muted-foreground"
                     }`}
                   >
                     {p.label}
@@ -303,11 +301,11 @@ export function EditorSlide({
               </div>
             </div>
 
-            {/* Publish button — inside card */}
-            <div className="shrink-0 border-t border-border/10 px-4 py-3">
+            {/* Publish */}
+            <div className="shrink-0 border-t border-border/8 px-5 py-4">
               <button
                 onClick={() => { if (variantA) handlePublish(variantA); }}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-200/40 transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-xl hover:shadow-indigo-300/40"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 py-3 text-[14px] font-semibold text-white transition-opacity hover:opacity-90"
               >
                 Publicera
                 <ArrowRight className="h-4 w-4" />
@@ -356,14 +354,10 @@ export function EditorSlide({
         </div>
       )}
 
-      {/* ── Back button — minimal, below everything ──────────────── */}
-      <div className={`mx-auto w-full max-w-2xl shrink-0 pb-2 transition-opacity ${state === "loading" ? "pointer-events-none opacity-0" : "opacity-100"}`}>
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground/50 transition-colors hover:text-muted-foreground"
-        >
-          <ArrowLeft className="h-3 w-3" />
-          Tillbaka
+      {/* Back */}
+      <div className={`mx-auto w-full max-w-2xl shrink-0 pb-2 text-center transition-opacity ${state === "loading" ? "pointer-events-none opacity-0" : "opacity-100"}`}>
+        <button onClick={onBack} className="text-[12px] text-muted-foreground/40 hover:text-muted-foreground">
+          <ArrowLeft className="mr-1 inline h-3 w-3" /> Tillbaka
         </button>
       </div>
     </div>
