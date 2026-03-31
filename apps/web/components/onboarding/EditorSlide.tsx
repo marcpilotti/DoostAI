@@ -256,35 +256,37 @@ export function EditorSlide({
 
   // ── Render ────────────────────────────────────────────────────
 
+  const hasError = state === "ready" && !variantA;
+
   return (
-    <div className="flex h-full flex-col px-4 py-3 sm:px-6">
-      {/* ── Toolbar: Goal, Channel, Audience ───────────────────── */}
-      <div className="mx-auto flex w-full max-w-2xl shrink-0 items-center gap-2 pb-2">
+    <div className="flex h-full flex-col px-4 py-4 sm:px-6">
+      {/* ── Toolbar: Goal, Channel ─────────────────────────────── */}
+      <div className="mx-auto flex w-full max-w-2xl shrink-0 items-center gap-2 pb-3">
         {/* Goal dropdown */}
         <div className="relative">
           <select
             value={goal}
             onChange={(e) => setGoal(e.target.value)}
             disabled={state === "loading"}
-            className="appearance-none rounded-lg border border-border/40 bg-white/60 py-1.5 pl-3 pr-7 text-xs font-medium text-foreground backdrop-blur-sm transition-all hover:border-border/60 focus:border-indigo-300 focus:outline-none focus:ring-1 focus:ring-indigo-200 disabled:opacity-50"
+            className="appearance-none rounded-xl border border-border/30 bg-white/80 py-2 pl-4 pr-8 text-sm font-medium text-foreground shadow-sm backdrop-blur-sm transition-all hover:border-indigo-200 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100 disabled:opacity-50"
           >
             {GOALS.map((g) => (
               <option key={g.id} value={g.id}>{g.label}</option>
             ))}
           </select>
-          <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground/50" />
+          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/40" />
         </div>
 
-        {/* Platform tabs */}
-        <div className="flex rounded-lg border border-border/30 bg-white/50 p-0.5 backdrop-blur-sm">
+        {/* Platform tabs — pill style */}
+        <div className="flex rounded-xl border border-border/20 bg-white/60 p-1 shadow-sm backdrop-blur-sm">
           {PLATFORMS.map((p, idx) => (
             <button
               key={p.id}
               onClick={() => setPlatformIdx(idx)}
               disabled={state === "loading"}
-              className={`rounded-md px-3 py-1 text-xs font-medium transition-all disabled:opacity-50 ${
+              className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition-all disabled:opacity-50 ${
                 idx === platformIdx
-                  ? "bg-white text-foreground shadow-sm"
+                  ? "bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -295,18 +297,15 @@ export function EditorSlide({
 
         <div className="flex-1" />
 
-        {/* Pro badges (locked features) */}
-        <button
-          className="flex items-center gap-1 rounded-lg border border-border/30 bg-white/50 px-2 py-1.5 text-[10px] text-muted-foreground/60 backdrop-blur-sm"
-          title="Variant B — Pro"
-        >
+        {/* Pro variant B badge */}
+        <div className="flex items-center gap-1 rounded-lg border border-border/20 bg-muted/20 px-2.5 py-1.5 text-[10px] font-medium text-muted-foreground/40">
           <Lock className="h-2.5 w-2.5" />
-          B
-        </button>
+          Variant B
+        </div>
       </div>
 
-      {/* ── Preview area — max 45vh ─────────────────────────────── */}
-      <div className="mx-auto w-full max-w-2xl min-h-0 flex-1 overflow-hidden">
+      {/* ── Preview area ────────────────────────────────────────── */}
+      <div className="relative mx-auto w-full max-w-2xl min-h-0 flex-1 overflow-hidden rounded-2xl">
         {state === "loading" && !variantA ? (
           <LoadingSkeleton platformLabel={platform.label} />
         ) : variantA ? (
@@ -315,7 +314,7 @@ export function EditorSlide({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
             className="h-full"
-            style={{ maxHeight: "45vh" }}
+            style={{ maxHeight: "48vh" }}
           >
             <AdPreview
               variantA={variantA}
@@ -328,26 +327,48 @@ export function EditorSlide({
             />
           </motion.div>
         ) : (
-          <div className="flex h-full items-center justify-center">
-            <p className="text-sm text-muted-foreground">
-              Kunde inte generera annons. Försök igen.
-            </p>
+          /* Error state with retry */
+          <div className="flex h-full flex-col items-center justify-center gap-4">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-red-50 to-orange-50">
+              <Sparkles className="h-6 w-6 text-red-400" />
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-medium text-foreground/70">
+                Kunde inte generera annons
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground/50">
+                AI:n kunde inte skapa annonstext just nu
+              </p>
+            </div>
+            <button
+              onClick={() => generate()}
+              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"
+            >
+              <ArrowRight className="h-3.5 w-3.5" />
+              Försök igen
+            </button>
           </div>
         )}
 
         {/* Regenerating overlay */}
         {state === "regenerating" && variantA && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-white/60 backdrop-blur-sm">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-300 border-t-indigo-600" />
-              Anpassar din annons...
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-white/70 backdrop-blur-sm"
+          >
+            <div className="flex flex-col items-center gap-2">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-200 border-t-indigo-600" />
+              <p className="text-xs font-medium text-muted-foreground">
+                Anpassar din annons...
+              </p>
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
 
       {/* ── AI message ──────────────────────────────────────────── */}
-      <div className="mx-auto w-full max-w-2xl shrink-0 py-2">
+      <div className="mx-auto w-full max-w-2xl shrink-0 py-3">
         {aiMessages.length > 0 && (
           <AIMessage
             text={aiMessages[aiMessages.length - 1]!}
@@ -360,7 +381,7 @@ export function EditorSlide({
       <div className="mx-auto flex w-full max-w-2xl shrink-0 items-center justify-between gap-3 pb-2">
         <button
           onClick={onBack}
-          className="flex items-center gap-1.5 rounded-xl border border-border/40 px-4 py-2 text-xs font-medium text-muted-foreground transition-all hover:bg-muted/40"
+          className="flex items-center gap-1.5 rounded-xl border border-border/30 bg-white/60 px-4 py-2.5 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur-sm transition-all hover:bg-white hover:shadow-md"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Tillbaka
@@ -369,14 +390,14 @@ export function EditorSlide({
         <div className="flex items-center gap-2">
           {/* Locked features */}
           <button
-            className="flex items-center gap-1 rounded-lg border border-border/30 px-2.5 py-1.5 text-[10px] text-muted-foreground/50"
+            className="flex items-center gap-1.5 rounded-xl border border-border/20 bg-muted/10 px-3 py-2 text-[10px] font-medium text-muted-foreground/40"
             title="Ladda ner — Pro"
           >
             <Lock className="h-2.5 w-2.5" />
             PNG
           </button>
           <button
-            className="flex items-center gap-1 rounded-lg border border-border/30 px-2.5 py-1.5 text-[10px] text-muted-foreground/50"
+            className="flex items-center gap-1.5 rounded-xl border border-border/20 bg-muted/10 px-3 py-2 text-[10px] font-medium text-muted-foreground/40"
             title="Dela — Pro"
           >
             <Lock className="h-2.5 w-2.5" />
@@ -389,10 +410,10 @@ export function EditorSlide({
               if (variantA) handlePublish(variantA);
             }}
             disabled={!variantA || state === "loading"}
-            className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md disabled:opacity-40"
           >
             Publicera
-            <ArrowRight className="h-3.5 w-3.5" />
+            <ArrowRight className="h-4 w-4" />
           </button>
         </div>
       </div>
@@ -404,23 +425,44 @@ export function EditorSlide({
 
 function LoadingSkeleton({ platformLabel }: { platformLabel: string }) {
   return (
-    <div className="animate-pulse rounded-2xl border border-border/40 bg-white/70 p-5 backdrop-blur-sm">
-      <div className="flex items-center gap-2">
-        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-pink-200 to-purple-200" />
-        <div className="space-y-1">
-          <div className="h-3 w-28 rounded bg-muted/60" />
-          <div className="h-2 w-40 rounded bg-muted/40" />
+    <div className="flex h-full flex-col items-center justify-center gap-6">
+      {/* Phone-shaped mockup skeleton */}
+      <div className="w-72 overflow-hidden rounded-2xl border border-border/30 bg-white/80 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_12px_32px_rgba(0,0,0,0.06)] backdrop-blur-xl">
+        {/* Header */}
+        <div className="flex items-center gap-2 px-4 py-3">
+          <div className="h-8 w-8 animate-shimmer rounded-full bg-gradient-to-r from-indigo-100 via-purple-50 to-indigo-100 bg-[length:200%_100%]" />
+          <div className="space-y-1.5">
+            <div className="h-2.5 w-20 animate-shimmer rounded bg-gradient-to-r from-muted via-muted/40 to-muted bg-[length:200%_100%]" />
+            <div className="h-2 w-14 animate-shimmer rounded bg-gradient-to-r from-muted/60 via-muted/20 to-muted/60 bg-[length:200%_100%]" />
+          </div>
+        </div>
+        {/* Creative area */}
+        <div className="aspect-square animate-shimmer bg-gradient-to-br from-indigo-50 via-purple-50/50 to-indigo-50 bg-[length:200%_100%]">
+          <div className="flex h-full flex-col items-center justify-center gap-3 p-8">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-200 border-t-indigo-500" />
+            <div className="h-3 w-32 animate-shimmer rounded bg-gradient-to-r from-indigo-100 via-white to-indigo-100 bg-[length:200%_100%]" />
+            <div className="h-2 w-40 animate-shimmer rounded bg-gradient-to-r from-indigo-50 via-white to-indigo-50 bg-[length:200%_100%]" />
+          </div>
+        </div>
+        {/* Footer */}
+        <div className="flex items-center justify-between px-4 py-2.5">
+          <div className="space-y-1">
+            <div className="h-2 w-16 animate-shimmer rounded bg-gradient-to-r from-muted/50 via-muted/20 to-muted/50 bg-[length:200%_100%]" />
+            <div className="h-2.5 w-24 animate-shimmer rounded bg-gradient-to-r from-muted via-muted/40 to-muted bg-[length:200%_100%]" />
+          </div>
+          <div className="h-7 w-16 animate-shimmer rounded-full bg-gradient-to-r from-indigo-100 via-indigo-50 to-indigo-100 bg-[length:200%_100%]" />
         </div>
       </div>
-      <div className="mt-4 aspect-square max-h-[35vh] rounded-xl bg-muted/30" />
-      <div className="mt-3 space-y-2">
-        <div className="h-3 w-3/4 rounded bg-muted/40" />
-        <div className="h-2 w-full rounded bg-muted/30" />
-        <div className="h-2 w-2/3 rounded bg-muted/30" />
-      </div>
-      <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-        <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-purple-500" />
-        Genererar {platformLabel}-annons med AI...
+
+      {/* Status text */}
+      <div className="flex items-center gap-2">
+        <div className="relative h-2 w-2">
+          <div className="absolute inset-0 animate-ping rounded-full bg-indigo-400/40" />
+          <div className="relative h-2 w-2 rounded-full bg-indigo-500" />
+        </div>
+        <p className="text-xs font-medium text-muted-foreground/60">
+          Genererar {platformLabel}-annons med AI...
+        </p>
       </div>
     </div>
   );

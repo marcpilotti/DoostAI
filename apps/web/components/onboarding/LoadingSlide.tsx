@@ -131,44 +131,84 @@ export function LoadingSlide({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url]);
 
+  const domain = url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+
   return (
     <div className="flex h-full flex-col items-center justify-center px-6">
-      {/* Pulsing spinner */}
-      <motion.div
-        animate={prefersReduced ? {} : { scale: [1, 1.08, 1] }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-purple-100"
-      >
+      {/* Animated orb — layered rings + spinning core */}
+      <div className="relative mb-8">
+        {/* Outer glow ring */}
         <motion.div
-          animate={prefersReduced ? {} : { rotate: 360 }}
-          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-          className="h-8 w-8 rounded-full border-2 border-indigo-300 border-t-indigo-600"
+          animate={prefersReduced ? {} : { scale: [1, 1.15, 1], opacity: [0.3, 0.15, 0.3] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -inset-4 rounded-full bg-gradient-to-br from-indigo-400/20 via-purple-400/10 to-violet-400/20 blur-xl"
         />
-      </motion.div>
+        {/* Middle pulse ring */}
+        <motion.div
+          animate={prefersReduced ? {} : { scale: [1, 1.06, 1] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className="relative flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-indigo-50 via-white to-purple-50 shadow-[0_0_0_1px_rgba(99,102,241,0.08),0_8px_32px_rgba(99,102,241,0.12)]"
+        >
+          {/* Spinning arc */}
+          <motion.div
+            animate={prefersReduced ? {} : { rotate: 360 }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+            className="h-10 w-10 rounded-full border-[2.5px] border-indigo-200/60 border-t-indigo-500"
+          />
+          {/* Center dot */}
+          <motion.div
+            animate={prefersReduced ? {} : { scale: [1, 1.3, 1] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute h-2.5 w-2.5 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500"
+          />
+        </motion.div>
+      </div>
 
-      {/* URL reference */}
-      <p className="mb-6 text-sm font-medium text-foreground/70">
-        {url.replace(/^https?:\/\//, "").replace(/\/$/, "")}
-      </p>
+      {/* Domain with favicon */}
+      <div className="mb-6 flex items-center gap-2">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={`https://www.google.com/s2/favicons?domain=${domain}&sz=32`}
+          alt=""
+          className="h-5 w-5 rounded-sm"
+          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+        />
+        <p className="text-sm font-semibold tracking-tight text-foreground/80">
+          {domain}
+        </p>
+      </div>
 
       {/* AI messages stack — max 4 visible */}
       <div className="min-h-[120px]">
         <AIMessageStack messages={messages} />
       </div>
 
-      {/* Progress bar */}
-      <div className="mt-6 w-full max-w-xs">
-        <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
+      {/* Progress bar — thicker, with glow */}
+      <div className="mt-8 w-full max-w-xs">
+        <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-muted/50">
           <motion.div
-            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
+            className="h-full rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-violet-500"
             initial={{ width: "0%" }}
             animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+          />
+          {/* Shimmer overlay on the filled part */}
+          <motion.div
+            className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+            animate={prefersReduced ? {} : { x: ["-100%", "400%"] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}
           />
         </div>
-        <p className="mt-2 text-center text-xs text-muted-foreground/50">
-          {progress}%
-        </p>
+        <div className="mt-2 flex items-center justify-center gap-1.5">
+          <motion.div
+            animate={prefersReduced ? {} : { opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            className="h-1 w-1 rounded-full bg-indigo-400"
+          />
+          <p className="text-[11px] font-medium text-muted-foreground/40">
+            {progress}%
+          </p>
+        </div>
       </div>
     </div>
   );

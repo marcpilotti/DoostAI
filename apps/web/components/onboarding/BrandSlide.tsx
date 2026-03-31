@@ -203,24 +203,31 @@ export function BrandSlide({
           transition={{ duration: 0.4, delay: 0.1 }}
           className="overflow-hidden rounded-2xl border border-border/30 bg-white/80 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] backdrop-blur-xl"
         >
-          {/* Row 1: Logo + Name + Domain */}
-          <div className="flex items-center gap-3 px-4 py-3">
+          {/* Row 1: Logo + Name + Domain + Favicon */}
+          <div className="flex items-center gap-4 px-5 py-4">
             {logoUrl && (
               <div className="shrink-0">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={logoUrl as string}
                   alt={name}
-                  className="h-11 w-11 rounded-xl border border-border/30 bg-white object-contain p-1.5 shadow-sm"
+                  className="h-16 w-16 rounded-2xl border border-border/30 bg-white object-contain p-2 shadow-sm"
                 />
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <h3 className="truncate text-base font-bold tracking-tight">
+              <h3 className="truncate text-lg font-bold tracking-tight">
                 {name}
               </h3>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Globe className="h-2.5 w-2.5" />
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                {/* Favicon from Google */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`https://www.google.com/s2/favicons?domain=${domain}&sz=32`}
+                  alt=""
+                  className="h-4 w-4 rounded-sm"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                />
                 {domain}
               </div>
             </div>
@@ -230,7 +237,7 @@ export function BrandSlide({
               rel="noopener noreferrer"
               className="shrink-0 text-muted-foreground/30 transition-colors hover:text-muted-foreground"
             >
-              <ExternalLink className="h-3.5 w-3.5" />
+              <ExternalLink className="h-4 w-4" />
             </a>
           </div>
 

@@ -26,21 +26,24 @@ import type { MetaCta } from "../platform-limits";
 
 // --- Schemas per platform ---
 
+// Schemas WITHOUT .max() — validation is done post-hoc by validateLimits + retry.
+// Using .max() in Zod causes generateObject to throw when the AI overshoots by 1 char,
+// which is very common. The retry loop + truncation handles this gracefully.
 const metaSchema = z.object({
-  headline: z.string().max(40),
-  bodyCopy: z.string().max(125),
-  cta: z.string().max(20),
+  headline: z.string(),
+  bodyCopy: z.string(),
+  cta: z.string(),
 });
 
 const googleSchema = z.object({
-  headlines: z.array(z.string().max(30)).length(3),
-  descriptions: z.array(z.string().max(90)).length(2),
+  headlines: z.array(z.string()).min(1).max(5),
+  descriptions: z.array(z.string()).min(1).max(4),
 });
 
 const linkedinSchema = z.object({
-  headline: z.string().max(70),
-  bodyCopy: z.string().max(150),
-  cta: z.string().max(20),
+  headline: z.string(),
+  bodyCopy: z.string(),
+  cta: z.string(),
 });
 
 function getPrompt(
