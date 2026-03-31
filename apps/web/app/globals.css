@@ -304,3 +304,8 @@
   0% { transform: scale(1); }
   100% { transform: scale(1.06); }
 }
+
+/* Campaign builder edge animation */
+@keyframes dashmove {
+  to { stroke-dashoffset: -10; }
+}
