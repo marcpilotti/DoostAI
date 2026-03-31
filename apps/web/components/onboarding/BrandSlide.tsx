@@ -173,10 +173,11 @@ export function BrandSlide({
   const domain = profile.url
     .replace(/^https?:\/\//, "")
     .replace(/\/$/, "");
-  const logoUrl =
+  const [logoUrl, setLogoUrl] = useState<string | null>(
     profile.logo?.url ??
     profile.logos?.primary ??
-    null;
+    null,
+  );
 
   function handleConfirm() {
     onConfirm({
@@ -203,31 +204,20 @@ export function BrandSlide({
           transition={{ duration: 0.4, delay: 0.1 }}
           className="brand-card-glow overflow-hidden rounded-2xl border border-border/20 bg-white/90 shadow-[0_2px_8px_rgba(0,0,0,0.03),0_16px_48px_rgba(0,0,0,0.05)] backdrop-blur-xl"
         >
-          {/* Row 1: Logo + Name + Domain + Favicon */}
-          <div className="flex items-center gap-4 px-5 py-4">
-            {logoUrl && (
-              <div className="shrink-0">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={logoUrl as string}
-                  alt={name}
-                  className="h-16 w-16 rounded-2xl border border-border/30 bg-white object-contain p-2 shadow-sm"
-                />
-              </div>
-            )}
+          {/* Row 1: Favicon + Name + Domain */}
+          <div className="flex items-center gap-3 px-5 py-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
+              alt=""
+              className="h-6 w-6 shrink-0 rounded"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
             <div className="min-w-0 flex-1">
               <h3 className="truncate text-lg font-bold tracking-tight">
                 {name}
               </h3>
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                {/* Favicon from Google */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={`https://www.google.com/s2/favicons?domain=${domain}&sz=32`}
-                  alt=""
-                  className="h-4 w-4 rounded-sm"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                />
+              <div className="text-xs text-muted-foreground">
                 {domain}
               </div>
             </div>
@@ -243,8 +233,53 @@ export function BrandSlide({
 
           <div className="h-px bg-gradient-to-r from-transparent via-border/40 to-transparent" />
 
-          {/* Row 2: Colors + Fonts (side by side) */}
+          {/* Row 2: Logotyp + Colors + Fonts (3-col on wide, stacked on narrow) */}
           <div className="grid grid-cols-2 gap-3 px-4 py-3">
+            {/* Logotyp box — same size as colors/fonts */}
+            <div className="rounded-lg border border-border/30 bg-muted/5 p-2">
+              <div className="mb-2 flex items-center gap-1 text-[10px] font-semibold text-foreground/60">
+                <Globe className="h-3 w-3" />
+                Logotyp
+              </div>
+              <label className="group flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-border/30 bg-white/50 py-3 transition-all hover:border-indigo-300 hover:bg-indigo-50/30">
+                {logoUrl ? (
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={logoUrl as string}
+                      alt={name}
+                      className="h-12 max-w-[80%] object-contain"
+                    />
+                    <span className="text-[9px] text-muted-foreground/40 opacity-0 transition-opacity group-hover:opacity-100">
+                      Klicka för att byta
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted/20">
+                      <Pencil className="h-4 w-4 text-muted-foreground/30" />
+                    </div>
+                    <span className="text-[10px] font-medium text-muted-foreground/40">
+                      Ladda upp logotyp
+                    </span>
+                  </>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) {
+                      if (logoUrl && (logoUrl as string).startsWith("blob:")) URL.revokeObjectURL(logoUrl as string);
+                      const u = URL.createObjectURL(f);
+                      setLogoUrl(u);
+                    }
+                  }}
+                />
+              </label>
+            </div>
+
             {/* Colors */}
             <div className="rounded-lg border border-border/30 bg-muted/5 p-2">
               <div className="mb-2 flex items-center gap-1 text-[10px] font-semibold text-foreground/60">
