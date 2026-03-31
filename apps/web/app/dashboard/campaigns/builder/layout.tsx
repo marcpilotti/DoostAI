@@ -1,11 +1,7 @@
 /**
- * Builder layout — full screen, no sidebar/topbar.
- * Overrides the dashboard layout for the builder route.
+ * Builder layout — renders inside DashboardShell (sidebar stays).
+ * Just passes children through.
  */
 export default function BuilderLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="h-screen bg-[var(--doost-bg-secondary)]">
-      {children}
-    </div>
-  );
+  return <>{children}</>;
 }
