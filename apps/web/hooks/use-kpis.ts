@@ -1,27 +1,33 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState, useEffect } from "react";
 import { MOCK_KPIS, MOCK_CHART_DATA } from "@/lib/mock-data";
 import type { KPI, ChartDataPoint } from "@/lib/mock-data";
 
 /**
- * useKPIs — fetches KPI data for the dashboard.
- * Currently uses mock data. Replace with Supabase query on performance_daily.
+ * useKPIs — fetches KPI data from API (Supabase with mock fallback).
  */
 export function useKPIs(options?: { timeRange?: string; channel?: string }) {
-  // TODO: Replace with real query
-  // const { data } = useQuery({
-  //   queryKey: ["kpis", options?.timeRange, options?.channel],
-  //   queryFn: () => fetch(`/api/kpis?range=${options?.timeRange}&channel=${options?.channel}`).then(r => r.json()),
-  // });
+  const [kpis, setKpis] = useState<KPI[]>(MOCK_KPIS);
+  const [chartData, setChartData] = useState<ChartDataPoint[]>(MOCK_CHART_DATA);
+  const [isLoading, setIsLoading] = useState(true);
+  const [source, setSource] = useState<"mock" | "supabase">("mock");
 
-  const kpis = useMemo(() => MOCK_KPIS, []);
-  const chartData = useMemo(() => MOCK_CHART_DATA, []);
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (options?.timeRange) params.set("range", options.timeRange);
+    if (options?.channel) params.set("channel", options.channel);
 
-  return {
-    kpis,
-    chartData,
-    isLoading: false,
-    error: null,
-  };
+    fetch(`/api/dashboard/kpis?${params}`)
+      .then((r) => r.json())
+      .then((data) => {
+        setKpis(data.kpis);
+        setChartData(data.chartData);
+        setSource(data.source);
+      })
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
+  }, [options?.timeRange, options?.channel]);
+
+  return { kpis, chartData, isLoading, source, error: null };
 }

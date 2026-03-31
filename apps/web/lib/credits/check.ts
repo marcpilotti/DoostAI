@@ -1,22 +1,27 @@
+import { supabase, safeQuery } from "@/lib/supabase";
+
+let mockBalance = 2500;
+
 /**
- * Credit balance check.
- * In production: queries credit_ledger from Supabase.
- * For now: returns mock balance.
+ * Get credit balance. Tries Supabase first, falls back to in-memory.
  */
-
-let mockBalance = 2500; // Starting balance for dev
-
 export async function getBalance(orgId: string): Promise<number> {
-  // TODO: Replace with Supabase query
-  // const { data } = await supabase
-  //   .from("credit_ledger")
-  //   .select("balance_after")
-  //   .eq("organization_id", orgId)
-  //   .order("created_at", { ascending: false })
-  //   .limit(1)
-  //   .single();
-  // return data?.balance_after ?? 0;
+  // Try real DB
+  const data = await safeQuery(() =>
+    supabase
+      .from("credit_ledger")
+      .select("balance_after")
+      .eq("organization_id", orgId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single(),
+  );
 
+  if (data && typeof (data as { balance_after?: number }).balance_after === "number") {
+    return (data as { balance_after: number }).balance_after;
+  }
+
+  // Fallback to mock
   return mockBalance;
 }
 

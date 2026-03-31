@@ -1,9 +1,4 @@
-/**
- * Credit deduction.
- * In production: inserts into credit_ledger in Supabase.
- * For now: uses in-memory mock.
- */
-
+import { supabase, safeQuery } from "@/lib/supabase";
 import { getBalance, _setMockBalance } from "./check";
 
 export type DeductResult = {
@@ -12,6 +7,9 @@ export type DeductResult = {
   error?: string;
 };
 
+/**
+ * Deduct credits. Tries Supabase first, falls back to in-memory.
+ */
 export async function deductCredits(
   orgId: string,
   amount: number,
@@ -20,29 +18,27 @@ export async function deductCredits(
   const balance = await getBalance(orgId);
 
   if (balance < amount) {
-    return {
-      success: false,
-      balanceAfter: balance,
-      error: "Insufficient credits",
-    };
+    return { success: false, balanceAfter: balance, error: "Insufficient credits" };
   }
 
   const newBalance = balance - amount;
 
-  // TODO: Replace with Supabase insert
-  // await supabase.from("credit_ledger").insert({
-  //   organization_id: orgId,
-  //   amount: -amount,
-  //   balance_after: newBalance,
-  //   type: metadata?.type ?? "adjustment",
-  //   model_used: metadata?.model,
-  //   metadata,
-  // });
+  // Try real DB insert
+  const inserted = await safeQuery(() =>
+    supabase.from("credit_ledger").insert({
+      organization_id: orgId,
+      amount: -amount,
+      balance_after: newBalance,
+      type: metadata?.type ?? "adjustment",
+      model_used: metadata?.model,
+      metadata: metadata as Record<string, unknown>,
+    }).select("id").single(),
+  );
 
-  _setMockBalance(newBalance);
+  if (!inserted) {
+    // Fallback to mock
+    _setMockBalance(newBalance);
+  }
 
-  return {
-    success: true,
-    balanceAfter: newBalance,
-  };
+  return { success: true, balanceAfter: newBalance };
 }

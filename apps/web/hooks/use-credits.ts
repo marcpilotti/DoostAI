@@ -3,15 +3,13 @@
 import { useState, useEffect, useCallback } from "react";
 
 /**
- * useCredits — tracks credit balance.
- * Currently fetches from mock API. Replace with Supabase real-time
- * subscription on credit_ledger table.
+ * useCredits — fetches credit balance from API.
  */
 export function useCredits(orgId: string = "demo") {
-  const [balance, setBalance] = useState<number | null>(null);
+  const [balance, setBalance] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetch_ = useCallback(async () => {
+  const fetchBalance = useCallback(async () => {
     try {
       const res = await globalThis.fetch(`/api/credits/balance?orgId=${orgId}`);
       const data = await res.json();
@@ -23,18 +21,7 @@ export function useCredits(orgId: string = "demo") {
     }
   }, [orgId]);
 
-  useEffect(() => {
-    fetch_();
-  }, [fetch_]);
+  useEffect(() => { fetchBalance(); }, [fetchBalance]);
 
-  const refetch = useCallback(() => {
-    setIsLoading(true);
-    fetch_();
-  }, [fetch_]);
-
-  return {
-    balance: balance ?? 0,
-    isLoading,
-    refetch,
-  };
+  return { balance, isLoading, refetch: fetchBalance };
 }
