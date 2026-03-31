@@ -32,6 +32,7 @@ const mainNav = [
   { href: "/dashboard/analytics", label: "Analytics", icon: LineChart },
   { href: "/dashboard/actions", label: "Actions", icon: Zap },
   { href: "/dashboard/campaigns", label: "Campaigns", icon: BarChart3 },
+  { href: "/dashboard/campaigns/builder", label: "Builder", icon: Zap },
   { href: "/dashboard/creatives", label: "Creatives", icon: ImageIcon },
   { href: "/dashboard/products", label: "Products", icon: ShoppingBag },
 ];

@@ -25,7 +25,7 @@ export default function CampaignsPage() {
     <div className="p-6">
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-[18px] font-semibold text-[var(--doost-text)]">Campaigns</h2>
-        <Link href="/" className="flex items-center gap-1.5 rounded-lg bg-[var(--doost-bg-active)] px-3 py-2 text-[12px] font-medium text-white hover:opacity-90">
+        <Link href="/dashboard/campaigns/builder" className="flex items-center gap-1.5 rounded-lg bg-[var(--doost-bg-active)] px-3 py-2 text-[12px] font-medium text-white hover:opacity-90">
           <Plus className="h-3.5 w-3.5" /> New campaign
         </Link>
       </div>
