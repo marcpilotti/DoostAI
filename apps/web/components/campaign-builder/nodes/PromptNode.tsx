@@ -11,7 +11,7 @@ export function PromptNode({ id, data, selected }: NodeProps) {
   const { updateNodeData } = useCampaignBuilderStore();
 
   return (
-    <div className={`w-[260px] rounded-xl bg-[var(--doost-bg)] shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)] ${selected ? "ring-2 ring-blue-500" : ""}`} style={{ border: `1px solid var(--doost-border)` }}>
+    <div className={`w-[260px] rounded-2xl bg-[var(--doost-bg)] shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)] ${selected ? "ring-2 ring-blue-500" : ""}`} style={{ border: `1px solid var(--doost-border)` }}>
       {/* Header */}
       <div className="flex items-center gap-2 border-b px-3 py-2" style={{ borderColor: "var(--doost-border)" }}>
         <Pencil className="h-3.5 w-3.5 text-[var(--doost-text-muted)]" />

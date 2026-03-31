@@ -20,7 +20,7 @@ export function CreativeNode({ id, data, selected }: NodeProps) {
   const currentModel = models.find((m) => m.id === d.model);
 
   return (
-    <div className={`w-[280px] rounded-xl bg-[var(--doost-bg)] shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)] ${selected ? "ring-2 ring-blue-500" : ""}`} style={{ border: `1px solid var(--doost-border)` }}>
+    <div className={`w-[280px] rounded-2xl bg-[var(--doost-bg)] shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)] ${selected ? "ring-2 ring-blue-500" : ""}`} style={{ border: `1px solid var(--doost-border)` }}>
       <Handle
         type="target"
         position={Position.Left}
