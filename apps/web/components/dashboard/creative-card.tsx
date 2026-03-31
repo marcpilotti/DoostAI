@@ -20,8 +20,8 @@ export function CreativeCard({
       onClick={onClick}
       className="group w-full text-left"
     >
-      {/* Image — 4:3 ratio with rounded-xl, matches reference */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-[var(--doost-bg-secondary)]">
+      {/* Image — 4:5 portrait ratio, rounded-xl */}
+      <div className="relative aspect-[4/5] w-full overflow-hidden rounded-xl bg-[var(--doost-bg-secondary)]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={creative.imageUrl}
@@ -31,24 +31,22 @@ export function CreativeCard({
         />
       </div>
 
-      {/* Name + Metrics */}
-      <div className="mt-2.5 px-0.5">
-        <h3 className="text-[14px] font-semibold text-[var(--doost-text)]">
+      {/* Name + Metrics — tight spacing like reference */}
+      <div className="mt-2">
+        <h3 className="text-[13px] font-semibold text-[var(--doost-text)]">
           {creative.name}
         </h3>
-        <div className="mt-1 space-y-px">
-          <div className="flex items-center justify-between text-[13px]">
-            <span className="text-[var(--doost-text-muted)]">ROAS</span>
-            <span className="tabular-nums text-[var(--doost-text)]">{creative.roas.toFixed(1)}x</span>
-          </div>
-          <div className="flex items-center justify-between text-[13px]">
-            <span className="text-[var(--doost-text-muted)]">Spend</span>
-            <span className="tabular-nums text-[var(--doost-text)]">${creative.spend.toLocaleString("en-US")}</span>
-          </div>
-          <div className="flex items-center justify-between text-[13px]">
-            <span className="text-[var(--doost-text-muted)]">CTR</span>
-            <span className="tabular-nums text-[var(--doost-text)]">{creative.ctr.toFixed(1)}%</span>
-          </div>
+        <div className="mt-0.5">
+          {[
+            { label: "ROAS", value: `${creative.roas.toFixed(1)}x` },
+            { label: "Spend", value: `$${creative.spend.toLocaleString("en-US")}` },
+            { label: "CTR", value: `${creative.ctr.toFixed(1)}%` },
+          ].map((m) => (
+            <div key={m.label} className="flex items-center justify-between text-[12px] leading-[20px]">
+              <span className="text-[var(--doost-text-muted)]">{m.label}</span>
+              <span className="tabular-nums text-[var(--doost-text)]">{m.value}</span>
+            </div>
+          ))}
         </div>
       </div>
     </button>

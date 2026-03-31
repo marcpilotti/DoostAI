@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useAIPanelStore } from "@/lib/stores/ai-panel";
 
 import { CreativeGrid } from "@/components/dashboard/creative-grid";
 import { CreativeFilters } from "@/components/dashboard/creative-filters";
@@ -12,8 +13,11 @@ type ViewMode = "grid" | "list" | "compact";
 export default function CreativesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { setOpen: setAIPanelOpen } = useAIPanelStore();
 
-  // Read state from URL search params (with defaults)
+  // Open AI panel by default on creatives page (like reference)
+  useEffect(() => { setAIPanelOpen(true); }, [setAIPanelOpen]);
+
   const timeRange = searchParams.get("range") ?? "30d";
   const sort = searchParams.get("sort") ?? "roas_desc";
   const spendRange = searchParams.get("spend") ?? "all";
@@ -43,7 +47,7 @@ export default function CreativesPage() {
   });
 
   return (
-    <div className="p-6">
+    <div className="px-5 py-4">
       <CreativeFilters
         timeRange={timeRange}
         sort={sort}

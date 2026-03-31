@@ -70,9 +70,9 @@ export function CreativeFilters({
   }
 
   return (
-    <div className="flex items-center gap-2.5">
+    <div className="flex items-center gap-2">
       {/* Time range pill */}
-      <div className="relative flex items-center gap-2 rounded-full bg-[var(--doost-bg)] px-4 py-2 text-[13px] font-medium text-[var(--doost-text)]" style={{ border: `1px solid var(--doost-border)` }}>
+      <div className="relative flex items-center gap-1.5 rounded-full bg-[var(--doost-bg)] px-3.5 py-[7px] text-[12px] font-medium text-[var(--doost-text)]" style={{ border: `1px solid var(--doost-border)` }}>
         <Calendar className="h-3.5 w-3.5 text-[var(--doost-text-muted)]" />
         <select
           value={timeRange}
@@ -87,7 +87,7 @@ export function CreativeFilters({
       </div>
 
       {/* Sort pill */}
-      <div className="relative flex items-center gap-2 rounded-full bg-[var(--doost-bg)] px-4 py-2 text-[13px] font-medium text-[var(--doost-text)]" style={{ border: `1px solid var(--doost-border)` }}>
+      <div className="relative flex items-center gap-1.5 rounded-full bg-[var(--doost-bg)] px-3.5 py-[7px] text-[12px] font-medium text-[var(--doost-text)]" style={{ border: `1px solid var(--doost-border)` }}>
         <ArrowDownUp className="h-3.5 w-3.5 text-[var(--doost-text-muted)]" />
         <select
           value={sort}
@@ -102,7 +102,7 @@ export function CreativeFilters({
       </div>
 
       {/* Spend range pill */}
-      <div className="relative flex items-center gap-2 rounded-full bg-[var(--doost-bg)] px-4 py-2 text-[13px] font-medium text-[var(--doost-text)]" style={{ border: `1px solid var(--doost-border)` }}>
+      <div className="relative flex items-center gap-1.5 rounded-full bg-[var(--doost-bg)] px-3.5 py-[7px] text-[12px] font-medium text-[var(--doost-text)]" style={{ border: `1px solid var(--doost-border)` }}>
         <DollarSign className="h-3.5 w-3.5 text-[var(--doost-text-muted)]" />
         <select
           value={spendRange}

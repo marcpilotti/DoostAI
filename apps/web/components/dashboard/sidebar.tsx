@@ -89,13 +89,13 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
               href={item.href}
               onClick={onClose}
               className={cn(
-                "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors",
+                "flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] font-medium transition-colors",
                 active
                   ? "bg-[var(--doost-bg-active)] text-white"
                   : "text-[var(--doost-text-secondary)] hover:bg-[var(--doost-bg-secondary)] hover:text-[var(--doost-text)]",
               )}
             >
-              <item.icon className="h-[18px] w-[18px]" />
+              <item.icon className="h-4 w-4" />
               {item.label}
             </Link>
           );
@@ -115,13 +115,13 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
               href={item.href}
               onClick={onClose}
               className={cn(
-                "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors",
+                "flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] font-medium transition-colors",
                 active
                   ? "bg-[var(--doost-bg-active)] text-white"
                   : "text-[var(--doost-text-secondary)] hover:bg-[var(--doost-bg-secondary)] hover:text-[var(--doost-text)]",
               )}
             >
-              <item.icon className="h-[18px] w-[18px]" />
+              <item.icon className="h-4 w-4" />
               {item.label}
             </Link>
           );
