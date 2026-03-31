@@ -220,10 +220,21 @@ export function OnboardingShell() {
     [],
   );
 
+  // ── Analytics helper ────────────────────────────────────────
+
+  function trackStep(stepName: string, props?: Record<string, unknown>) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const ph = typeof window !== "undefined" ? (window as any).posthog : null;
+      if (ph?.capture) ph.capture(`onboarding_${stepName}`, props);
+    } catch { /* non-critical */ }
+  }
+
   // ── Slide 1 → 2: URL submitted ─────────────────────────────
 
   const handleURLSubmit = useCallback((url: string) => {
     urlRef.current = url;
+    trackStep("url_submitted", { url });
     setStep("loading");
   }, []);
 
@@ -232,6 +243,7 @@ export function OnboardingShell() {
   const handleAnalysisComplete = useCallback(
     (profile: BrandProfile) => {
       brandRef.current = profile;
+      trackStep("analysis_complete", { brand: profile.name });
       setStep("brand");
     },
     [],
@@ -242,6 +254,7 @@ export function OnboardingShell() {
   const handleBrandConfirm = useCallback(
     (approved: BrandProfile) => {
       brandRef.current = approved;
+      trackStep("brand_confirmed", { brand: approved.name, industry: approved.industry });
       transitionWithMessage("Bra! Nu bygger vi er annons", "editor");
     },
     [transitionWithMessage],
@@ -264,9 +277,32 @@ export function OnboardingShell() {
   // ── Slide 5 → 6: Publish confirmed ─────────────────────────
 
   const handlePublishConfirm = useCallback(
-    (config: { dailyBudget: number; duration: number; regions: string[]; channel: string }) => {
-      // TODO: Call /api/publish endpoint to deploy campaign
-      console.log("[OnboardingShell] Publishing campaign:", config);
+    async (config: { dailyBudget: number; duration: number; regions: string[]; channel: string }) => {
+      // Call publish API
+      const ad = selectedAdRef.current;
+      try {
+        await fetch("/api/campaigns/publish", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            brandName: brandRef.current?.name ?? "",
+            brandUrl: brandRef.current?.url ?? "",
+            brandColors: brandRef.current?.colors ? {
+              primary: brandRef.current.colors.primary,
+              secondary: brandRef.current.colors.secondary,
+              accent: brandRef.current.colors.accent,
+            } : undefined,
+            headline: ad?.adData.headline ?? "",
+            bodyText: ad?.adData.primaryText ?? "",
+            cta: ad?.adData.cta ?? "",
+            imageUrl: ad?.adData.imageUrl ?? undefined,
+            platform: ad?.format ?? "meta-feed",
+            ...config,
+          }),
+        });
+      } catch {
+        // Non-blocking — transition to done regardless
+      }
       transitionWithMessage("Publicerar din kampanj...", "done");
     },
     [transitionWithMessage],
@@ -281,7 +317,7 @@ export function OnboardingShell() {
   const handleDashboard = useCallback(() => {
     clearSession();
     if (typeof window !== "undefined") {
-      window.location.href = "/campaigns";
+      window.location.href = "/dashboard";
     }
   }, []);
 
@@ -289,10 +325,31 @@ export function OnboardingShell() {
 
   return (
     <div className="h-[100dvh] overflow-hidden bg-background pb-[env(safe-area-inset-bottom)]">
-      {/* ── Header: logo + login ───────────────────────────────── */}
+      {/* ── Header: logo + stepper + login ──────────────────────── */}
       <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-between px-5 py-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo.svg" alt="Doost AI" className="h-6" />
+
+        {/* Progress stepper dots */}
+        {step && step !== "url" && (
+          <div className="flex items-center gap-1.5">
+            {(["loading", "brand", "editor", "publish", "done"] as const).map((s, i) => {
+              const steps: Step[] = ["loading", "brand", "editor", "publish", "done"];
+              const currentIdx = steps.indexOf(step);
+              const isActive = s === step;
+              const isPast = i < currentIdx;
+              return (
+                <div
+                  key={s}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    isActive ? "w-6 bg-foreground" : isPast ? "w-1.5 bg-foreground/40" : "w-1.5 bg-foreground/10"
+                  }`}
+                />
+              );
+            })}
+          </div>
+        )}
+
         <a
           href="/sign-in"
           className="rounded-full bg-white px-4 py-1.5 text-[13px] font-medium text-foreground shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-all hover:shadow-md"

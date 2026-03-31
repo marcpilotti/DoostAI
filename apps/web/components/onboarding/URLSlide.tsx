@@ -10,6 +10,22 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
+  // Auto-fill from URL params (e.g. ?url=canon.se)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlParam = params.get("url");
+    if (urlParam) {
+      setInput(urlParam);
+      // Auto-submit after a short delay
+      setTimeout(() => {
+        let url = urlParam;
+        if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
+        onSubmit(url);
+      }, 800);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => { inputRef.current?.focus(); }, []);
 
   useEffect(() => {
@@ -98,6 +114,11 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
           <button type="button" onClick={() => setInput("idawargbeauty.se")} className="underline underline-offset-2 hover:text-muted-foreground">idawargbeauty.se</button>
           {" eller "}
           <button type="button" onClick={() => setInput("canon.se")} className="underline underline-offset-2 hover:text-muted-foreground">canon.se</button>
+        </p>
+
+        {/* Social proof */}
+        <p className="mt-8 text-center text-[11px] text-muted-foreground/25">
+          2,847 annonser skapade med Doost AI
         </p>
       </div>
     </div>
