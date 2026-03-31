@@ -260,51 +260,7 @@ export function EditorSlide({
 
   return (
     <div className="flex h-full flex-col px-4 py-4 sm:px-6">
-      {/* ── Toolbar: Goal, Channel ─────────────────────────────── */}
-      <div className="mx-auto flex w-full max-w-2xl shrink-0 items-center gap-2 pb-3">
-        {/* Goal dropdown */}
-        <div className="relative">
-          <select
-            value={goal}
-            onChange={(e) => setGoal(e.target.value)}
-            disabled={state === "loading"}
-            className="appearance-none rounded-xl border border-border/30 bg-white/80 py-2 pl-4 pr-8 text-sm font-medium text-foreground shadow-sm backdrop-blur-sm transition-all hover:border-indigo-200 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100 disabled:opacity-50"
-          >
-            {GOALS.map((g) => (
-              <option key={g.id} value={g.id}>{g.label}</option>
-            ))}
-          </select>
-          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/40" />
-        </div>
-
-        {/* Platform tabs — pill style */}
-        <div className="flex rounded-xl border border-border/20 bg-white/60 p-1 shadow-sm backdrop-blur-sm">
-          {PLATFORMS.map((p, idx) => (
-            <button
-              key={p.id}
-              onClick={() => setPlatformIdx(idx)}
-              disabled={state === "loading"}
-              className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition-all disabled:opacity-50 ${
-                idx === platformIdx
-                  ? "bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex-1" />
-
-        {/* Pro variant B badge */}
-        <div className="flex items-center gap-1 rounded-lg border border-border/20 bg-muted/20 px-2.5 py-1.5 text-[10px] font-medium text-muted-foreground/40">
-          <Lock className="h-2.5 w-2.5" />
-          Variant B
-        </div>
-      </div>
-
-      {/* ── Preview area ────────────────────────────────────────── */}
+      {/* ── Preview area (no toolbar above) ─────────────────────── */}
       <div className="relative mx-auto w-full max-w-2xl min-h-0 flex-1 overflow-hidden rounded-2xl">
         {state === "loading" && !variantA ? (
           <LoadingSkeleton platformLabel={platform.label} />
@@ -314,7 +270,7 @@ export function EditorSlide({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
             className="h-full"
-            style={{ maxHeight: "48vh" }}
+            style={{ maxHeight: "52vh" }}
           >
             <AdPreview
               variantA={variantA}
@@ -322,7 +278,6 @@ export function EditorSlide({
               format={platform.format}
               strategy={result?.strategy}
               autoGenerateImage={false}
-              onPublish={handlePublish}
               editable
             />
           </motion.div>
@@ -367,8 +322,46 @@ export function EditorSlide({
         )}
       </div>
 
+      {/* ── Controls below card: Platform + Goal ────────────────── */}
+      <div className="mx-auto w-full max-w-2xl shrink-0 pt-3 pb-1">
+        <div className="flex items-center justify-center gap-3">
+          {/* Platform tabs */}
+          <div className="flex rounded-xl border border-border/20 bg-white/60 p-1 shadow-sm backdrop-blur-sm">
+            {PLATFORMS.map((p, idx) => (
+              <button
+                key={p.id}
+                onClick={() => setPlatformIdx(idx)}
+                disabled={state === "loading"}
+                className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition-all disabled:opacity-50 ${
+                  idx === platformIdx
+                    ? "bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Goal dropdown */}
+          <div className="relative">
+            <select
+              value={goal}
+              onChange={(e) => setGoal(e.target.value)}
+              disabled={state === "loading"}
+              className="appearance-none rounded-xl border border-border/20 bg-white/60 py-1.5 pl-3 pr-7 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur-sm transition-all hover:border-indigo-200 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100 disabled:opacity-50"
+            >
+              {GOALS.map((g) => (
+                <option key={g.id} value={g.id}>{g.label}</option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground/30" />
+          </div>
+        </div>
+      </div>
+
       {/* ── AI message ──────────────────────────────────────────── */}
-      <div className="mx-auto w-full max-w-2xl shrink-0 py-3">
+      <div className="mx-auto w-full max-w-2xl shrink-0 py-2">
         {aiMessages.length > 0 && (
           <AIMessage
             text={aiMessages[aiMessages.length - 1]!}
@@ -410,7 +403,7 @@ export function EditorSlide({
               if (variantA) handlePublish(variantA);
             }}
             disabled={!variantA || state === "loading"}
-            className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md disabled:opacity-40"
+            className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-200/40 transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-xl hover:shadow-indigo-300/40 disabled:opacity-40 disabled:shadow-none"
           >
             Publicera
             <ArrowRight className="h-4 w-4" />

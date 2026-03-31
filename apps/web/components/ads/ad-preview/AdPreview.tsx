@@ -215,16 +215,18 @@ export function AdPreview({
         </div>
       </div>
 
-      {/* Action bar — always visible at bottom */}
-      <div className="shrink-0 border-t border-border/20 px-3 py-2">
-        <button
-          onClick={handlePublish}
-          className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:from-emerald-600 hover:to-teal-600 hover:shadow-md active:scale-[0.98]"
-        >
-          Publicera
-          <ArrowRight className="h-3.5 w-3.5" />
-        </button>
-      </div>
+      {/* Action bar — only shown when onPublish is provided */}
+      {onPublish && (
+        <div className="shrink-0 border-t border-border/20 px-3 py-2">
+          <button
+            onClick={handlePublish}
+            className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:from-emerald-600 hover:to-teal-600 hover:shadow-md active:scale-[0.98]"
+          >
+            Publicera
+            <ArrowRight className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
