@@ -278,8 +278,9 @@ export function EditorSlide({
                 variantB={variantB ?? undefined}
                 format={platform.format}
                 strategy={result?.strategy}
-                autoGenerateImage={false}
+                autoGenerateImage
                 editable
+                hideHeader
               />
             </div>
 

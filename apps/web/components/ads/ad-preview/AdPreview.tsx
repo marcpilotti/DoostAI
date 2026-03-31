@@ -37,6 +37,7 @@ export function AdPreview({
   editable = true,
   autoGenerateImage = true,
   defaultCompareMode = "sidebyside",
+  hideHeader = false,
 }: AdPreviewProps) {
   const [format, setFormat] = useState<AdFormat>(initialFormat ?? "meta-feed");
   const [activeVariant, setActiveVariant] = useState<"A" | "B">("A");
@@ -113,16 +114,17 @@ export function AdPreview({
       className="animate-card-in flex flex-col overflow-hidden rounded-[20px] border border-border/30 bg-white/90 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_12px_32px_rgba(0,0,0,0.06)] backdrop-blur-xl"
       style={{ maxHeight: "calc(100vh - 150px)" }}
     >
-      {/* Header + format tabs */}
-      <AdPreviewSwitcher
-        activeFormat={format}
-        onFormatChange={handleFormatChange}
-      />
+      {/* Header + format tabs — hideable */}
+      {!hideHeader && (
+        <AdPreviewSwitcher
+          activeFormat={format}
+          onFormatChange={handleFormatChange}
+        />
+      )}
 
-      {/* A/B toggle (if variant B exists) */}
-      {variantB && (
+      {/* A/B toggle (if variant B exists and header visible) */}
+      {!hideHeader && variantB && (
         <div className="flex items-center justify-center gap-1 border-b border-border/10 py-1.5">
-          {/* Variant pills */}
           <div className="flex rounded-full bg-muted/30 p-0.5">
             <button
               onClick={() => { setActiveVariant("A"); if (compareMode === "toggle") setCompareMode("toggle"); }}
@@ -147,18 +149,6 @@ export function AdPreview({
               {winner === "B" && <Check className="ml-1 inline h-2.5 w-2.5 text-emerald-500" />}
             </button>
           </div>
-
-          {/* Side-by-side toggle */}
-          <button
-            onClick={() => setCompareMode(compareMode === "sidebyside" ? "toggle" : "sidebyside")}
-            className={`ml-2 rounded-full px-2.5 py-1 text-[9px] font-medium transition-all ${
-              compareMode === "sidebyside"
-                ? "bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200"
-                : "text-muted-foreground hover:bg-muted/30"
-            }`}
-          >
-            {compareMode === "sidebyside" ? "Enkel vy" : "Jämför"}
-          </button>
         </div>
       )}
 

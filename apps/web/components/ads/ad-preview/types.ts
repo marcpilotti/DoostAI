@@ -95,6 +95,8 @@ export type AdPreviewProps = {
   autoGenerateImage?: boolean;
   /** A/B comparison mode (default: 'toggle') */
   defaultCompareMode?: "toggle" | "sidebyside";
+  /** Hide the header (format switcher + A/B toggle). Default: false */
+  hideHeader?: boolean;
 };
 
 // ── Internal sub-component props ────────────────────────────────
