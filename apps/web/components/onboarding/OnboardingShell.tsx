@@ -289,6 +289,18 @@ export function OnboardingShell() {
 
   return (
     <div className="h-[100dvh] overflow-hidden bg-background pb-[env(safe-area-inset-bottom)]">
+      {/* ── Header: logo + login ───────────────────────────────── */}
+      <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-between px-5 py-4">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.svg" alt="Doost AI" className="h-6" />
+        <a
+          href="/sign-in"
+          className="rounded-full bg-white px-4 py-1.5 text-[13px] font-medium text-foreground shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-all hover:shadow-md"
+        >
+          Logga in
+        </a>
+      </div>
+
       <AnimatePresence mode="wait">
         {transitionMessage && (
           <TransitionMessage
