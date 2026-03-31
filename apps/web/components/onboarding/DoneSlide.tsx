@@ -1,20 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, BarChart3, Bell, Check, Eye, Sparkles } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 
 import { AIMessage } from "./AIMessage";
 
 const DONE_MESSAGES = [
-  { text: "Meta granskar din annons — det tar 1-24 timmar", delay: 400 },
-  { text: "Vi mejlar dig när den är live", delay: 1400 },
-  { text: "Kolla resultaten i dashboarden imorgon", delay: 2400 },
+  { text: "Annonsplattformen granskar din annons — det tar 1-24 timmar", delay: 500 },
+  { text: "Vi skickar en notis när den är live", delay: 1500 },
 ];
 
 export function DoneSlide({ brandName, onDashboard }: { brandName?: string; onDashboard: () => void }) {
   const prefersReduced = useReducedMotion();
-  const [countdown, setCountdown] = useState(5);
+  const [countdown, setCountdown] = useState(8);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -25,63 +24,98 @@ export function DoneSlide({ brandName, onDashboard }: { brandName?: string; onDa
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-6">
-      {/* Check icon */}
+      {/* Success animation */}
       <motion.div
-        initial={prefersReduced ? false : { scale: 0.5, opacity: 0 }}
+        initial={prefersReduced ? false : { scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.5, ease: "backOut" }}
-        className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-foreground"
+        className="relative mb-6"
       >
-        <Check className="h-8 w-8 text-white" strokeWidth={3} />
+        {/* Outer ring pulse */}
+        <motion.div
+          animate={prefersReduced ? {} : { scale: [1, 1.3, 1], opacity: [0.15, 0, 0.15] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -inset-3 rounded-full bg-foreground/10"
+        />
+        <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-foreground">
+          <motion.div
+            initial={prefersReduced ? false : { scale: 0, rotate: -45 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ delay: 0.3, duration: 0.3, ease: "backOut" }}
+          >
+            <Check className="h-8 w-8 text-white" strokeWidth={3} />
+          </motion.div>
+        </div>
       </motion.div>
 
+      {/* Heading */}
       <motion.h2
         initial={prefersReduced ? false : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.2 }}
-        className="mb-2 text-2xl font-bold tracking-tight"
+        transition={{ delay: 0.2 }}
+        className="mb-1 text-[24px] font-bold tracking-tight"
       >
-        Din annons är publicerad!
+        Din kampanj är live!
       </motion.h2>
 
       {brandName && (
-        <motion.p initial={prefersReduced ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="mb-6 text-[14px] text-muted-foreground/50">
-          {brandName} är redo att nå nya kunder
+        <motion.p
+          initial={prefersReduced ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="mb-6 text-[14px] text-muted-foreground/50"
+        >
+          {brandName} når nu nya kunder
         </motion.p>
       )}
 
+      {/* AI messages */}
       <div className="mb-6 flex flex-col items-center gap-2">
         {DONE_MESSAGES.map((msg) => <AIMessage key={msg.text} text={msg.text} delay={msg.delay} />)}
       </div>
 
-      {/* #10 Post-publish insights teaser */}
+      {/* What happens next card */}
       <motion.div
-        initial={prefersReduced ? false : { opacity: 0, y: 8 }}
+        initial={prefersReduced ? false : { opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.5 }}
-        className="mb-6 w-full max-w-xs overflow-hidden rounded-2xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+        transition={{ delay: 1 }}
+        className="mb-6 w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
       >
-        <div className="px-5 py-3">
-          <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/30">Om 24 timmar visar vi</p>
-          <div className="grid grid-cols-3 gap-3">
+        <div className="px-5 py-4">
+          <p className="mb-3 text-[12px] font-semibold uppercase tracking-wider text-muted-foreground/30">Vad händer nu</p>
+          <div className="space-y-3">
             {[
-              { label: "Räckvidd", value: "—" },
-              { label: "Klick", value: "—" },
-              { label: "CPC", value: "—" },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="h-5 w-full animate-pulse rounded bg-muted-foreground/5" />
-                <div className="mt-1 text-[10px] text-muted-foreground/30">{stat.label}</div>
-              </div>
+              { icon: Eye, title: "Granskning", desc: "Annonsplattformen granskar din annons (1-24h)", time: "Nu" },
+              { icon: Bell, title: "Notis", desc: "Du får ett mejl när annonsen är godkänd", time: "Idag" },
+              { icon: BarChart3, title: "Resultat", desc: "Klick, visningar och ROAS i din dashboard", time: "Imorgon" },
+              { icon: Sparkles, title: "AI-optimering", desc: "Doost AI analyserar och föreslår förbättringar", time: "Löpande" },
+            ].map((item, i) => (
+              <motion.div
+                key={item.title}
+                initial={prefersReduced ? false : { opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 1.2 + i * 0.15 }}
+                className="flex items-center gap-3"
+              >
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted-foreground/[0.04]">
+                  <item.icon className="h-4 w-4 text-muted-foreground/40" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[12px] font-medium text-foreground">{item.title}</p>
+                  <p className="text-[11px] text-muted-foreground/40">{item.desc}</p>
+                </div>
+                <span className="shrink-0 text-[10px] text-muted-foreground/25">{item.time}</span>
+              </motion.div>
             ))}
           </div>
         </div>
       </motion.div>
 
+      {/* CTA */}
       <motion.button
         initial={prefersReduced ? false : { opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.7 }}
+        transition={{ delay: 0.8 }}
         onClick={onDashboard}
         className="flex items-center gap-2 rounded-full bg-foreground px-8 py-3 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-[0.98]"
       >
@@ -89,7 +123,12 @@ export function DoneSlide({ brandName, onDashboard }: { brandName?: string; onDa
         <ArrowRight className="h-4 w-4" />
       </motion.button>
 
-      <motion.p initial={prefersReduced ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} className="mt-4 text-[11px] text-muted-foreground/25">
+      <motion.p
+        initial={prefersReduced ? false : { opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.2 }}
+        className="mt-3 text-[11px] text-muted-foreground/20"
+      >
         Omdirigeras om {countdown}s...
       </motion.p>
     </div>
