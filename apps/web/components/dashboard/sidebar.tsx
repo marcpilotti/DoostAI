@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { CreditBalance } from "./credit-balance";
 
 // ── Nav config — matches reference image exactly ─────────────────
 
@@ -128,6 +129,9 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
           );
         })}
       </nav>
+
+      {/* Credits */}
+      <CreditBalance />
 
       {/* User */}
       <div className="border-t px-3 py-3" style={{ borderColor: "var(--doost-border)" }}>
