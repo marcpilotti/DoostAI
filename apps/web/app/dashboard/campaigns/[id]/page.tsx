@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import { ArrowLeft, ExternalLink, Pause, Play, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 import { MOCK_CAMPAIGNS } from "@/lib/mock-data";
+import { useToast } from "@/components/ui/toast";
 
 // Mock daily data for the detail chart
 const DAILY_DATA = Array.from({ length: 14 }, (_, i) => ({
@@ -18,6 +20,9 @@ const DAILY_DATA = Array.from({ length: 14 }, (_, i) => ({
 export default function CampaignDetailPage() {
   const { id } = useParams<{ id: string }>();
   const campaign = MOCK_CAMPAIGNS.find((c) => c.id === id);
+  const toast = useToast();
+
+  const [status, setStatus] = useState<string>(campaign?.status ?? "draft");
 
   if (!campaign) {
     return (
@@ -27,7 +32,18 @@ export default function CampaignDetailPage() {
     );
   }
 
-  const isLive = campaign.status === "live";
+  const isLive = status === "live";
+  const isPaused = status === "paused";
+
+  function handlePause() {
+    setStatus("paused");
+    toast.success("Campaign paused", campaign!.name);
+  }
+
+  function handleResume() {
+    setStatus("live");
+    toast.success("Campaign resumed", campaign!.name);
+  }
 
   return (
     <div className="p-6">
@@ -44,17 +60,17 @@ export default function CampaignDetailPage() {
         </div>
         <div className="flex items-center gap-2">
           {isLive && (
-            <button className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-[12px] font-medium text-[var(--doost-text-secondary)] hover:bg-[var(--doost-bg-secondary)]" style={{ border: "1px solid var(--doost-border)" }}>
+            <button onClick={handlePause} className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-[12px] font-medium text-[var(--doost-text-secondary)] hover:bg-[var(--doost-bg-secondary)]" style={{ border: "1px solid var(--doost-border)" }}>
               <Pause className="h-3.5 w-3.5" /> Pause
             </button>
           )}
-          {campaign.status === "paused" && (
-            <button className="flex items-center gap-1.5 rounded-lg bg-[var(--doost-bg-active)] px-3 py-2 text-[12px] font-medium text-white hover:opacity-90">
+          {isPaused && (
+            <button onClick={handleResume} className="flex items-center gap-1.5 rounded-lg bg-[var(--doost-bg-active)] px-3 py-2 text-[12px] font-medium text-white hover:opacity-90">
               <Play className="h-3.5 w-3.5" /> Resume
             </button>
           )}
           <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${isLive ? "bg-[var(--doost-bg-badge-ready)] text-[var(--doost-text-positive)]" : "bg-[var(--doost-bg-secondary)] text-[var(--doost-text-secondary)]"}`}>
-            {campaign.status}
+            {status}
           </span>
         </div>
       </div>

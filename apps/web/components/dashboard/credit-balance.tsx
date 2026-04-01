@@ -1,17 +1,50 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Sparkles } from "lucide-react";
 
-export function CreditBalance() {
+const REFRESH_INTERVAL_MS = 30_000;
+
+export function useCredits(orgId: string = "demo") {
   const [balance, setBalance] = useState<number | null>(null);
 
+  const fetchBalance = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/credits/balance?orgId=${orgId}`);
+      const data = await res.json();
+      setBalance(data.balance ?? 2500);
+    } catch {
+      setBalance((prev) => prev ?? 2500); // fallback
+    }
+  }, [orgId]);
+
+  return { balance, fetchBalance };
+}
+
+export function refreshCredits(orgId: string = "demo") {
+  // Standalone helper callable from outside the hook
+  return fetch(`/api/credits/balance?orgId=${orgId}`)
+    .then((r) => r.json())
+    .then((d) => d.balance as number)
+    .catch(() => null);
+}
+
+export function CreditBalance() {
+  const { balance, fetchBalance } = useCredits("demo");
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Initial fetch + 30s polling
   useEffect(() => {
-    fetch("/api/credits/balance?orgId=demo")
-      .then((r) => r.json())
-      .then((d) => setBalance(d.balance))
-      .catch(() => setBalance(2500)); // fallback
-  }, []);
+    fetchBalance();
+
+    intervalRef.current = setInterval(() => {
+      fetchBalance();
+    }, REFRESH_INTERVAL_MS);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [fetchBalance]);
 
   if (balance === null) return null;
 

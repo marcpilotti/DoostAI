@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/toast";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
   ArrowRight,
   Check,
@@ -45,6 +46,7 @@ export default function ActionsPage() {
   const [actions, setActions] = useState<Action[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<Action | null>(null);
   const toast = useToast();
 
   // Generate actions on first visit
@@ -170,7 +172,13 @@ export default function ActionsPage() {
               {/* Execute button */}
               {!isDone && (
                 <button
-                  onClick={() => executeAction(action)}
+                  onClick={() => {
+                    if (action.priority === "high") {
+                      setConfirmAction(action);
+                    } else {
+                      executeAction(action);
+                    }
+                  }}
                   disabled={isExecuting}
                   className="flex shrink-0 items-center gap-1.5 rounded-lg bg-[var(--doost-bg-active)] px-3 py-2 text-[11px] font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
                 >
@@ -199,6 +207,22 @@ export default function ActionsPage() {
           <p className="text-[14px] text-[var(--doost-text-muted)]">No actions to recommend right now</p>
         </div>
       )}
+
+      {/* Confirmation dialog for high-priority actions */}
+      <ConfirmDialog
+        open={confirmAction !== null}
+        title="Execute high-priority action"
+        description={confirmAction ? `Are you sure you want to execute "${confirmAction.title}"? ${confirmAction.description}` : ""}
+        confirmLabel="Execute"
+        cancelLabel="Cancel"
+        onConfirm={() => {
+          if (confirmAction) {
+            executeAction(confirmAction);
+            setConfirmAction(null);
+          }
+        }}
+        onCancel={() => setConfirmAction(null)}
+      />
     </div>
   );
 }

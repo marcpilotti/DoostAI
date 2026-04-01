@@ -3,9 +3,31 @@
 import { useEffect } from "react";
 import { CheckCircle2, ExternalLink, RefreshCw, XCircle } from "lucide-react";
 import { MOCK_INTEGRATIONS } from "@/lib/mock-data";
+import { useToast } from "@/components/ui/toast";
+
+const OAUTH_URLS: Record<string, string> = {
+  meta: "/api/platforms/meta/callback",
+  google: "/api/platforms/google/callback",
+  linkedin: "/api/platforms/linkedin/callback",
+};
 
 export default function IntegrationsPage() {
   useEffect(() => { document.title = "Integrations — Doost AI"; }, []);
+  const toast = useToast();
+
+  function handleConnect(platform: string, label: string) {
+    const url = OAUTH_URLS[platform];
+    if (!url) return;
+
+    if (platform === "linkedin") {
+      window.open(url, "_blank", "noopener,noreferrer");
+      toast.info("LinkedIn auth opened", "Complete the connection in the new tab");
+    } else {
+      window.location.href = url;
+      toast.info("Redirecting...", `Connecting to ${label}`);
+    }
+  }
+
   return (
     <div className="p-6">
       <h2 className="mb-6 text-[18px] font-semibold text-[var(--doost-text)]">Integrations</h2>
@@ -39,7 +61,10 @@ export default function IntegrationsPage() {
                   <CheckCircle2 className="h-4 w-4" /> Connected
                 </span>
               ) : (
-                <button className="flex items-center gap-1.5 rounded-lg bg-[var(--doost-bg-active)] px-3 py-1.5 text-[12px] font-medium text-white hover:opacity-90">
+                <button
+                  onClick={() => handleConnect(i.platform, i.label)}
+                  className="flex items-center gap-1.5 rounded-lg bg-[var(--doost-bg-active)] px-3 py-1.5 text-[12px] font-medium text-white hover:opacity-90"
+                >
                   Connect <ExternalLink className="h-3 w-3" />
                 </button>
               )}
