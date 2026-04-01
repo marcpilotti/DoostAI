@@ -4,6 +4,11 @@ import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Briefcase, ChevronDown, MapPin, Pencil, Users } from "lucide-react";
 import { useState } from "react";
 
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
 import type { BrandProfile } from "./OnboardingShell";
 
 const INDUSTRIES = [
@@ -17,7 +22,12 @@ const INDUSTRIES = [
 
 const CUSTOM_INDUSTRY_VALUE = "__annat__";
 
-function InlineEdit({ value, onSave }: { value: string; onSave: (v: string) => void }) {
+function EditableField({ icon: Icon, label, value, onSave }: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: string;
+  onSave: (v: string) => void;
+}) {
   const [editing, setEditing] = useState(false);
 
   function handleSave(newValue: string) {
@@ -25,21 +35,29 @@ function InlineEdit({ value, onSave }: { value: string; onSave: (v: string) => v
     setEditing(false);
   }
 
-  if (editing) {
-    return (
-      <input
-        type="text" defaultValue={value} autoFocus
-        onKeyDown={(e) => { if (e.key === "Enter") handleSave((e.target as HTMLInputElement).value); }}
-        onBlur={(e) => handleSave(e.target.value)}
-        className="w-full rounded-lg bg-muted/30 px-3 py-2 text-[15px] font-semibold text-foreground outline-none ring-2 ring-primary/30"
-      />
-    );
-  }
   return (
-    <button onClick={() => setEditing(true)} className="group flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition-colors hover:bg-muted/20">
-      <span className="text-[15px] font-semibold text-foreground">{value || "Klicka för att ange..."}</span>
-      <Pencil className="h-3.5 w-3.5 shrink-0 text-muted-foreground/30 opacity-0 transition-opacity group-hover:opacity-100" />
-    </button>
+    <Card className="border-0 bg-muted/30 shadow-none">
+      <CardContent className="p-4">
+        <div className="mb-2 flex items-center gap-2">
+          <Icon className="h-4 w-4 text-muted-foreground" />
+          <Label className="text-xs uppercase tracking-wider text-muted-foreground">{label}</Label>
+        </div>
+        {editing ? (
+          <Input
+            defaultValue={value}
+            autoFocus
+            onKeyDown={(e) => { if (e.key === "Enter") handleSave((e.target as HTMLInputElement).value); }}
+            onBlur={(e) => handleSave(e.target.value)}
+            className="h-auto border-0 bg-background px-2 py-1 text-base font-semibold shadow-none focus-visible:ring-1"
+          />
+        ) : (
+          <button onClick={() => setEditing(true)} className="group flex w-full items-center justify-between rounded-md px-2 py-1 text-left transition-colors hover:bg-background">
+            <span className="text-base font-semibold">{value || "Klicka för att ange..."}</span>
+            <Pencil className="h-3.5 w-3.5 text-muted-foreground/30 opacity-0 transition-opacity group-hover:opacity-100" />
+          </button>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -72,84 +90,71 @@ export function BrandAudienceSlide({ profile, onConfirm, onBack }: {
           initial={prefersReduced ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="overflow-hidden rounded-2xl bg-white shadow-[var(--shadow-md)]"
         >
-          {/* ── Header ────────────────────────────────────────── */}
-          <div className="flex items-center gap-3 border-b border-border/20 px-6 py-5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-              <Users className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h2 className="text-[17px] font-bold text-foreground">Målgrupp & bransch</h2>
-              <p className="text-[13px] text-muted-foreground/50">Bekräfta eller ändra era uppgifter</p>
-            </div>
-          </div>
+          <Card className="border-0 shadow-lg">
+            <CardHeader className="flex-row items-center gap-3 space-y-0">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                <Users className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">Målgrupp & bransch</CardTitle>
+                <CardDescription>Bekräfta eller ändra era uppgifter</CardDescription>
+              </div>
+            </CardHeader>
 
-          {/* ── Field cards ───────────────────────────────────── */}
-          <div className="space-y-3 p-4">
-            {/* Bransch */}
-            <motion.div {...stagger(0)} className="rounded-xl bg-muted/20 p-4">
-              <div className="mb-3 flex items-center gap-2">
-                <Briefcase className="h-4 w-4 text-muted-foreground/40" />
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">Bransch</span>
-              </div>
-              <div className="flex items-center gap-1.5 rounded-lg bg-white px-3 py-2.5 shadow-sm ring-1 ring-border/10">
-                <select
-                  value={industry}
-                  onChange={(e) => { setIndustry(e.target.value); if (e.target.value !== CUSTOM_INDUSTRY_VALUE) setCustomIndustry(""); }}
-                  className="w-full appearance-none bg-transparent text-[15px] font-semibold text-foreground outline-none cursor-pointer truncate pr-4"
-                >
-                  {INDUSTRIES.map((ind) => <option key={ind} value={ind}>{ind}</option>)}
-                  <option value={CUSTOM_INDUSTRY_VALUE}>Annat</option>
-                </select>
-                <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground/30" />
-              </div>
-              {industry === CUSTOM_INDUSTRY_VALUE && (
-                <input
-                  type="text"
-                  value={customIndustry}
-                  onChange={(e) => setCustomIndustry(e.target.value)}
-                  placeholder="Ange bransch..."
-                  autoFocus
-                  className="mt-2 w-full rounded-lg bg-white px-3 py-2 text-[14px] text-foreground shadow-sm outline-none ring-1 ring-border/10 placeholder:text-muted-foreground/30 focus:ring-2 focus:ring-primary/30"
-                />
+            <CardContent className="space-y-3">
+              <motion.div {...stagger(0)}>
+                <Card className="border-0 bg-muted/30 shadow-none">
+                  <CardContent className="p-4">
+                    <div className="mb-2 flex items-center gap-2">
+                      <Briefcase className="h-4 w-4 text-muted-foreground" />
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground">Bransch</Label>
+                    </div>
+                    <div className="flex items-center gap-1.5 rounded-md bg-background px-2 py-1.5 shadow-sm ring-1 ring-border">
+                      <select
+                        value={industry}
+                        onChange={(e) => { setIndustry(e.target.value); if (e.target.value !== CUSTOM_INDUSTRY_VALUE) setCustomIndustry(""); }}
+                        className="w-full appearance-none bg-transparent text-base font-semibold outline-none cursor-pointer truncate pr-4"
+                      >
+                        {INDUSTRIES.map((ind) => <option key={ind} value={ind}>{ind}</option>)}
+                        <option value={CUSTOM_INDUSTRY_VALUE}>Annat</option>
+                      </select>
+                      <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </div>
+                    {industry === CUSTOM_INDUSTRY_VALUE && (
+                      <Input
+                        value={customIndustry}
+                        onChange={(e) => setCustomIndustry(e.target.value)}
+                        placeholder="Ange bransch..."
+                        autoFocus
+                        className="mt-2"
+                      />
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              <motion.div {...stagger(1)}>
+                <EditableField icon={Users} label="Målgrupp" value={targetAudience} onSave={setTargetAudience} />
+              </motion.div>
+
+              <motion.div {...stagger(2)}>
+                <EditableField icon={MapPin} label="Plats" value={location} onSave={setLocation} />
+              </motion.div>
+            </CardContent>
+
+            <CardFooter className="flex-col gap-3">
+              <Button onClick={handleConfirm} size="lg" className="w-full rounded-full">
+                Gå vidare
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+              {onBack && (
+                <button onClick={onBack} className="text-xs text-muted-foreground hover:text-foreground">
+                  ← Tillbaka
+                </button>
               )}
-            </motion.div>
-
-            {/* Målgrupp */}
-            <motion.div {...stagger(1)} className="rounded-xl bg-muted/20 p-4">
-              <div className="mb-3 flex items-center gap-2">
-                <Users className="h-4 w-4 text-muted-foreground/40" />
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">Målgrupp</span>
-              </div>
-              <InlineEdit value={targetAudience} onSave={setTargetAudience} />
-            </motion.div>
-
-            {/* Plats */}
-            <motion.div {...stagger(2)} className="rounded-xl bg-muted/20 p-4">
-              <div className="mb-3 flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-muted-foreground/40" />
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">Plats</span>
-              </div>
-              <InlineEdit value={location} onSave={setLocation} />
-            </motion.div>
-          </div>
-
-          {/* ── CTA ───────────────────────────────────────────── */}
-          <div className="px-6 pb-6 pt-2">
-            <button
-              onClick={handleConfirm}
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3.5 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-[0.98]"
-            >
-              Gå vidare
-              <ArrowRight className="h-4 w-4" />
-            </button>
-            {onBack && (
-              <button onClick={onBack} className="mt-3 block w-full text-center text-[11px] text-muted-foreground/40 hover:text-muted-foreground">
-                ← Tillbaka
-              </button>
-            )}
-          </div>
+            </CardFooter>
+          </Card>
         </motion.div>
       </div>
     </div>

@@ -4,6 +4,11 @@ import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Check, Info, Send } from "lucide-react";
 import { useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+
 // ── Platform definitions ────────────────────────────────────────
 
 type Platform = {
@@ -115,98 +120,95 @@ export function BrandChannelsSlide({ onConfirm, onBack }: {
           initial={prefersReduced ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="overflow-hidden rounded-2xl bg-white shadow-[var(--shadow-md)]"
         >
-          {/* ── Header ────────────────────────────────────────── */}
-          <div className="flex items-center gap-3 border-b border-border/20 px-6 py-5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-              <Send className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h2 className="text-[17px] font-bold text-foreground">Välj annonskanal</h2>
-              <p className="text-[13px] text-muted-foreground/50">Välj en plattform att skapa annons för</p>
-            </div>
-          </div>
+          <Card className="border-0 shadow-lg">
+            {/* ── Header ──────────────────────────────────────── */}
+            <CardHeader className="flex-row items-center gap-3 space-y-0">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                <Send className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">Välj annonskanal</CardTitle>
+                <CardDescription>Välj en plattform att skapa annons för</CardDescription>
+              </div>
+            </CardHeader>
 
-          {/* ── Info banner ───────────────────────────────────── */}
-          <div className="mx-4 mt-4 flex items-center gap-2 rounded-lg bg-emerald-50 px-4 py-2.5">
-            <Info className="h-4 w-4 shrink-0 text-emerald-600" />
-            <p className="text-[12px] text-emerald-700">Vi sköter kontona åt dig — du behöver inte ha egna annonskonton.</p>
-          </div>
+            <CardContent className="space-y-4">
+              {/* ── Info banner ─────────────────────────────────── */}
+              <div className="flex items-center gap-2 rounded-lg bg-emerald-50 px-4 py-2.5">
+                <Info className="h-4 w-4 shrink-0 text-emerald-600" />
+                <p className="text-xs text-emerald-700">Vi sköter kontona åt dig — du behöver inte ha egna annonskonton.</p>
+              </div>
 
-          {/* ── Platform grid ─────────────────────────────────── */}
-          <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3">
-            {PLATFORMS.map((p) => {
-              const isSelected = selected.has(p.id);
-              const isDisabled = !p.enabled;
+              {/* ── Platform grid ───────────────────────────────── */}
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {PLATFORMS.map((p) => {
+                  const isSelected = selected.has(p.id);
+                  const isDisabled = !p.enabled;
 
-              return (
-                <button
-                  key={p.id}
-                  onClick={() => !isDisabled && toggle(p.id)}
-                  disabled={isDisabled}
-                  className={`relative flex flex-col items-center rounded-xl px-3 py-5 text-center transition-all ${
-                    isSelected
-                      ? "bg-primary/5 ring-2 ring-primary shadow-sm"
-                      : isDisabled
-                        ? "bg-muted/20 opacity-50 cursor-not-allowed"
-                        : "bg-muted/20 ring-1 ring-border/10 hover:ring-border/30 hover:bg-muted/30"
-                  }`}
-                >
-                  {/* Selection badge */}
-                  {isSelected && (
-                    <div className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white shadow-sm">
-                      <Check className="h-3.5 w-3.5" strokeWidth={3} />
-                    </div>
-                  )}
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => !isDisabled && toggle(p.id)}
+                      disabled={isDisabled}
+                      className={`relative flex flex-col items-center rounded-xl px-3 py-5 text-center transition-all ${
+                        isSelected
+                          ? "bg-primary/5 ring-2 ring-primary shadow-sm"
+                          : isDisabled
+                            ? "bg-muted/30 opacity-50 cursor-not-allowed"
+                            : "bg-muted/30 ring-1 ring-border hover:ring-ring hover:bg-muted/40"
+                      }`}
+                    >
+                      {isSelected && (
+                        <div className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white shadow-sm">
+                          <Check className="h-3.5 w-3.5" strokeWidth={3} />
+                        </div>
+                      )}
+                      {isDisabled && (
+                        <Badge variant="secondary" className="absolute right-2 top-2 text-[8px]">
+                          Snart
+                        </Badge>
+                      )}
 
-                  {/* Coming soon badge */}
-                  {isDisabled && (
-                    <span className="absolute right-2 top-2 rounded-full bg-muted px-1.5 py-0.5 text-[8px] font-medium text-muted-foreground">
-                      Snart
-                    </span>
-                  )}
+                      {p.icon}
+                      <h3 className="mt-3 text-sm font-bold">{p.name}</h3>
+                      <p className="text-xs text-muted-foreground">{p.description}</p>
 
-                  {p.icon}
-                  <h3 className="mt-3 text-[14px] font-bold text-foreground">{p.name}</h3>
-                  <p className="text-[11px] text-muted-foreground/50">{p.description}</p>
+                      <div className="mt-3 flex flex-wrap justify-center gap-1">
+                        {p.tags.map((tag) => (
+                          <Badge key={tag} variant="outline" className="text-[10px] font-normal">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </CardContent>
 
-                  {/* Format tags */}
-                  <div className="mt-3 flex flex-wrap justify-center gap-1">
-                    {p.tags.map((tag) => (
-                      <span key={tag} className="rounded-full bg-white px-2 py-0.5 text-[10px] font-medium text-muted-foreground/60 ring-1 ring-border/10">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+            <Separator />
 
-          {/* ── Footer ────────────────────────────────────────── */}
-          <div className="border-t border-border/20 px-6 py-2">
-            <button className="text-[11px] text-primary/60 hover:text-primary">
-              Koppla befintliga annonskonton →
-            </button>
-          </div>
-
-          {/* ── CTA ───────────────────────────────────────────── */}
-          <div className="px-6 pb-6 pt-2">
-            <button
-              onClick={handleConfirm}
-              disabled={selected.size === 0}
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3.5 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-30"
-            >
-              Skapa annons
-              <ArrowRight className="h-4 w-4" />
-            </button>
-            {onBack && (
-              <button onClick={onBack} className="mt-3 block w-full text-center text-[11px] text-muted-foreground/40 hover:text-muted-foreground">
-                ← Tillbaka
+            {/* ── Footer link ─────────────────────────────────── */}
+            <div className="px-6 py-2">
+              <button className="text-xs text-primary/60 hover:text-primary">
+                Koppla befintliga annonskonton →
               </button>
-            )}
-          </div>
+            </div>
+
+            {/* ── CTA ─────────────────────────────────────────── */}
+            <CardFooter className="flex-col gap-3">
+              <Button onClick={handleConfirm} size="lg" disabled={selected.size === 0} className="w-full rounded-full">
+                Skapa annons
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+              {onBack && (
+                <button onClick={onBack} className="text-xs text-muted-foreground hover:text-foreground">
+                  ← Tillbaka
+                </button>
+              )}
+            </CardFooter>
+          </Card>
         </motion.div>
       </div>
     </div>

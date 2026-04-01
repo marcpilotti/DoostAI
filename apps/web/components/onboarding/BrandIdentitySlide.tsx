@@ -4,6 +4,11 @@ import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, ExternalLink, ImagePlus } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+
 import { ColorEditor } from "../brand/color-editor";
 import type { BrandProfile } from "./OnboardingShell";
 
@@ -48,8 +53,8 @@ function ColorDot({ color, label, hex, role, originalColor, onColorChange }: {
         style={{ backgroundColor: color }}
         aria-label={`Ändra ${label}-färg`}
       />
-      <span className="text-[11px] font-mono text-muted-foreground/50">{hex}</span>
-      <span className="text-[10px] font-medium text-muted-foreground/40">{label}</span>
+      <span className="font-mono text-xs text-muted-foreground">{hex}</span>
+      <span className="text-[10px] font-medium text-muted-foreground">{label}</span>
       {open && <ColorEditor role={role} currentColor={color} originalColor={originalColor} onColorChange={onColorChange} onClose={() => setOpen(false)} />}
     </div>
   );
@@ -67,7 +72,6 @@ export function BrandIdentitySlide({ profile, onConfirm, onBack }: {
   const [logoUrl, setLogoUrl] = useState<string | null>(profile.logo?.url ?? profile.logos?.primary ?? null);
   const [logoError, setLogoError] = useState<string | null>(null);
 
-  // Confidence count-up
   const targetConfidence = profile._intelligence?.overallConfidence ?? 0;
   const [confidence, setConfidence] = useState(0);
   useEffect(() => {
@@ -97,90 +101,95 @@ export function BrandIdentitySlide({ profile, onConfirm, onBack }: {
           initial={prefersReduced ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="overflow-hidden rounded-2xl bg-white shadow-[var(--shadow-md)]"
         >
-          {/* ── Immersive brand header ─────────────────────────── */}
-          <div
-            className="relative px-6 pb-6 pt-8"
-            style={{ background: `linear-gradient(135deg, ${primary}15 0%, ${primary}08 100%)` }}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                {/* Logo or upload */}
-                <label className="group flex h-14 w-14 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm transition-transform hover:scale-105">
-                  {logoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={logoUrl} alt={name} className="h-full w-full object-contain p-1.5" />
-                  ) : (
-                    <ImagePlus className="h-5 w-5 text-muted-foreground/30" />
+          <Card className="overflow-hidden border-0 shadow-lg">
+            {/* ── Brand header with gradient ────────────────────── */}
+            <CardHeader
+              className="relative pb-4"
+              style={{ background: `linear-gradient(135deg, ${primary}12 0%, ${primary}06 100%)` }}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <label className="group flex h-14 w-14 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm transition-transform hover:scale-105">
+                    {logoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={logoUrl} alt={name} className="h-full w-full object-contain p-1.5" />
+                    ) : (
+                      <ImagePlus className="h-5 w-5 text-muted-foreground/30" />
+                    )}
+                    <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" className="hidden" onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (!f) return;
+                      if (f.size > 5 * 1024 * 1024) { setLogoError("Max 5 MB"); return; }
+                      setLogoError(null);
+                      compressImage(f, 512).then(setLogoUrl).catch(() => setLogoUrl(URL.createObjectURL(f)));
+                    }} />
+                  </label>
+                  <div>
+                    <h2 className="text-2xl font-bold tracking-tight" style={{ color: primary }}>{name}</h2>
+                    <p className="text-sm text-muted-foreground">{domain}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {confidence > 0 && (
+                    <Badge variant="secondary" className="tabular-nums">
+                      {confidence}% match
+                    </Badge>
                   )}
-                  <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" className="hidden" onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (!f) return;
-                    if (f.size > 5 * 1024 * 1024) { setLogoError("Max 5 MB"); return; }
-                    setLogoError(null);
-                    compressImage(f, 512).then(setLogoUrl).catch(() => setLogoUrl(URL.createObjectURL(f)));
-                  }} />
-                </label>
-                <div>
-                  <h2 className="text-2xl font-bold tracking-tight" style={{ color: primary }}>{name}</h2>
-                  <p className="text-[13px] text-muted-foreground/50">{domain}</p>
+                  <a href={profile.url.startsWith("http") ? profile.url : `https://${profile.url}`} target="_blank" rel="noopener noreferrer" className="rounded-lg p-1.5 text-muted-foreground/40 hover:text-muted-foreground">
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                {confidence > 0 && (
-                  <span className="rounded-full bg-white/80 px-2.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground/50 shadow-sm">
-                    {confidence}% match
-                  </span>
-                )}
-                <a href={profile.url.startsWith("http") ? profile.url : `https://${profile.url}`} target="_blank" rel="noopener noreferrer" className="rounded-lg p-1.5 text-muted-foreground/40 hover:text-muted-foreground/50">
-                  <ExternalLink className="h-4 w-4" />
-                </a>
-              </div>
-            </div>
-            {logoError && <p className="mt-2 text-[11px] text-red-500">{logoError}</p>}
-          </div>
+              {logoError && <p className="mt-2 text-xs text-destructive">{logoError}</p>}
+            </CardHeader>
 
-          {/* ── Colors ────────────────────────────────────────── */}
-          <div className="border-t border-border/20 px-6 py-6">
-            <div className="mb-4 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/40">Varumärkesfärger</div>
-            <div className="flex justify-center gap-8">
-              <ColorDot color={colors.primary} hex={colors.primary} label="Primär" role="primary" originalColor={profile.colors.primary} onColorChange={(c) => setColors((p) => ({ ...p, primary: c }))} />
-              <ColorDot color={colors.secondary} hex={colors.secondary} label="Sekundär" role="secondary" originalColor={profile.colors.secondary} onColorChange={(c) => setColors((p) => ({ ...p, secondary: c }))} />
-              <ColorDot color={colors.accent} hex={colors.accent} label="Accent" role="accent" originalColor={profile.colors.accent} onColorChange={(c) => setColors((p) => ({ ...p, accent: c }))} />
-            </div>
-          </div>
+            <Separator />
 
-          {/* ── Typography ────────────────────────────────────── */}
-          <div className="border-t border-border/20 px-6 py-5">
-            <div className="mb-3 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/40">Typografi</div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-lg bg-muted/30 px-4 py-3">
-                <div className="text-[10px] text-muted-foreground/40">Rubrik</div>
-                <div className="mt-0.5 text-[16px] font-bold text-foreground">{profile.fonts?.heading ?? "Inter"}</div>
+            {/* ── Colors ────────────────────────────────────────── */}
+            <CardContent className="py-6">
+              <p className="mb-4 text-xs font-medium uppercase tracking-wider text-muted-foreground">Varumärkesfärger</p>
+              <div className="flex justify-center gap-8">
+                <ColorDot color={colors.primary} hex={colors.primary} label="Primär" role="primary" originalColor={profile.colors.primary} onColorChange={(c) => setColors((p) => ({ ...p, primary: c }))} />
+                <ColorDot color={colors.secondary} hex={colors.secondary} label="Sekundär" role="secondary" originalColor={profile.colors.secondary} onColorChange={(c) => setColors((p) => ({ ...p, secondary: c }))} />
+                <ColorDot color={colors.accent} hex={colors.accent} label="Accent" role="accent" originalColor={profile.colors.accent} onColorChange={(c) => setColors((p) => ({ ...p, accent: c }))} />
               </div>
-              <div className="rounded-lg bg-muted/30 px-4 py-3">
-                <div className="text-[10px] text-muted-foreground/40">Brödtext</div>
-                <div className="mt-0.5 text-[16px] text-foreground">{profile.fonts?.body ?? "Inter"}</div>
-              </div>
-            </div>
-          </div>
+            </CardContent>
 
-          {/* ── CTA ───────────────────────────────────────────── */}
-          <div className="px-6 pb-6 pt-2">
-            <button
-              onClick={handleConfirm}
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3.5 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-[0.98]"
-            >
-              Allt ser bra ut
-              <ArrowRight className="h-4 w-4" />
-            </button>
-            {onBack && (
-              <button onClick={onBack} className="mt-3 block w-full text-center text-[11px] text-muted-foreground/40 hover:text-muted-foreground">
-                ← Byt URL
-              </button>
-            )}
-          </div>
+            <Separator />
+
+            {/* ── Typography ────────────────────────────────────── */}
+            <CardContent className="py-5">
+              <p className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">Typografi</p>
+              <div className="grid grid-cols-2 gap-3">
+                <Card className="border-0 bg-muted/40 shadow-none">
+                  <CardContent className="p-3">
+                    <p className="text-[10px] text-muted-foreground">Rubrik</p>
+                    <p className="mt-0.5 text-base font-bold">{profile.fonts?.heading ?? "Inter"}</p>
+                  </CardContent>
+                </Card>
+                <Card className="border-0 bg-muted/40 shadow-none">
+                  <CardContent className="p-3">
+                    <p className="text-[10px] text-muted-foreground">Brödtext</p>
+                    <p className="mt-0.5 text-base">{profile.fonts?.body ?? "Inter"}</p>
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+
+            {/* ── CTA ───────────────────────────────────────────── */}
+            <CardFooter className="flex-col gap-3 pb-6">
+              <Button onClick={handleConfirm} size="lg" className="w-full rounded-full">
+                Allt ser bra ut
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+              {onBack && (
+                <button onClick={onBack} className="text-xs text-muted-foreground hover:text-foreground">
+                  ← Byt URL
+                </button>
+              )}
+            </CardFooter>
+          </Card>
         </motion.div>
       </div>
     </div>
