@@ -22,6 +22,14 @@ const config: Config = {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
         sketch: ["var(--font-marker)", "cursive"],
       },
+      fontSize: {
+        display: ["48px", { lineHeight: "1.1", letterSpacing: "-0.02em" }],
+        title: ["22px", { lineHeight: "1.2", letterSpacing: "-0.01em" }],
+        body: ["14px", { lineHeight: "1.5" }],
+        secondary: ["12px", { lineHeight: "1.5" }],
+        caption: ["11px", { lineHeight: "1.4" }],
+        micro: ["10px", { lineHeight: "1.3" }],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

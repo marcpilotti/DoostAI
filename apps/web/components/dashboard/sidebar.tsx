@@ -28,19 +28,19 @@ import { CreditBalance } from "./credit-balance";
 // ── Nav config — matches reference image exactly ─────────────────
 
 const mainNav = [
-  { href: "/dashboard", label: "Home", icon: Home, exact: true },
-  { href: "/dashboard/analytics", label: "Analytics", icon: LineChart },
-  { href: "/dashboard/actions", label: "Actions", icon: Zap },
-  { href: "/dashboard/campaigns", label: "Campaigns", icon: BarChart3 },
-  { href: "/dashboard/campaigns/builder", label: "Builder", icon: Zap },
-  { href: "/dashboard/creatives", label: "Creatives", icon: ImageIcon },
-  { href: "/dashboard/products", label: "Products", icon: ShoppingBag },
+  { href: "/dashboard", label: "Hem", icon: Home, exact: true },
+  { href: "/dashboard/analytics", label: "Analys", icon: LineChart },
+  { href: "/dashboard/actions", label: "Åtgärder", icon: Zap },
+  { href: "/dashboard/campaigns", label: "Kampanjer", icon: BarChart3 },
+  { href: "/dashboard/campaigns/builder", label: "Byggare", icon: Zap },
+  { href: "/dashboard/creatives", label: "Kreativ", icon: ImageIcon },
+  { href: "/dashboard/products", label: "Produkter", icon: ShoppingBag },
 ];
 
 const bottomNav = [
-  { href: "/dashboard/integrations", label: "Integrations", icon: LayoutGrid },
-  { href: "/dashboard/wallet", label: "Wallet", icon: Wallet },
-  { href: "/dashboard/settings", label: "Settings", icon: Settings },
+  { href: "/dashboard/integrations", label: "Integrationer", icon: LayoutGrid },
+  { href: "/dashboard/wallet", label: "Plånbok", icon: Wallet },
+  { href: "/dashboard/settings", label: "Inställningar", icon: Settings },
 ];
 
 // ── Component ────────────────────────────────────────────────────

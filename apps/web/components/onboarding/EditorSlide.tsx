@@ -407,7 +407,7 @@ export function EditorSlide({
             <div className="shrink-0 border-t border-border/8 px-5 py-4">
               <button
                 onClick={() => { if (variantA) handlePublish(variantA); }}
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 py-3 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-[0.98]"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 py-3 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-95"
               >
                 Publicera
                 <ArrowRight className="h-4 w-4" />

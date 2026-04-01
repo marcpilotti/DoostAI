@@ -53,7 +53,7 @@ export function BuilderTopBar({
         </button>
         <button
           onClick={onExecute}
-          className="flex items-center gap-2 rounded-lg bg-[var(--doost-bg-active)] px-4 py-1.5 text-[12px] font-semibold text-white hover:opacity-90 active:scale-[0.98]"
+          className="flex items-center gap-2 rounded-lg bg-[var(--doost-bg-active)] px-4 py-1.5 text-[12px] font-semibold text-white hover:opacity-90 active:scale-95"
         >
           <Sparkles className="h-3.5 w-3.5" />
           Execute plan

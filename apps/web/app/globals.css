@@ -56,6 +56,30 @@
     --doost-radius-md: 8px;
     --doost-radius-lg: 12px;
     --doost-radius-card: 10px;
+
+    /* Shadow tokens */
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+    --shadow-lg: 0 4px 12px rgba(0,0,0,0.1), 0 16px 32px rgba(0,0,0,0.08);
+
+    /* Text hierarchy */
+    --text-muted: rgba(0,0,0,0.5);
+    --text-faint: rgba(0,0,0,0.3);
+    --text-ghost: rgba(0,0,0,0.15);
+
+    /* Semantic colors */
+    --color-error: #DC2626;
+    --color-error-light: #FEF2F2;
+    --color-info: #3B82F6;
+    --color-info-light: #EFF6FF;
+    --color-warning: #F59E0B;
+    --color-warning-light: #FFFBEB;
+
+    /* Platform brand colors */
+    --brand-meta: #0081FB;
+    --brand-google: #4285F4;
+    --brand-linkedin: #0A66C2;
+    --brand-snapchat: #FFFC00;
   }
 
   .dark {
@@ -318,4 +342,17 @@
 /* Campaign builder edge animation */
 @keyframes dashmove {
   to { stroke-dashoffset: -10; }
+}
+
+/* Focus visible — global accessibility rule */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="tab"]:focus-visible,
+[role="radio"]:focus-visible {
+  outline: 2px solid var(--doost-bg-active, #1A1A1A);
+  outline-offset: 2px;
+  border-radius: var(--doost-radius-sm, 6px);
 }

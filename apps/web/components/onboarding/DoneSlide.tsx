@@ -119,7 +119,7 @@ export function DoneSlide({ brandName, onDashboard, onRestart }: { brandName?: s
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.8 }}
         onClick={onDashboard}
-        className="flex items-center gap-2 rounded-full bg-foreground px-8 py-3 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-[0.98]"
+        className="flex items-center gap-2 rounded-full bg-foreground px-8 py-3 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-95"
       >
         Gå till dashboard
         <ArrowRight className="h-4 w-4" />
@@ -132,7 +132,7 @@ export function DoneSlide({ brandName, onDashboard, onRestart }: { brandName?: s
           animate={{ opacity: 1 }}
           transition={{ delay: 1.0 }}
           onClick={onRestart}
-          className="mt-3 rounded-full border border-foreground/10 px-6 py-2.5 text-[13px] font-medium text-foreground/60 transition-all hover:border-foreground/20 hover:text-foreground active:scale-[0.98]"
+          className="mt-3 rounded-full border border-foreground/10 px-6 py-2.5 text-[13px] font-medium text-foreground/60 transition-all hover:border-foreground/20 hover:text-foreground active:scale-95"
         >
           Skapa ny annons
         </motion.button>

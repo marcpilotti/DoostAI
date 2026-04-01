@@ -172,7 +172,7 @@ export function LoadingSlide({
           )}
           <button
             onClick={analyze}
-            className="flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-[13px] font-semibold text-white hover:opacity-90 active:scale-[0.98]"
+            className="flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-[13px] font-semibold text-white hover:opacity-90 active:scale-95"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Försök igen
