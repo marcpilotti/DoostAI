@@ -37,3 +37,6 @@ pnpm-debug.log*
 reference/
 .vercel
 tmp/
+.next/
+.env.local
+.DS_Store
