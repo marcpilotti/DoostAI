@@ -6,17 +6,26 @@ let _supabase: SupabaseClient | null = null;
  * Server-side Supabase client with service role key.
  * Lazy-initialized to avoid crash when env vars are missing at build time.
  */
-export const supabase = new Proxy({} as SupabaseClient, {
-  get(_, prop) {
-    if (!_supabase) {
-      const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-      const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
-      if (!url || !key) {
-        throw new Error("Supabase URL and service role key are required at runtime");
-      }
-      _supabase = createClient(url, key);
+export function getSupabase(): SupabaseClient {
+  if (!_supabase) {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+    if (!url || !key) {
+      throw new Error("Supabase URL and service role key are required at runtime");
     }
-    return (_supabase as unknown as Record<string | symbol, unknown>)[prop];
+    _supabase = createClient(url, key);
+  }
+  return _supabase;
+}
+
+/**
+ * @deprecated Use getSupabase() instead. This getter exists for backward compatibility.
+ */
+export const supabase: SupabaseClient = new Proxy({} as SupabaseClient, {
+  get(_, prop, receiver) {
+    const client = getSupabase();
+    const value = Reflect.get(client, prop, receiver);
+    return typeof value === "function" ? value.bind(client) : value;
   },
 });
 
@@ -30,7 +39,7 @@ export async function safeQuery<T>(
     const { data, error } = await queryFn();
     if (error) {
       if (error.code === "PGRST205" || error.message?.includes("Could not find")) {
-        return null; // Table doesn't exist
+        return null;
       }
       console.error("[supabase] Query error:", error.message);
       return null;

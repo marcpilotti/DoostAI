@@ -44,18 +44,18 @@ export const embeddingsUpdate = inngest.createFunction(
             value: text,
           });
 
-          // Store embedding as JSONB until pgvector column is added via migration
-          // When pgvector is enabled, switch to: .set({ embedding: sql`${embedding}::vector` })
-          await db
-            .update(adCreatives)
-            .set({
-              // Store in variants JSONB as a temporary location
-              // TODO: Add dedicated vector column via migration
-              updatedAt: new Date(),
-            })
-            .where(gt(adCreatives.performanceScore, "50"));
-
-          console.log(`[embeddings] Embedded creative ${creative.id}: ${embedding.length} dimensions`);
+          // BLOCKED: pgvector column does not exist yet.
+          // To unblock, run migration:
+          //   CREATE EXTENSION IF NOT EXISTS vector;
+          //   ALTER TABLE ad_creatives ADD COLUMN embedding vector(1536);
+          // Then change this to:
+          //   import { sql } from "drizzle-orm";
+          //   await db.update(adCreatives)
+          //     .set({ embedding: sql`${JSON.stringify(embedding)}::vector` })
+          //     .where(eq(adCreatives.id, creative.id));
+          //
+          // For now, log that generation works but storage is pending.
+          console.log(`[embeddings] Generated ${embedding.length}-dim embedding for ${creative.id} — storage blocked on pgvector migration`);
           embedded++;
         } catch (err) {
           console.error(`[embeddings] Failed for ${creative.id}:`, err instanceof Error ? err.message : err);
