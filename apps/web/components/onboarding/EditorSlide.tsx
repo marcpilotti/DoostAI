@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import {
   ArrowLeft,
   ArrowRight,
+  Save,
   Sparkles,
 } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
@@ -80,6 +81,13 @@ export function EditorSlide({
   const [aiMessages, setAiMessages] = useState<string[]>([]);
   const [result, setResult] = useState<GenerateResult | null>(null);
 
+  // #13 Granular error tracking
+  const [hasCopy, setHasCopy] = useState(false);
+  const [hasImages, setHasImages] = useState(false);
+
+  // #17 Draft save
+  const [draftSaved, setDraftSaved] = useState(false);
+
   // Editable ad data (user can modify inline)
   const [editedA, setEditedA] = useState<AdData | null>(null);
   const [editedB, setEditedB] = useState<AdData | null>(null);
@@ -126,6 +134,8 @@ export function EditorSlide({
     setAiMessages(["Bygger din annons..."]);
     setEditedA(null);
     setEditedB(null);
+    setHasCopy(false);
+    setHasImages(false);
 
     try {
       const res = await fetch("/api/ad/generate", {
@@ -168,6 +178,7 @@ export function EditorSlide({
 
             // #1 Show copy immediately when it arrives (before images)
             if (data.event === "copy" && data.copies) {
+              setHasCopy(true);
               const partialResult: GenerateResult = {
                 copies: data.copies,
                 brand: { name: getBrandPayload().name, url: getBrandPayload().url, colors: { primary: profile.colors.primary, secondary: profile.colors.secondary, accent: profile.colors.accent } },
@@ -181,6 +192,7 @@ export function EditorSlide({
             }
 
             if (data.event === "image_a") {
+              setHasImages(true);
               setAiMessages(["AI-bakgrund klar!"]);
             }
 
@@ -324,6 +336,21 @@ export function EditorSlide({
     });
   }
 
+  // #17 Save draft to localStorage
+  function handleSaveDraft() {
+    try {
+      const draft = {
+        result,
+        goal,
+        platform: platform.id,
+        savedAt: Date.now(),
+      };
+      localStorage.setItem("doost:draft", JSON.stringify(draft));
+      setDraftSaved(true);
+      setTimeout(() => setDraftSaved(false), 2000);
+    } catch { /* quota exceeded — ignore */ }
+  }
+
   // ── Render ────────────────────────────────────────────────────
 
   const hasError = state === "ready" && !variantA;
@@ -388,22 +415,40 @@ export function EditorSlide({
             </div>
           </motion.div>
         ) : (
-          /* Error state with retry */
+          /* Error state with granular status (#13) */
           <div className="flex h-full flex-col items-center justify-center gap-4">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-red-50 to-orange-50">
               <Sparkles className="h-6 w-6 text-red-400" />
             </div>
             <div className="text-center">
               <p className="text-sm font-medium text-foreground/70">Kunde inte generera annons</p>
-              <p className="mt-1 text-xs text-muted-foreground/50">AI:n kunde inte skapa annonstext just nu</p>
+              <div className="mt-2 space-y-1">
+                <p className="text-xs text-muted-foreground/50">
+                  Annonstext {hasCopy ? "\u2713" : "\u2717"}
+                </p>
+                <p className="text-xs text-muted-foreground/50">
+                  Bakgrundsbild {hasImages ? "\u2713" : "\u2717"}
+                </p>
+              </div>
             </div>
-            <button
-              onClick={() => generate()}
-              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"
-            >
-              <ArrowRight className="h-3.5 w-3.5" />
-              Försök igen
-            </button>
+            {!hasCopy && (
+              <button
+                onClick={() => generate()}
+                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"
+              >
+                <ArrowRight className="h-3.5 w-3.5" />
+                Försök igen — allt
+              </button>
+            )}
+            {hasCopy && !hasImages && (
+              <button
+                onClick={() => generate()}
+                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md"
+              >
+                <ArrowRight className="h-3.5 w-3.5" />
+                Försök igen — bakgrundsbild
+              </button>
+            )}
           </div>
         )}
 
@@ -429,10 +474,13 @@ export function EditorSlide({
         </div>
       )}
 
-      {/* Back */}
-      <div className={`mx-auto w-full max-w-2xl shrink-0 pb-2 text-center transition-opacity ${state === "loading" ? "pointer-events-none opacity-0" : "opacity-100"}`}>
+      {/* Back + Save draft (#17) */}
+      <div className={`mx-auto flex w-full max-w-2xl shrink-0 items-center justify-center gap-4 pb-2 transition-opacity ${state === "loading" ? "pointer-events-none opacity-0" : "opacity-100"}`}>
         <button onClick={onBack} aria-label="Tillbaka" className="text-[12px] text-muted-foreground/40 hover:text-muted-foreground">
           <ArrowLeft className="mr-1 inline h-3 w-3" /> Tillbaka
+        </button>
+        <button onClick={handleSaveDraft} className="text-[12px] text-muted-foreground/40 hover:text-muted-foreground">
+          {draftSaved ? "Sparat!" : <><Save className="mr-1 inline h-3 w-3" /> Spara utkast</>}
         </button>
       </div>
     </div>

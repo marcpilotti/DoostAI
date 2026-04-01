@@ -11,7 +11,7 @@ const DONE_MESSAGES = [
   { text: "Vi skickar en notis när den är live", delay: 1500 },
 ];
 
-export function DoneSlide({ brandName, onDashboard }: { brandName?: string; onDashboard: () => void }) {
+export function DoneSlide({ brandName, onDashboard, onRestart }: { brandName?: string; onDashboard: () => void; onRestart?: () => void }) {
   const prefersReduced = useReducedMotion();
   const [countdown, setCountdown] = useState(15);
   const [paused, setPaused] = useState(false);
@@ -124,6 +124,19 @@ export function DoneSlide({ brandName, onDashboard }: { brandName?: string; onDa
         Gå till dashboard
         <ArrowRight className="h-4 w-4" />
       </motion.button>
+
+      {/* #20 Create new ad button */}
+      {onRestart && (
+        <motion.button
+          initial={prefersReduced ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.0 }}
+          onClick={onRestart}
+          className="mt-3 rounded-full border border-foreground/10 px-6 py-2.5 text-[13px] font-medium text-foreground/60 transition-all hover:border-foreground/20 hover:text-foreground active:scale-[0.98]"
+        >
+          Skapa ny annons
+        </motion.button>
+      )}
 
       <motion.p
         initial={prefersReduced ? false : { opacity: 0 }}

@@ -183,6 +183,16 @@ function clearSession() {
   localStorage.removeItem(SESSION_KEY);
 }
 
+// #18 Step name mapping for screen reader announcements
+const STEP_LABELS: Record<string, string> = {
+  url: "Steg 1: Ange webbadress",
+  loading: "Steg 2: Analyserar",
+  brand: "Steg 2: Varumärkesprofil",
+  editor: "Steg 3: Redigera annons",
+  publish: "Steg 4: Publicera",
+  done: "Steg 5: Klart",
+};
+
 // ── Shell ────────────────────────────────────────────────────────
 
 export function OnboardingShell() {
@@ -191,6 +201,9 @@ export function OnboardingShell() {
   const [step, setStep] = useState<Step>(saved?.step ?? "url");
   const [transitionMessage, setTransitionMessage] = useState<string | null>(null);
   const prefersReduced = useReducedMotion();
+
+  // #18 Screen reader announcement
+  const [announcement, setAnnouncement] = useState("");
 
   // ── Shared state between slides ─────────────────────────────
 
@@ -205,6 +218,33 @@ export function OnboardingShell() {
   // Persist on step changes
   useEffect(() => {
     saveSession(step, urlRef.current, brandRef.current);
+  }, [step]);
+
+  // #16 Browser back button support
+  useEffect(() => {
+    if (step) {
+      window.history.pushState({ step }, "", "");
+    }
+  }, [step]);
+
+  useEffect(() => {
+    function handlePopState(e: PopStateEvent) {
+      const prevStep = (e.state as { step?: Step } | null)?.step;
+      if (prevStep) {
+        setStep(prevStep);
+      } else {
+        setStep("url");
+      }
+    }
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  // #18 Announce step changes for screen readers
+  useEffect(() => {
+    if (step) {
+      setAnnouncement(STEP_LABELS[step] ?? "");
+    }
   }, [step]);
 
   // ── Transition helper ───────────────────────────────────────
@@ -277,6 +317,8 @@ export function OnboardingShell() {
   const handleEditorPublish = useCallback(
     (data: { adData: AdData; format: AdFormat; goal: string }) => {
       selectedAdRef.current = data;
+      // #19 Track editor_ready (ad was generated and user chose to publish)
+      trackStep("editor_ready", { platform: data.format, goal: data.goal });
       transitionWithMessage("Redo att publicera!", "publish");
     },
     [transitionWithMessage],
@@ -298,6 +340,8 @@ export function OnboardingShell() {
 
   const handlePublishConfirm = useCallback(
     async (config: { dailyBudget: number; duration: number; regions: string[]; channel: string }) => {
+      // #19 Track publish_clicked
+      trackStep("publish_clicked", { budget: config.dailyBudget, duration: config.duration, channel: config.channel });
       // Call publish API
       const ad = selectedAdRef.current;
       try {
@@ -335,16 +379,30 @@ export function OnboardingShell() {
   // ── Slide 6: Done → Dashboard ───────────────────────────────
 
   const handleDashboard = useCallback(() => {
+    // #19 Track done
+    trackStep("done");
     clearSession();
     if (typeof window !== "undefined") {
       window.location.href = "/dashboard";
     }
   }, []);
 
+  // #20 Restart — clear session and return to URLSlide
+  const handleRestart = useCallback(() => {
+    clearSession();
+    urlRef.current = "";
+    brandRef.current = null;
+    selectedAdRef.current = null;
+    setStep("url");
+  }, []);
+
   // ── Render ────────────────────────────────────────────────────
 
   return (
     <div className="h-[100dvh] overflow-hidden bg-background pb-[env(safe-area-inset-bottom)]">
+      {/* #18 Screen reader announcement */}
+      <div aria-live="assertive" className="sr-only">{announcement}</div>
+
       {/* ── Header: logo + stepper + login ──────────────────────── */}
       <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-between px-5 py-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -487,6 +545,7 @@ export function OnboardingShell() {
             <DoneSlide
               brandName={brandRef.current?.name}
               onDashboard={handleDashboard}
+              onRestart={handleRestart}
             />
           </motion.div>
         )}

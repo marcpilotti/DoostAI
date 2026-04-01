@@ -4,11 +4,38 @@ import { useRef, useState, useEffect } from "react";
 
 import { extractDomain } from "@/lib/utils/url-blocklist";
 
+// #15 Recent URLs helpers
+const RECENT_URLS_KEY = "doost:recent-urls";
+const MAX_RECENT_URLS = 3;
+
+function loadRecentUrls(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(RECENT_URLS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed.slice(0, MAX_RECENT_URLS);
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+function saveRecentUrl(url: string) {
+  if (typeof window === "undefined") return;
+  try {
+    const existing = loadRecentUrls();
+    const deduped = [url, ...existing.filter((u) => u !== url)].slice(0, MAX_RECENT_URLS);
+    localStorage.setItem(RECENT_URLS_KEY, JSON.stringify(deduped));
+  } catch { /* quota exceeded — ignore */ }
+}
+
 export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
   const [input, setInput] = useState("");
   const [urlHint, setUrlHint] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const [recentUrls, setRecentUrls] = useState<string[]>([]);
 
   // Auto-fill from URL params (e.g. ?url=canon.se)
   useEffect(() => {
@@ -28,6 +55,11 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
 
   useEffect(() => { inputRef.current?.focus(); }, []);
 
+  // #15 Load recent URLs on mount
+  useEffect(() => {
+    setRecentUrls(loadRecentUrls());
+  }, []);
+
   useEffect(() => {
     setUrlHint(extractDomain(input) ?? null);
   }, [input]);
@@ -38,6 +70,8 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
     if (!trimmed) return;
     let url = trimmed;
     if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
+    // #15 Save to recent URLs
+    saveRecentUrl(url);
     onSubmit(url);
   };
 
@@ -116,6 +150,25 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
           {" eller "}
           <button type="button" onClick={() => setInput("canon.se")} className="underline underline-offset-2 hover:text-muted-foreground">canon.se</button>
         </p>
+
+        {/* #15 Recent URLs */}
+        {recentUrls.length > 0 && (
+          <div className="mt-4 text-center">
+            <p className="mb-2 text-[11px] text-muted-foreground/30">Senast analyserade</p>
+            <div className="flex flex-wrap justify-center gap-1.5">
+              {recentUrls.map((url) => (
+                <button
+                  key={url}
+                  type="button"
+                  onClick={() => { setInput(url.replace(/^https?:\/\//, "")); }}
+                  className="rounded-full bg-white px-3 py-1 text-[11px] font-medium text-muted-foreground shadow-sm transition-colors hover:text-foreground"
+                >
+                  {url.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Social proof */}
         <p className="mt-8 text-center text-[11px] text-muted-foreground/25">

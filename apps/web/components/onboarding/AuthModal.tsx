@@ -21,6 +21,13 @@ export function AuthModal({
 }) {
   const { isSignedIn } = useAuth();
 
+  // #14 Confirmation on close
+  function handleCloseAttempt() {
+    if (window.confirm("Avbryt registrering? Din annons sparas som utkast.")) {
+      onClose();
+    }
+  }
+
   // When user signs in/up, auto-close and proceed
   useEffect(() => {
     if (isSignedIn && open) {
@@ -38,7 +45,7 @@ export function AuthModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/40"
-            onClick={onClose}
+            onClick={handleCloseAttempt}
           />
 
           {/* Modal — centered */}
@@ -60,7 +67,7 @@ export function AuthModal({
                 </p>
               </div>
               <button
-                onClick={onClose}
+                onClick={handleCloseAttempt}
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--doost-text-muted)] hover:bg-[var(--doost-bg-secondary)]"
               >
                 <X className="h-4 w-4" />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { ArrowLeft, ArrowRight, Calendar, Check, Globe, MapPin, Rocket, Shield, Wallet } from "lucide-react";
+import { ArrowLeft, ArrowRight, Calendar, Check, Globe, MapPin, Rocket, Save, Shield, Wallet } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useAuth } from "@clerk/nextjs";
 
@@ -50,6 +50,26 @@ export function PublishSlide({
     }
     return "stockholm";
   });
+
+  // #17 Draft save
+  const [draftSaved, setDraftSaved] = useState(false);
+
+  function handleSaveDraft() {
+    try {
+      const draft = {
+        adData,
+        format,
+        goal,
+        budget,
+        durationDays,
+        selectedRegion,
+        savedAt: Date.now(),
+      };
+      localStorage.setItem("doost:draft", JSON.stringify(draft));
+      setDraftSaved(true);
+      setTimeout(() => setDraftSaved(false), 2000);
+    } catch { /* quota exceeded — ignore */ }
+  }
 
   const platformLabel = format.startsWith("meta") ? "Instagram" : format === "google-search" ? "Google" : "LinkedIn";
   const total = durationDays > 0 ? budget * durationDays : null;
@@ -238,10 +258,13 @@ export function PublishSlide({
           </button>
         </motion.div>
 
-        {/* Back */}
-        <div className="mt-4 text-center">
+        {/* Back + Save draft (#17) */}
+        <div className="mt-4 flex items-center justify-center gap-4">
           <button onClick={onBack} aria-label="Tillbaka" className="text-[12px] text-muted-foreground/30 hover:text-muted-foreground">
             <ArrowLeft className="mr-1 inline h-3 w-3" /> Tillbaka
+          </button>
+          <button onClick={handleSaveDraft} className="text-[12px] text-muted-foreground/30 hover:text-muted-foreground">
+            {draftSaved ? "Sparat!" : <><Save className="mr-1 inline h-3 w-3" /> Spara utkast</>}
           </button>
         </div>
       </div>

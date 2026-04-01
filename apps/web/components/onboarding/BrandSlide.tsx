@@ -23,6 +23,41 @@ const INDUSTRIES = [
   "Energi & Miljö", "Kultur & Nöje", "SaaS & Molntjänster",
 ];
 
+const CUSTOM_INDUSTRY_VALUE = "__annat__";
+
+// #12 Compress logo image to max dimensions using canvas
+function compressImage(file: File, maxSize: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width > maxSize || height > maxSize) {
+        if (width > height) {
+          height = Math.round((height * maxSize) / width);
+          width = maxSize;
+        } else {
+          width = Math.round((width * maxSize) / height);
+          height = maxSize;
+        }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) { reject(new Error("Canvas not supported")); return; }
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL(file.type || "image/png"));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Failed to load image"));
+    };
+    img.src = url;
+  });
+}
+
 function stripSuffix(name: string): string {
   return name.replace(/\s+(AB|HB|KB|Inc\.?|Ltd\.?|LLC|GmbH|Corp\.?|Co\.?)$/i, "").trim();
 }
@@ -64,7 +99,9 @@ export function BrandSlide({ profile, onConfirm, onBack }: { profile: BrandProfi
   const [logoError, setLogoError] = useState<string | null>(null);
   const prefersReduced = useReducedMotion();
   const [colors, setColors] = useState(profile.colors);
-  const [industry, setIndustry] = useState(profile.industry ?? "");
+  const initialIsCustom = !!profile.industry && !INDUSTRIES.includes(profile.industry);
+  const [industry, setIndustry] = useState(initialIsCustom ? CUSTOM_INDUSTRY_VALUE : (profile.industry ?? ""));
+  const [customIndustry, setCustomIndustry] = useState(initialIsCustom ? (profile.industry ?? "") : "");
   const [location, setLocation] = useState(typeof profile.location === "string" ? profile.location : "");
   const [targetAudience, setTargetAudience] = useState(
     typeof profile.targetAudience === "string" ? profile.targetAudience : profile.targetAudience?.demographic ?? "",
@@ -89,8 +126,10 @@ export function BrandSlide({ profile, onConfirm, onBack }: { profile: BrandProfi
   const name = stripSuffix(profile.name);
   const domain = profile.url.replace(/^https?:\/\//, "").replace(/\/$/, "");
 
+  const resolvedIndustry = industry === CUSTOM_INDUSTRY_VALUE ? customIndustry : industry;
+
   function handleConfirm() {
-    onConfirm({ ...profile, industry, location, targetAudience, colors: { ...profile.colors, primary: colors.primary, secondary: colors.secondary, accent: colors.accent } });
+    onConfirm({ ...profile, industry: resolvedIndustry, location, targetAudience, colors: { ...profile.colors, primary: colors.primary, secondary: colors.secondary, accent: colors.accent } });
   }
 
   return (
@@ -145,7 +184,13 @@ export function BrandSlide({ profile, onConfirm, onBack }: { profile: BrandProfi
                 if (f.size > 5 * 1024 * 1024) { setLogoError("Max 5 MB"); return; }
                 setLogoError(null);
                 if (logoUrl?.startsWith("blob:")) URL.revokeObjectURL(logoUrl);
-                setLogoUrl(URL.createObjectURL(f));
+                // #12 Compress to max 512px before displaying
+                compressImage(f, 512).then((dataUrl) => {
+                  setLogoUrl(dataUrl);
+                }).catch(() => {
+                  // Fallback to uncompressed blob URL
+                  setLogoUrl(URL.createObjectURL(f));
+                });
               }} />
             </label>
 
@@ -176,12 +221,22 @@ export function BrandSlide({ profile, onConfirm, onBack }: { profile: BrandProfi
             <div className="border-r border-border/8 px-5 py-4">
               <div className="mb-1 text-[10px] text-muted-foreground/30">Bransch</div>
               <div className="flex items-center gap-1">
-                <select value={industry} onChange={(e) => setIndustry(e.target.value)} className="w-full appearance-none bg-transparent text-[14px] font-medium text-foreground outline-none cursor-pointer truncate pr-3">
-                  {industry && !INDUSTRIES.includes(industry) && <option value={industry}>{industry}</option>}
+                <select value={industry} onChange={(e) => { setIndustry(e.target.value); if (e.target.value !== CUSTOM_INDUSTRY_VALUE) setCustomIndustry(""); }} className="w-full appearance-none bg-transparent text-[14px] font-medium text-foreground outline-none cursor-pointer truncate pr-3">
                   {INDUSTRIES.map((ind) => <option key={ind} value={ind}>{ind}</option>)}
+                  <option value={CUSTOM_INDUSTRY_VALUE}>Annat</option>
                 </select>
                 <ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground/20" />
               </div>
+              {industry === CUSTOM_INDUSTRY_VALUE && (
+                <input
+                  type="text"
+                  value={customIndustry}
+                  onChange={(e) => setCustomIndustry(e.target.value)}
+                  placeholder="Ange bransch..."
+                  autoFocus
+                  className="mt-1.5 w-full bg-transparent text-[13px] text-foreground outline-none border-b border-foreground/20 placeholder:text-muted-foreground/30"
+                />
+              )}
             </div>
             <div className="border-r border-border/8 px-5 py-4">
               <div className="mb-1 text-[10px] text-muted-foreground/30">Målgrupp</div>
