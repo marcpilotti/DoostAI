@@ -79,7 +79,7 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
   return (
     <div className="flex h-full flex-col items-center justify-center px-6 pt-[72px]">
       {/* "Skippa byrån." in sketch font */}
-      <h1 className="text-center font-sketch text-[48px] leading-[1.05] tracking-[-0.02em] text-foreground sm:text-[64px]">
+      <h1 className="text-center font-sketch text-[36px] sm:text-[48px] md:text-[64px]">
         Skippa byrån.
       </h1>
       <p className="mt-3 max-w-sm text-center text-[15px] leading-relaxed text-muted-foreground">
@@ -87,9 +87,9 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
       </p>
 
       {/* Input card */}
-      <div className="mt-10 w-full max-w-md px-2 sm:px-0">
+      <div className="mt-10 w-full max-w-lg px-2 sm:px-0">
         <form ref={formRef} onSubmit={handleSubmit}>
-          <div className="flex items-center gap-3 rounded-2xl bg-white px-5 py-4 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)]">
+          <div className="flex items-center gap-3 rounded-2xl bg-white px-5 py-4 shadow-[var(--shadow-md)]">
             <input
               ref={inputRef}
               type="text"
@@ -116,7 +116,7 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
               type="submit"
               disabled={!input.trim() || submitting}
               aria-label="Analysera"
-              className="flex shrink-0 items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-[13px] font-semibold text-white transition-opacity active:scale-95 disabled:opacity-20"
+              className="flex shrink-0 items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-[13px] font-semibold text-white transition-opacity active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {submitting ? (
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
@@ -146,7 +146,7 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
                 key={ext}
                 type="button"
                 onClick={() => setInput(`${input.trim()}${ext}`)}
-                className="rounded-full bg-white px-3 py-1 text-[12px] font-medium text-muted-foreground shadow-sm transition-colors hover:text-foreground"
+                className="rounded-full bg-white px-3 py-2 min-h-[40px] text-[12px] flex items-center font-medium text-muted-foreground shadow-sm transition-colors hover:text-foreground"
               >
                 {input.trim()}{ext}
               </button>
@@ -182,7 +182,7 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
         )}
 
         {/* Social proof */}
-        <p className="mt-8 text-center text-[11px] text-muted-foreground/25">
+        <p className="mt-8 text-center text-[11px] text-muted-foreground/40">
           Betrodd av svenska företag — från enskild firma till börsbolag
         </p>
       </div>

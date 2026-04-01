@@ -372,7 +372,7 @@ export function EditorSlide({
   const hasError = state === "ready" && !variantA;
 
   return (
-    <div className="flex h-full flex-col px-4 py-4 pb-20 sm:px-6">
+    <div className="flex h-full flex-col px-4 pt-[72px] py-4 pb-20 sm:px-6">
       {/* ── Card container ─────────────────────────────────────── */}
       <div className="relative mx-auto w-full max-w-2xl min-h-0 flex-1 overflow-hidden">
         {state === "loading" && !variantA ? (
@@ -382,7 +382,7 @@ export function EditorSlide({
             initial={prefersReduced ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
-            className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)]"
+            className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-[var(--shadow-md)]"
           >
             {/* Ad preview — fills available space */}
             <div className="min-h-0 flex-1 overflow-hidden">
@@ -398,7 +398,7 @@ export function EditorSlide({
             </div>
 
             {/* Platform tabs */}
-            <div className="shrink-0 border-t border-border/8 px-5 py-2.5">
+            <div className="shrink-0 border-t border-border/20 px-5 py-2.5">
               <div className="flex items-center justify-center gap-1" role="tablist">
                 {PLATFORMS.map((p, idx) => (
                   <button
@@ -420,10 +420,10 @@ export function EditorSlide({
             </div>
 
             {/* Publish */}
-            <div className="shrink-0 border-t border-border/8 px-5 py-4">
+            <div className="shrink-0 border-t border-border/20 px-5 py-4">
               <button
                 onClick={() => { if (variantA) handlePublish(variantA); }}
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-95"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3.5 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-95"
               >
                 {`G\u00e5 vidare till publicering \u2192`}
               </button>
@@ -506,49 +506,49 @@ export function EditorSlide({
 
 function LoadingSkeleton({ platformLabel }: { platformLabel: string }) {
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)]">
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-[var(--shadow-md)]">
       {/* Fake ad header */}
       <div className="flex items-center gap-2.5 px-4 py-3">
-        <div className="h-8 w-8 animate-pulse rounded-full bg-muted-foreground/8" />
+        <div className="h-8 w-8 animate-shimmer rounded-full bg-muted-foreground/8" />
         <div className="space-y-1.5 flex-1">
-          <div className="h-3 w-24 animate-pulse rounded bg-muted-foreground/8" />
-          <div className="h-2 w-16 animate-pulse rounded bg-muted-foreground/5" />
+          <div className="h-3 w-24 animate-shimmer rounded bg-muted-foreground/8" />
+          <div className="h-2 w-16 animate-shimmer rounded bg-muted-foreground/5" />
         </div>
       </div>
 
       {/* Fake body text */}
       <div className="px-4 pb-3 space-y-1.5">
-        <div className="h-2.5 w-full animate-pulse rounded bg-muted-foreground/6" />
-        <div className="h-2.5 w-3/4 animate-pulse rounded bg-muted-foreground/5" />
+        <div className="h-2.5 w-full animate-shimmer rounded bg-muted-foreground/6" />
+        <div className="h-2.5 w-3/4 animate-shimmer rounded bg-muted-foreground/5" />
       </div>
 
       {/* Fake creative — fills remaining space */}
       <div className="flex-1 min-h-0 mx-3 mb-3 animate-shimmer rounded-xl bg-gradient-to-r from-muted-foreground/5 via-muted-foreground/[0.02] to-muted-foreground/5 bg-[length:200%_100%] flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
           <div className="h-5 w-5 animate-spin motion-reduce:animate-none rounded-full border-2 border-muted-foreground/10 border-t-muted-foreground/30" />
-          <p className="text-[11px] text-muted-foreground/25">Genererar {platformLabel}-annons...</p>
+          <p className="text-[11px] text-muted-foreground/40">Genererar {platformLabel}-annons...</p>
         </div>
       </div>
 
       {/* Fake footer */}
       <div className="flex items-center justify-between border-t border-muted-foreground/5 px-4 py-2.5">
         <div className="space-y-1">
-          <div className="h-2 w-20 animate-pulse rounded bg-muted-foreground/6" />
-          <div className="h-2.5 w-28 animate-pulse rounded bg-muted-foreground/8" />
+          <div className="h-2 w-20 animate-shimmer rounded bg-muted-foreground/6" />
+          <div className="h-2.5 w-28 animate-shimmer rounded bg-muted-foreground/8" />
         </div>
-        <div className="h-7 w-16 animate-pulse rounded-full bg-muted-foreground/6" />
+        <div className="h-7 w-16 animate-shimmer rounded-full bg-muted-foreground/6" />
       </div>
 
       {/* Fake platform tabs */}
       <div className="flex justify-center gap-2 border-t border-muted-foreground/5 px-4 py-2.5">
-        <div className="h-6 w-20 animate-pulse rounded-lg bg-muted-foreground/8" />
-        <div className="h-6 w-16 animate-pulse rounded-lg bg-muted-foreground/4" />
-        <div className="h-6 w-16 animate-pulse rounded-lg bg-muted-foreground/4" />
+        <div className="h-6 w-20 animate-shimmer rounded-lg bg-muted-foreground/8" />
+        <div className="h-6 w-16 animate-shimmer rounded-lg bg-muted-foreground/4" />
+        <div className="h-6 w-16 animate-shimmer rounded-lg bg-muted-foreground/4" />
       </div>
 
       {/* Fake publish button */}
       <div className="border-t border-muted-foreground/5 px-5 py-4">
-        <div className="h-12 w-full animate-pulse rounded-full bg-muted-foreground/8" />
+        <div className="h-12 w-full animate-shimmer rounded-full bg-muted-foreground/8" />
       </div>
     </div>
   );

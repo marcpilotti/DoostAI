@@ -44,7 +44,7 @@ function ColorDot({ color, label, hex, role, originalColor, onColorChange }: {
     <div className="relative flex flex-col items-center gap-1.5">
       <button
         onClick={() => setOpen(!open)}
-        className="h-12 w-12 rounded-full shadow-sm transition-transform hover:scale-110"
+        className="h-12 w-12 rounded-full shadow-sm transition-transform hover:scale-110 hover:z-10"
         style={{ backgroundColor: color }}
         aria-label={`Ändra ${label}-färg`}
       />
@@ -96,8 +96,8 @@ export function BrandIdentitySlide({ profile, onConfirm, onBack }: {
         <motion.div
           initial={prefersReduced ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-          className="overflow-hidden rounded-2xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)]"
+          transition={{ duration: 0.3 }}
+          className="overflow-hidden rounded-2xl bg-white shadow-[var(--shadow-md)]"
         >
           {/* ── Immersive brand header ─────────────────────────── */}
           <div
@@ -133,7 +133,7 @@ export function BrandIdentitySlide({ profile, onConfirm, onBack }: {
                     {confidence}% match
                   </span>
                 )}
-                <a href={profile.url.startsWith("http") ? profile.url : `https://${profile.url}`} target="_blank" rel="noopener noreferrer" className="rounded-lg p-1.5 text-muted-foreground/25 hover:text-muted-foreground/50">
+                <a href={profile.url.startsWith("http") ? profile.url : `https://${profile.url}`} target="_blank" rel="noopener noreferrer" className="rounded-lg p-1.5 text-muted-foreground/40 hover:text-muted-foreground/50">
                   <ExternalLink className="h-4 w-4" />
                 </a>
               </div>
@@ -142,7 +142,7 @@ export function BrandIdentitySlide({ profile, onConfirm, onBack }: {
           </div>
 
           {/* ── Colors ────────────────────────────────────────── */}
-          <div className="border-t border-border/8 px-6 py-6">
+          <div className="border-t border-border/20 px-6 py-6">
             <div className="mb-4 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/40">Varumärkesfärger</div>
             <div className="flex justify-center gap-8">
               <ColorDot color={colors.primary} hex={colors.primary} label="Primär" role="primary" originalColor={profile.colors.primary} onColorChange={(c) => setColors((p) => ({ ...p, primary: c }))} />
@@ -152,7 +152,7 @@ export function BrandIdentitySlide({ profile, onConfirm, onBack }: {
           </div>
 
           {/* ── Typography ────────────────────────────────────── */}
-          <div className="border-t border-border/8 px-6 py-5">
+          <div className="border-t border-border/20 px-6 py-5">
             <div className="mb-3 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/40">Typografi</div>
             <div className="grid grid-cols-2 gap-4">
               <div className="rounded-lg bg-muted/30 px-4 py-3">
@@ -176,7 +176,7 @@ export function BrandIdentitySlide({ profile, onConfirm, onBack }: {
               <ArrowRight className="h-4 w-4" />
             </button>
             {onBack && (
-              <button onClick={onBack} className="mt-3 block w-full text-center text-[11px] text-muted-foreground/25 hover:text-muted-foreground">
+              <button onClick={onBack} className="mt-3 block w-full text-center text-[11px] text-muted-foreground/40 hover:text-muted-foreground">
                 ← Byt URL
               </button>
             )}

@@ -110,7 +110,7 @@ export function PublishSlide({
   }
 
   return (
-    <div className="flex h-full flex-col items-center justify-center px-4 sm:px-6">
+    <div className="flex h-full flex-col items-center justify-center px-4 pt-[72px] sm:px-6">
       <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} onAuthenticated={() => { setShowAuthModal(false); doPublish(); }} />
 
       <div className="w-full max-w-lg">
@@ -120,7 +120,7 @@ export function PublishSlide({
           animate={{ opacity: 1, y: 0 }}
           className="mb-5 flex flex-col items-center"
         >
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-foreground">
+          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-foreground">
             <Rocket className="h-5 w-5 text-white" />
           </div>
           <h2 className="text-[22px] font-bold tracking-tight">Publicera kampanj</h2>
@@ -132,10 +132,10 @@ export function PublishSlide({
           initial={prefersReduced ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="overflow-hidden rounded-2xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)]"
+          className="overflow-hidden rounded-2xl bg-white shadow-[var(--shadow-md)]"
         >
           {/* Ad summary — compact */}
-          <div className="flex items-center gap-3 border-b border-border/8 px-5 py-3">
+          <div className="flex items-center gap-3 border-b border-border/20 px-5 py-3">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-foreground/5">
               <Globe className="h-4 w-4 text-foreground/40" />
             </div>
@@ -190,7 +190,7 @@ export function PublishSlide({
           </div>
 
           {/* Duration + Region — cleaner layout */}
-          <div className="grid grid-cols-2 gap-px border-t border-border/8 bg-border/8">
+          <div className="grid grid-cols-2 gap-px border-t border-border/20 bg-border/8">
             <div className="bg-white px-5 py-4">
               <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/30">
                 <Calendar className="h-3 w-3" /> Tid
@@ -235,7 +235,7 @@ export function PublishSlide({
           </div>
 
           {/* Summary bar */}
-          <div className="flex items-center justify-between border-t border-border/8 px-5 py-4">
+          <div className="flex items-center justify-between border-t border-border/20 px-5 py-4">
             <div>
               <div className="text-[10px] text-muted-foreground/30">Kampanjbudget</div>
               <div className="text-[22px] font-bold tracking-tight">{total ? `${total.toLocaleString("sv-SE")} kr` : `${budget} kr/dag`}</div>
@@ -252,7 +252,7 @@ export function PublishSlide({
           initial={prefersReduced ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="mt-4 flex items-center justify-center gap-4 text-[10px] text-muted-foreground/25"
+          className="mt-4 flex items-center justify-center gap-4 text-[10px] text-muted-foreground/40"
         >
           <span className="flex items-center gap-1"><Shield className="h-3 w-3" /> Krypterad betalning</span>
           <span>·</span>
@@ -260,7 +260,7 @@ export function PublishSlide({
           <span>·</span>
           <span>Doost AI: Gratis</span>
         </motion.div>
-        <p className="mt-1 text-center text-[9px] text-muted-foreground/15">
+        <p className="mt-1 text-center text-[9px] text-muted-foreground/40">
           *Uppskattat baserat på genomsnittlig CPM. Faktisk räckvidd varierar.
         </p>
 

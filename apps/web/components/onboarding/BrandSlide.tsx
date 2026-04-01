@@ -206,7 +206,7 @@ export function BrandSlide({ profile, onConfirm, onBack }: { profile: BrandProfi
           initial={prefersReduced ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
-          className="overflow-hidden rounded-2xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)]"
+          className="overflow-hidden rounded-2xl bg-white shadow-[var(--shadow-md)]"
         >
           {/* ── Header ──────────────────────────────────────────── */}
           <motion.div
@@ -378,7 +378,7 @@ export function BrandSlide({ profile, onConfirm, onBack }: { profile: BrandProfi
               Stämmer det här med ert varumärke?
             </p>
             {onBack && (
-              <button onClick={onBack} className="mt-1 block w-full text-center text-[11px] text-muted-foreground/25 hover:text-muted-foreground">
+              <button onClick={onBack} className="mt-1 block w-full text-center text-[11px] text-muted-foreground/40 hover:text-muted-foreground">
                 ← Byt URL
               </button>
             )}

@@ -110,15 +110,15 @@ export function BrandChannelsSlide({ onConfirm, onBack }: {
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-4 pt-[72px] sm:px-6">
-      <div className="w-full max-w-xl">
+      <div className="w-full max-w-lg">
         <motion.div
           initial={prefersReduced ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-          className="overflow-hidden rounded-2xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)]"
+          transition={{ duration: 0.3 }}
+          className="overflow-hidden rounded-2xl bg-white shadow-[var(--shadow-md)]"
         >
           {/* ── Header ────────────────────────────────────────── */}
-          <div className="flex items-center gap-3 border-b border-border/8 px-6 py-5">
+          <div className="flex items-center gap-3 border-b border-border/20 px-6 py-5">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
               <Send className="h-5 w-5 text-primary" />
             </div>
@@ -185,7 +185,7 @@ export function BrandChannelsSlide({ onConfirm, onBack }: {
           </div>
 
           {/* ── Footer ────────────────────────────────────────── */}
-          <div className="border-t border-border/8 px-6 py-2">
+          <div className="border-t border-border/20 px-6 py-2">
             <button className="text-[11px] text-primary/60 hover:text-primary">
               Koppla befintliga annonskonton →
             </button>
@@ -202,7 +202,7 @@ export function BrandChannelsSlide({ onConfirm, onBack }: {
               <ArrowRight className="h-4 w-4" />
             </button>
             {onBack && (
-              <button onClick={onBack} className="mt-3 block w-full text-center text-[11px] text-muted-foreground/25 hover:text-muted-foreground">
+              <button onClick={onBack} className="mt-3 block w-full text-center text-[11px] text-muted-foreground/40 hover:text-muted-foreground">
                 ← Tillbaka
               </button>
             )}

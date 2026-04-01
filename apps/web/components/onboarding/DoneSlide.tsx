@@ -13,7 +13,6 @@ const DONE_MESSAGES = [
 
 const CONFETTI_COLORS = ["#6366f1", "#ec4899", "#f97316", "#10b981", "#3b82f6", "#8b5cf6", "#06b6d4", "#f59e0b"];
 const CONFETTI_COUNT = 24;
-const CONFETTI_LS_KEY = "doost_first_campaign_published";
 
 function ConfettiBurst() {
   const dots = Array.from({ length: CONFETTI_COUNT }, (_, i) => {
@@ -48,19 +47,12 @@ export function DoneSlide({ brandName, onDashboard, onRestart }: { brandName?: s
   const [paused, setPaused] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
 
-  // Fire confetti only on first campaign published
+  // Fire confetti on every campaign publish
   useEffect(() => {
     if (prefersReduced) return;
-    try {
-      const alreadyFired = localStorage.getItem(CONFETTI_LS_KEY);
-      if (!alreadyFired) {
-        setShowConfetti(true);
-        localStorage.setItem(CONFETTI_LS_KEY, "true");
-        // Remove confetti after animation completes
-        const timer = setTimeout(() => setShowConfetti(false), 2000);
-        return () => clearTimeout(timer);
-      }
-    } catch { /* localStorage unavailable — skip */ }
+    setShowConfetti(true);
+    const timer = setTimeout(() => setShowConfetti(false), 2000);
+    return () => clearTimeout(timer);
   }, [prefersReduced]);
 
   useEffect(() => {
@@ -72,7 +64,7 @@ export function DoneSlide({ brandName, onDashboard, onRestart }: { brandName?: s
   }, [onDashboard, paused]);
 
   return (
-    <div className="relative flex h-full flex-col items-center justify-center px-6">
+    <div className="relative flex h-full flex-col items-center justify-center px-6 pt-[72px]">
       {showConfetti && <ConfettiBurst />}
       {/* Success animation */}
       <motion.div
@@ -154,7 +146,7 @@ export function DoneSlide({ brandName, onDashboard, onRestart }: { brandName?: s
                   <p className="text-[12px] font-medium text-foreground">{item.title}</p>
                   <p className="text-[11px] text-muted-foreground/40">{item.desc}</p>
                 </div>
-                <span className="shrink-0 text-[10px] text-muted-foreground/25">{item.time}</span>
+                <span className="shrink-0 text-[10px] text-muted-foreground/40">{item.time}</span>
               </motion.div>
             ))}
           </div>
@@ -167,7 +159,7 @@ export function DoneSlide({ brandName, onDashboard, onRestart }: { brandName?: s
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.8 }}
         onClick={onDashboard}
-        className="flex items-center gap-2 rounded-full bg-primary px-8 py-3 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-95"
+        className="flex items-center gap-2 rounded-full bg-primary px-5 py-3.5 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-95"
       >
         Gå till dashboard
         <ArrowRight className="h-4 w-4" />
