@@ -110,18 +110,21 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
               placeholder="Klistra in din hemsida, t.ex. företag.se"
               className="min-h-[28px] min-w-0 flex-1 bg-transparent text-[15px] text-foreground outline-none placeholder:text-muted-foreground/35 disabled:opacity-50"
             />
-            {/* Submit — Doost AI symbol as button */}
+            {/* Submit — Doost AI symbol + label */}
             <button
               type="submit"
               disabled={!input.trim() || submitting}
               aria-label="Analysera"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-opacity active:scale-95 disabled:opacity-20"
+              className="flex shrink-0 items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-[13px] font-semibold text-white transition-opacity active:scale-95 disabled:opacity-20"
             >
               {submitting ? (
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground/20 border-t-foreground/60" />
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
               ) : (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img src="/symbol.svg" alt="Analysera" className="h-7 w-7" />
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/symbol.svg" alt="" className="h-5 w-5 brightness-0 invert" />
+                  Analysera
+                </>
               )}
             </button>
           </div>

@@ -64,8 +64,8 @@
 
     /* Text hierarchy */
     --text-muted: rgba(0,0,0,0.5);
-    --text-faint: rgba(0,0,0,0.3);
-    --text-ghost: rgba(0,0,0,0.15);
+    --text-faint: rgba(0,0,0,0.4);
+    --text-ghost: rgba(0,0,0,0.15); /* decorative only — do not use for meaningful text */
 
     /* Semantic colors */
     --color-error: #DC2626;
@@ -301,17 +301,20 @@
     opacity: 1;
     transform: translate(-50%, -50%) rotate(var(--angle)) translateY(0) scale(1);
   }
+  70% {
+    opacity: 0.6;
+  }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) rotate(var(--angle)) translateY(40px) scale(0.3);
+    transform: translate(-50%, -50%) rotate(var(--angle)) translateY(60px) scale(0.2);
   }
 }
 .confetti-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: var(--color);
-  animation: confetti-burst 1s ease-out forwards;
+  animation: confetti-burst 1.5s ease-out forwards;
 }
 
 /* Editable text save flash */

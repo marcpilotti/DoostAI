@@ -166,7 +166,37 @@ function ActionBlock({ type, target }: { type: string; target: string }) {
   );
 }
 
-function ChatMessage({ message }: { message: Message }) {
+function TypewriterText({ content, onComplete }: { content: string; onComplete?: () => void }) {
+  const [displayedText, setDisplayedText] = useState("");
+  const completedRef = useRef(false);
+
+  useEffect(() => {
+    if (!content) return;
+    let idx = 0;
+    setDisplayedText("");
+    completedRef.current = false;
+
+    const interval = setInterval(() => {
+      idx++;
+      if (idx >= content.length) {
+        setDisplayedText(content);
+        clearInterval(interval);
+        if (!completedRef.current) {
+          completedRef.current = true;
+          onComplete?.();
+        }
+        return;
+      }
+      setDisplayedText(content.slice(0, idx));
+    }, 20);
+
+    return () => clearInterval(interval);
+  }, [content, onComplete]);
+
+  return <ReactMarkdown>{displayedText}</ReactMarkdown>;
+}
+
+function ChatMessage({ message, isLatest }: { message: Message; isLatest?: boolean }) {
   if (message.role === "user") {
     return (
       <div className="flex justify-end">
@@ -184,7 +214,11 @@ function ChatMessage({ message }: { message: Message }) {
     <div className="mt-1">
       {message.reasoning && <ReasoningToggle reasoning={message.reasoning} />}
       <div className="prose-sm text-[13px] leading-relaxed text-[var(--doost-text-secondary)] [&_strong]:text-[var(--doost-text)] [&_h3]:mt-3 [&_h3]:text-[14px] [&_h3]:font-semibold [&_h3]:text-[var(--doost-text)] [&_ul]:mt-1.5 [&_ul]:space-y-1 [&_li]:flex [&_li]:items-start [&_li]:gap-2 [&_p]:mt-1.5">
-        <ReactMarkdown>{message.content}</ReactMarkdown>
+        {isLatest && message.content ? (
+          <TypewriterText content={message.content} />
+        ) : (
+          <ReactMarkdown>{message.content}</ReactMarkdown>
+        )}
       </div>
       {actionMatch && <ActionBlock type={actionMatch[1]!} target={actionMatch[2]!} />}
     </div>
@@ -364,13 +398,18 @@ export function AIPanel({ open, onClose }: { open: boolean; onClose: () => void 
                   </p>
                 </div>
               )}
-              {messages.map((msg) => (
-                <ChatMessage key={msg.id} message={msg} />
+              {messages.map((msg, idx) => (
+                <ChatMessage
+                  key={msg.id}
+                  message={msg}
+                  isLatest={msg.role === "assistant" && idx === messages.length - 1}
+                />
               ))}
-              {isStreaming && (
-                <div className="flex items-center gap-2 text-[12px] text-[var(--doost-text-muted)]">
-                  <div className="h-3 w-3 animate-spin rounded-full border-[1.5px] border-[var(--doost-text-muted)] border-t-[var(--doost-text)]" />
-                  Tänker...
+              {isStreaming && messages[messages.length - 1]?.role !== "assistant" && (
+                <div className="flex items-center gap-1 px-3 py-2">
+                  <span className="typing-dot h-1.5 w-1.5 rounded-full bg-[var(--doost-text-muted)]" style={{ animationDelay: "0ms" }} />
+                  <span className="typing-dot h-1.5 w-1.5 rounded-full bg-[var(--doost-text-muted)]" style={{ animationDelay: "150ms" }} />
+                  <span className="typing-dot h-1.5 w-1.5 rounded-full bg-[var(--doost-text-muted)]" style={{ animationDelay: "300ms" }} />
                 </div>
               )}
             </div>

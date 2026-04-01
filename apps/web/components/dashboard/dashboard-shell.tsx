@@ -50,7 +50,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="flex flex-1 overflow-hidden">
-          <main className="flex-1 overflow-y-auto">
+          <main id="main" className="flex-1 overflow-y-auto">
             {children}
           </main>
           <AIPanel open={aiPanelOpen} onClose={() => setAIPanelOpen(false)} />

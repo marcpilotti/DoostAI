@@ -49,6 +49,9 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${marker.variable} font-sans antialiased`}
       >
+        <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:rounded-lg focus:bg-[var(--doost-bg)] focus:px-4 focus:py-2 focus:text-[var(--doost-text)] focus:shadow-lg focus:ring-2 focus:ring-[var(--doost-bg-active)]">
+          Hoppa till innehåll
+        </a>
         <ClerkProvider>
           <QueryProvider>
             <PostHogProvider>

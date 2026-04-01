@@ -409,19 +409,18 @@ export function EditorSlide({
                 onClick={() => { if (variantA) handlePublish(variantA); }}
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 py-3 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-95"
               >
-                Publicera
-                <ArrowRight className="h-4 w-4" />
+                {`G\u00e5 vidare till publicering \u2192`}
               </button>
             </div>
           </motion.div>
         ) : (
           /* Error state with granular status (#13) */
-          <div className="flex h-full flex-col items-center justify-center gap-4">
+          <div className="flex h-full flex-col items-center justify-center gap-4" role="alert">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-red-50 to-orange-50">
               <Sparkles className="h-6 w-6 text-red-400" />
             </div>
             <div className="text-center">
-              <p className="text-sm font-medium text-foreground/70">Kunde inte generera annons</p>
+              <p className="text-sm font-medium text-foreground/70">{`Kunde inte generera annonsen. F\u00f6rs\u00f6k igen eller \u00e4ndra prompten.`}</p>
               <div className="mt-2 space-y-1">
                 <p className="text-xs text-muted-foreground/50">
                   Annonstext {hasCopy ? "\u2713" : "\u2717"}

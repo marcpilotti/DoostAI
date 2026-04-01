@@ -399,7 +399,7 @@ export function OnboardingShell() {
   // ── Render ────────────────────────────────────────────────────
 
   return (
-    <div className="h-[100dvh] overflow-hidden bg-background pb-[env(safe-area-inset-bottom)]">
+    <div id="main" className="h-[100dvh] overflow-hidden bg-background pb-[env(safe-area-inset-bottom)]">
       {/* #18 Screen reader announcement */}
       <div aria-live="assertive" className="sr-only">{announcement}</div>
 

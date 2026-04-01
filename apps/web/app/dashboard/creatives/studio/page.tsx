@@ -284,7 +284,7 @@ export default function CreativeStudioPage() {
           </button>
 
           {error && (
-            <p className="mt-2 text-[12px] text-[var(--doost-text-negative)]">{error}</p>
+            <p role="alert" className="mt-2 text-[12px] text-[var(--doost-text-negative)]">{error}</p>
           )}
         </div>
 

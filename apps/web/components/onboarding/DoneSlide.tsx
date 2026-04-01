@@ -11,10 +11,57 @@ const DONE_MESSAGES = [
   { text: "Vi skickar en notis när den är live", delay: 1500 },
 ];
 
+const CONFETTI_COLORS = ["#6366f1", "#ec4899", "#f97316", "#10b981", "#3b82f6", "#8b5cf6", "#06b6d4", "#f59e0b"];
+const CONFETTI_COUNT = 24;
+const CONFETTI_LS_KEY = "doost_first_campaign_published";
+
+function ConfettiBurst() {
+  const dots = Array.from({ length: CONFETTI_COUNT }, (_, i) => {
+    const angle = (360 / CONFETTI_COUNT) * i;
+    const color = CONFETTI_COLORS[i % CONFETTI_COLORS.length]!;
+    const distance = 30 + Math.random() * 30;
+    return { angle, color, distance };
+  });
+
+  return (
+    <div className="pointer-events-none absolute inset-0 z-10">
+      {dots.map((dot, i) => (
+        <span
+          key={i}
+          className="confetti-dot absolute left-1/2 top-1/2"
+          style={{
+            "--angle": `${dot.angle}deg`,
+            "--color": dot.color,
+            color: dot.color,
+            background: dot.color,
+            animationDuration: "1.5s",
+          } as React.CSSProperties}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function DoneSlide({ brandName, onDashboard, onRestart }: { brandName?: string; onDashboard: () => void; onRestart?: () => void }) {
   const prefersReduced = useReducedMotion();
   const [countdown, setCountdown] = useState(15);
   const [paused, setPaused] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  // Fire confetti only on first campaign published
+  useEffect(() => {
+    if (prefersReduced) return;
+    try {
+      const alreadyFired = localStorage.getItem(CONFETTI_LS_KEY);
+      if (!alreadyFired) {
+        setShowConfetti(true);
+        localStorage.setItem(CONFETTI_LS_KEY, "true");
+        // Remove confetti after animation completes
+        const timer = setTimeout(() => setShowConfetti(false), 2000);
+        return () => clearTimeout(timer);
+      }
+    } catch { /* localStorage unavailable — skip */ }
+  }, [prefersReduced]);
 
   useEffect(() => {
     if (paused) return;
@@ -25,7 +72,8 @@ export function DoneSlide({ brandName, onDashboard, onRestart }: { brandName?: s
   }, [onDashboard, paused]);
 
   return (
-    <div className="flex h-full flex-col items-center justify-center px-6">
+    <div className="relative flex h-full flex-col items-center justify-center px-6">
+      {showConfetti && <ConfettiBurst />}
       {/* Success animation */}
       <motion.div
         initial={prefersReduced ? false : { scale: 0, opacity: 0 }}

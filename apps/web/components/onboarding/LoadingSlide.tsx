@@ -126,7 +126,7 @@ export function LoadingSlide({
             if (data.event === "error") {
               clearTimeout(timeoutId);
               setFailed(true);
-              setFailReason(data.message ?? "Analysen misslyckades.");
+              setFailReason(data.message ?? "Kontrollera att adressen st\u00e4mmer och att hemsidan \u00e4r tillg\u00e4nglig, och f\u00f6rs\u00f6k igen.");
               return;
             }
 
@@ -171,12 +171,14 @@ export function LoadingSlide({
   // Error state
   if (failed) {
     return (
-      <div className="flex h-full flex-col items-center justify-center px-6">
+      <div className="flex h-full flex-col items-center justify-center px-6" role="alert">
         <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted-foreground/5">
           <RefreshCw className="h-5 w-5 text-muted-foreground/40" />
         </div>
-        <h3 className="mb-1 text-[15px] font-semibold text-foreground">Analysen misslyckades</h3>
-        <p className="mb-5 max-w-xs text-center text-[13px] text-muted-foreground/50">{failReason}</p>
+        <h3 className="mb-1 text-[15px] font-semibold text-foreground">{`Vi kunde inte analysera ${domain}`}</h3>
+        <p className="mb-5 max-w-xs text-center text-[13px] text-muted-foreground/50">
+          {failReason || "Kontrollera att adressen st\u00e4mmer och att hemsidan \u00e4r tillg\u00e4nglig, och f\u00f6rs\u00f6k igen."}
+        </p>
         <div className="flex items-center gap-3">
           {onError && (
             <button onClick={onError} className="flex items-center gap-1.5 text-[12px] text-muted-foreground/40 hover:text-muted-foreground">

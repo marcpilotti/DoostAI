@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import type { Creative } from "@/lib/mock-data";
 import { CreativeCard } from "./creative-card";
 
@@ -22,10 +23,12 @@ export function CreativeGrid({
             className="flex w-full items-center gap-4 rounded-lg bg-[var(--doost-bg)] p-3 text-left transition-colors hover:bg-[var(--doost-bg-secondary)]"
             style={{ border: `1px solid var(--doost-border)` }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={c.imageUrl}
               alt={c.name}
+              width={400}
+              height={400}
+              quality={75}
               loading="lazy"
               className="h-12 w-12 shrink-0 rounded-md object-cover"
             />

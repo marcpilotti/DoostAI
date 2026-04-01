@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import type { Creative } from "@/lib/mock-data";
 
 /**
@@ -22,13 +23,13 @@ export function CreativeCard({
     >
       {/* Image — 4:5 portrait ratio, rounded-xl */}
       <div className="relative aspect-[4/5] w-full overflow-hidden rounded-xl bg-[var(--doost-bg-secondary)]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src={creative.imageUrl}
           alt={creative.name}
-          loading="lazy"
           width={400}
-          height={500}
+          height={400}
+          quality={75}
+          loading="lazy"
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
         />
       </div>
