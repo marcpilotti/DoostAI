@@ -45,9 +45,9 @@ function compressImage(file: File, maxSize: number): Promise<string> {
 }
 
 function getMatchPill(score: number): { variant: "green" | "blue" | "amber"; label: string } {
-  if (score >= 85) return { variant: "green", label: "Great match" };
-  if (score >= 60) return { variant: "blue", label: "Good start" };
-  return { variant: "amber", label: "Help us improve" };
+  if (score >= 85) return { variant: "green", label: "Utmärkt matchning" };
+  if (score >= 60) return { variant: "blue", label: "Bra start" };
+  return { variant: "amber", label: "Hjälp oss förbättra" };
 }
 
 // ── Bento Cell wrapper ──────────────────────────────────────────
@@ -374,7 +374,7 @@ export function BrandCard({ profile, onConfirm, onBack }: {
           className="flex-1 rounded-btn bg-d-text-primary text-white hover:bg-d-text-primary/90"
           size="lg"
         >
-          Confirm brand
+          Bekräfta varumärke
           <span className="ml-1">→</span>
         </Button>
         {onBack && (
@@ -384,7 +384,7 @@ export function BrandCard({ profile, onConfirm, onBack }: {
             className="rounded-btn border-d-border text-d-text-primary"
             size="lg"
           >
-            Edit details
+            Ändra
           </Button>
         )}
       </div>
