@@ -44,9 +44,9 @@ const ICONS: Record<ToastType, React.ComponentType<{ className?: string }>> = {
 
 const STYLES: Record<ToastType, { bg: string; icon: string }> = {
   success: { bg: "bg-[var(--doost-bg-badge-ready)]", icon: "text-[var(--doost-text-positive)]" },
-  error: { bg: "bg-red-50", icon: "text-red-600" },
-  warning: { bg: "bg-[var(--doost-bg-badge-review)]", icon: "text-[#E65100]" },
-  info: { bg: "bg-blue-50", icon: "text-blue-600" },
+  error: { bg: "bg-[var(--color-error-light,#FEF2F2)]", icon: "text-[var(--color-error,#DC2626)]" },
+  warning: { bg: "bg-[var(--doost-bg-badge-review)]", icon: "text-[var(--color-warning,#E65100)]" },
+  info: { bg: "bg-[var(--color-info-light,#EFF6FF)]", icon: "text-[var(--color-info,#3B82F6)]" },
 };
 
 // ── Provider ─────────────────────────────────────────────────────
@@ -81,7 +81,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {children}
 
       {/* Toast container — bottom right */}
-      <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2">
+      <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2" role="status" aria-live="polite">
         <AnimatePresence>
           {toasts.map((t) => {
             const Icon = ICONS[t.type];
@@ -116,6 +116,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 <button
                   onClick={() => dismiss(t.id)}
                   className="shrink-0 text-[var(--doost-text-muted)] hover:text-[var(--doost-text)]"
+                  aria-label="Stäng notis"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>

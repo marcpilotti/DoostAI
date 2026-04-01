@@ -22,16 +22,16 @@ export function KPICards({
   onSelect: (id: string) => void;
 }) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+    <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0 lg:grid-cols-5">
       {kpis.map((kpi) => {
         const selected = kpi.id === selectedId;
         return (
           <button
             key={kpi.id}
             onClick={() => onSelect(kpi.id)}
-            className={`group relative rounded-[var(--doost-radius-card)] p-4 text-left transition-all ${
+            className={`group relative min-w-[140px] shrink-0 sm:min-w-0 sm:shrink rounded-[var(--doost-radius-card)] p-4 text-left transition-all focus-visible:ring-2 focus-visible:ring-[var(--doost-bg-active)] focus-visible:outline-none ${
               selected
-                ? "bg-[var(--doost-bg)] ring-2 ring-[var(--doost-bg-active)]"
+                ? "bg-[var(--doost-bg)] ring-2 ring-[var(--doost-bg-active)] shadow-md"
                 : "bg-[var(--doost-bg)] hover:ring-1 hover:ring-[var(--doost-border)]"
             }`}
             style={{ border: selected ? "none" : `1px solid var(--doost-border)` }}
@@ -52,12 +52,15 @@ export function KPICards({
               {/* Change badge */}
               <span
                 className={`text-[12px] font-semibold ${
-                  kpi.change >= 0
+                  kpi.change > 0
                     ? "text-[var(--doost-text-positive)]"
-                    : "text-[var(--doost-text-negative)]"
+                    : kpi.change < 0
+                      ? "text-[var(--doost-text-negative)]"
+                      : "text-[var(--doost-text-muted)]"
                 }`}
+                aria-label={`${kpi.change > 0 ? "Ökning" : kpi.change < 0 ? "Minskning" : "Oförändrad"} ${Math.abs(kpi.change)}%`}
               >
-                {kpi.change >= 0 ? "+" : ""}{kpi.change}%
+                {kpi.change > 0 ? "\u2191 +" : kpi.change < 0 ? "\u2193 " : ""}{kpi.change}%
               </span>
             </div>
 

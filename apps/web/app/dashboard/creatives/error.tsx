@@ -2,7 +2,7 @@
 
 import { RefreshCw } from "lucide-react";
 
-export default function DashboardError({
+export default function RouteError({
   error,
   reset,
 }: {

@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Menu } from "lucide-react";
+import { Menu, Sparkles } from "lucide-react";
 
 import { Sidebar } from "./sidebar";
 import { TopBar } from "./top-bar";
 import { AIPanel } from "./ai-panel";
+import { Breadcrumbs } from "./breadcrumbs";
 import { ToastProvider } from "@/components/ui/toast";
 import { useAIPanelStore } from "@/lib/stores/ai-panel";
 
@@ -36,8 +37,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-3 border-b px-4 py-3 md:hidden" style={{ borderColor: "var(--doost-border)" }}>
           <button
             onClick={() => setSidebarOpen(true)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--doost-text-secondary)] hover:bg-white"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--doost-text-secondary)] hover:bg-[var(--doost-bg)]"
             aria-label="Öppna sidomeny"
+            aria-expanded={sidebarOpen}
           >
             <Menu className="h-5 w-5" />
           </button>
@@ -51,10 +53,22 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
         <div className="flex flex-1 overflow-hidden">
           <main id="main" className="flex-1 overflow-y-auto">
+            <Breadcrumbs />
             {children}
           </main>
           <AIPanel open={aiPanelOpen} onClose={() => setAIPanelOpen(false)} />
         </div>
+
+        {/* Mobile FAB for AI panel */}
+        {!aiPanelOpen && (
+          <button
+            onClick={() => setAIPanelOpen(true)}
+            className="fixed bottom-6 right-6 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 active:scale-95 md:hidden"
+            aria-label="Öppna AI-assistent"
+          >
+            <Sparkles className="h-5 w-5" />
+          </button>
+        )}
       </div>
     </div>
     </ToastProvider>

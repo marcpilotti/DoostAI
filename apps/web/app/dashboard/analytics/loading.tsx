@@ -1,11 +1,19 @@
-export default function Loading() {
+import { Skeleton } from "@/components/ui/skeleton";
+
+export default function AnalyticsLoading() {
   return (
     <div className="p-6">
-      <div className="mb-6 h-5 w-32 animate-pulse rounded bg-[var(--doost-border)]" />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-32 animate-pulse rounded-[var(--doost-radius-card)] bg-[var(--doost-bg)]" style={{ border: "1px solid var(--doost-border)" }} />
-        ))}
+      <div className="mb-6 flex items-center justify-between">
+        <Skeleton className="h-7 w-24" />
+        <div className="flex gap-2">
+          <Skeleton className="h-10 w-36 rounded-lg" />
+          <Skeleton className="h-10 w-28 rounded-lg" />
+        </div>
+      </div>
+      <Skeleton className="mb-6 h-[320px] w-full rounded-[10px]" />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Skeleton className="h-[248px] rounded-[10px]" />
+        <Skeleton className="h-[248px] rounded-[10px]" />
       </div>
     </div>
   );

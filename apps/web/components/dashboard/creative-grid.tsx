@@ -26,10 +26,11 @@ export function CreativeGrid({
             <Image
               src={c.imageUrl}
               alt={c.name}
-              width={400}
-              height={400}
+              width={48}
+              height={48}
               quality={75}
               loading="lazy"
+              sizes="48px"
               className="h-12 w-12 shrink-0 rounded-md object-cover"
             />
             <div className="min-w-0 flex-1">
@@ -41,7 +42,7 @@ export function CreativeGrid({
                 <div className="font-semibold text-[var(--doost-text)]">{c.roas.toFixed(1)}x</div>
               </div>
               <div className="text-right">
-                <div className="text-[var(--doost-text-muted)]">Spend</div>
+                <div className="text-[var(--doost-text-muted)]">Spenderat</div>
                 <div className="font-semibold text-[var(--doost-text)]">${c.spend.toLocaleString()}</div>
               </div>
               <div className="text-right">

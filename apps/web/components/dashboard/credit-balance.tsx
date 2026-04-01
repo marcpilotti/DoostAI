@@ -50,22 +50,26 @@ export function CreditBalance() {
 
   const maxCredits = 2500; // plan max
   const pct = Math.min(100, (balance / maxCredits) * 100);
+  const isLow = pct < 15;
 
   return (
     <div className="px-3 py-2">
       <div className="flex items-center justify-between text-[11px]">
-        <div className="flex items-center gap-1 text-[var(--doost-text-muted)]">
+        <div className={`flex items-center gap-1 ${isLow ? "text-[var(--color-error,#DC2626)]" : "text-[var(--doost-text-muted)]"}`}>
           <Sparkles className="h-4 w-4" />
           Credits
         </div>
-        <span className="font-semibold text-[var(--doost-text)]">{balance.toLocaleString()}</span>
+        <span className={`font-semibold ${isLow ? "text-[var(--color-error,#DC2626)]" : "text-[var(--doost-text)]"}`}>{balance.toLocaleString()}</span>
       </div>
       <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-[var(--doost-border)]">
         <div
-          className="h-full rounded-full bg-[var(--doost-bg-active)] transition-all duration-500"
+          className={`h-full rounded-full transition-all duration-500 ${isLow ? "bg-[var(--color-error,#DC2626)]" : "bg-[var(--doost-bg-active)]"}`}
           style={{ width: `${pct}%` }}
         />
       </div>
+      {isLow && (
+        <p className="mt-1 text-[10px] text-[var(--color-error,#DC2626)]">Få credits kvar</p>
+      )}
     </div>
   );
 }

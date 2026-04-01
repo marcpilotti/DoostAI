@@ -30,18 +30,18 @@ function CustomTooltip({ active, payload, label }: {
       <div className="space-y-0.5 text-[11px]">
         <div className="flex items-center gap-2">
           <span className="h-0.5 w-3 rounded-full bg-[var(--doost-chart-current)]" />
-          <span className="text-[var(--doost-text-secondary)]">This period</span>
+          <span className="text-[var(--doost-text-secondary)]">Denna period</span>
           <span className="font-semibold text-[var(--doost-text)]">{current.toFixed(1)}x</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="h-0.5 w-3 rounded-full bg-[var(--doost-chart-previous)]" />
-          <span className="text-[var(--doost-text-secondary)]">Previous period</span>
+          <span className="text-[var(--doost-text-secondary)]">Föregående period</span>
           <span className="font-medium text-[var(--doost-text-secondary)]">{previous.toFixed(1)}x</span>
         </div>
       </div>
       {change !== 0 && (
         <p className={`mt-1.5 text-[11px] font-semibold ${change >= 0 ? "text-[var(--doost-text-positive)]" : "text-[var(--doost-text-negative)]"}`}>
-          {change >= 0 ? "+" : ""}{change}% from comparison
+          {change >= 0 ? "+" : ""}{change}% mot föregående
         </p>
       )}
     </div>
@@ -55,8 +55,16 @@ export function PerformanceChart({
   data: ChartDataPoint[];
   metricSuffix?: string;
 }) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex h-[300px] items-center justify-center rounded-[var(--doost-radius-card)] bg-[var(--doost-bg)] p-6 text-[13px] text-[var(--doost-text-muted)]" style={{ border: `1px solid var(--doost-border)` }}>
+        Ingen data att visa för vald period
+      </div>
+    );
+  }
+
   return (
-    <div className="rounded-[var(--doost-radius-card)] bg-[var(--doost-bg)] p-6" style={{ border: `1px solid var(--doost-border)` }}>
+    <div className="rounded-[var(--doost-radius-card)] bg-[var(--doost-bg)] p-6" role="img" aria-label={`Prestandadiagram: nuvarande vs föregående period (${metricSuffix})`} style={{ border: `1px solid var(--doost-border)` }}>
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
           <CartesianGrid
@@ -102,11 +110,11 @@ export function PerformanceChart({
               <div className="flex items-center justify-center gap-6 pt-4 text-[12px] text-[var(--doost-text-secondary)]">
                 <div className="flex items-center gap-1.5">
                   <span className="h-0.5 w-4 rounded-full bg-[var(--doost-chart-current)]" />
-                  Current period
+                  Nuvarande period
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="h-0.5 w-4 rounded-full bg-[var(--doost-chart-previous)] opacity-60" style={{ backgroundImage: "repeating-linear-gradient(90deg, var(--doost-chart-previous) 0 4px, transparent 4px 8px)" }} />
-                  Previous period
+                  Föregående period
                 </div>
               </div>
             )}

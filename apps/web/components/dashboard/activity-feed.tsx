@@ -18,14 +18,14 @@ function PlatformIcon({ platform }: { platform: "meta" | "google" | "linkedin" }
   }
   if (platform === "linkedin") {
     return (
-      <div className="flex h-5 w-5 items-center justify-center rounded-sm bg-[#0A66C2]">
+      <div className="flex h-5 w-5 items-center justify-center rounded-sm bg-[var(--brand-linkedin)]">
         <span className="text-[9px] font-bold text-white">in</span>
       </div>
     );
   }
   // Meta — blue circle with infinity symbol
   return (
-    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#0081FB]">
+    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--brand-meta)]">
       <svg className="h-3 w-3" viewBox="0 0 24 24" fill="white">
         <path d="M12 10.2c-1.3-1.8-2.6-3-4.2-3C5.4 7.2 4 9.6 4 12s1.4 4.8 3.8 4.8c1.6 0 2.9-1.2 4.2-3 1.3 1.8 2.6 3 4.2 3 2.4 0 3.8-2.4 3.8-4.8s-1.4-4.8-3.8-4.8c-1.6 0-2.9 1.2-4.2 3z" />
       </svg>
@@ -35,13 +35,13 @@ function PlatformIcon({ platform }: { platform: "meta" | "google" | "linkedin" }
 
 function StatusBadge({ text, variant }: { text: string; variant: "review" | "ready" | "default" }) {
   const styles = {
-    review: "bg-[var(--doost-bg-badge-review)] text-[#E65100]",
+    review: "bg-[var(--doost-bg-badge-review)] text-[var(--color-warning,#E65100)]",
     ready: "bg-[var(--doost-bg-badge-ready)] text-[var(--doost-text-positive)]",
     default: "bg-[var(--doost-bg-secondary)] text-[var(--doost-text-secondary)]",
   };
 
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${styles[variant]}`}>
+    <span role="status" className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${styles[variant]}`}>
       {text}
     </span>
   );
@@ -50,7 +50,7 @@ function StatusBadge({ text, variant }: { text: string; variant: "review" | "rea
 export function ActivityFeed({ items }: { items: ActivityItem[] }) {
   return (
     <div>
-      <h2 className="mb-4 text-[18px] font-semibold text-[var(--doost-text)]">Campaign Activity</h2>
+      <h2 className="mb-4 text-[16px] font-semibold text-[var(--doost-text)]">Kampanjaktivitet</h2>
       <div className="space-y-1">
         {items.map((item) => (
           <div

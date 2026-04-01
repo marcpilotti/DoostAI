@@ -8,10 +8,10 @@ import { MOCK_CHART_DATA, MOCK_KPIS } from "@/lib/mock-data";
 type DateRange = "7d" | "30d" | "6m" | "1y";
 
 const DATE_RANGE_OPTIONS: { value: DateRange; label: string }[] = [
-  { value: "7d", label: "Past week" },
-  { value: "30d", label: "Past month" },
-  { value: "6m", label: "Past 6 months" },
-  { value: "1y", label: "Past year" },
+  { value: "7d", label: "Senaste veckan" },
+  { value: "30d", label: "Senaste månaden" },
+  { value: "6m", label: "Senaste 6 mån" },
+  { value: "1y", label: "Senaste året" },
 ];
 
 const channelDataFull = [
@@ -58,7 +58,7 @@ function downloadCSV(filename: string, rows: Record<string, string | number>[]) 
 }
 
 export default function AnalyticsPage() {
-  useEffect(() => { document.title = "Analytics — Doost AI"; }, []);
+  useEffect(() => { document.title = "Analys — Doost AI"; }, []);
 
   const [dateRange, setDateRange] = useState<DateRange>("6m");
 
@@ -76,7 +76,7 @@ export default function AnalyticsPage() {
   return (
     <div className="p-6">
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-[18px] font-semibold text-[var(--doost-text)]">Analytics</h2>
+        <h1 className="text-lg sm:text-[22px] font-semibold text-[var(--doost-text)]">Analys</h1>
         <div className="flex items-center gap-2">
           {/* Date range picker */}
           <div className="relative inline-block">
@@ -98,14 +98,14 @@ export default function AnalyticsPage() {
             className="rounded-lg bg-[var(--doost-bg)] px-3 py-2 text-[12px] font-medium text-[var(--doost-text)] transition-colors hover:bg-[var(--doost-bg-secondary)]"
             style={{ border: `1px solid var(--doost-border)` }}
           >
-            Export CSV
+            Exportera CSV
           </button>
         </div>
       </div>
 
       <div className="mb-6 rounded-[var(--doost-radius-card)] bg-[var(--doost-bg)] p-6" style={{ border: `1px solid var(--doost-border)` }}>
         <h3 className="mb-4 text-[14px] font-semibold text-[var(--doost-text)]">
-          Performance over time
+          Prestation över tid
           <span className="ml-2 text-[11px] font-normal text-[var(--doost-text-muted)]">
             ({DATE_RANGE_OPTIONS.find((o) => o.value === dateRange)?.label})
           </span>
@@ -124,7 +124,7 @@ export default function AnalyticsPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="rounded-[var(--doost-radius-card)] bg-[var(--doost-bg)] p-6" style={{ border: `1px solid var(--doost-border)` }}>
-          <h3 className="mb-4 text-[14px] font-semibold text-[var(--doost-text)]">Clicks by channel</h3>
+          <h3 className="mb-4 text-[14px] font-semibold text-[var(--doost-text)]">Klick per kanal</h3>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={channelData}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--doost-border)" vertical={false} />
@@ -136,7 +136,7 @@ export default function AnalyticsPage() {
           </ResponsiveContainer>
         </div>
         <div className="rounded-[var(--doost-radius-card)] bg-[var(--doost-bg)] p-6" style={{ border: `1px solid var(--doost-border)` }}>
-          <h3 className="mb-4 text-[14px] font-semibold text-[var(--doost-text)]">ROAS by channel</h3>
+          <h3 className="mb-4 text-[14px] font-semibold text-[var(--doost-text)]">ROAS per kanal</h3>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={channelData}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--doost-border)" vertical={false} />

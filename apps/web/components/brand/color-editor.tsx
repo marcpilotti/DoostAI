@@ -107,9 +107,17 @@ export function ColorEditor({
         <input
           type="text"
           value={hex}
-          onChange={(e) => updateColor(e.target.value)}
+          onChange={(e) => {
+            const val = e.target.value.replace(/[^#0-9a-fA-F]/g, "");
+            const clean = val.startsWith("#") ? val.slice(0, 7) : `#${val}`.slice(0, 7);
+            updateColor(clean);
+          }}
           maxLength={7}
-          className="flex-1 rounded-lg border border-border/40 px-2 py-1.5 font-mono text-xs outline-none focus:border-indigo-300 focus:ring-1 focus:ring-indigo-100"
+          className={`flex-1 rounded-lg border px-2 py-1.5 font-mono text-xs outline-none focus:ring-1 ${
+            hex.length === 7 && !isValidHex(hex)
+              ? "border-[var(--color-error,#DC2626)] focus:border-[var(--color-error,#DC2626)] focus:ring-red-100"
+              : "border-border/40 focus:border-indigo-300 focus:ring-indigo-100"
+          }`}
           placeholder="#000000"
         />
       </div>

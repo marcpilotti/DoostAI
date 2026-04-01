@@ -42,15 +42,14 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const urlParam = params.get("url");
-    if (urlParam) {
-      setInput(urlParam);
-      // Auto-submit after a short delay
-      setTimeout(() => {
-        let url = urlParam;
-        if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
-        onSubmit(url);
-      }, 800);
-    }
+    if (!urlParam) return;
+    setInput(urlParam);
+    const timerId = setTimeout(() => {
+      let url = urlParam;
+      if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
+      onSubmit(url);
+    }, 800);
+    return () => clearTimeout(timerId);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -78,7 +77,7 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
   };
 
   return (
-    <div className="flex h-full flex-col items-center justify-center px-6">
+    <div className="flex h-full flex-col items-center justify-center px-6 pt-[72px]">
       {/* "Skippa byrån." in sketch font */}
       <h1 className="text-center font-sketch text-[48px] leading-[1.05] tracking-[-0.02em] text-foreground sm:text-[64px]">
         Skippa byrån.
@@ -93,8 +92,10 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
           <div className="flex items-center gap-3 rounded-2xl bg-white px-5 py-4 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)]">
             <input
               ref={inputRef}
-              type="text"
+              type="url"
               inputMode="url"
+              autoComplete="url"
+              enterKeyHint="go"
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
@@ -182,7 +183,7 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
 
         {/* Social proof */}
         <p className="mt-8 text-center text-[11px] text-muted-foreground/25">
-          2,847 annonser skapade med Doost AI
+          Betrodd av svenska företag — från enskild firma till börsbolag
         </p>
       </div>
     </div>

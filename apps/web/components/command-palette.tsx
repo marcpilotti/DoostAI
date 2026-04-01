@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { Command } from "cmdk";
 import {
   BarChart3,
+  Keyboard,
   MessageSquare,
   Plus,
   Search,
@@ -43,6 +44,7 @@ function addRecent(label: string) {
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -53,7 +55,7 @@ export function CommandPalette() {
         e.preventDefault();
         setOpen((o) => !o);
       }
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") { setOpen(false); setShowShortcuts(false); }
     }
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
@@ -89,6 +91,11 @@ export function CommandPalette() {
         return;
       }
 
+      if (e.key === "?") {
+        setShowShortcuts((s) => !s);
+        return;
+      }
+
       if (e.key === "/") {
         e.preventDefault();
         const input = document.querySelector("textarea") as HTMLTextAreaElement;
@@ -121,6 +128,7 @@ export function CommandPalette() {
     { group: "Åtgärder", label: "Analysera ny URL", icon: <Globe className="h-4 w-4" />, action: () => { router.push("/"); setTimeout(() => { (document.querySelector("textarea") as HTMLTextAreaElement)?.focus(); }, 100); } },
     { group: "Åtgärder", label: "Pausa alla kampanjer", icon: <Pause className="h-4 w-4" />, action: () => router.push("/") },
     { group: "Åtgärder", label: "Generera prestationsrapport", icon: <FileText className="h-4 w-4" />, action: () => router.push("/") },
+    { group: "Hjälp", label: "Visa tangentbordsgenvägar", shortcut: "?", icon: <Keyboard className="h-4 w-4" />, action: () => setShowShortcuts(true) },
   ];
 
   // Contextual commands based on current page
@@ -143,6 +151,55 @@ export function CommandPalette() {
     .map((label) => commands.find((c) => c.label === label))
     .filter(Boolean) as CommandItem[];
 
+  if (!open && !showShortcuts) return null;
+
+  if (showShortcuts) {
+    const shortcuts = [
+      { section: "Navigation", items: [
+        { keys: "⌘ K", desc: "Öppna sök" },
+        { keys: "G C", desc: "Gå till chat" },
+        { keys: "G M", desc: "Gå till kampanjer" },
+        { keys: "G A", desc: "Gå till analys" },
+        { keys: "G S", desc: "Gå till inställningar" },
+      ]},
+      { section: "Åtgärder", items: [
+        { keys: "N", desc: "Ny kampanj" },
+        { keys: "/", desc: "Fokusera chattfält" },
+        { keys: "?", desc: "Visa tangentbordsgenvägar" },
+      ]},
+    ];
+
+    return (
+      <div className="fixed inset-0 z-[100]">
+        <div
+          className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+          onClick={() => setShowShortcuts(false)}
+        />
+        <div className="flex items-start justify-center pt-[20vh]">
+          <div className="relative w-full max-w-md overflow-hidden rounded-xl border border-border/60 bg-white p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-[15px] font-semibold">Tangentbordsgenvägar</h2>
+              <kbd className="rounded border border-border/60 bg-muted/50 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground/60">ESC</kbd>
+            </div>
+            {shortcuts.map((section) => (
+              <div key={section.section} className="mb-4 last:mb-0">
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/50">{section.section}</p>
+                <div className="space-y-1.5">
+                  {section.items.map((item) => (
+                    <div key={item.keys} className="flex items-center justify-between">
+                      <span className="text-[13px] text-foreground/70">{item.desc}</span>
+                      <kbd className="rounded border border-border/40 bg-muted/30 px-2 py-0.5 font-mono text-[11px] text-muted-foreground/60">{item.keys}</kbd>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!open) return null;
 
   const groups = new Map<string, CommandItem[]>();
@@ -153,7 +210,7 @@ export function CommandPalette() {
   }
 
   return (
-    <div className="fixed inset-0 z-[100]">
+    <div className="fixed inset-0 z-[110]">
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={() => setOpen(false)}

@@ -1,12 +1,16 @@
 "use client";
 
 import { Suspense, useCallback, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useAIPanelStore } from "@/lib/stores/ai-panel";
 
-import { CreativeGrid } from "@/components/dashboard/creative-grid";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Image as ImageIcon } from "lucide-react";
+
 import { CreativeFilters } from "@/components/dashboard/creative-filters";
+import { CreativeGrid } from "@/components/dashboard/creative-grid";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useCreatives } from "@/hooks/use-creatives";
+import { useAIPanelStore } from "@/lib/stores/ai-panel";
 
 type ViewMode = "grid" | "list" | "compact";
 
@@ -15,7 +19,7 @@ function CreativesContent() {
   const searchParams = useSearchParams();
   const { setOpen: setAIPanelOpen } = useAIPanelStore();
 
-  useEffect(() => { document.title = "Creatives — Doost AI"; }, []);
+  useEffect(() => { document.title = "Kreativ — Doost AI"; }, []);
   useEffect(() => { setAIPanelOpen(true); }, [setAIPanelOpen]);
 
   const timeRange = searchParams.get("range") ?? "30d";
@@ -55,23 +59,53 @@ function CreativesContent() {
       </div>
       {totalPages > 1 && (
         <div className="mt-6 flex items-center justify-center gap-2">
-          <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page <= 1} className="rounded-lg px-3 py-1.5 text-[12px] font-medium text-[var(--doost-text-secondary)] hover:bg-[var(--doost-bg)] disabled:opacity-30">Previous</button>
+          <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page <= 1} className="rounded-lg px-3 py-1.5 text-[12px] font-medium text-[var(--doost-text-secondary)] hover:bg-[var(--doost-bg)] disabled:opacity-30">Föregående</button>
           <span className="text-[12px] text-[var(--doost-text-muted)]">{page} / {totalPages}</span>
-          <button onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page >= totalPages} className="rounded-lg px-3 py-1.5 text-[12px] font-medium text-[var(--doost-text-secondary)] hover:bg-[var(--doost-bg)] disabled:opacity-30">Next</button>
+          <button onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page >= totalPages} className="rounded-lg px-3 py-1.5 text-[12px] font-medium text-[var(--doost-text-secondary)] hover:bg-[var(--doost-bg)] disabled:opacity-30">Nästa</button>
         </div>
       )}
       {creatives.length === 0 && (
-        <div className="mt-12 text-center">
-          <p className="text-[14px] text-[var(--doost-text-muted)]">Inga kreativ matchar filtren</p>
-        </div>
+        <EmptyState
+          icon={ImageIcon}
+          title="Inga kreativ matchar filtren"
+          description="Justera dina filter eller skapa en ny annons för att komma igång."
+          ctaLabel="Skapa din första annons"
+          ctaHref="/"
+        />
       )}
+    </div>
+  );
+}
+
+function CreativesSkeleton() {
+  return (
+    <div className="px-5 py-4">
+      <div className="flex items-center gap-2 pb-4 border-b" style={{ borderColor: "var(--doost-border)" }}>
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-9 w-28 rounded-full" />
+        ))}
+        <div className="flex-1" />
+        <Skeleton className="h-9 w-28 rounded-lg" />
+      </div>
+      <div className="mt-6 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="rounded-[11px] overflow-hidden" style={{ border: "1px solid var(--doost-border)" }}>
+            <Skeleton className="aspect-[4/5] w-full rounded-none" />
+            <div className="p-3 space-y-2">
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-3 w-4/5" />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
 export default function CreativesPage() {
   return (
-    <Suspense fallback={<div className="p-6 text-[13px] text-[var(--doost-text-muted)]">Loading...</div>}>
+    <Suspense fallback={<CreativesSkeleton />}>
       <CreativesContent />
     </Suspense>
   );

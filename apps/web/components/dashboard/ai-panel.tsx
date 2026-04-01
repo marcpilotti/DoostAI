@@ -168,10 +168,11 @@ function ActionBlock({ type, target }: { type: string; target: string }) {
 
 function TypewriterText({ content, onComplete }: { content: string; onComplete?: () => void }) {
   const [displayedText, setDisplayedText] = useState("");
+  const [skipped, setSkipped] = useState(false);
   const completedRef = useRef(false);
 
   useEffect(() => {
-    if (!content) return;
+    if (!content || skipped) return;
     let idx = 0;
     setDisplayedText("");
     completedRef.current = false;
@@ -191,9 +192,22 @@ function TypewriterText({ content, onComplete }: { content: string; onComplete?:
     }, 20);
 
     return () => clearInterval(interval);
-  }, [content, onComplete]);
+  }, [content, onComplete, skipped]);
 
-  return <ReactMarkdown>{displayedText}</ReactMarkdown>;
+  function skip() {
+    setSkipped(true);
+    setDisplayedText(content);
+    if (!completedRef.current) {
+      completedRef.current = true;
+      onComplete?.();
+    }
+  }
+
+  return (
+    <div onClick={skip} className="cursor-pointer">
+      <ReactMarkdown>{skipped ? content : displayedText}</ReactMarkdown>
+    </div>
+  );
 }
 
 function ChatMessage({ message, isLatest }: { message: Message; isLatest?: boolean }) {
@@ -232,12 +246,16 @@ export function AIPanel({ open, onClose }: { open: boolean; onClose: () => void 
   const ctx = getPageContext(pathname);
 
   const [messages, setMessages] = useState<Message[]>([]);
+  const messagesRef = useRef<Message[]>([]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [selectedModel, setSelectedModel] = useState("claude-sonnet-4-6");
   const [showModelPicker, setShowModelPicker] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Keep ref in sync so callbacks always have fresh messages
+  useEffect(() => { messagesRef.current = messages; }, [messages]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -273,7 +291,7 @@ export function AIPanel({ open, onClose }: { open: boolean; onClose: () => void 
         body: JSON.stringify({
           messages: [
             { role: "system", content: systemContext },
-            ...messages.map((m) => ({ role: m.role, content: m.content })),
+            ...messagesRef.current.map((m) => ({ role: m.role, content: m.content })),
             { role: "user", content: text.trim() },
           ],
           model: selectedModel,
@@ -326,7 +344,7 @@ export function AIPanel({ open, onClose }: { open: boolean; onClose: () => void 
     } finally {
       setIsStreaming(false);
     }
-  }, [messages, isStreaming, selectedModel, ctx]);
+  }, [isStreaming, selectedModel, ctx]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -343,10 +361,10 @@ export function AIPanel({ open, onClose }: { open: boolean; onClose: () => void 
           animate={{ width: "var(--doost-ai-panel-w)", opacity: 1 }}
           exit={{ width: 0, opacity: 0 }}
           transition={{ duration: 0.25, ease: "easeOut" }}
-          className="shrink-0 overflow-hidden border-l bg-[var(--doost-bg-secondary)]"
+          className="shrink-0 overflow-hidden border-l bg-[var(--doost-bg-secondary)] max-md:fixed max-md:inset-y-0 max-md:right-0 max-md:z-50 max-md:shadow-xl"
           style={{ borderColor: "var(--doost-border)" }}
         >
-          <div className="flex h-full flex-col" style={{ width: "var(--doost-ai-panel-w)" }}>
+          <div className="flex h-full flex-col w-[var(--doost-ai-panel-w)] max-md:w-[min(var(--doost-ai-panel-w),calc(100vw-48px))]">
             {/* Header */}
             <div className="flex items-center justify-between border-b px-4 py-3" style={{ borderColor: "var(--doost-border)" }}>
               <div className="flex items-center gap-2">
@@ -358,7 +376,11 @@ export function AIPanel({ open, onClose }: { open: boolean; onClose: () => void 
                 <div className="relative">
                   <button
                     onClick={() => setShowModelPicker(!showModelPicker)}
-                    className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-[var(--doost-text-muted)] hover:bg-white"
+                    onKeyDown={(e) => { if (e.key === "Escape") setShowModelPicker(false); }}
+                    aria-haspopup="listbox"
+                    aria-expanded={showModelPicker}
+                    aria-label={`Välj AI-modell, nuvarande: ${currentModel.label}`}
+                    className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-[var(--doost-text-muted)] hover:bg-[var(--doost-bg)]"
                   >
                     {currentModel.label}
                     <ChevronDown className="h-3 w-3" />
@@ -366,10 +388,12 @@ export function AIPanel({ open, onClose }: { open: boolean; onClose: () => void 
                   {showModelPicker && (
                     <>
                       <button className="fixed inset-0 z-10" onClick={() => setShowModelPicker(false)} />
-                      <div className="absolute right-0 top-full z-20 mt-1 w-44 rounded-lg bg-[var(--doost-bg)] py-1 shadow-lg" style={{ border: `1px solid var(--doost-border)` }}>
+                      <div className="absolute right-0 top-full z-20 mt-1 w-44 rounded-lg bg-[var(--doost-bg)] py-1 shadow-lg" role="listbox" onKeyDown={(e) => { if (e.key === "Escape") setShowModelPicker(false); }} style={{ border: `1px solid var(--doost-border)` }}>
                         {MODELS.map((m) => (
                           <button
                             key={m.id}
+                            role="option"
+                            aria-selected={selectedModel === m.id}
                             onClick={() => { setSelectedModel(m.id); setShowModelPicker(false); }}
                             className={`flex w-full items-center justify-between px-3 py-2 text-[12px] transition-colors hover:bg-[var(--doost-bg-secondary)] ${selectedModel === m.id ? "font-semibold text-[var(--doost-text)]" : "text-[var(--doost-text-secondary)]"}`}
                           >
@@ -381,7 +405,7 @@ export function AIPanel({ open, onClose }: { open: boolean; onClose: () => void 
                     </>
                   )}
                 </div>
-                <button onClick={onClose} className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--doost-text-muted)] hover:bg-white">
+                <button onClick={onClose} className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--doost-text-muted)] hover:bg-[var(--doost-bg)]" aria-label="Stäng AI-panel">
                   <X className="h-4 w-4" />
                 </button>
               </div>
@@ -390,12 +414,32 @@ export function AIPanel({ open, onClose }: { open: boolean; onClose: () => void 
             {/* Messages */}
             <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
               {messages.length === 0 && (
-                <div className="flex h-full flex-col items-center justify-center text-center">
+                <div className="flex h-full flex-col items-center justify-center text-center px-4">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src="/symbol.svg" alt="" className="mb-3 h-8 w-8 opacity-20" />
-                  <p className="text-[13px] text-[var(--doost-text-muted)]">
-                    Fråga mig om dina kampanjer, kreativ eller resultat.
+                  <p className="text-[13px] font-medium text-[var(--doost-text-secondary)]">
+                    Doost AI-assistent
                   </p>
+                  <p className="mt-1 text-[12px] text-[var(--doost-text-muted)]">
+                    Fråga om kampanjer, kreativ eller resultat.
+                  </p>
+                  <div className="mt-4 w-full space-y-2">
+                    {[
+                      { q: "Vilka kreativ presterar bäst?", desc: "Analysera toppresterande annonser" },
+                      { q: "Optimera min budget", desc: "Hitta var du slösar pengar" },
+                      { q: "Hur ser mina kampanjer ut?", desc: "Sammanfattning av resultat" },
+                    ].map((example) => (
+                      <button
+                        key={example.q}
+                        onClick={() => sendMessage(example.q)}
+                        className="w-full rounded-lg p-2.5 text-left transition-colors hover:bg-[var(--doost-bg)]"
+                        style={{ border: "1px solid var(--doost-border)" }}
+                      >
+                        <p className="text-[12px] font-medium text-[var(--doost-text)]">{example.q}</p>
+                        <p className="text-[11px] text-[var(--doost-text-muted)]">{example.desc}</p>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
               {messages.map((msg, idx) => (
@@ -421,7 +465,7 @@ export function AIPanel({ open, onClose }: { open: boolean; onClose: () => void 
                   <button
                     key={prompt}
                     onClick={() => sendMessage(prompt)}
-                    className="rounded-full bg-[var(--doost-bg)] px-3 py-1.5 text-[11px] font-medium text-[var(--doost-text-secondary)] transition-colors hover:bg-white hover:text-[var(--doost-text)]"
+                    className="rounded-full bg-[var(--doost-bg)] px-3 py-1.5 text-[11px] font-medium text-[var(--doost-text-secondary)] transition-colors hover:bg-[var(--doost-bg)] hover:text-[var(--doost-text)]"
                     style={{ border: `1px solid var(--doost-border)` }}
                   >
                     {prompt}
@@ -432,23 +476,39 @@ export function AIPanel({ open, onClose }: { open: boolean; onClose: () => void 
 
             {/* Input */}
             <div className="border-t px-4 py-3" style={{ borderColor: "var(--doost-border)" }}>
-              <form onSubmit={handleSubmit} className="flex items-center gap-2 rounded-xl bg-white px-3 py-2" style={{ border: `1px solid var(--doost-border)` }}>
-                <span className="text-[13px] text-[var(--doost-text-muted)]">+</span>
-                <input
+              <form onSubmit={handleSubmit} className="flex items-end gap-2 rounded-xl bg-[var(--doost-bg)] px-3 py-2" style={{ border: `1px solid var(--doost-border)` }}>
+                <span className="pb-0.5 text-[13px] text-[var(--doost-text-muted)]">+</span>
+                <textarea
                   ref={inputRef}
-                  type="text"
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask for marketing recommendations"
+                  onChange={(e) => {
+                    setInput(e.target.value);
+                    // Auto-resize for all browsers (fieldSizing not widely supported)
+                    e.target.style.height = "auto";
+                    e.target.style.height = `${Math.min(e.target.scrollHeight, 96)}px`;
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSubmit(e);
+                    }
+                  }}
+                  placeholder="Fråga om dina kampanjer, kreativ eller resultat"
                   disabled={isStreaming}
-                  className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--doost-text)] outline-none placeholder:text-[var(--doost-text-muted)] disabled:opacity-50"
+                  rows={1}
+                  className="min-w-0 max-h-24 flex-1 resize-none bg-transparent text-[13px] leading-relaxed text-[var(--doost-text)] outline-none placeholder:text-[var(--doost-text-muted)] disabled:opacity-50"
                 />
                 <button
                   type="submit"
                   disabled={!input.trim() || isStreaming}
                   className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--doost-bg-active)] text-white transition-opacity hover:opacity-80 disabled:opacity-30"
+                  aria-label={isStreaming ? "Skickar..." : "Skicka meddelande"}
                 >
-                  <ArrowUp className="h-3.5 w-3.5" />
+                  {isStreaming ? (
+                    <div className="h-3.5 w-3.5 animate-spin rounded-full border-[1.5px] border-white/30 border-t-white" />
+                  ) : (
+                    <ArrowUp className="h-3.5 w-3.5" />
+                  )}
                 </button>
               </form>
             </div>

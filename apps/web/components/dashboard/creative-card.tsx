@@ -1,6 +1,9 @@
 "use client";
 
+import { useState } from "react";
+
 import Image from "next/image";
+import { ImageOff } from "lucide-react";
 import type { Creative } from "@/lib/mock-data";
 
 /**
@@ -16,6 +19,8 @@ export function CreativeCard({
   creative: Creative;
   onClick?: () => void;
 }) {
+  const [imgError, setImgError] = useState(false);
+
   return (
     <button
       onClick={onClick}
@@ -23,15 +28,23 @@ export function CreativeCard({
     >
       {/* Image — 4:5 portrait ratio, rounded-xl */}
       <div className="relative aspect-[4/5] w-full overflow-hidden rounded-xl bg-[var(--doost-bg-secondary)]">
-        <Image
-          src={creative.imageUrl}
-          alt={creative.name}
-          width={400}
-          height={400}
-          quality={75}
-          loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-        />
+        {imgError ? (
+          <div className="flex h-full w-full items-center justify-center">
+            <ImageOff className="h-8 w-8 text-[var(--doost-text-muted)]" />
+          </div>
+        ) : (
+          <Image
+            src={creative.imageUrl}
+            alt={creative.name}
+            width={400}
+            height={500}
+            quality={75}
+            loading="lazy"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+            onError={() => setImgError(true)}
+          />
+        )}
       </div>
 
       {/* Name + Metrics — tight spacing like reference */}
@@ -42,7 +55,7 @@ export function CreativeCard({
         <div className="mt-0.5">
           {[
             { label: "ROAS", value: `${creative.roas.toFixed(1)}x` },
-            { label: "Spend", value: `$${creative.spend.toLocaleString("en-US")}` },
+            { label: "Spenderat", value: `$${creative.spend.toLocaleString("en-US")}` },
             { label: "CTR", value: `${creative.ctr.toFixed(1)}%` },
           ].map((m) => (
             <div key={m.label} className="flex items-center justify-between text-[12px] leading-[20px]">

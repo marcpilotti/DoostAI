@@ -42,12 +42,14 @@ function PlatformRow({
   color,
   connected,
   accountType,
+  autoConnect,
 }: {
   name: string;
   icon: React.ComponentType<{ className?: string }>;
   color: string;
   connected: boolean;
   accountType: string;
+  autoConnect?: boolean;
 }) {
   return (
     <div className="flex items-center gap-3 py-2.5">
@@ -66,11 +68,14 @@ function PlatformRow({
           <CheckCircle2 className="h-3.5 w-3.5" />
           Ansluten
         </div>
+      ) : autoConnect ? (
+        <span className="text-xs text-muted-foreground">
+          Ansluts vid publicering
+        </span>
       ) : (
-        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-          <XCircle className="h-3.5 w-3.5" />
-          Ej ansluten
-        </div>
+        <Button variant="outline" size="sm" className="text-xs">
+          Anslut
+        </Button>
       )}
     </div>
   );
@@ -94,13 +99,13 @@ function GoogleIcon({ className }: { className?: string }) {
 }
 
 export default function SettingsPage() {
-  useEffect(() => { document.title = "Settings — Doost AI"; }, []);
+  useEffect(() => { document.title = "Inställningar — Doost AI"; }, []);
   const { user } = useUser();
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6">
       <div>
-        <h1 className="font-heading text-2xl font-bold">Inställningar</h1>
+        <h1 className="text-lg sm:text-[22px] font-semibold text-[var(--doost-text)]">Inställningar</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Hantera ditt konto och anslutningar.
         </p>
@@ -115,7 +120,7 @@ export default function SettingsPage() {
             <label className="text-xs font-medium text-muted-foreground">
               Namn
             </label>
-            <div className="mt-1 text-sm font-medium">
+            <div className="mt-1 rounded-md bg-[var(--doost-bg-secondary)] px-3 py-2 text-sm font-medium text-[var(--doost-text)]">
               {user?.fullName ?? "Mitt Företag"}
             </div>
           </div>
@@ -123,7 +128,7 @@ export default function SettingsPage() {
             <label className="text-xs font-medium text-muted-foreground">
               E-post
             </label>
-            <div className="mt-1 text-sm">
+            <div className="mt-1 rounded-md bg-[var(--doost-bg-secondary)] px-3 py-2 text-sm text-[var(--doost-text)]">
               {user?.primaryEmailAddress?.emailAddress ?? "-"}
             </div>
           </div>
@@ -141,6 +146,7 @@ export default function SettingsPage() {
             color="#1877F2"
             connected={false}
             accountType="Automatiskt konto via Business Manager"
+            autoConnect
           />
           <PlatformRow
             name="Google Ads"
@@ -148,6 +154,7 @@ export default function SettingsPage() {
             color="#4285F4"
             connected={false}
             accountType="Automatiskt konto via MCC"
+            autoConnect
           />
           <PlatformRow
             name="LinkedIn"

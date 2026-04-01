@@ -23,7 +23,7 @@ export function ChannelFilter({
     <div className="flex items-center gap-2">
       {/* Time range */}
       <div className="relative">
-        <div className="flex items-center gap-1.5 rounded-lg bg-[var(--doost-bg)] px-3 py-2 text-[13px] font-medium text-[var(--doost-text)]" style={{ border: `1px solid var(--doost-border)` }}>
+        <div className="flex items-center gap-1.5 rounded-lg bg-[var(--doost-bg)] px-3 py-2 text-[13px] font-medium text-[var(--doost-text)] focus-within:ring-2 focus-within:ring-[var(--doost-bg-active)]" style={{ border: `1px solid var(--doost-border)` }}>
           <Calendar className="h-3.5 w-3.5 text-[var(--doost-text-muted)]" />
           <select
             value={timeRange}
@@ -40,12 +40,12 @@ export function ChannelFilter({
 
       {/* Channel filter */}
       <div className="relative">
-        <div className="flex items-center gap-1.5 rounded-lg bg-[var(--doost-bg)] px-3 py-2 text-[13px] font-medium text-[var(--doost-text)]" style={{ border: `1px solid var(--doost-border)` }}>
+        <div className="flex items-center gap-1.5 rounded-lg bg-[var(--doost-bg)] px-3 py-2 text-[13px] font-medium text-[var(--doost-text)] focus-within:ring-2 focus-within:ring-[var(--doost-bg-active)]" style={{ border: `1px solid var(--doost-border)` }}>
           {/* Platform icon circles */}
           <div className="flex -space-x-1">
-            <div className="h-4 w-4 rounded-full bg-[#0081FB] ring-2 ring-white" />
-            <div className="h-4 w-4 rounded-full bg-[#34A853] ring-2 ring-white" />
-            <div className="h-4 w-4 rounded-full bg-[#0A66C2] ring-2 ring-white" />
+            <div className="h-4 w-4 rounded-full bg-[var(--brand-meta)] ring-2 ring-[var(--doost-bg)]" />
+            <div className="h-4 w-4 rounded-full bg-[var(--brand-google)] ring-2 ring-[var(--doost-bg)]" />
+            <div className="h-4 w-4 rounded-full bg-[var(--brand-linkedin)] ring-2 ring-[var(--doost-bg)]" />
           </div>
           <select
             value={channel}
