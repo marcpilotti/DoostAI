@@ -1,0 +1,33 @@
+{
+  "name": "@doost/ai",
+  "private": true,
+  "version": "0.0.0",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./platform-limits": {
+      "types": "./src/platform-limits.ts",
+      "default": "./src/platform-limits.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@doost/config": "workspace:*",
+    "@types/node": "^25.5.0",
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.64",
+    "@ai-sdk/openai": "^3.0.48",
+    "@doost/db": "workspace:*",
+    "@doost/templates": "workspace:*",
+    "@upstash/redis": "^1.37.0",
+    "ai": "^6.0.138",
+    "langfuse": "^3.38.6",
+    "zod": "^4.3.6"
+  }
+}

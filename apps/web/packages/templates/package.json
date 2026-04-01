@@ -1,0 +1,46 @@
+{
+  "name": "@doost/templates",
+  "private": true,
+  "version": "0.0.0",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./layouts": {
+      "types": "./src/layouts.ts",
+      "default": "./src/layouts.ts"
+    },
+    "./layout-renderer": {
+      "types": "./src/layout-renderer.tsx",
+      "default": "./src/layout-renderer.tsx"
+    },
+    "./backgrounds": {
+      "types": "./src/background-service.ts",
+      "default": "./src/background-service.ts"
+    },
+    "./logo-selector": {
+      "types": "./src/logo-selector.ts",
+      "default": "./src/logo-selector.ts"
+    },
+    "./ai-image": {
+      "types": "./src/ai-image-generator.ts",
+      "default": "./src/ai-image-generator.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@doost/config": "workspace:*",
+    "@types/node": "^25.5.0",
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "@types/react": "^19.2.14",
+    "@upstash/redis": "^1.37.0",
+    "react": "^19.2.4",
+    "satori": "^0.26.0"
+  }
+}
