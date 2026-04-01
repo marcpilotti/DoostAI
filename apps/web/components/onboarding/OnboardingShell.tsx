@@ -7,7 +7,9 @@ import { useCallback, useEffect,useRef, useState } from "react";
 import type { AdData, AdFormat } from "@/components/ads/ad-preview/types";
 import { prewarmAdImages } from "@/lib/image-prewarm";
 
-import { BrandSlide } from "./BrandSlide";
+import { BrandAudienceSlide } from "./BrandAudienceSlide";
+import { BrandChannelsSlide } from "./BrandChannelsSlide";
+import { BrandIdentitySlide } from "./BrandIdentitySlide";
 import { DoneSlide } from "./DoneSlide";
 import { EditorSlide } from "./EditorSlide";
 import { LoadingSlide } from "./LoadingSlide";
@@ -19,7 +21,10 @@ import { URLSlide } from "./URLSlide";
 export type Step =
   | "url"
   | "loading"
-  | "brand"
+  | "brand-identity"
+  | "brand-audience"
+  | "brand-channels"
+  | "brand" // legacy — kept for session compat
   | "editor"
   | "publish"
   | "done"
@@ -161,8 +166,9 @@ function loadSession(): SavedSession | null {
       localStorage.removeItem(SESSION_KEY);
       return null;
     }
-    // Only restore to brand or editor (not loading/publish/done)
-    if (data.step === "brand" || data.step === "editor") return data;
+    // Only restore to brand steps or editor (not loading/publish/done)
+    const restorable: Step[] = ["brand-identity", "brand-audience", "brand-channels", "brand", "editor"];
+    if (restorable.includes(data.step)) return data;
     return null;
   } catch {
     return null;
@@ -188,10 +194,13 @@ function clearSession() {
 const STEP_LABELS: Record<string, string> = {
   url: "Steg 1: Ange webbadress",
   loading: "Steg 2: Analyserar",
+  "brand-identity": "Steg 2: Varumärke & identitet",
+  "brand-audience": "Steg 3: Målgrupp & bransch",
+  "brand-channels": "Steg 4: Välj annonskanal",
   brand: "Steg 2: Varumärkesprofil",
-  editor: "Steg 3: Redigera annons",
-  publish: "Steg 4: Publicera",
-  done: "Steg 5: Klart",
+  editor: "Steg 5: Redigera annons",
+  publish: "Steg 6: Publicera",
+  done: "Steg 7: Klart",
 };
 
 // ── Shell ────────────────────────────────────────────────────────
@@ -297,17 +306,41 @@ export function OnboardingShell() {
         });
       }
 
-      setStep("brand");
+      setStep("brand-identity");
     },
     [],
   );
 
-  // ── Slide 3 → 4: Brand confirmed ───────────────────────────
+  // ── Slide 3a: Brand identity confirmed → audience ──────────
 
-  const handleBrandConfirm = useCallback(
-    (approved: BrandProfile) => {
-      brandRef.current = approved;
-      trackStep("brand_confirmed", { brand: approved.name, industry: approved.industry });
+  const handleIdentityConfirm = useCallback(
+    (updated: BrandProfile) => {
+      brandRef.current = updated;
+      trackStep("identity_confirmed", { brand: updated.name });
+      setStep("brand-audience");
+    },
+    [],
+  );
+
+  // ── Slide 3b: Audience confirmed → channels ───────────────
+
+  const handleAudienceConfirm = useCallback(
+    (updated: BrandProfile) => {
+      brandRef.current = updated;
+      trackStep("audience_confirmed", { industry: updated.industry });
+      setStep("brand-channels");
+    },
+    [],
+  );
+
+  // ── Slide 3c: Channels selected → editor ──────────────────
+
+  const channelsRef = useRef<string[]>(["meta"]);
+
+  const handleChannelsConfirm = useCallback(
+    (channels: string[]) => {
+      channelsRef.current = channels;
+      trackStep("channels_confirmed", { channels });
       transitionWithMessage("Bra! Nu bygger vi er annons", "editor");
     },
     [transitionWithMessage],
@@ -329,12 +362,20 @@ export function OnboardingShell() {
     setStep("url");
   }, []);
 
-  const handleBrandBack = useCallback(() => {
+  const handleIdentityBack = useCallback(() => {
     setStep("url");
   }, []);
 
+  const handleAudienceBack = useCallback(() => {
+    setStep("brand-identity");
+  }, []);
+
+  const handleChannelsBack = useCallback(() => {
+    setStep("brand-audience");
+  }, []);
+
   const handleEditorBack = useCallback(() => {
-    setStep("brand");
+    setStep("brand-channels");
   }, []);
 
   // ── Slide 5 → 6: Publish confirmed ─────────────────────────
@@ -412,8 +453,8 @@ export function OnboardingShell() {
         {/* Progress stepper dots */}
         {step && step !== "url" && (
           <div className="flex items-center gap-1.5">
-            {(["loading", "brand", "editor", "publish", "done"] as const).map((s, i) => {
-              const steps: Step[] = ["loading", "brand", "editor", "publish", "done"];
+            {(["loading", "brand-identity", "brand-audience", "brand-channels", "editor", "publish", "done"] as const).map((s, i) => {
+              const steps: Step[] = ["loading", "brand-identity", "brand-audience", "brand-channels", "editor", "publish", "done"];
               const currentIdx = steps.indexOf(step);
               const isActive = s === step;
               const isPast = i < currentIdx;
@@ -475,19 +516,52 @@ export function OnboardingShell() {
           </motion.div>
         )}
 
-        {step === "brand" && brandRef.current && (
+        {step === "brand-identity" && brandRef.current && (
           <motion.div
-            key="brand"
+            key="brand-identity"
             variants={prefersReduced ? undefined : slideVariants}
             initial="enter"
             animate="center"
             exit="exit"
             className="h-full"
           >
-            <BrandSlide
+            <BrandIdentitySlide
               profile={brandRef.current}
-              onConfirm={handleBrandConfirm}
-              onBack={handleBrandBack}
+              onConfirm={handleIdentityConfirm}
+              onBack={handleIdentityBack}
+            />
+          </motion.div>
+        )}
+
+        {step === "brand-audience" && brandRef.current && (
+          <motion.div
+            key="brand-audience"
+            variants={prefersReduced ? undefined : slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            className="h-full"
+          >
+            <BrandAudienceSlide
+              profile={brandRef.current}
+              onConfirm={handleAudienceConfirm}
+              onBack={handleAudienceBack}
+            />
+          </motion.div>
+        )}
+
+        {step === "brand-channels" && (
+          <motion.div
+            key="brand-channels"
+            variants={prefersReduced ? undefined : slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            className="h-full"
+          >
+            <BrandChannelsSlide
+              onConfirm={handleChannelsConfirm}
+              onBack={handleChannelsBack}
             />
           </motion.div>
         )}
