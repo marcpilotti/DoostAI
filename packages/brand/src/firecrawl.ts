@@ -33,7 +33,23 @@ export async function scrapeWithFallback(url: string): Promise<BrandScrapeResult
   }
 
   // Attempt 3: Basic fetch fallback (no external dependency)
-  return await scrapeFallback(url);
+  try {
+    return await scrapeFallback(url);
+  } catch (e) {
+    console.error("[scrape] All 3 attempts failed for:", url, e instanceof Error ? e.message : e);
+    // Return minimal result so pipeline can continue with whatever we have
+    const normalizedUrl = url.startsWith("http") ? url : `https://${url}`;
+    return {
+      url: normalizedUrl,
+      title: "",
+      description: "",
+      colors: [],
+      fonts: [],
+      logoUrls: [],
+      links: [],
+      rawHtml: "",
+    };
+  }
 }
 
 async function scrapeFallback(url: string): Promise<BrandScrapeResult> {
