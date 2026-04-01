@@ -9,11 +9,15 @@ import { AIMessage } from "./AIMessage";
 import { AuthModal } from "./AuthModal";
 import type { AdData, AdFormat } from "@/components/ads/ad-preview/types";
 
-const BUDGETS = [
-  { daily: 75, label: "Testa", desc: "~500 visningar/dag", icon: "🧪" },
-  { daily: 150, label: "Rekommenderad", desc: "~2 000 visningar/dag", icon: "⭐", recommended: true },
-  { daily: 300, label: "Fullgas", desc: "~5 000 visningar/dag", icon: "🚀" },
-];
+// Budget estimates based on industry avg CPM ~80 SEK, CTR ~1.5%, CPC ~8 SEK
+function estimateResults(daily: number) {
+  const avgCPM = 80;
+  const avgCTR = 0.015;
+  const impressions = Math.round((daily / avgCPM) * 1000);
+  const clicks = Math.round(impressions * avgCTR);
+  const cpc = clicks > 0 ? Math.round(daily / clicks) : 0;
+  return { impressions, clicks, cpc };
+}
 
 const DURATIONS = [
   { days: 14, label: "2 veckor", recommended: true },
@@ -140,33 +144,48 @@ export function PublishSlide({
             </div>
           </div>
 
-          {/* Budget selector — visual cards */}
+          {/* Budget slider */}
           <div className="px-5 py-4">
             <div className="mb-2.5 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/30">
               <Wallet className="h-3 w-3" /> Daglig budget
             </div>
-            <div className="flex flex-col sm:flex-row gap-2" role="radiogroup" aria-label="Daglig budget">
-              {BUDGETS.map((b) => (
-                <button
-                  key={b.daily}
-                  role="radio"
-                  aria-checked={budget === b.daily}
-                  onClick={() => setBudget(b.daily)}
-                  className={`relative flex-1 rounded-xl py-3 text-center transition-all ${
-                    budget === b.daily
-                      ? "bg-foreground text-white shadow-lg shadow-foreground/10"
-                      : "bg-muted-foreground/[0.03] text-foreground hover:bg-muted-foreground/[0.06]"
-                  }`}
-                >
-                  {b.recommended && (
-                    <span className={`absolute -top-2 left-1/2 -translate-x-1/2 rounded-full px-2 py-px text-[8px] font-bold ${budget === b.daily ? "bg-white text-foreground shadow-sm" : "bg-foreground text-white"}`}>★ Rekommenderad</span>
-                  )}
-                  <div className="text-[10px]">{b.icon}</div>
-                  <div className="text-[16px] font-bold">{b.daily} kr</div>
-                  <div className={`text-[10px] ${budget === b.daily ? "text-white/50" : "text-muted-foreground/30"}`}>{b.desc}</div>
-                </button>
-              ))}
+            <div className="mb-3 flex items-center justify-between">
+              <span className="text-[24px] font-bold text-foreground">{budget} kr<span className="text-[14px] font-normal text-muted-foreground">/dag</span></span>
+              {budget >= 100 && budget <= 200 && <span className="rounded-full bg-foreground px-2 py-0.5 text-[9px] font-bold text-white">Rekommenderad</span>}
             </div>
+            <input
+              type="range"
+              min={50}
+              max={5000}
+              step={50}
+              value={budget}
+              onChange={(e) => setBudget(Number(e.target.value))}
+              className="w-full accent-foreground"
+              aria-label="Daglig budget i kronor"
+            />
+            <div className="mt-1 flex justify-between text-[10px] text-muted-foreground/30">
+              <span>50 kr</span>
+              <span>5 000 kr</span>
+            </div>
+            {(() => {
+              const est = estimateResults(budget);
+              return (
+                <div className="mt-3 flex gap-3 text-center">
+                  <div className="flex-1 rounded-lg bg-muted-foreground/[0.03] px-2 py-2">
+                    <div className="text-[14px] font-semibold text-foreground">~{est.impressions.toLocaleString("sv-SE")}</div>
+                    <div className="text-[10px] text-muted-foreground/40">visningar/dag</div>
+                  </div>
+                  <div className="flex-1 rounded-lg bg-muted-foreground/[0.03] px-2 py-2">
+                    <div className="text-[14px] font-semibold text-foreground">~{est.clicks.toLocaleString("sv-SE")}</div>
+                    <div className="text-[10px] text-muted-foreground/40">klick/dag</div>
+                  </div>
+                  <div className="flex-1 rounded-lg bg-muted-foreground/[0.03] px-2 py-2">
+                    <div className="text-[14px] font-semibold text-foreground">~{est.cpc} kr</div>
+                    <div className="text-[10px] text-muted-foreground/40">per klick</div>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Duration + Region — cleaner layout */}

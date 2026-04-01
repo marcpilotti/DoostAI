@@ -232,6 +232,58 @@ See `.env.example` for complete list. Critical ones:
 - `UPSTASH_REDIS_*` — Redis cache
 - `INNGEST_*` — Background jobs
 
+## Working Style
+
+- Always use Plan Mode first. Read the relevant files, understand the current state, and present a plan BEFORE writing any code. Wait for approval before implementing.
+- Think step-by-step. For complex tasks, break them into numbered phases. Complete one phase fully before starting the next.
+- When in doubt, ask. Use AskUserQuestion to clarify ambiguous requirements before guessing.
+- Show what you're going to change before you change it. For large refactors, list the files and the nature of each change first.
+
+## Context Management
+
+- Keep responses focused and concise. Don't repeat back instructions or explain what you're about to do at length — just do it.
+- When context is getting long, proactively suggest compacting or starting a fresh session.
+- Don't read files you don't need. Only pull in what's directly relevant to the current task.
+- If told "focus on X," ignore everything that isn't X.
+
+## Code Quality Rules
+
+- After making changes, always verify: run the type-checker (`tsc --noEmit`), run existing tests, fix any failures.
+- Match existing patterns in the codebase. Don't introduce new conventions, libraries, or architectural patterns without asking first.
+- Preserve existing functionality. Make the minimum necessary change. Don't refactor, rename, or "improve" unrelated code.
+- Never delete or overwrite code you don't understand. If something looks wrong but you're not sure, flag it — don't fix it silently.
+
+## Design & UI Rules
+
+- Never change visual design (colors, spacing, typography, layout, border-radius, shadows) unless explicitly asked.
+- If a DESIGN_REFERENCE.md or design system file exists, treat it as law. Every UI change must comply.
+- Use existing component libraries and design tokens. Don't create one-off styles.
+- Mobile-first responsive principles unless told otherwise.
+
+## File & Project Discipline
+
+- Commit frequently with clear, descriptive commit messages. One logical change per commit.
+- Don't modify config files (package.json, tsconfig, tailwind.config, .env) without telling me first.
+- Don't install new dependencies without asking. Suggest and wait for approval.
+- Keep file changes small and reviewable. If a task requires touching 10+ files, break it into smaller PRs.
+
+## What NOT to Do
+
+- Don't add comments explaining obvious code
+- Don't add TODO comments unless asked
+- Don't wrap things in try/catch "just in case" without understanding the error path
+- Don't change formatting, whitespace, or import order in files you didn't otherwise modify
+- Don't create files that weren't asked for (no random utils.ts, helpers.ts, or types.ts)
+- Don't apologize or explain at length when you make a mistake — just fix it
+- Don't add logging/console.log unless debugging a specific issue
+
+## Communication
+
+- When you hit a problem or are uncertain, say so immediately. Don't work around issues silently.
+- If instructions conflict with each other or the codebase, point out the conflict and ask how to resolve it.
+- After completing a task, give a brief summary: what changed, what files were touched, what to test.
+- If a task is bigger than expected, say so before continuing. Re-scope rather than deliver half-finished work.
+
 ## Commands
 
 ```bash

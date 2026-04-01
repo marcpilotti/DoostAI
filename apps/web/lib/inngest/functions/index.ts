@@ -14,3 +14,4 @@ export { weeklyDigest } from "./weekly-digest";
 export { embeddingsUpdate } from "./embeddings-update";
 export { creativesPreRender } from "./creatives-pre-render";
 export { campaignDeploy } from "./campaign-deploy";
+export { platformAccountSetup } from "./platform-account-setup";

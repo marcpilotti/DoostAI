@@ -132,6 +132,17 @@ export function BrandSlide({ profile, onConfirm, onBack }: { profile: BrandProfi
   );
   const [logoUrl, setLogoUrl] = useState<string | null>(profile.logo?.url ?? profile.logos?.primary ?? null);
 
+  // Channel selection — pre-select based on industry
+  const isSaaS = /saas|tech|fintech|it|mjukvara/i.test(industry || customIndustry);
+  const [channels, setChannels] = useState<Record<string, boolean>>({
+    meta: true,
+    google: !isSaaS,
+    linkedin: isSaaS,
+  });
+  function toggleChannel(ch: string) {
+    setChannels((prev) => ({ ...prev, [ch]: !prev[ch] }));
+  }
+
   // #9 Confidence animation — count up from 0
   const targetConfidence = profile._intelligence?.overallConfidence ?? 0;
   const [displayedConfidence, setDisplayedConfidence] = useState(0);
@@ -289,18 +300,46 @@ export function BrandSlide({ profile, onConfirm, onBack }: { profile: BrandProfi
             </div>
           </motion.div>
 
-          {/* CTA */}
+          {/* Confirmation card + channel selection */}
           <motion.div
             initial={prefersReduced ? false : { opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 * 3 }}
             className="px-6 py-5"
           >
+            {/* Summary line */}
+            <p className="mb-3 text-center text-[12px] text-muted-foreground/50">
+              Målgrupp: <span className="text-foreground/70">{targetAudience || "—"}</span>
+              {" · "}
+              Bransch: <span className="text-foreground/70">{industry === CUSTOM_INDUSTRY_VALUE ? customIndustry : industry || "—"}</span>
+            </p>
+
+            {/* Channel toggles */}
+            <div className="mb-4 flex justify-center gap-2">
+              {[
+                { id: "meta", label: "Meta" },
+                { id: "google", label: "Google" },
+                { id: "linkedin", label: "LinkedIn" },
+              ].map((ch) => (
+                <button
+                  key={ch.id}
+                  onClick={() => toggleChannel(ch.id)}
+                  className={`rounded-full px-3.5 py-1.5 text-[12px] font-medium transition-all ${
+                    channels[ch.id]
+                      ? "bg-foreground text-white"
+                      : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  {ch.label} {channels[ch.id] ? "✓" : ""}
+                </button>
+              ))}
+            </div>
+
             <button onClick={handleConfirm} className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 py-3 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-95">
               Stämmer — skapa min annons
               <ArrowRight className="h-4 w-4" />
             </button>
-            <p className="mt-3 text-center text-[12px] text-muted-foreground/30">Klicka på valfritt fält för att ändra</p>
+            <p className="mt-3 text-center text-[12px] text-muted-foreground/30">Klicka på valfritt fält ovan för att ändra</p>
             {onBack && (
               <button onClick={onBack} className="mt-2 block w-full text-center text-[11px] text-muted-foreground/25 hover:text-muted-foreground">
                 ← Byt URL

@@ -1,6 +1,8 @@
 import { campaigns, creativePerformance, organizations, db, eq, and, gt } from "@doost/db";
 
 import { inngest } from "../client";
+import { sendEmail } from "@/lib/email/client";
+import { buildWeeklyDigestHtml } from "@/lib/email/weekly-digest";
 
 export const weeklyDigest = inngest.createFunction(
   {
@@ -44,11 +46,30 @@ export const weeklyDigest = inngest.createFunction(
 
         if (totalImpressions === 0) return;
 
-        // TODO: Send via Resend when configured
-        console.log(
-          `Weekly digest for ${org.name}: ${totalImpressions} impressions, ${totalClicks} clicks, ${totalSpend.toFixed(0)} SEK spent`,
-        );
-        sent++;
+        // Send via Resend
+        const email = org.metadata && typeof org.metadata === "object" && "ownerEmail" in org.metadata
+          ? (org.metadata as { ownerEmail?: string }).ownerEmail
+          : null;
+
+        if (email) {
+          const html = buildWeeklyDigestHtml({
+            orgName: org.name ?? "ditt företag",
+            totalImpressions,
+            totalClicks,
+            totalSpend,
+            campaignCount: liveCampaigns.length,
+          });
+
+          const success = await sendEmail({
+            to: email,
+            subject: `Veckorapport: ${totalClicks.toLocaleString("sv-SE")} klick denna vecka`,
+            html,
+          });
+
+          if (success) sent++;
+        } else {
+          console.log(`[weekly-digest] No email for org ${org.name} — skipping`);
+        }
       });
     }
 

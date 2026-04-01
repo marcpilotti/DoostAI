@@ -4,6 +4,7 @@ type PlanLimits = {
   maxCampaigns: number;
   maxChannels: number;
   aiImages: boolean;
+  aiVideo: boolean;
   abTesting: boolean;
   whiteLabel: boolean;
   clientAccounts: number;
@@ -15,6 +16,7 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
     maxCampaigns: 1,
     maxChannels: 1,
     aiImages: false,
+    aiVideo: false,
     abTesting: false,
     whiteLabel: false,
     clientAccounts: 0,
@@ -24,6 +26,7 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
     maxCampaigns: 5,
     maxChannels: 2,
     aiImages: false,
+    aiVideo: false,
     abTesting: false,
     whiteLabel: false,
     clientAccounts: 0,
@@ -33,6 +36,7 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
     maxCampaigns: Infinity,
     maxChannels: 3,
     aiImages: true,
+    aiVideo: false,
     abTesting: true,
     whiteLabel: false,
     clientAccounts: 0,
@@ -42,6 +46,7 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
     maxCampaigns: Infinity,
     maxChannels: 3,
     aiImages: true,
+    aiVideo: true,
     abTesting: true,
     whiteLabel: true,
     clientAccounts: 20,
