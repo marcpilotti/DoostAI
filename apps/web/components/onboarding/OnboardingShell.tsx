@@ -2,38 +2,36 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
-import { useCallback, useEffect,useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { AdData, AdFormat } from "@/components/ads/ad-preview/types";
+import { BrandCard } from "@/components/cards/brand-card";
+import { BudgetCard } from "@/components/cards/budget-card";
+import { CampaignCard } from "@/components/cards/campaign-card";
+import { ReviewCard } from "@/components/cards/review-card";
+import { type Step as StepBarStep,StepBar } from "@/components/ui/step-bar";
 import { prewarmAdImages } from "@/lib/image-prewarm";
 
-import { BrandAudienceSlide } from "./BrandAudienceSlide";
-import { BrandChannelsSlide } from "./BrandChannelsSlide";
-import { BrandIdentitySlide } from "./BrandIdentitySlide";
 import { DoneSlide } from "./DoneSlide";
 import { EditorSlide } from "./EditorSlide";
 import { LoadingSlide } from "./LoadingSlide";
-import { PublishSlide } from "./PublishSlide";
 import { URLSlide } from "./URLSlide";
 
 // ── Types ────────────────────────────────────────────────────────
 
 export type Step =
-  | "url"
-  | "loading"
-  | "brand-identity"
-  | "brand-audience"
-  | "brand-channels"
-  | "brand" // legacy — kept for session compat
-  | "editor"
-  | "publish"
-  | "done"
-  | null; // null = transition gap between slides
+  | "url"            // Step 1: URL input
+  | "loading"        // Loading (between 1→2)
+  | "brand"          // Step 2: Brand confirm (BrandCard)
+  | "campaign"       // Step 3: Campaign setup (CampaignCard)
+  | "budget"         // Step 4: Budget (BudgetCard)
+  | "preview"        // Step 5: Ad preview (EditorSlide)
+  | "review"         // Step 6: Review + publish (ReviewCard)
+  | "done"           // Success state
+  | null;            // Transition gap
 
 /**
  * BrandProfile — flexible type matching the API response shape.
- * The SSE endpoint returns flat colors/fonts (from @doost/brand),
- * enriched with intelligence metadata.
  */
 export type BrandProfile = {
   name: string;
@@ -41,19 +39,16 @@ export type BrandProfile = {
   description?: string;
   industry?: string;
   location?: string;
-  // Flat color object from AI analysis
   colors: {
     primary: string;
     secondary: string;
     accent: string;
     background?: string;
     text?: string;
-    // Also accept SPEC palette format
     palette?: Array<{ hex: string; role: string; confidence: number }>;
   };
   fonts?: { heading: string; body: string };
   logos?: { primary?: string; icon?: string; dark?: string };
-  // Flat brand profile fields
   brandVoice?: string;
   targetAudience?: string | { demographic: string; interests: string[]; geography: string };
   valuePropositions?: string[];
@@ -62,24 +57,9 @@ export type BrandProfile = {
   revenue?: string;
   ceo?: string;
   orgNumber?: string;
-  // SPEC structured fields (optional, used in BrandSlide)
   logo?: { url: string; source: string; confidence: number };
-  voice?: {
-    tone?: string;
-    addressing?: string;
-    register?: string;
-    language?: string;
-    exampleCopy?: string;
-  };
-  companyData?: {
-    orgNr: string;
-    officialName: string;
-    employees: string;
-    revenue: string;
-    ceo: string;
-    creditRating: string;
-  };
-  // Intelligence metadata
+  voice?: { tone?: string; addressing?: string; register?: string; language?: string; exampleCopy?: string };
+  companyData?: { orgNr: string; officialName: string; employees: string; revenue: string; ceo: string; creditRating: string };
   _intelligence?: {
     overallConfidence: number;
     logo: { source: string; confidence: number; status: string };
@@ -88,14 +68,7 @@ export type BrandProfile = {
     industry: { source: string; confidence: number; status: string };
     socialProfiles?: { platform: string; url: string; confidence: number }[];
     visualStyle?: string;
-    audit?: {
-      readinessScore: number;
-      hasMetaPixel: boolean;
-      hasGoogleTag: boolean;
-      hasLinkedinTag: boolean;
-      techStack: string[];
-      issues: { severity: string; title: string; description: string }[];
-    } | null;
+    audit?: { readinessScore: number; hasMetaPixel: boolean; hasGoogleTag: boolean; hasLinkedinTag: boolean; techStack: string[]; issues: { severity: string; title: string; description: string }[] } | null;
   } | null;
   _enrichmentStatus?: string;
   _intelligenceStatus?: string;
@@ -106,29 +79,35 @@ export type BrandProfile = {
   [key: string]: unknown;
 };
 
-// ── Slide animation variants ─────────────────────────────────────
+// ── Step definitions for StepBar ─────────────────────────────────
+
+const STEP_ORDER = ["url", "brand", "campaign", "budget", "preview", "review"] as const;
+const STEP_LABELS: Record<string, string> = {
+  url: "URL",
+  brand: "Varumärke",
+  campaign: "Kampanj",
+  budget: "Budget",
+  preview: "Annons",
+  review: "Publicera",
+};
+
+function getStepBarSteps(currentStep: Step): StepBarStep[] {
+  const currentIdx = currentStep ? STEP_ORDER.indexOf(currentStep as typeof STEP_ORDER[number]) : -1;
+  return STEP_ORDER.map((s, i) => ({
+    label: STEP_LABELS[s] ?? s,
+    state: i < currentIdx ? "completed" as const : i === currentIdx ? "current" as const : "upcoming" as const,
+  }));
+}
+
+// ── Animation variants (spec: exit left, enter right, 250ms) ────
 
 const slideVariants = {
-  enter: {
-    opacity: 0,
-    y: 30,
-    scale: 0.98,
-  },
-  center: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] as const },
-  },
-  exit: {
-    opacity: 0,
-    y: -15,
-    scale: 0.99,
-    transition: { duration: 0.25 },
-  },
-} satisfies import("motion/react").Variants;
+  enter: { opacity: 0, x: 20 },
+  center: { opacity: 1, x: 0, transition: { duration: 0.25, ease: [0.4, 0, 0.2, 1] as const } },
+  exit: { opacity: 0, x: -20, transition: { duration: 0.2 } },
+};
 
-// ── Transition message (between slides) ──────────────────────────
+// ── Transition message ──────────────────────────────────────────
 
 function TransitionMessage({ text }: { text: string }) {
   return (
@@ -139,22 +118,17 @@ function TransitionMessage({ text }: { text: string }) {
       transition={{ duration: 0.2 }}
       className="flex h-full items-center justify-center"
     >
-      <p className="text-center text-sm text-muted-foreground">{text}</p>
+      <p className="text-center text-sm text-d-text-secondary">{text}</p>
     </motion.div>
   );
 }
 
-// ── Session persistence (survives refresh, max 2h) ───────────────
+// ── Session persistence ─────────────────────────────────────────
 
 const SESSION_KEY = "doost:onboarding";
 const SESSION_MAX_AGE = 2 * 60 * 60 * 1000;
 
-type SavedSession = {
-  step: Step;
-  url: string;
-  brand: BrandProfile | null;
-  savedAt: number;
-};
+type SavedSession = { step: Step; url: string; brand: BrandProfile | null; savedAt: number };
 
 function loadSession(): SavedSession | null {
   if (typeof window === "undefined") return null;
@@ -162,27 +136,18 @@ function loadSession(): SavedSession | null {
     const raw = localStorage.getItem(SESSION_KEY);
     if (!raw) return null;
     const data = JSON.parse(raw) as SavedSession;
-    if (Date.now() - data.savedAt > SESSION_MAX_AGE) {
-      localStorage.removeItem(SESSION_KEY);
-      return null;
-    }
-    // Only restore to brand steps or editor (not loading/publish/done)
-    const restorable: Step[] = ["brand-identity", "brand-audience", "brand-channels", "brand", "editor"];
+    if (Date.now() - data.savedAt > SESSION_MAX_AGE) { localStorage.removeItem(SESSION_KEY); return null; }
+    const restorable: Step[] = ["brand", "campaign", "budget", "preview", "review"];
     if (restorable.includes(data.step)) return data;
     return null;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
 function saveSession(step: Step, url: string, brand: BrandProfile | null) {
   if (typeof window === "undefined") return;
   if (!step || step === "loading" || step === "done") return;
-  try {
-    localStorage.setItem(SESSION_KEY, JSON.stringify({
-      step, url, brand, savedAt: Date.now(),
-    } satisfies SavedSession));
-  } catch { /* quota exceeded — ignore */ }
+  try { localStorage.setItem(SESSION_KEY, JSON.stringify({ step, url, brand, savedAt: Date.now() } satisfies SavedSession)); }
+  catch { /* quota exceeded */ }
 }
 
 function clearSession() {
@@ -190,431 +155,261 @@ function clearSession() {
   localStorage.removeItem(SESSION_KEY);
 }
 
-// #18 Step name mapping for screen reader announcements
-const STEP_LABELS: Record<string, string> = {
-  url: "Steg 1: Ange webbadress",
-  loading: "Steg 2: Analyserar",
-  "brand-identity": "Steg 2: Varumärke & identitet",
-  "brand-audience": "Steg 3: Målgrupp & bransch",
-  "brand-channels": "Steg 4: Välj annonskanal",
-  brand: "Steg 2: Varumärkesprofil",
-  editor: "Steg 5: Redigera annons",
-  publish: "Steg 6: Publicera",
-  done: "Steg 7: Klart",
-};
-
 // ── Shell ────────────────────────────────────────────────────────
 
 export function OnboardingShell() {
-  // Restore saved session
   const [saved] = useState(() => loadSession());
-  // Map legacy "brand" step to the new "brand-identity" step
-  const initialStep = saved?.step === "brand" ? "brand-identity" : (saved?.step ?? "url");
-  const [step, setStep] = useState<Step>(initialStep as Step);
+  const [step, setStep] = useState<Step>(saved?.step ?? "url");
   const [transitionMessage, setTransitionMessage] = useState<string | null>(null);
   const prefersReduced = useReducedMotion();
-
-  // #18 Screen reader announcement
   const [announcement, setAnnouncement] = useState("");
 
-  // ── Shared state between slides ─────────────────────────────
-
+  // ── Shared state ──────────────────────────────────────────
   const urlRef = useRef<string>(saved?.url ?? "");
   const brandRef = useRef<BrandProfile | null>(saved?.brand ?? null);
-  const selectedAdRef = useRef<{
-    adData: AdData;
-    format: AdFormat;
-    goal: string;
-  } | null>(null);
+  const campaignRef = useRef<{ objective: string; campaignName: string; platforms: string[] } | null>(null);
+  const budgetRef = useRef<{ dailyBudget: number } | null>(null);
+  const selectedAdRef = useRef<{ adData: AdData; format: AdFormat; goal: string } | null>(null);
 
-  // Persist on step changes
-  useEffect(() => {
-    saveSession(step, urlRef.current, brandRef.current);
-  }, [step]);
-
-  // #16 Browser back button support
-  useEffect(() => {
-    if (step) {
-      window.history.pushState({ step }, "", "");
-    }
-  }, [step]);
-
+  // Persist + history
+  useEffect(() => { saveSession(step, urlRef.current, brandRef.current); }, [step]);
+  useEffect(() => { if (step) window.history.pushState({ step }, "", ""); }, [step]);
   useEffect(() => {
     function handlePopState(e: PopStateEvent) {
-      const prevStep = (e.state as { step?: Step } | null)?.step;
-      if (prevStep) {
-        setStep(prevStep === "brand" ? "brand-identity" : prevStep);
-      } else {
-        setStep("url");
-      }
+      const prev = (e.state as { step?: Step } | null)?.step;
+      setStep(prev ?? "url");
     }
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
+  useEffect(() => { if (step) setAnnouncement(STEP_LABELS[step] ?? ""); }, [step]);
 
-  // #18 Announce step changes for screen readers
-  useEffect(() => {
-    if (step) {
-      setAnnouncement(STEP_LABELS[step] ?? "");
-    }
-  }, [step]);
+  const transitionWithMessage = useCallback(async (msg: string, next: Step) => {
+    setStep(null); await sleep(200); setTransitionMessage(msg); await sleep(800); setTransitionMessage(null); setStep(next);
+  }, []);
 
-  // ── Transition helper ───────────────────────────────────────
-
-  const transitionWithMessage = useCallback(
-    async (message: string, nextStep: Step) => {
-      setStep(null);
-      await sleep(200);
-      setTransitionMessage(message);
-      await sleep(800);
-      setTransitionMessage(null);
-      setStep(nextStep);
-    },
-    [],
-  );
-
-  // ── Analytics helper ────────────────────────────────────────
-
-  function trackStep(stepName: string, props?: Record<string, unknown>) {
+  function trackStep(name: string, props?: Record<string, unknown>) {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const ph = typeof window !== "undefined" ? (window as any).posthog : null;
-      if (ph?.capture) ph.capture(`onboarding_${stepName}`, props);
+      const ph = typeof window !== "undefined" ? (window as unknown as Record<string, unknown>).posthog as { capture?: (name: string, props?: Record<string, unknown>) => void } | undefined : undefined;
+      ph?.capture?.(`onboarding_${name}`, props);
     } catch { /* non-critical */ }
   }
 
-  // ── Slide 1 → 2: URL submitted ─────────────────────────────
-
+  // ── Step 1: URL → Loading ─────────────────────────────────
   const handleURLSubmit = useCallback((url: string) => {
     urlRef.current = url;
     trackStep("url_submitted", { url });
     setStep("loading");
   }, []);
 
-  // ── Slide 2 → 3: Analysis complete ─────────────────────────
-
-  const handleAnalysisComplete = useCallback(
-    (profile: BrandProfile) => {
-      brandRef.current = profile;
-      trackStep("analysis_complete", { brand: profile.name });
-
-      // Start pre-warming ad images NOW — user will review BrandSlide for 10-30s.
-      // By the time they click "Stämmer" and EditorSlide mounts, images are cached.
-      if (profile.colors?.primary) {
-        prewarmAdImages({
-          name: profile.name,
-          industry: profile.industry,
-          primaryColor: profile.colors.primary,
-        });
-      }
-
-      setStep("brand-identity");
-    },
-    [],
-  );
-
-  // ── Slide 3a: Brand identity confirmed → audience ──────────
-
-  const handleIdentityConfirm = useCallback(
-    (updated: BrandProfile) => {
-      brandRef.current = updated;
-      trackStep("identity_confirmed", { brand: updated.name });
-      setStep("brand-audience");
-    },
-    [],
-  );
-
-  // ── Slide 3b: Audience confirmed → channels ───────────────
-
-  const handleAudienceConfirm = useCallback(
-    (updated: BrandProfile) => {
-      brandRef.current = updated;
-      trackStep("audience_confirmed", { industry: updated.industry });
-      setStep("brand-channels");
-    },
-    [],
-  );
-
-  // ── Slide 3c: Channels selected → editor ──────────────────
-
-  const channelsRef = useRef<string[]>(["meta"]);
-
-  const handleChannelsConfirm = useCallback(
-    (channels: string[]) => {
-      channelsRef.current = channels;
-      trackStep("channels_confirmed", { channels });
-      transitionWithMessage("Bra! Nu bygger vi er annons", "editor");
-    },
-    [transitionWithMessage],
-  );
-
-  // ── Slide 4 → 5: Editor → Publish ──────────────────────────
-
-  const handleEditorPublish = useCallback(
-    (data: { adData: AdData; format: AdFormat; goal: string }) => {
-      selectedAdRef.current = data;
-      // #19 Track editor_ready (ad was generated and user chose to publish)
-      trackStep("editor_ready", { platform: data.format, goal: data.goal });
-      transitionWithMessage("Redo att publicera!", "publish");
-    },
-    [transitionWithMessage],
-  );
-
-  const handleLoadingError = useCallback(() => {
-    setStep("url");
-  }, []);
-
-  const handleIdentityBack = useCallback(() => {
-    setStep("url");
-  }, []);
-
-  const handleAudienceBack = useCallback(() => {
-    setStep("brand-identity");
-  }, []);
-
-  const handleChannelsBack = useCallback(() => {
-    setStep("brand-audience");
-  }, []);
-
-  const handleEditorBack = useCallback(() => {
-    setStep("brand-channels");
-  }, []);
-
-  // ── Slide 5 → 6: Publish confirmed ─────────────────────────
-
-  const handlePublishConfirm = useCallback(
-    async (config: { dailyBudget: number; duration: number; regions: string[]; channel: string }) => {
-      // #19 Track publish_clicked
-      trackStep("publish_clicked", { budget: config.dailyBudget, duration: config.duration, channel: config.channel });
-      // Call publish API
-      const ad = selectedAdRef.current;
-      try {
-        await fetch("/api/campaigns/publish", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            brandName: brandRef.current?.name ?? "",
-            brandUrl: brandRef.current?.url ?? "",
-            brandColors: brandRef.current?.colors ? {
-              primary: brandRef.current.colors.primary,
-              secondary: brandRef.current.colors.secondary,
-              accent: brandRef.current.colors.accent,
-            } : undefined,
-            headline: ad?.adData.headline ?? "",
-            bodyText: ad?.adData.primaryText ?? "",
-            cta: ad?.adData.cta ?? "",
-            imageUrl: ad?.adData.imageUrl ?? undefined,
-            platform: ad?.format ?? "meta-feed",
-            ...config,
-          }),
-        });
-      } catch {
-        // Non-blocking — transition to done regardless
-      }
-      transitionWithMessage("Publicerar din kampanj...", "done");
-    },
-    [transitionWithMessage],
-  );
-
-  const handlePublishBack = useCallback(() => {
-    setStep("editor");
-  }, []);
-
-  // ── Slide 6: Done → Dashboard ───────────────────────────────
-
-  const handleDashboard = useCallback(() => {
-    // #19 Track done
-    trackStep("done");
-    clearSession();
-    if (typeof window !== "undefined") {
-      window.location.href = "/dashboard";
+  // ── Loading → Step 2: Brand ───────────────────────────────
+  const handleAnalysisComplete = useCallback((profile: BrandProfile) => {
+    brandRef.current = profile;
+    trackStep("analysis_complete", { brand: profile.name });
+    if (profile.colors?.primary) {
+      prewarmAdImages({ name: profile.name, industry: profile.industry, primaryColor: profile.colors.primary });
     }
+    setStep("brand");
   }, []);
 
-  // #20 Restart — clear session and return to URLSlide
-  const handleRestart = useCallback(() => {
-    clearSession();
-    urlRef.current = "";
-    brandRef.current = null;
-    selectedAdRef.current = null;
-    setStep("url");
+  // ── Step 2: Brand → Step 3: Campaign ──────────────────────
+  const handleBrandConfirm = useCallback((updated: BrandProfile) => {
+    brandRef.current = updated;
+    trackStep("brand_confirmed", { brand: updated.name });
+    setStep("campaign");
   }, []);
 
-  // ── Render ────────────────────────────────────────────────────
+  // ── Step 3: Campaign → Step 4: Budget ─────────────────────
+  const handleCampaignConfirm = useCallback((data: { objective: string; campaignName: string; platforms: string[] }) => {
+    campaignRef.current = data;
+    trackStep("campaign_confirmed", { objective: data.objective });
+    setStep("budget");
+  }, []);
+
+  // ── Step 4: Budget → Step 5: Preview ──────────────────────
+  const handleBudgetConfirm = useCallback((data: { dailyBudget: number }) => {
+    budgetRef.current = data;
+    trackStep("budget_confirmed", { budget: data.dailyBudget });
+    transitionWithMessage("Skapar din annons...", "preview");
+  }, [transitionWithMessage]);
+
+  // ── Step 5: Preview → Step 6: Review ──────────────────────
+  const handlePreviewConfirm = useCallback((data: { adData: AdData; format: AdFormat; goal: string }) => {
+    selectedAdRef.current = data;
+    trackStep("preview_confirmed", { format: data.format });
+    setStep("review");
+  }, []);
+
+  // ── Step 6: Review → Publish → Done ───────────────────────
+  const handlePublish = useCallback(async () => {
+    trackStep("publish_clicked");
+    const ad = selectedAdRef.current;
+    const budget = budgetRef.current;
+    try {
+      await fetch("/api/campaigns/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          brandName: brandRef.current?.name ?? "",
+          brandUrl: brandRef.current?.url ?? "",
+          brandColors: brandRef.current?.colors ? { primary: brandRef.current.colors.primary, secondary: brandRef.current.colors.secondary, accent: brandRef.current.colors.accent } : undefined,
+          headline: ad?.adData.headline ?? "",
+          bodyText: ad?.adData.primaryText ?? "",
+          cta: ad?.adData.cta ?? "",
+          imageUrl: ad?.adData.imageUrl ?? undefined,
+          platform: ad?.format ?? "meta-feed",
+          dailyBudget: budget?.dailyBudget ?? 150,
+          duration: 30,
+          regions: ["SE"],
+          channel: campaignRef.current?.platforms[0] ?? "meta",
+        }),
+      });
+    } catch { /* non-blocking */ }
+    transitionWithMessage("Publicerar din kampanj...", "done");
+  }, [transitionWithMessage]);
+
+  // ── Navigation: jump to step ──────────────────────────────
+  const jumpToStep = useCallback((stepIndex: number) => {
+    const target = STEP_ORDER[stepIndex];
+    if (target) setStep(target);
+  }, []);
+
+  // ── Back handlers ─────────────────────────────────────────
+  const handleLoadingError = useCallback(() => setStep("url"), []);
+  const handleDashboard = useCallback(() => { trackStep("done"); clearSession(); if (typeof window !== "undefined") window.location.href = "/dashboard"; }, []);
+  const handleRestart = useCallback(() => { clearSession(); urlRef.current = ""; brandRef.current = null; selectedAdRef.current = null; campaignRef.current = null; budgetRef.current = null; setStep("url"); }, []);
+
+  // ── Determine if StepBar should show ──────────────────────
+  const showStepBar = step && step !== "url" && step !== "loading" && step !== "done" && step !== null;
 
   return (
-    <div id="main" className="h-[100dvh] overflow-hidden bg-background pb-[env(safe-area-inset-bottom)]">
-      {/* #18 Screen reader announcement */}
+    <div id="main" className="h-[100dvh] overflow-y-auto bg-page pb-[env(safe-area-inset-bottom)]">
       <div aria-live="assertive" className="sr-only">{announcement}</div>
 
-      {/* ── Header: logo + stepper + login ──────────────────────── */}
-      <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-between px-5 py-4">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.svg" alt="Doost AI" className="h-6" />
+      {/* ── Header ──────────────────────────────────────────── */}
+      <div className="sticky top-0 z-50 bg-page/95 backdrop-blur-sm">
+        <div className="flex items-center justify-between px-5 py-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.svg" alt="Doost AI" className="h-6" />
+          <Link
+            href="/sign-in"
+            className="rounded-btn bg-card px-4 py-1.5 text-small font-medium text-d-text-primary shadow-card transition-all hover:shadow-md border border-d-border"
+          >
+            Logga in
+          </Link>
+        </div>
 
-        {/* Spacer — stepper dots removed for cleaner UI */}
-        <div />
-
-        <Link
-          href="/sign-in"
-          className="rounded-full bg-white px-4 py-1.5 text-[13px] font-medium text-foreground shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-all hover:shadow-md"
-        >
-          Logga in
-        </Link>
+        {/* Step indicator */}
+        {showStepBar && (
+          <div className="border-b border-d-border-light px-5 pb-4">
+            <StepBar
+              steps={getStepBarSteps(step)}
+              onStepClick={jumpToStep}
+            />
+          </div>
+        )}
       </div>
 
-      <AnimatePresence mode="wait">
-        {transitionMessage && (
-          <TransitionMessage
-            key="transition"
-            text={transitionMessage}
-          />
-        )}
+      {/* ── Content ─────────────────────────────────────────── */}
+      <div className="mx-auto w-full max-w-lg px-4 py-6 sm:px-6">
+        <AnimatePresence mode="wait">
+          {transitionMessage && (
+            <TransitionMessage key="transition" text={transitionMessage} />
+          )}
 
-        {step === "url" && (
-          <motion.div
-            key="url"
-            variants={prefersReduced ? undefined : slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            className="h-full"
-          >
-            <URLSlide onSubmit={handleURLSubmit} />
-          </motion.div>
-        )}
+          {/* Step 1: URL input */}
+          {step === "url" && (
+            <motion.div key="url" variants={prefersReduced ? undefined : slideVariants} initial="enter" animate="center" exit="exit">
+              <URLSlide onSubmit={handleURLSubmit} />
+            </motion.div>
+          )}
 
-        {step === "loading" && (
-          <motion.div
-            key="loading"
-            variants={prefersReduced ? undefined : slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            className="h-full"
-          >
-            <LoadingSlide
-              url={urlRef.current}
-              onComplete={handleAnalysisComplete}
-              onError={handleLoadingError}
-            />
-          </motion.div>
-        )}
+          {/* Loading */}
+          {step === "loading" && (
+            <motion.div key="loading" variants={prefersReduced ? undefined : slideVariants} initial="enter" animate="center" exit="exit">
+              <LoadingSlide url={urlRef.current} onComplete={handleAnalysisComplete} onError={handleLoadingError} />
+            </motion.div>
+          )}
 
-        {step === "brand-identity" && brandRef.current && (
-          <motion.div
-            key="brand-identity"
-            variants={prefersReduced ? undefined : slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            className="h-full"
-          >
-            <BrandIdentitySlide
-              profile={brandRef.current}
-              onConfirm={handleIdentityConfirm}
-              onBack={handleIdentityBack}
-            />
-          </motion.div>
-        )}
+          {/* Step 2: Brand confirm */}
+          {step === "brand" && brandRef.current && (
+            <motion.div key="brand" variants={prefersReduced ? undefined : slideVariants} initial="enter" animate="center" exit="exit">
+              <BrandCard
+                profile={brandRef.current}
+                onConfirm={handleBrandConfirm}
+                onBack={() => setStep("url")}
+              />
+            </motion.div>
+          )}
 
-        {step === "brand-audience" && brandRef.current && (
-          <motion.div
-            key="brand-audience"
-            variants={prefersReduced ? undefined : slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            className="h-full"
-          >
-            <BrandAudienceSlide
-              profile={brandRef.current}
-              onConfirm={handleAudienceConfirm}
-              onBack={handleAudienceBack}
-            />
-          </motion.div>
-        )}
+          {/* Step 3: Campaign setup */}
+          {step === "campaign" && (
+            <motion.div key="campaign" variants={prefersReduced ? undefined : slideVariants} initial="enter" animate="center" exit="exit">
+              <CampaignCard
+                brandName={brandRef.current?.name ?? ""}
+                aiRecommendedObjective="sales"
+                onConfirm={handleCampaignConfirm}
+                onBack={() => setStep("brand")}
+              />
+            </motion.div>
+          )}
 
-        {step === "brand-channels" && (
-          <motion.div
-            key="brand-channels"
-            variants={prefersReduced ? undefined : slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            className="h-full"
-          >
-            <BrandChannelsSlide
-              onConfirm={handleChannelsConfirm}
-              onBack={handleChannelsBack}
-            />
-          </motion.div>
-        )}
+          {/* Step 4: Budget */}
+          {step === "budget" && (
+            <motion.div key="budget" variants={prefersReduced ? undefined : slideVariants} initial="enter" animate="center" exit="exit">
+              <BudgetCard
+                onConfirm={handleBudgetConfirm}
+                onBack={() => setStep("campaign")}
+              />
+            </motion.div>
+          )}
 
-        {step === "editor" && brandRef.current && (
-          <motion.div
-            key="editor"
-            variants={prefersReduced ? undefined : slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            className="h-full"
-          >
-            <EditorSlide
-              profile={brandRef.current}
-              onBack={handleEditorBack}
-              onPublish={handleEditorPublish}
-            />
-          </motion.div>
-        )}
+          {/* Step 5: Ad preview */}
+          {step === "preview" && brandRef.current && (
+            <motion.div key="preview" variants={prefersReduced ? undefined : slideVariants} initial="enter" animate="center" exit="exit">
+              <EditorSlide
+                profile={brandRef.current}
+                onBack={() => setStep("budget")}
+                onPublish={handlePreviewConfirm}
+              />
+            </motion.div>
+          )}
 
-        {step === "publish" && selectedAdRef.current && (
-          <motion.div
-            key="publish"
-            variants={prefersReduced ? undefined : slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            className="h-full"
-          >
-            <PublishSlide
-              adData={selectedAdRef.current.adData}
-              format={selectedAdRef.current.format}
-              goal={selectedAdRef.current.goal}
-              brandName={brandRef.current?.name ?? ""}
-              brandLocation={
-                typeof brandRef.current?.location === "string"
-                  ? brandRef.current.location
-                  : undefined
-              }
-              onBack={handlePublishBack}
-              onPublish={handlePublishConfirm}
-            />
-          </motion.div>
-        )}
+          {/* Step 6: Review + publish */}
+          {step === "review" && (
+            <motion.div key="review" variants={prefersReduced ? undefined : slideVariants} initial="enter" animate="center" exit="exit">
+              <ReviewCard
+                data={{
+                  brandName: brandRef.current?.name ?? "",
+                  brandUrl: brandRef.current?.url ?? "",
+                  objective: campaignRef.current?.objective ?? "sales",
+                  platforms: campaignRef.current?.platforms ?? ["Meta"],
+                  dailyBudget: budgetRef.current?.dailyBudget ?? 150,
+                  variantLabel: "Variant A",
+                  variantScore: 84,
+                }}
+                onPublish={handlePublish}
+                onEdit={jumpToStep}
+                onBack={() => setStep("preview")}
+              />
+            </motion.div>
+          )}
 
-        {step === "done" && (
-          <motion.div
-            key="done"
-            variants={prefersReduced ? undefined : slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            className="h-full"
-          >
-            <DoneSlide
-              brandName={brandRef.current?.name}
-              onDashboard={handleDashboard}
-              onRestart={handleRestart}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+          {/* Done */}
+          {step === "done" && (
+            <motion.div key="done" variants={prefersReduced ? undefined : slideVariants} initial="enter" animate="center" exit="exit">
+              <DoneSlide
+                brandName={brandRef.current?.name}
+                onDashboard={handleDashboard}
+                onRestart={handleRestart}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
-
-// ── Helpers ──────────────────────────────────────────────────────
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
