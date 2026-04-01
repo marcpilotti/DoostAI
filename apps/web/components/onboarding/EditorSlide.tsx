@@ -361,7 +361,8 @@ export function EditorSlide({
                   <button
                     key={p.id}
                     onClick={() => setPlatformIdx(idx)}
-                    className={`rounded-lg px-4 py-1.5 text-[12px] font-medium transition-all ${
+                    disabled={state === "loading" || state === "regenerating"}
+                    className={`rounded-lg px-4 py-1.5 text-[12px] font-medium transition-all disabled:opacity-30 ${
                       idx === platformIdx
                         ? "bg-foreground text-white"
                         : "text-muted-foreground/40 hover:text-muted-foreground"

@@ -282,6 +282,14 @@ export function OnboardingShell() {
     [transitionWithMessage],
   );
 
+  const handleLoadingError = useCallback(() => {
+    setStep("url");
+  }, []);
+
+  const handleBrandBack = useCallback(() => {
+    setStep("url");
+  }, []);
+
   const handleEditorBack = useCallback(() => {
     setStep("brand");
   }, []);
@@ -403,6 +411,7 @@ export function OnboardingShell() {
             <LoadingSlide
               url={urlRef.current}
               onComplete={handleAnalysisComplete}
+              onError={handleLoadingError}
             />
           </motion.div>
         )}
@@ -419,6 +428,7 @@ export function OnboardingShell() {
             <BrandSlide
               profile={brandRef.current}
               onConfirm={handleBrandConfirm}
+              onBack={handleBrandBack}
             />
           </motion.div>
         )}

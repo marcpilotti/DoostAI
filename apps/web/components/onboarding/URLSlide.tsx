@@ -65,7 +65,7 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onPaste={() => {
-                setTimeout(() => { if (inputRef.current?.value.trim()) formRef.current?.requestSubmit(); }, 600);
+                // Don't auto-submit — user may want to edit the pasted URL first
               }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") { e.preventDefault(); if (input.trim()) formRef.current?.requestSubmit(); }

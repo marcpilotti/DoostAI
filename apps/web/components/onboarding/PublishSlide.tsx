@@ -67,6 +67,7 @@ export function PublishSlide({
   }
 
   function handlePublish() {
+    if (isPublishing) return; // Prevent double-click
     if (!isSignedIn) { setShowAuthModal(true); return; }
     doPublish();
   }
@@ -182,8 +183,8 @@ export function PublishSlide({
               <div className="text-[22px] font-bold tracking-tight">{total ? `${total.toLocaleString("sv-SE")} kr` : `${budget} kr/dag`}</div>
             </div>
             <div className="text-right">
-              <div className="text-[10px] text-muted-foreground/30">Beräknad räckvidd</div>
-              <div className="text-[16px] font-bold text-foreground/70">{estimatedReach.toLocaleString("sv-SE")} visningar</div>
+              <div className="text-[10px] text-muted-foreground/30">Uppskattad räckvidd*</div>
+              <div className="text-[16px] font-bold text-foreground/70">{Math.round(estimatedReach * 0.7).toLocaleString("sv-SE")}–{estimatedReach.toLocaleString("sv-SE")}</div>
             </div>
           </div>
         </motion.div>
@@ -201,6 +202,9 @@ export function PublishSlide({
           <span>·</span>
           <span>Doost AI: Gratis</span>
         </motion.div>
+        <p className="mt-1 text-center text-[9px] text-muted-foreground/15">
+          *Uppskattat baserat på genomsnittlig CPM. Faktisk räckvidd varierar.
+        </p>
 
         {/* Publish button */}
         <motion.div

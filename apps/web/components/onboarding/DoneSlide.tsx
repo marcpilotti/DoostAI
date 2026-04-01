@@ -13,14 +13,16 @@ const DONE_MESSAGES = [
 
 export function DoneSlide({ brandName, onDashboard }: { brandName?: string; onDashboard: () => void }) {
   const prefersReduced = useReducedMotion();
-  const [countdown, setCountdown] = useState(8);
+  const [countdown, setCountdown] = useState(15);
+  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
+    if (paused) return;
     const interval = setInterval(() => {
       setCountdown((c) => { if (c <= 1) { clearInterval(interval); onDashboard(); return 0; } return c - 1; });
     }, 1000);
     return () => clearInterval(interval);
-  }, [onDashboard]);
+  }, [onDashboard, paused]);
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-6">
@@ -129,7 +131,14 @@ export function DoneSlide({ brandName, onDashboard }: { brandName?: string; onDa
         transition={{ delay: 1.2 }}
         className="mt-3 text-[11px] text-muted-foreground/20"
       >
-        Omdirigeras om {countdown}s...
+        {paused ? (
+          <span>Automatisk omdirigering pausad</span>
+        ) : (
+          <>
+            Omdirigeras om {countdown}s...{" "}
+            <button onClick={() => setPaused(true)} className="underline hover:text-muted-foreground/40">Stanna kvar</button>
+          </>
+        )}
       </motion.p>
     </div>
   );

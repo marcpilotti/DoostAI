@@ -60,7 +60,8 @@ function InlineEdit({ value, onSave }: { value: string; onSave: (v: string) => v
   );
 }
 
-export function BrandSlide({ profile, onConfirm }: { profile: BrandProfile; onConfirm: (approved: BrandProfile) => void }) {
+export function BrandSlide({ profile, onConfirm, onBack }: { profile: BrandProfile; onConfirm: (approved: BrandProfile) => void; onBack?: () => void }) {
+  const [logoError, setLogoError] = useState<string | null>(null);
   const prefersReduced = useReducedMotion();
   const [colors, setColors] = useState(profile.colors);
   const [industry, setIndustry] = useState(profile.industry ?? "");
@@ -104,7 +105,7 @@ export function BrandSlide({ profile, onConfirm }: { profile: BrandProfile; onCo
           {/* Header */}
           <div className="flex items-center gap-3 px-6 pt-5 pb-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`} alt="" className="h-6 w-6 shrink-0 rounded" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+            <img src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`} alt="" className="h-6 w-6 shrink-0 rounded" onError={(e) => { (e.target as HTMLImageElement).src = "/symbol.svg"; }} />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <h3 className="truncate text-xl font-bold tracking-tight">{name}</h3>
@@ -137,9 +138,14 @@ export function BrandSlide({ profile, onConfirm }: { profile: BrandProfile; onCo
                   <span className="text-[10px] text-muted-foreground/30">Ladda upp</span>
                 </>
               )}
-              <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+              {logoError && <span className="text-[9px] text-red-500">{logoError}</span>}
+              <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" className="hidden" onChange={(e) => {
                 const f = e.target.files?.[0];
-                if (f) { if (logoUrl?.startsWith("blob:")) URL.revokeObjectURL(logoUrl); setLogoUrl(URL.createObjectURL(f)); }
+                if (!f) return;
+                if (f.size > 5 * 1024 * 1024) { setLogoError("Max 5 MB"); return; }
+                setLogoError(null);
+                if (logoUrl?.startsWith("blob:")) URL.revokeObjectURL(logoUrl);
+                setLogoUrl(URL.createObjectURL(f));
               }} />
             </label>
 
@@ -194,6 +200,11 @@ export function BrandSlide({ profile, onConfirm }: { profile: BrandProfile; onCo
               <ArrowRight className="h-4 w-4" />
             </button>
             <p className="mt-3 text-center text-[12px] text-muted-foreground/30">Klicka på valfritt fält för att ändra</p>
+            {onBack && (
+              <button onClick={onBack} className="mt-2 block w-full text-center text-[11px] text-muted-foreground/25 hover:text-muted-foreground">
+                ← Byt URL
+              </button>
+            )}
           </div>
         </motion.div>
 
