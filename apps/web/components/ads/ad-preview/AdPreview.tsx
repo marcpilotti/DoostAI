@@ -78,7 +78,10 @@ export function AdPreview({
       const previewH = preview.scrollHeight;
 
       if (previewH > containerH && containerH > 0) {
-        setScale(Math.max(0.6, containerH / previewH));
+        // Allow more aggressive scaling in side-by-side mode
+        const isSideBySide = compareMode === "sidebyside";
+        const minScale = isSideBySide ? 0.45 : 0.6;
+        setScale(Math.max(minScale, containerH / previewH));
       } else {
         setScale(1);
       }
@@ -158,33 +161,33 @@ export function AdPreview({
         <div
           ref={previewRef}
           className="origin-top transition-transform duration-200"
-          style={{ transform: scale < 1 ? `scale(${scale})` : undefined }}
+          style={{ transform: scale < 1 ? `scale(${scale})` : undefined, transformOrigin: "top center" }}
         >
           {showBothVariants ? (
-            /* Side-by-side: both variants at ~50% */
-            <div className="grid grid-cols-2 gap-2 p-3">
-              <div className="relative">
+            /* Side-by-side: both variants at ~50%, constrained height */
+            <div className="grid grid-cols-2 gap-3 p-3">
+              <div className="relative max-h-[60vh] overflow-hidden rounded-xl">
                 <FormatRenderer data={variantA} format={format} autoGenerateImage={autoGenerateImage} imageDelay={0} cachedImage={cachedImageA} onImageReady={(url) => handleImageGenerated(url, format, "A")} />
                 {/* Winner select */}
                 <button
                   onClick={() => handleWinnerSelect("A")}
-                  className={`absolute -top-1 left-1/2 z-10 -translate-x-1/2 rounded-full px-2 py-0.5 text-[8px] font-bold shadow transition-all ${
+                  className={`absolute left-1/2 top-2 z-10 -translate-x-1/2 rounded-full px-3 py-1 text-[10px] font-bold shadow-md transition-all ${
                     winner === "A"
                       ? "bg-emerald-500 text-white"
-                      : "bg-white/80 text-muted-foreground backdrop-blur-sm hover:bg-emerald-50 hover:text-emerald-600"
+                      : "bg-white text-muted-foreground hover:bg-emerald-50 hover:text-emerald-600"
                   }`}
                 >
                   {winner === "A" ? "✓ Vald" : "Välj A"}
                 </button>
               </div>
-              <div className="relative">
+              <div className="relative max-h-[60vh] overflow-hidden rounded-xl">
                 <FormatRenderer data={variantB!} format={format} autoGenerateImage={autoGenerateImage} imageDelay={3000} cachedImage={cachedImageB} onImageReady={(url) => handleImageGenerated(url, format, "B")} />
                 <button
                   onClick={() => handleWinnerSelect("B")}
-                  className={`absolute -top-1 left-1/2 z-10 -translate-x-1/2 rounded-full px-2 py-0.5 text-[8px] font-bold shadow transition-all ${
+                  className={`absolute left-1/2 top-2 z-10 -translate-x-1/2 rounded-full px-3 py-1 text-[10px] font-bold shadow-md transition-all ${
                     winner === "B"
                       ? "bg-emerald-500 text-white"
-                      : "bg-white/80 text-muted-foreground backdrop-blur-sm hover:bg-emerald-50 hover:text-emerald-600"
+                      : "bg-white text-muted-foreground hover:bg-emerald-50 hover:text-emerald-600"
                   }`}
                 >
                   {winner === "B" ? "✓ Vald" : "Välj B"}
