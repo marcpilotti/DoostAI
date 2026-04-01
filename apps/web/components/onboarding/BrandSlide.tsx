@@ -219,7 +219,7 @@ export function BrandSlide({ profile, onConfirm, onBack }: { profile: BrandProfi
             <img src="/symbol.svg" alt="" className="h-6 w-6 shrink-0 opacity-40" />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <h3 className="truncate text-xl font-bold tracking-tight">{name}</h3>
+                <h3 className="truncate text-xl font-bold tracking-tight" style={{ color: colors.primary }}>{name}</h3>
                 {displayedConfidence > 0 && (
                   <span className="shrink-0 rounded-full bg-foreground/5 px-2.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground/40">
                     {displayedConfidence}% match
@@ -233,61 +233,62 @@ export function BrandSlide({ profile, onConfirm, onBack }: { profile: BrandProfi
             </a>
           </motion.div>
 
-          {/* ── Visual identity card ────────────────────────────── */}
+          {/* ── Visual identity ─────────────────────────────────── */}
           <motion.div
             initial={prefersReduced ? false : { opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={delay(1)}
-            className="mx-4 mb-3 rounded-xl bg-muted/30"
+            className="mx-4 mb-3 flex gap-2.5"
           >
-            <div className="grid grid-cols-[1fr_1.5fr]">
-              {/* Logo — spans full height of 2 rows */}
-              <label className="group row-span-2 flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-l-xl border-r border-border/8 py-6 transition-colors hover:bg-muted/40">
-                {logoUrl ? (
-                  <>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={logoUrl} alt={name} className="h-16 max-w-[90%] object-contain" />
-                    <span className="text-[10px] text-muted-foreground/30 opacity-0 group-hover:opacity-100">Byt</span>
-                  </>
-                ) : (
-                  <>
-                    <ImagePlus className="h-5 w-5 text-muted-foreground/20" />
-                    <span className="text-[10px] text-muted-foreground/30">Ladda upp</span>
-                  </>
-                )}
-                {logoError && <span className="text-[9px] text-red-500">{logoError}</span>}
-                <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" className="hidden" onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (!f) return;
-                  if (f.size > 5 * 1024 * 1024) { setLogoError("Max 5 MB"); return; }
-                  setLogoError(null);
-                  if (logoUrl?.startsWith("blob:")) URL.revokeObjectURL(logoUrl);
-                  compressImage(f, 512).then((dataUrl) => setLogoUrl(dataUrl)).catch(() => setLogoUrl(URL.createObjectURL(f)));
-                }} />
-              </label>
+            {/* Logo — own white card */}
+            <label className="group flex w-[38%] shrink-0 cursor-pointer flex-col items-center justify-center rounded-xl bg-muted/30 py-8 transition-colors hover:bg-muted/40">
+              {logoUrl ? (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={logoUrl} alt={name} className="h-16 max-w-[85%] object-contain" />
+                  <span className="mt-2 text-[10px] text-muted-foreground/30 opacity-0 group-hover:opacity-100">Byt</span>
+                </>
+              ) : (
+                <>
+                  <ImagePlus className="h-5 w-5 text-muted-foreground/20" />
+                  <span className="mt-1 text-[10px] text-muted-foreground/30">Ladda upp</span>
+                </>
+              )}
+              {logoError && <span className="mt-1 text-[9px] text-red-500">{logoError}</span>}
+              <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" className="hidden" onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (!f) return;
+                if (f.size > 5 * 1024 * 1024) { setLogoError("Max 5 MB"); return; }
+                setLogoError(null);
+                if (logoUrl?.startsWith("blob:")) URL.revokeObjectURL(logoUrl);
+                compressImage(f, 512).then((dataUrl) => setLogoUrl(dataUrl)).catch(() => setLogoUrl(URL.createObjectURL(f)));
+              }} />
+            </label>
 
-              {/* Top-right: Fonts (Rubrik + Brödtext) */}
-              <div className="grid grid-cols-2 border-b border-border/8">
-                <div className="border-r border-border/8 px-4 py-4">
+            {/* Fonts + Colors — own white card with 2x2 grid */}
+            <div className="flex-1 overflow-hidden rounded-xl bg-muted/30">
+              {/* Top row: Rubrik | Brödtext */}
+              <div className="grid grid-cols-2 border-b border-white/60">
+                <div className="border-r border-white/60 px-4 py-3.5">
                   <div className="text-[10px] text-muted-foreground/40">Rubrik</div>
-                  <div className="mt-0.5 text-[14px] font-bold text-foreground">{profile.fonts?.heading ?? "—"}</div>
+                  <div className="mt-1 text-[15px] font-bold text-foreground">{profile.fonts?.heading ?? "—"}</div>
                 </div>
-                <div className="px-4 py-4">
+                <div className="px-4 py-3.5">
                   <div className="text-[10px] text-muted-foreground/40">Brödtext</div>
-                  <div className="mt-0.5 text-[14px] font-semibold text-foreground">{profile.fonts?.body ?? "—"}</div>
+                  <div className="mt-1 text-[15px] font-bold text-foreground">{profile.fonts?.body ?? "—"}</div>
                 </div>
               </div>
 
-              {/* Bottom-right: Colors + extra field */}
-              <div className="grid grid-cols-[1.2fr_1fr]">
-                <div className="flex items-center justify-center gap-3 border-r border-border/8 py-4">
+              {/* Bottom row: Colors | Bransch */}
+              <div className="grid grid-cols-[1.3fr_1fr]">
+                <div className="flex items-center justify-center gap-3.5 border-r border-white/60 py-3.5">
                   <ColorDot color={colors.primary} label="Pri" role="primary" originalColor={profile.colors.primary} onColorChange={(c) => setColors((p) => ({ ...p, primary: c }))} />
                   <ColorDot color={colors.secondary} label="Sek" role="secondary" originalColor={profile.colors.secondary} onColorChange={(c) => setColors((p) => ({ ...p, secondary: c }))} />
                   <ColorDot color={colors.accent} label="Acc" role="accent" originalColor={profile.colors.accent} onColorChange={(c) => setColors((p) => ({ ...p, accent: c }))} />
                 </div>
-                <div className="flex flex-col justify-center px-4 py-4">
+                <div className="flex flex-col justify-center px-4 py-3.5">
                   <div className="text-[10px] text-muted-foreground/40">Bransch</div>
-                  <div className="mt-0.5 text-[14px] font-semibold text-foreground">{resolvedIndustry || "—"}</div>
+                  <div className="mt-1 text-[15px] font-bold text-foreground">{resolvedIndustry || "—"}</div>
                 </div>
               </div>
             </div>
@@ -298,9 +299,9 @@ export function BrandSlide({ profile, onConfirm, onBack }: { profile: BrandProfi
             initial={prefersReduced ? false : { opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={delay(2)}
-            className="mx-4 mb-4 grid grid-cols-1 sm:grid-cols-3 rounded-xl bg-muted/30"
+            className="mx-4 mb-4 grid grid-cols-1 sm:grid-cols-3 overflow-hidden rounded-xl bg-muted/30"
           >
-            <div className="border-b sm:border-b-0 sm:border-r border-border/8 px-5 py-4">
+            <div className="border-b sm:border-b-0 sm:border-r border-white/60 px-5 py-4">
               <div className="mb-1 text-[10px] text-muted-foreground/40">Bransch</div>
               <div className="flex items-center gap-1">
                 <select
@@ -324,7 +325,7 @@ export function BrandSlide({ profile, onConfirm, onBack }: { profile: BrandProfi
                 />
               )}
             </div>
-            <div className="border-b sm:border-b-0 sm:border-r border-border/8 px-5 py-4">
+            <div className="border-b sm:border-b-0 sm:border-r border-white/60 px-5 py-4">
               <div className="mb-1 text-[10px] text-muted-foreground/40">Målgrupp</div>
               <InlineEdit value={targetAudience} onSave={setTargetAudience} />
             </div>
