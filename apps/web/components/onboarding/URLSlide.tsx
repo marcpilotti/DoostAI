@@ -92,9 +92,9 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
           <div className="flex items-center gap-3 rounded-2xl bg-white px-5 py-4 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)]">
             <input
               ref={inputRef}
-              type="url"
+              type="text"
               inputMode="url"
-              autoComplete="url"
+              autoComplete="off"
               enterKeyHint="go"
               autoCapitalize="none"
               autoCorrect="off"
@@ -109,7 +109,7 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
                 if (e.key === "Enter") { e.preventDefault(); if (input.trim()) formRef.current?.requestSubmit(); }
               }}
               placeholder="Klistra in din hemsida, t.ex. företag.se"
-              className="min-h-[28px] min-w-0 flex-1 bg-transparent text-[15px] text-foreground outline-none placeholder:text-muted-foreground/35 disabled:opacity-50"
+              className="min-h-[28px] min-w-0 flex-1 bg-transparent text-[15px] text-foreground outline-none focus-visible:outline-none placeholder:text-muted-foreground/35 disabled:opacity-50"
             />
             {/* Submit — Doost AI symbol + label */}
             <button

@@ -353,15 +353,17 @@
   to { stroke-dashoffset: -10; }
 }
 
-/* Focus visible — global accessibility rule */
-button:focus-visible,
-a:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
-[role="tab"]:focus-visible,
-[role="radio"]:focus-visible {
-  outline: 2px solid var(--doost-bg-active, #1A1A1A);
-  outline-offset: 2px;
-  border-radius: var(--doost-radius-sm, 6px);
+/* Focus visible — global accessibility rule (in @layer base so Tailwind utilities can override) */
+@layer base {
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [role="tab"]:focus-visible,
+  [role="radio"]:focus-visible {
+    outline: 2px solid var(--doost-bg-active, #1A1A1A);
+    outline-offset: 2px;
+    border-radius: var(--doost-radius-sm, 6px);
+  }
 }
