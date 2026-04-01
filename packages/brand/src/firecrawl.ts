@@ -8,12 +8,83 @@ function getFirecrawlClient(): FirecrawlApp {
   return new FirecrawlApp({ apiKey });
 }
 
+/**
+ * Scrape with retry + Apify fallback as specified in PIPELINE.md Stage 2.
+ * 1. Attempt Firecrawl with 15s timeout
+ * 2. Wait 3s, retry Firecrawl
+ * 3. Fall back to basic fetch scraping
+ */
+export async function scrapeWithFallback(url: string): Promise<BrandScrapeResult> {
+  // Attempt 1: Firecrawl
+  try {
+    return await scrapeBrand(url);
+  } catch (e) {
+    console.warn("[scrape] Firecrawl attempt 1 failed:", e instanceof Error ? e.message : e);
+  }
+
+  // Wait 3 seconds, then retry
+  await new Promise((r) => setTimeout(r, 3000));
+
+  // Attempt 2: Firecrawl retry
+  try {
+    return await scrapeBrand(url);
+  } catch (e) {
+    console.warn("[scrape] Firecrawl attempt 2 failed, falling back to basic fetch:", e instanceof Error ? e.message : e);
+  }
+
+  // Attempt 3: Basic fetch fallback (no external dependency)
+  return await scrapeFallback(url);
+}
+
+async function scrapeFallback(url: string): Promise<BrandScrapeResult> {
+  const normalizedUrl = url.startsWith("http") ? url : `https://${url}`;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20_000);
+
+  try {
+    const res = await fetch(normalizedUrl, {
+      signal: controller.signal,
+      headers: { "User-Agent": "DoostBot/1.0 (brand-analysis)" },
+    });
+    const html = await res.text();
+    clearTimeout(timeout);
+
+    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+    const descMatch = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)/i);
+    const ogImageMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)/i);
+    const faviconMatch = html.match(/<link[^>]+rel=["'](?:icon|shortcut icon)["'][^>]+href=["']([^"']+)/i);
+
+    const colors = extractColorsFromHtml(html);
+    const fonts = extractFontsFromHtml(html);
+    const logoUrls: string[] = [];
+    if (ogImageMatch?.[1]) logoUrls.push(ogImageMatch[1]);
+    if (faviconMatch?.[1]) {
+      const fav = faviconMatch[1].startsWith("http") ? faviconMatch[1] : new URL(faviconMatch[1], normalizedUrl).href;
+      logoUrls.push(fav);
+    }
+
+    return {
+      url: normalizedUrl,
+      title: titleMatch?.[1]?.trim() ?? "",
+      description: descMatch?.[1]?.trim() ?? "",
+      colors,
+      fonts,
+      logoUrls,
+      links: [],
+      rawHtml: html.slice(0, 50_000),
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 export async function scrapeBrand(url: string): Promise<BrandScrapeResult> {
   const client = getFirecrawlClient();
   const normalizedUrl = url.startsWith("http") ? url : `https://${url}`;
 
   const doc = await client.scrape(normalizedUrl, {
     formats: ["html", "markdown", "screenshot"],
+    timeout: 30000,
   });
 
   const html = doc.html ?? doc.rawHtml ?? "";

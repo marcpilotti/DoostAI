@@ -1,4 +1,4 @@
-export { scrapeBrand } from "./firecrawl";
+export { scrapeBrand, scrapeWithFallback } from "./firecrawl";
 export { buildBrandProfile } from "./profile-builder";
 export { enrichCompany } from "./roaring";
 export {

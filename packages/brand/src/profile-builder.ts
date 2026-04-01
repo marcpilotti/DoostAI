@@ -81,7 +81,7 @@ export async function buildBrandProfile(
   const start = Date.now();
 
   const { object } = await generateObject({
-    model: anthropic("claude-sonnet-4-6"),
+    model: anthropic("claude-haiku-4-5-20251001"),
     schema: brandAnalysisSchema,
     temperature: 0,
     prompt: `Analyze this company's brand identity. Return ONLY facts from the data below — do NOT guess or hallucinate.
@@ -98,7 +98,7 @@ ${context}`,
 
   traceGeneration(trace, {
     name: "brand-analysis",
-    model: "claude-sonnet-4-6",
+    model: "claude-haiku-4-5-20251001",
     input: context.slice(0, 500),
     output: object,
     latencyMs: Date.now() - start,

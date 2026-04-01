@@ -133,9 +133,8 @@ async function generateSingleVariant(
   variant: CopyVariant,
   useGpt: boolean,
 ): Promise<AdCopyResult> {
-  // TODO: Route to GPT-4o when useGpt=true for speed
-  const model = anthropic("claude-opus-4-6");
-  const modelName = "claude-opus-4-6";
+  const model = useGpt ? openai("gpt-4o") : anthropic("claude-sonnet-4-6");
+  const modelName = useGpt ? "gpt-4o" : "claude-sonnet-4-6";
   const schema = getSchema(platform);
   const prompt = getPrompt(platform, brand, options);
 
@@ -147,7 +146,8 @@ async function generateSingleVariant(
 
   const start = Date.now();
   let result: z.infer<typeof schema>;
-  let retried = false;
+  let retryCount = 0;
+  const MAX_RETRIES = 2;
 
   // First attempt
   const response = await generateObject({
@@ -158,17 +158,37 @@ async function generateSingleVariant(
 
   result = response.object as z.infer<typeof schema>;
 
-  // Retry with stricter prompt if limits violated
-  if (!validateLimits(platform, result as Record<string, unknown>)) {
-    retried = true;
-    const retryPrompt = `${prompt}\n\nYOUR PREVIOUS RESPONSE EXCEEDED CHARACTER LIMITS. This time, count each character. Be shorter. This is a hard constraint — the ad platform will reject text that is too long.`;
+  // Retry up to 2 times with increasingly strict prompts if limits violated
+  while (!validateLimits(platform, result as Record<string, unknown>) && retryCount < MAX_RETRIES) {
+    retryCount++;
+    const limits = PLATFORM_LIMITS[platform] ?? {};
+    const r = result as Record<string, string>;
+    const violations = Object.entries(limits)
+      .filter(([field, max]) => r[field] && r[field].length > (max as number))
+      .map(([field, max]) => `${field}: ${r[field]!.length}/${max} chars`)
+      .join(", ");
+
+    const strictness = retryCount === 1
+      ? `YOUR PREVIOUS RESPONSE EXCEEDED CHARACTER LIMITS (${violations}). This time, count each character. Be shorter. This is a hard constraint — the ad platform will reject text that is too long.`
+      : `CRITICAL: You MUST stay under the character limits. Violations: ${violations}. Remove words aggressively. Shorter is better. The ad will be REJECTED if too long.`;
 
     const retryResponse = await generateObject({
       model,
       schema,
-      prompt: retryPrompt,
+      prompt: `${prompt}\n\n${strictness}`,
     });
     result = retryResponse.object as z.infer<typeof schema>;
+  }
+
+  // Final safety: truncate any remaining violations with "..."
+  if (!validateLimits(platform, result as Record<string, unknown>)) {
+    const limits = PLATFORM_LIMITS[platform] ?? {};
+    for (const [field, max] of Object.entries(limits)) {
+      const r = result as Record<string, string>;
+      if (r[field] && r[field].length > (max as number)) {
+        r[field] = r[field].slice(0, (max as number) - 1) + "\u2026";
+      }
+    }
   }
 
   // ── CTA validation (Meta only) ──────────────────────────────
@@ -216,7 +236,7 @@ async function generateSingleVariant(
     latencyMs,
   });
 
-  if (retried) {
+  if (retryCount > 0) {
     traceGeneration(trace, {
       name: `${platform}-${variant}-retry`,
       model: modelName,

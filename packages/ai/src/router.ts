@@ -51,43 +51,43 @@ export function routeModel(input: RouterInput): ModelChoice {
     };
   }
 
-  // Hero copy: Opus 4.6 (best creative quality)
+  // Hero copy: Sonnet 4.6 (high quality, ~5x cheaper than Opus)
   if (input.intent === "copy_generation" && !input.isRegeneration) {
     return {
       provider: "anthropic",
-      modelId: "claude-opus-4-6",
+      modelId: "claude-sonnet-4-6",
       reason: "hero_copy",
-      model: anthropic("claude-opus-4-6"),
+      model: anthropic("claude-sonnet-4-6"),
     };
   }
 
-  // Variants / regeneration: Opus 4.6 (every variant must be top quality)
+  // Variants / regeneration: GPT-4o (fast, diverse, ~10x cheaper than Opus)
   if (input.intent === "copy_variant" || input.isRegeneration) {
     return {
-      provider: "anthropic",
-      modelId: "claude-opus-4-6",
+      provider: "openai",
+      modelId: "gpt-4o",
       reason: "variants",
-      model: anthropic("claude-opus-4-6"),
+      model: openai("gpt-4o"),
     };
   }
 
-  // Brand analysis: Sonnet 4.6 (accurate structured output)
+  // Brand analysis: Haiku (structured extraction, fast, cheap)
   if (input.intent === "analysis") {
     return {
       provider: "anthropic",
-      modelId: "claude-sonnet-4-6",
+      modelId: "claude-haiku-4-5-20251001",
       reason: "analysis",
-      model: anthropic("claude-sonnet-4-6"),
+      model: anthropic("claude-haiku-4-5-20251001"),
     };
   }
 
-  // Optimization: Sonnet 4.6 (quality recommendations)
+  // Optimization: Haiku (data-focused, fast)
   if (input.intent === "optimization") {
     return {
       provider: "anthropic",
-      modelId: "claude-sonnet-4-6",
+      modelId: "claude-haiku-4-5-20251001",
       reason: "optimization",
-      model: anthropic("claude-sonnet-4-6"),
+      model: anthropic("claude-haiku-4-5-20251001"),
     };
   }
 
