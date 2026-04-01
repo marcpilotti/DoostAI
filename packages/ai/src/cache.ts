@@ -3,6 +3,7 @@ import { createHash } from "crypto";
 import { Redis } from "@upstash/redis";
 
 import type { AdCopyResult } from "./types";
+import type { AdStrategySet } from "./agents/ad-strategist";
 
 let _redis: Redis | null = null;
 
@@ -167,6 +168,50 @@ export async function setCachedVariantSet(
     }
   } catch (err) {
     console.warn("[cache] Variant set write failure:", err instanceof Error ? err.message : err);
+  }
+}
+
+// ── Strategy Cache ───────────────────────────────────────────────
+
+export function buildStrategyKey(
+  brandName: string,
+  platform: string,
+  goal: string,
+  audience: string,
+  language: string,
+): string {
+  const parts = [
+    brandName.trim().toLowerCase(),
+    platform.trim().toLowerCase(),
+    goal.trim().toLowerCase(),
+    audience.trim().toLowerCase().slice(0, 50),
+    language.trim().toLowerCase(),
+  ].join("|");
+  const hash = createHash("sha256").update(parts).digest("hex").slice(0, 16);
+  return `strategy:${hash}`;
+}
+
+export async function getCachedStrategy(cacheKey: string): Promise<AdStrategySet | null> {
+  const redis = getRedis();
+  if (!redis) return null;
+  try {
+    return (await redis.get<AdStrategySet>(cacheKey)) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function setCachedStrategy(
+  cacheKey: string,
+  result: AdStrategySet,
+  ttlSeconds: number = 3600,
+): Promise<void> {
+  const redis = getRedis();
+  if (!redis) return;
+  try {
+    await redis.setex(cacheKey, ttlSeconds, result);
+  } catch (err) {
+    console.warn("[cache] Strategy write failure:", err instanceof Error ? err.message : err);
   }
 }
 

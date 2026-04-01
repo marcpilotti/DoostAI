@@ -9,6 +9,7 @@ import { BrandSlide } from "./BrandSlide";
 import { EditorSlide } from "./EditorSlide";
 import { PublishSlide } from "./PublishSlide";
 import { DoneSlide } from "./DoneSlide";
+import { prewarmAdImages } from "@/lib/image-prewarm";
 
 import type { AdData, AdFormat } from "@/components/ads/ad-preview/types";
 
@@ -244,6 +245,17 @@ export function OnboardingShell() {
     (profile: BrandProfile) => {
       brandRef.current = profile;
       trackStep("analysis_complete", { brand: profile.name });
+
+      // Start pre-warming ad images NOW — user will review BrandSlide for 10-30s.
+      // By the time they click "Stämmer" and EditorSlide mounts, images are cached.
+      if (profile.colors?.primary) {
+        prewarmAdImages({
+          name: profile.name,
+          industry: profile.industry,
+          primaryColor: profile.colors.primary,
+        });
+      }
+
       setStep("brand");
     },
     [],

@@ -83,28 +83,19 @@ export async function POST(req: Request) {
           url: brand.url,
         };
 
-        // ── Step 1: Strategy ─────────────────────────────────────
+        // ── Strategy + Copy + Images — ALL in parallel ────────────
+        // Strategy is NOT passed to generateAdCopy (only forwarded to client),
+        // so there's no reason to block copy on strategy completion.
         send({ event: "progress", message: "Bygger din annons...", progress: 10 });
 
-        const strategy = await generateAdStrategy({
-          brand: brandContext,
-          platform,
-          goal: objective ?? "lead generation",
-          audience: audience ?? brand.targetAudience ?? "Swedish consumers 25-55",
-          language: detectedLanguage,
-        }).catch((err) => {
-          console.warn("[AdGenerate] Strategy failed:", err instanceof Error ? err.message : err);
-          return null;
-        });
-
-        if (strategy) {
-          send({ event: "strategy", strategy });
-        }
-
-        // ── Step 2: Copy + Images in parallel ────────────────────
-        send({ event: "progress", message: "Skriver rubrik och text...", progress: 30 });
-
-        const [copySettled, aiImageA, aiImageB, unsplashBgUrl] = await Promise.allSettled([
+        const [strategySettled, copySettled, aiImageA, aiImageB, unsplashBgUrl] = await Promise.allSettled([
+          generateAdStrategy({
+            brand: brandContext,
+            platform,
+            goal: objective ?? "lead generation",
+            audience: audience ?? brand.targetAudience ?? "Swedish consumers 25-55",
+            language: detectedLanguage,
+          }),
           generateAdCopy(brandContext, platform as Platform, objective ?? "lead generation", {
             language: detectedLanguage,
             variants: 2,
@@ -127,6 +118,12 @@ export async function POST(req: Request) {
           }),
           getIndustryBackground(brand.industry ?? ""),
         ]);
+
+        // Extract strategy (non-critical — UI-only metadata)
+        const strategy = strategySettled.status === "fulfilled" ? strategySettled.value : null;
+        if (strategy) {
+          send({ event: "strategy", strategy });
+        }
 
         // Handle copy generation failure
         if (copySettled.status === "rejected") {

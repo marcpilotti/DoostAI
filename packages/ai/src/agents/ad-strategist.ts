@@ -135,12 +135,21 @@ Then create TWO detailed image generation prompts:
 Finally, recommend which variant to start with and why (one sentence).`;
 
   try {
+    // Check cache first (1h TTL)
+    const { buildStrategyKey, getCachedStrategy, setCachedStrategy } = await import("../cache");
+    const cacheKey = buildStrategyKey(brand.name, platform, goal, audience, language);
+    const cached = await getCachedStrategy(cacheKey);
+    if (cached) return cached;
+
     const { object } = await generateObject({
       model: anthropic("claude-sonnet-4-6"),
       schema: strategySchema,
       prompt,
-      temperature: 0.7, // Creative diversity
+      temperature: 0.7,
     });
+
+    // Cache for 1 hour
+    await setCachedStrategy(cacheKey, object, 3600).catch(() => {});
 
     return object;
   } catch (err) {
