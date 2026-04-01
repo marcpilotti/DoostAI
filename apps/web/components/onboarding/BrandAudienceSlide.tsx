@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, ChevronDown, Pencil, Users } from "lucide-react";
+import { ArrowRight, Briefcase, ChevronDown, MapPin, Pencil, Users } from "lucide-react";
 import { useState } from "react";
 
 import type { BrandProfile } from "./OnboardingShell";
@@ -31,14 +31,14 @@ function InlineEdit({ value, onSave }: { value: string; onSave: (v: string) => v
         type="text" defaultValue={value} autoFocus
         onKeyDown={(e) => { if (e.key === "Enter") handleSave((e.target as HTMLInputElement).value); }}
         onBlur={(e) => handleSave(e.target.value)}
-        className="w-full bg-transparent text-[15px] font-semibold text-foreground outline-none border-b border-foreground/20"
+        className="w-full rounded-lg bg-muted/30 px-3 py-2 text-[15px] font-semibold text-foreground outline-none ring-2 ring-primary/30"
       />
     );
   }
   return (
-    <button onClick={() => setEditing(true)} className="group flex w-full items-center gap-1.5 text-left">
-      <span className="text-[15px] font-semibold text-foreground">{value || "—"}</span>
-      <Pencil className="h-3 w-3 shrink-0 text-muted-foreground/20 opacity-0 transition-opacity group-hover:opacity-100" />
+    <button onClick={() => setEditing(true)} className="group flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition-colors hover:bg-muted/20">
+      <span className="text-[15px] font-semibold text-foreground">{value || "Klicka för att ange..."}</span>
+      <Pencil className="h-3.5 w-3.5 shrink-0 text-muted-foreground/30 opacity-0 transition-opacity group-hover:opacity-100" />
     </button>
   );
 }
@@ -63,6 +63,8 @@ export function BrandAudienceSlide({ profile, onConfirm, onBack }: {
     onConfirm({ ...profile, industry: resolvedIndustry, location, targetAudience });
   }
 
+  const stagger = (i: number) => prefersReduced ? {} : { initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 }, transition: { delay: 0.08 * i, duration: 0.3 } };
+
   return (
     <div className="flex h-full flex-col items-center justify-center px-4 pt-[72px] sm:px-6">
       <div className="w-full max-w-lg">
@@ -83,12 +85,15 @@ export function BrandAudienceSlide({ profile, onConfirm, onBack }: {
             </div>
           </div>
 
-          {/* ── Fields ────────────────────────────────────────── */}
-          <div className="divide-y divide-border/20">
+          {/* ── Field cards ───────────────────────────────────── */}
+          <div className="space-y-3 p-4">
             {/* Bransch */}
-            <div className="px-6 py-5">
-              <div className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/40">Bransch</div>
-              <div className="flex items-center gap-1.5">
+            <motion.div {...stagger(0)} className="rounded-xl bg-muted/20 p-4">
+              <div className="mb-3 flex items-center gap-2">
+                <Briefcase className="h-4 w-4 text-muted-foreground/40" />
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">Bransch</span>
+              </div>
+              <div className="flex items-center gap-1.5 rounded-lg bg-white px-3 py-2.5 shadow-sm ring-1 ring-border/10">
                 <select
                   value={industry}
                   onChange={(e) => { setIndustry(e.target.value); if (e.target.value !== CUSTOM_INDUSTRY_VALUE) setCustomIndustry(""); }}
@@ -106,26 +111,32 @@ export function BrandAudienceSlide({ profile, onConfirm, onBack }: {
                   onChange={(e) => setCustomIndustry(e.target.value)}
                   placeholder="Ange bransch..."
                   autoFocus
-                  className="mt-2 w-full bg-transparent text-[14px] text-foreground outline-none border-b border-foreground/20 placeholder:text-muted-foreground/30"
+                  className="mt-2 w-full rounded-lg bg-white px-3 py-2 text-[14px] text-foreground shadow-sm outline-none ring-1 ring-border/10 placeholder:text-muted-foreground/30 focus:ring-2 focus:ring-primary/30"
                 />
               )}
-            </div>
+            </motion.div>
 
             {/* Målgrupp */}
-            <div className="px-6 py-5">
-              <div className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/40">Målgrupp</div>
+            <motion.div {...stagger(1)} className="rounded-xl bg-muted/20 p-4">
+              <div className="mb-3 flex items-center gap-2">
+                <Users className="h-4 w-4 text-muted-foreground/40" />
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">Målgrupp</span>
+              </div>
               <InlineEdit value={targetAudience} onSave={setTargetAudience} />
-            </div>
+            </motion.div>
 
             {/* Plats */}
-            <div className="px-6 py-5">
-              <div className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/40">Plats</div>
+            <motion.div {...stagger(2)} className="rounded-xl bg-muted/20 p-4">
+              <div className="mb-3 flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-muted-foreground/40" />
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">Plats</span>
+              </div>
               <InlineEdit value={location} onSave={setLocation} />
-            </div>
+            </motion.div>
           </div>
 
           {/* ── CTA ───────────────────────────────────────────── */}
-          <div className="px-6 pb-6 pt-3">
+          <div className="px-6 pb-6 pt-2">
             <button
               onClick={handleConfirm}
               className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3.5 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-[0.98]"
