@@ -353,15 +353,15 @@
   to { stroke-dashoffset: -10; }
 }
 
-/* Focus visible — global accessibility rule (in @layer base so Tailwind utilities can override) */
+/* Focus visible — only for buttons, links, and custom roles.
+   Inputs/selects/textareas handle their own focus via component classes. */
 @layer base {
   button:focus-visible,
   a:focus-visible,
-  input:focus-visible,
-  select:focus-visible,
-  textarea:focus-visible,
   [role="tab"]:focus-visible,
-  [role="radio"]:focus-visible {
+  [role="radio"]:focus-visible,
+  [role="option"]:focus-visible,
+  [tabindex]:focus-visible:not(input):not(select):not(textarea) {
     outline: 2px solid var(--doost-bg-active, #1A1A1A);
     outline-offset: 2px;
     border-radius: var(--doost-radius-sm, 6px);
