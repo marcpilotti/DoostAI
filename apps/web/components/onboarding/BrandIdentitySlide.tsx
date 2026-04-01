@@ -170,9 +170,9 @@ export function BrandIdentitySlide({ profile, onConfirm, onBack }: {
           <div className="px-6 pb-6 pt-2">
             <button
               onClick={handleConfirm}
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 py-3.5 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-[0.98]"
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3.5 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-[0.98]"
             >
-              Stämmer — gå vidare
+              Allt ser bra ut
               <ArrowRight className="h-4 w-4" />
             </button>
             {onBack && (

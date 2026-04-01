@@ -462,7 +462,7 @@ export function OnboardingShell() {
                 <div
                   key={s}
                   className={`h-1.5 rounded-full transition-all duration-500 ease-out ${
-                    isActive ? "w-6 scale-110 bg-foreground" : isPast ? "w-1.5 bg-foreground/40" : "w-1.5 bg-foreground/10"
+                    isActive ? "w-6 scale-110 bg-primary" : isPast ? "w-1.5 bg-primary/40" : "w-1.5 bg-foreground/10"
                   }`}
                 />
               );

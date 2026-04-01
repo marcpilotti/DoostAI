@@ -274,7 +274,7 @@ export function PublishSlide({
           <button
             onClick={handlePublish}
             disabled={isPublishing}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-6 py-3.5 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-60"
           >
             {isPublishing ? (
               <>

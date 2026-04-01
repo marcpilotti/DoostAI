@@ -187,7 +187,7 @@ export function LoadingSlide({
           )}
           <button
             onClick={analyze}
-            className="flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-[13px] font-semibold text-white hover:opacity-90 active:scale-95"
+            className="flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-[13px] font-semibold text-white hover:opacity-90 active:scale-95"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Försök igen
@@ -229,7 +229,7 @@ export function LoadingSlide({
 
       <div className="mt-6 w-full max-w-xs">
         <div className="h-1 w-full overflow-hidden rounded-full bg-muted-foreground/10">
-          <motion.div className="h-full rounded-full bg-foreground/60" animate={{ width: `${progress}%` }} transition={{ duration: 1.5, ease: "easeOut" }} />
+          <motion.div className="h-full rounded-full bg-primary/60" animate={{ width: `${progress}%` }} transition={{ duration: 1.5, ease: "easeOut" }} />
         </div>
       </div>
     </div>

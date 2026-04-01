@@ -167,7 +167,7 @@ export function DoneSlide({ brandName, onDashboard, onRestart }: { brandName?: s
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.8 }}
         onClick={onDashboard}
-        className="flex items-center gap-2 rounded-full bg-foreground px-8 py-3 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-95"
+        className="flex items-center gap-2 rounded-full bg-primary px-8 py-3 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-95"
       >
         Gå till dashboard
         <ArrowRight className="h-4 w-4" />
