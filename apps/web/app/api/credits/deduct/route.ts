@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { deductCredits } from "@/lib/credits/deduct";
 
@@ -11,6 +12,11 @@ const inputSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  const { userId, orgId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const body = await req.json();
   const parsed = inputSchema.safeParse(body);
 
@@ -19,6 +25,12 @@ export async function POST(req: Request) {
   }
 
   const { organizationId, amount, type, model, description } = parsed.data;
+
+  // Verify the user belongs to the organization they're deducting from
+  if (orgId && organizationId !== orgId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const result = await deductCredits(organizationId, amount, { type, model, description });
 
   if (!result.success) {

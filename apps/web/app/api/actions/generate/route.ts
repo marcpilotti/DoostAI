@@ -82,12 +82,9 @@ Return ONLY the JSON array, no markdown, no explanation.`,
     });
   } catch (err) {
     console.error("[actions/generate] Error:", err);
-    return NextResponse.json({
-      actions: [
-        { id: "1", title: "Scale Holiday Sale 2025", description: "ROAS is 3.2x and stable — increase budget by 20%.", priority: "high", type: "scale_budget", target: "Holiday Sale 2025", params: { budget_increase_pct: 20 }, status: "pending" },
-        { id: "2", title: "Refresh Black Friday creative", description: "CTR declining. New creative could recover 0.5% CTR.", priority: "medium", type: "refresh_creative", target: "Black Friday", params: {}, status: "pending" },
-        { id: "3", title: "Pause Brand Awareness Q1", description: "Campaign completed. No reason to keep it active.", priority: "low", type: "pause_campaign", target: "Brand Awareness Q1", params: {}, status: "pending" },
-      ],
-    });
+    return NextResponse.json(
+      { error: "Kunde inte generera åtgärder. Försök igen.", actions: [] },
+      { status: 500 },
+    );
   }
 }

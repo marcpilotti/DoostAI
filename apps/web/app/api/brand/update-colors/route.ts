@@ -1,20 +1,28 @@
 import { z } from "zod";
-import { brandProfiles, db, eq } from "@doost/db";
+import { auth } from "@clerk/nextjs/server";
+import { brandProfiles, db, eq, and } from "@doost/db";
 import { invalidateBrandCopy } from "@doost/ai";
 import { invalidateBrandCache } from "@/lib/cache/brand-cache";
+
+const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 
 const inputSchema = z.object({
   brandProfileId: z.string().uuid(),
   colors: z.object({
-    primary: z.string(),
-    secondary: z.string(),
-    accent: z.string(),
-    background: z.string(),
-    text: z.string(),
+    primary: z.string().regex(HEX_RE, "Invalid hex color"),
+    secondary: z.string().regex(HEX_RE, "Invalid hex color"),
+    accent: z.string().regex(HEX_RE, "Invalid hex color"),
+    background: z.string().regex(HEX_RE, "Invalid hex color"),
+    text: z.string().regex(HEX_RE, "Invalid hex color"),
   }),
 });
 
 export async function POST(req: Request) {
+  const { userId, orgId } = await auth();
+  if (!userId) {
+    return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+
   let body: unknown;
   try { body = await req.json(); } catch {
     return Response.json({ success: false, error: "Invalid JSON" }, { status: 400 });
@@ -27,10 +35,15 @@ export async function POST(req: Request) {
 
   const { brandProfileId, colors } = parsed.data;
 
+  // Ensure the brand profile belongs to the user's organization
   const [updated] = await db
     .update(brandProfiles)
     .set({ colors, updatedAt: new Date() })
-    .where(eq(brandProfiles.id, brandProfileId))
+    .where(
+      orgId
+        ? and(eq(brandProfiles.id, brandProfileId), eq(brandProfiles.orgId, orgId))
+        : eq(brandProfiles.id, brandProfileId),
+    )
     .returning({ id: brandProfiles.id, orgId: brandProfiles.orgId });
 
   if (!updated) {

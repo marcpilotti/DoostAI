@@ -74,6 +74,12 @@ Be concise and actionable. Use markdown.`;
       creditsRemaining: deduction.balanceAfter,
     });
   } catch (err) {
+    // Refund credits on failure — generation was charged but didn't complete
+    await deductCredits(orgId, -3, {
+      type: "refund",
+      description: "Refund: creative analysis failed",
+    });
+
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Analysis failed" },
       { status: 500 },

@@ -3,7 +3,7 @@ import { z } from "zod";
 import {
   buildBrandProfile,
   enrichCompany,
-  scrapeBrand,
+  scrapeWithFallback,
   generateHarmonySet,
 } from "@doost/brand";
 import { runBrandIntelligencePipeline } from "@doost/intelligence";
@@ -44,11 +44,16 @@ export async function POST(req: Request) {
     url = `https://${url}`;
   }
 
-  // Server-side SSRF protection
+  // Server-side SSRF protection — block private, loopback, and link-local ranges
   const hostname = new URL(url).hostname.toLowerCase();
-  const blocked = /^(localhost|127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|169\.254\.|0\.0\.0\.0|::1|\[::1\])/.test(hostname)
-    || hostname.endsWith(".internal") || hostname.endsWith(".local");
-  if (blocked) {
+  const isPrivate =
+    /^(localhost|127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+|169\.254\.\d+\.\d+|0\.0\.0\.0|::1|\[::1\]|fc[0-9a-f]{2}:|fd[0-9a-f]{2}:|fe80:)/.test(hostname)
+    || hostname.endsWith(".internal")
+    || hostname.endsWith(".local")
+    || hostname.endsWith(".localhost")
+    || hostname === "[::1]"
+    || /^\d+$/.test(hostname); // bare numbers (e.g. http://0)
+  if (isPrivate) {
     return new Response(JSON.stringify({ error: "URL not allowed" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
@@ -65,11 +70,11 @@ export async function POST(req: Request) {
       try {
         const domain = url.replace(/^https?:\/\//, "").replace(/\/$/, "");
 
-        // ── Step 1: Scrape + Enrich ────────────────────────────
+        // ── Step 1: Scrape + Enrich (parallel) ────────────────
         send({ message: `Hämtar ${domain}...`, progress: 10 });
 
         const [scrapeSettled, enrichSettled] = await Promise.allSettled([
-          scrapeBrand(url),
+          scrapeWithFallback(url),
           enrichCompany(url),
         ]);
 
@@ -94,6 +99,18 @@ export async function POST(req: Request) {
 
         const enrichment =
           enrichSettled.status === "fulfilled" ? enrichSettled.value : null;
+
+        // Schedule background retry if enrichment failed (non-blocking)
+        if (!enrichment) {
+          fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/inngest`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: "brand/retry-enrichment",
+              data: { domain, attempt: 1 },
+            }),
+          }).catch(() => { /* non-blocking */ });
+        }
 
         // Show company name if enrichment found it
         if (enrichment?.name) {
@@ -158,11 +175,12 @@ export async function POST(req: Request) {
             ? { heading: intel.font.value.family, body: intel.font.value.family }
             : clean.fonts;
 
-        const _colorHarmony = generateHarmonySet(
-          finalColors.primary,
-          finalColors.secondary,
-          finalColors.accent,
-        );
+        // Validate colors before harmony generation
+        const isHex = (c: unknown): c is string => typeof c === "string" && /^#[0-9a-fA-F]{6}$/.test(c);
+        const _colorHarmony =
+          isHex(finalColors.primary) && isHex(finalColors.secondary) && isHex(finalColors.accent)
+            ? generateHarmonySet(finalColors.primary, finalColors.secondary, finalColors.accent)
+            : null;
 
         const result = {
           ...clean,

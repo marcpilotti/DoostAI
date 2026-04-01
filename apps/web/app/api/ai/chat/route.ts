@@ -1,5 +1,7 @@
-import { streamText } from "ai";
+import { streamText, tool } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
+import { openai } from "@ai-sdk/openai";
+import { generateText } from "ai";
 import { z } from "zod";
 
 export const maxDuration = 90;
@@ -11,6 +13,14 @@ const RATE_LIMIT_WINDOW_MS = 60_000;
 
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
+
+  // Prune expired entries periodically (every 100 calls)
+  if (rateLimitMap.size > 100) {
+    for (const [key, val] of rateLimitMap) {
+      if (now > val.resetAt) rateLimitMap.delete(key);
+    }
+  }
+
   const entry = rateLimitMap.get(ip);
   if (!entry || now > entry.resetAt) {
     rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
@@ -101,6 +111,32 @@ Available action types:
       role: m.role as "user" | "assistant",
       content: m.content,
     })),
+    tools: {
+      edit_creative: tool({
+        description: "Edit a specific field of ad copy (headline, body text, or CTA). Use when user asks to change, shorten, improve, or rewrite ad copy.",
+        inputSchema: z.object({
+          field: z.enum(["headline", "bodyCopy", "cta"]).describe("Which field to edit"),
+          instruction: z.string().describe("What the user wants changed, e.g. 'make it shorter' or 'more professional'"),
+          currentText: z.string().describe("The current text of the field"),
+        }),
+        execute: async ({ field, instruction, currentText }: { field: string; instruction: string; currentText: string }) => {
+          try {
+            const { text } = await generateText({
+              model: openai("gpt-4o"),
+              prompt: `You are an ad copywriter. Edit this ${field}:
+
+Current text: "${currentText}"
+Instruction: ${instruction}
+
+Return ONLY the new text, nothing else. Keep it concise. Match the original language (Swedish or English).`,
+            });
+            return { success: true, field, before: currentText, after: text.trim() };
+          } catch {
+            return { success: false, field, error: "Kunde inte redigera texten" };
+          }
+        },
+      }),
+    },
   });
 
   return result.toTextStreamResponse();

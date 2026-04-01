@@ -38,7 +38,7 @@ const inputSchema = z.object({
  * Stores brand profile + ad creative + campaign settings.
  */
 export async function POST(req: Request) {
-  const { userId } = await auth();
+  const { userId, orgId } = await auth();
   if (!userId) {
     return new Response(
       JSON.stringify({ success: false, error: "Unauthorized" }),
@@ -96,6 +96,8 @@ export async function POST(req: Request) {
         ? new Date(Date.now() + data.duration * 86400000).toISOString()
         : null,
       targeting: { regions: data.regions },
+      org_id: orgId ?? undefined,
+      user_id: userId,
     }).select("id, name, status").single(),
   );
 

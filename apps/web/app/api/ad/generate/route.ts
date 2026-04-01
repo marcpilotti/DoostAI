@@ -88,35 +88,44 @@ export async function POST(req: Request) {
         // so there's no reason to block copy on strategy completion.
         send({ event: "progress", message: "Bygger din annons...", progress: 10 });
 
+        // Wrap each promise with a 30s timeout to prevent hanging
+        const withTimeout = <T>(p: Promise<T>, label: string, ms = 30_000): Promise<T> =>
+          Promise.race([
+            p,
+            new Promise<never>((_, reject) =>
+              setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms),
+            ),
+          ]);
+
         const [strategySettled, copySettled, aiImageA, aiImageB, unsplashBgUrl] = await Promise.allSettled([
-          generateAdStrategy({
+          withTimeout(generateAdStrategy({
             brand: brandContext,
             platform,
             goal: objective ?? "lead generation",
             audience: audience ?? brand.targetAudience ?? "Swedish consumers 25-55",
             language: detectedLanguage,
-          }),
-          generateAdCopy(brandContext, platform as Platform, objective ?? "lead generation", {
+          }), "strategy"),
+          withTimeout(generateAdCopy(brandContext, platform as Platform, objective ?? "lead generation", {
             language: detectedLanguage,
             variants: 2,
-          }),
-          generateAdBackground({
+          }), "copy"),
+          withTimeout(generateAdBackground({
             industry: brand.industry ?? "",
             brandName: brand.name,
             primaryColor: brand.colors.primary ?? "#6366f1",
             accentColor: brand.colors.accent,
             style: "modern",
             format: "square",
-          }),
-          generateAdBackground({
+          }), "imageA"),
+          withTimeout(generateAdBackground({
             industry: brand.industry ?? "",
             brandName: brand.name,
             primaryColor: brand.colors.accent ?? brand.colors.secondary ?? "#4f46e5",
             accentColor: brand.colors.primary ?? "#6366f1",
             style: "premium",
             format: "square",
-          }),
-          getIndustryBackground(brand.industry ?? ""),
+          }), "imageB"),
+          withTimeout(getIndustryBackground(brand.industry ?? ""), "unsplash", 10_000),
         ]);
 
         // Extract strategy (non-critical — UI-only metadata)
