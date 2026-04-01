@@ -94,6 +94,7 @@ export default function ActionsPage() {
         const data = await res.json();
         setActions((prev) => prev.map((a) => a.id === action.id ? { ...a, status: "done" } : a));
         toast.success("Action executed", data.message ?? action.title);
+        try { (window as any).posthog?.capture("action_executed", { type: action.type, target: action.target }); } catch {}
       } else {
         setActions((prev) => prev.map((a) => a.id === action.id ? { ...a, status: "failed" } : a));
         toast.error("Action failed", `Could not execute: ${action.title}`);

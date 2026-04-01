@@ -38,11 +38,13 @@ export default function CampaignDetailPage() {
   function handlePause() {
     setStatus("paused");
     toast.success("Campaign paused", campaign!.name);
+    try { (window as any).posthog?.capture("campaign_paused", { campaign_id: id, campaign_name: campaign!.name }); } catch {}
   }
 
   function handleResume() {
     setStatus("live");
     toast.success("Campaign resumed", campaign!.name);
+    try { (window as any).posthog?.capture("campaign_resumed", { campaign_id: id, campaign_name: campaign!.name }); } catch {}
   }
 
   return (

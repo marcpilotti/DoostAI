@@ -23,7 +23,11 @@ const isPublicRoute = createRouteMatcher([
 
 export default clerkMiddleware(async (auth, req) => {
   // Public routes — no auth required
-  if (isPublicRoute(req)) return;
+  if (isPublicRoute(req)) {
+    const response = NextResponse.next();
+    response.headers.set("X-Request-Id", crypto.randomUUID());
+    return response;
+  }
 
   // Protected routes — require authentication
   if (isProtectedRoute(req)) {
@@ -33,12 +37,19 @@ export default clerkMiddleware(async (auth, req) => {
       if (req.nextUrl.pathname.startsWith("/api/")) {
         return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "X-Request-Id": crypto.randomUUID() },
         });
       }
-      return NextResponse.redirect(new URL("/sign-in", req.url));
+      const redirect = NextResponse.redirect(new URL("/sign-in", req.url));
+      redirect.headers.set("X-Request-Id", crypto.randomUUID());
+      return redirect;
     }
   }
+
+  // Default: add X-Request-Id to all responses
+  const response = NextResponse.next();
+  response.headers.set("X-Request-Id", crypto.randomUUID());
+  return response;
 });
 
 export const config = {

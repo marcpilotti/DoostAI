@@ -14,18 +14,23 @@ export async function GET() {
     // db unreachable
   }
 
-  // Check Redis (Upstash)
+  // Check Redis (Upstash) with 5s timeout
   try {
     const url = process.env.UPSTASH_REDIS_REST_URL;
     const token = process.env.UPSTASH_REDIS_REST_TOKEN;
     if (url && token) {
-      const res = await fetch(`${url}/ping`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await Promise.race([
+        fetch(`${url}/ping`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Redis health check timed out")), 5000),
+        ),
+      ]);
       if (res.ok) checks.redis = "ok";
     }
   } catch {
-    // redis unreachable
+    // redis unreachable or timed out
   }
 
   const allOk = Object.values(checks).every((v) => v === "ok");

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 
 const inputSchema = z.object({
@@ -13,6 +14,13 @@ const inputSchema = z.object({
  * Executes a specific AI-recommended action.
  */
 export async function POST(req: Request) {
+  const { userId } = await auth();
+  if (!userId) {
+    return new Response(
+      JSON.stringify({ success: false, error: "Unauthorized" }),
+      { status: 401, headers: { "Content-Type": "application/json" } },
+    );
+  }
   const body = await req.json();
   const parsed = inputSchema.safeParse(body);
 

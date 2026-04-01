@@ -44,6 +44,7 @@ export default function RootLayout({
       <head>
         <meta name="theme-color" content="#6366f1" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
+        <link rel="manifest" href="/manifest.json" />
       </head>
       <body
         className={`${inter.variable} ${marker.variable} font-sans antialiased`}

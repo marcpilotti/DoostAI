@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { generateText } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { z } from "zod";
@@ -12,6 +13,13 @@ export const maxDuration = 60;
  * AI analyzes current campaign/creative data and generates smart action items.
  */
 export async function POST() {
+  const { userId } = await auth();
+  if (!userId) {
+    return new Response(
+      JSON.stringify({ success: false, error: "Unauthorized" }),
+      { status: 401, headers: { "Content-Type": "application/json" } },
+    );
+  }
   const campaignSummary = MOCK_CAMPAIGNS.map((c) =>
     `- ${c.name} (${c.platform}, ${c.status}): ROAS ${c.roas}x, Spend $${c.totalSpend}, CTR ${c.ctr}%, Budget $${c.dailyBudget}/day`,
   ).join("\n");

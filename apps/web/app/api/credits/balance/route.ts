@@ -6,5 +6,5 @@ export async function GET(req: Request) {
   const orgId = searchParams.get("orgId") ?? "demo";
 
   const balance = await getBalance(orgId);
-  return NextResponse.json({ balance });
+  return NextResponse.json({ success: true, data: { balance } });
 }

@@ -80,6 +80,16 @@
     --ring: 212.7 26.8% 83.9%;
     --brand-blue: 216 70% 55%;
     --brand-teal: 170 100% 39%;
+
+    /* Doost Dashboard tokens — dark mode */
+    --doost-bg: #1A1A1A;
+    --doost-bg-secondary: #111111;
+    --doost-bg-card: #222222;
+    --doost-bg-active: #FFFFFF;
+    --doost-text: #F5F5F5;
+    --doost-text-secondary: #A0A0A0;
+    --doost-text-muted: #666666;
+    --doost-border: #333333;
   }
 }
 

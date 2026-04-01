@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { supabase, safeQuery } from "@/lib/supabase";
 
@@ -26,6 +27,9 @@ const inputSchema = z.object({
   duration: z.number(),
   regions: z.array(z.string()),
   channel: z.string(),
+
+  // Idempotency
+  idempotencyKey: z.string().optional(),
 });
 
 /**
@@ -34,6 +38,13 @@ const inputSchema = z.object({
  * Stores brand profile + ad creative + campaign settings.
  */
 export async function POST(req: Request) {
+  const { userId } = await auth();
+  if (!userId) {
+    return new Response(
+      JSON.stringify({ success: false, error: "Unauthorized" }),
+      { status: 401, headers: { "Content-Type": "application/json" } },
+    );
+  }
   let body: unknown;
   try { body = await req.json(); } catch {
     return NextResponse.json({ success: false, error: "Invalid JSON" }, { status: 400 });
@@ -45,6 +56,33 @@ export async function POST(req: Request) {
   }
 
   const data = parsed.data;
+
+  // Idempotency: check for duplicate campaign (same brand + channel + budget) in last 5 minutes
+  const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+  const existing = await safeQuery(() =>
+    supabase
+      .from("campaigns")
+      .select("id, name, status")
+      .eq("platform", data.channel)
+      .eq("daily_budget", data.dailyBudget)
+      .gte("created_at", fiveMinAgo)
+      .ilike("name", `${data.brandName}%`)
+      .limit(1)
+      .maybeSingle(),
+  );
+
+  if (existing && typeof existing === "object" && "id" in existing) {
+    return NextResponse.json({
+      success: true,
+      data: {
+        campaignId: (existing as { id: string }).id,
+        name: data.brandName,
+        status: (existing as { status: string }).status ?? "review",
+        message: "Duplicate detected — returning existing campaign.",
+        deduplicated: true,
+      },
+    });
+  }
 
   // Try to create campaign in Supabase
   const campaign = await safeQuery(() =>

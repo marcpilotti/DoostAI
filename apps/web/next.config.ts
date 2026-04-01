@@ -26,8 +26,7 @@ const nextConfig: NextConfig = {
     "@mendable/firecrawl-js",
   ],
   eslint: {
-    // TODO: Fix lint errors and re-enable
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   webpack: (config) => {
     config.module.rules.push({

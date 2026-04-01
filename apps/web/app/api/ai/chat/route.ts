@@ -4,6 +4,22 @@ import { z } from "zod";
 
 export const maxDuration = 90;
 
+// In-memory rate limiter: max 20 requests per minute per IP
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_MAX = 20;
+const RATE_LIMIT_WINDOW_MS = 60_000;
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  entry.count += 1;
+  return entry.count <= RATE_LIMIT_MAX;
+}
+
 const inputSchema = z.object({
   messages: z.array(z.object({
     role: z.enum(["system", "user", "assistant"]),
@@ -22,6 +38,17 @@ const inputSchema = z.object({
  * as an executable button.
  */
 export async function POST(req: Request) {
+  // Rate limit by IP
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+    ?? req.headers.get("x-real-ip")
+    ?? "unknown";
+  if (!checkRateLimit(ip)) {
+    return new Response(
+      JSON.stringify({ error: "Too many requests. Please wait a moment." }),
+      { status: 429, headers: { "Content-Type": "application/json", "Retry-After": "60" } },
+    );
+  }
+
   let body: unknown;
   try { body = await req.json(); } catch {
     return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400 });
