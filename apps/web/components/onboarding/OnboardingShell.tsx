@@ -208,7 +208,9 @@ const STEP_LABELS: Record<string, string> = {
 export function OnboardingShell() {
   // Restore saved session
   const [saved] = useState(() => loadSession());
-  const [step, setStep] = useState<Step>(saved?.step ?? "url");
+  // Map legacy "brand" step to the new "brand-identity" step
+  const initialStep = saved?.step === "brand" ? "brand-identity" : (saved?.step ?? "url");
+  const [step, setStep] = useState<Step>(initialStep as Step);
   const [transitionMessage, setTransitionMessage] = useState<string | null>(null);
   const prefersReduced = useReducedMotion();
 
@@ -241,7 +243,7 @@ export function OnboardingShell() {
     function handlePopState(e: PopStateEvent) {
       const prevStep = (e.state as { step?: Step } | null)?.step;
       if (prevStep) {
-        setStep(prevStep);
+        setStep(prevStep === "brand" ? "brand-identity" : prevStep);
       } else {
         setStep("url");
       }
@@ -450,25 +452,8 @@ export function OnboardingShell() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo.svg" alt="Doost AI" className="h-6" />
 
-        {/* Progress stepper dots */}
-        {step && step !== "url" && (
-          <div className="flex items-center gap-1.5">
-            {(["loading", "brand-identity", "brand-audience", "brand-channels", "editor", "publish", "done"] as const).map((s, i) => {
-              const steps: Step[] = ["loading", "brand-identity", "brand-audience", "brand-channels", "editor", "publish", "done"];
-              const currentIdx = steps.indexOf(step);
-              const isActive = s === step;
-              const isPast = i < currentIdx;
-              return (
-                <div
-                  key={s}
-                  className={`h-1.5 rounded-full transition-all duration-500 ease-out ${
-                    isActive ? "w-6 scale-110 bg-primary" : isPast ? "w-1.5 bg-primary/40" : "w-1.5 bg-foreground/10"
-                  }`}
-                />
-              );
-            })}
-          </div>
-        )}
+        {/* Spacer — stepper dots removed for cleaner UI */}
+        <div />
 
         <Link
           href="/sign-in"
