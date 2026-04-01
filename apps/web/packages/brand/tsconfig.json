@@ -1,9 +1,0 @@
-{
-  "extends": "@doost/config/tsconfig/library",
-  "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": "./src"
-  },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist"]
-}
