@@ -95,6 +95,18 @@ export function EditorSlide({
   const platform = PLATFORMS[platformIdx]!;
   const abortRef = useRef<AbortController | null>(null);
 
+  // #43 Escape key → go back (skip when user is typing in an input/textarea)
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key !== "Escape") return;
+      const tag = document.activeElement?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      onBack();
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onBack]);
+
   // Cache results per platform — switching doesn't re-generate
   const resultCacheRef = useRef<Record<string, GenerateResult>>({});
 

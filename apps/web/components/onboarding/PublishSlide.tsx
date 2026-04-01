@@ -51,6 +51,18 @@ export function PublishSlide({
     return "stockholm";
   });
 
+  // #43 Escape key → go back (skip when user is typing in an input/textarea)
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key !== "Escape") return;
+      const tag = document.activeElement?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      onBack();
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onBack]);
+
   // #17 Draft save
   const [draftSaved, setDraftSaved] = useState(false);
 
@@ -147,7 +159,7 @@ export function PublishSlide({
                   }`}
                 >
                   {b.recommended && (
-                    <span className={`absolute -top-2 left-1/2 -translate-x-1/2 rounded-full px-2 py-px text-[8px] font-bold ${budget === b.daily ? "bg-white/80 text-foreground" : "bg-foreground text-white"}`}>★</span>
+                    <span className={`absolute -top-2 left-1/2 -translate-x-1/2 rounded-full px-2 py-px text-[8px] font-bold ${budget === b.daily ? "bg-white text-foreground shadow-sm" : "bg-foreground text-white"}`}>★ Rekommenderad</span>
                   )}
                   <div className="text-[10px]">{b.icon}</div>
                   <div className="text-[16px] font-bold">{b.daily} kr</div>

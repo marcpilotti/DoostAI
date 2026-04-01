@@ -55,7 +55,7 @@ export function CreditBalance() {
     <div className="px-3 py-2">
       <div className="flex items-center justify-between text-[11px]">
         <div className="flex items-center gap-1 text-[var(--doost-text-muted)]">
-          <Sparkles className="h-3 w-3" />
+          <Sparkles className="h-4 w-4" />
           Credits
         </div>
         <span className="font-semibold text-[var(--doost-text)]">{balance.toLocaleString()}</span>

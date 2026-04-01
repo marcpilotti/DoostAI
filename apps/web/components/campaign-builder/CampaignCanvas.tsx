@@ -97,6 +97,12 @@ export function CampaignCanvas() {
 
   return (
     <div className="relative h-full w-full">
+      {/* Faint Doost logo watermark */}
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/symbol.svg" alt="" className="h-24 w-24 opacity-[0.03]" />
+      </div>
+
       <ReactFlow
         nodes={nodes}
         edges={edges}

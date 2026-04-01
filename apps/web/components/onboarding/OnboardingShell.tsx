@@ -419,8 +419,8 @@ export function OnboardingShell() {
               return (
                 <div
                   key={s}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
-                    isActive ? "w-6 bg-foreground" : isPast ? "w-1.5 bg-foreground/40" : "w-1.5 bg-foreground/10"
+                  className={`h-1.5 rounded-full transition-all duration-500 ease-out ${
+                    isActive ? "w-6 scale-110 bg-foreground" : isPast ? "w-1.5 bg-foreground/40" : "w-1.5 bg-foreground/10"
                   }`}
                 />
               );

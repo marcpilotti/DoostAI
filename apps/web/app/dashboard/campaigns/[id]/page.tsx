@@ -82,7 +82,7 @@ export default function CampaignDetailPage() {
       </div>
 
       {/* KPI row */}
-      <div className="mb-6 grid grid-cols-5 gap-3">
+      <div className="mb-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {[
           { label: "Impressions", value: campaign.impressions.toLocaleString() },
           { label: "Clicks", value: campaign.clicks.toLocaleString() },

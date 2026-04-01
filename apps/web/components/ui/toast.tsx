@@ -14,6 +14,7 @@ type Toast = {
   title: string;
   description?: string;
   duration?: number;
+  action?: { label: string; onClick: () => void };
 };
 
 type ToastContextType = {
@@ -102,6 +103,14 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                   <p className="text-[13px] font-medium text-[var(--doost-text)]">{t.title}</p>
                   {t.description && (
                     <p className="mt-0.5 text-[11px] text-[var(--doost-text-muted)]">{t.description}</p>
+                  )}
+                  {t.action && (
+                    <button
+                      onClick={() => { t.action!.onClick(); dismiss(t.id); }}
+                      className="mt-1.5 text-[11px] font-semibold text-foreground underline underline-offset-2 hover:text-foreground/80"
+                    >
+                      {t.action.label}
+                    </button>
                   )}
                 </div>
                 <button

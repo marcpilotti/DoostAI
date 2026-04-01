@@ -19,7 +19,7 @@ export function CreativeCard({
   return (
     <button
       onClick={onClick}
-      className="group w-full text-left"
+      className="group w-full text-left hover:[transform:perspective(800px)_rotateY(2deg)] transition-transform duration-300"
     >
       {/* Image — 4:5 portrait ratio, rounded-xl */}
       <div className="relative aspect-[4/5] w-full overflow-hidden rounded-xl bg-[var(--doost-bg-secondary)]">

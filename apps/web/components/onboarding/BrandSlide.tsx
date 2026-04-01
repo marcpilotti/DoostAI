@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ArrowRight,
   ChevronDown,
@@ -110,6 +110,19 @@ export function BrandSlide({ profile, onConfirm, onBack }: { profile: BrandProfi
   const [logoError, setLogoError] = useState<string | null>(null);
   const prefersReduced = useReducedMotion();
   const [colors, setColors] = useState(profile.colors);
+
+  // #43 Enter key → confirm (skip when user is typing in an input/textarea/select)
+  const confirmRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key !== "Enter") return;
+      const tag = document.activeElement?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      confirmRef.current();
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
   const initialIsCustom = !!profile.industry && !INDUSTRIES.includes(profile.industry);
   const [industry, setIndustry] = useState(initialIsCustom ? CUSTOM_INDUSTRY_VALUE : (profile.industry ?? ""));
   const [customIndustry, setCustomIndustry] = useState(initialIsCustom ? (profile.industry ?? "") : "");
@@ -142,6 +155,8 @@ export function BrandSlide({ profile, onConfirm, onBack }: { profile: BrandProfi
   function handleConfirm() {
     onConfirm({ ...profile, industry: resolvedIndustry, location, targetAudience, colors: { ...profile.colors, primary: colors.primary, secondary: colors.secondary, accent: colors.accent } });
   }
+  // Keep confirmRef in sync with latest handleConfirm closure
+  confirmRef.current = handleConfirm;
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-4 sm:px-6">

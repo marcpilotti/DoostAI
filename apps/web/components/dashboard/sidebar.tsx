@@ -98,6 +98,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             <Link
               key={item.href}
               href={item.href}
+              prefetch={true}
               onClick={onClose}
               className={cn(
                 "flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] font-medium transition-colors",
@@ -126,6 +127,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             <Link
               key={item.href}
               href={item.href}
+              prefetch={true}
               onClick={onClose}
               className={cn(
                 "flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] font-medium transition-colors",
@@ -158,7 +160,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
               Doost AI
             </p>
           </div>
-          <ChevronDown className="h-3.5 w-3.5 text-[var(--doost-text-muted)]" />
+          <ChevronDown className="h-4 w-4 text-[var(--doost-text-muted)]" />
         </div>
       </div>
     </aside>
