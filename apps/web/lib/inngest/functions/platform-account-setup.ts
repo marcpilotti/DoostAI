@@ -1,4 +1,4 @@
-import { adAccounts, db, eq, and } from "@doost/db";
+import { adAccounts, and,db, eq } from "@doost/db";
 
 import { inngest } from "../client";
 

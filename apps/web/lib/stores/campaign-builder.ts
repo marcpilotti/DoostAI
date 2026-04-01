@@ -1,5 +1,5 @@
+import type { Edge,Node } from "@xyflow/react";
 import { create } from "zustand";
-import type { Node, Edge } from "@xyflow/react";
 
 // ── Node data types ──────────────────────────────────────────────
 
@@ -97,7 +97,7 @@ function quickAdTemplate(): { nodes: Node[]; edges: Edge[] } {
   };
 }
 
-export const useCampaignBuilderStore = create<CampaignBuilderState>((set, get) => ({
+export const useCampaignBuilderStore = create<CampaignBuilderState>((set, _get) => ({
   nodes: [],
   edges: [],
   selectedNodeId: null,

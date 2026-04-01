@@ -1,5 +1,6 @@
-import { supabase, safeQuery } from "@/lib/supabase";
-import { getBalance, _setMockBalance } from "./check";
+import { safeQuery,supabase } from "@/lib/supabase";
+
+import { _setMockBalance,getBalance } from "./check";
 
 export type DeductResult = {
   success: boolean;

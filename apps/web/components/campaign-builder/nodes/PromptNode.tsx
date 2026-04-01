@@ -1,10 +1,10 @@
 "use client";
 
-import { Handle, Position, type NodeProps } from "@xyflow/react";
+import { Handle, type NodeProps,Position } from "@xyflow/react";
 import { Pencil } from "lucide-react";
 
-import { useCampaignBuilderStore } from "@/lib/stores/campaign-builder";
 import type { PromptNodeData } from "@/lib/stores/campaign-builder";
+import { useCampaignBuilderStore } from "@/lib/stores/campaign-builder";
 
 export function PromptNode({ id, data, selected }: NodeProps) {
   const d = data as PromptNodeData;

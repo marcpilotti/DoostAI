@@ -1,17 +1,18 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-
-import { URLSlide } from "./URLSlide";
-import { LoadingSlide } from "./LoadingSlide";
-import { BrandSlide } from "./BrandSlide";
-import { EditorSlide } from "./EditorSlide";
-import { PublishSlide } from "./PublishSlide";
-import { DoneSlide } from "./DoneSlide";
-import { prewarmAdImages } from "@/lib/image-prewarm";
+import Link from "next/link";
+import { useCallback, useEffect,useRef, useState } from "react";
 
 import type { AdData, AdFormat } from "@/components/ads/ad-preview/types";
+import { prewarmAdImages } from "@/lib/image-prewarm";
+
+import { BrandSlide } from "./BrandSlide";
+import { DoneSlide } from "./DoneSlide";
+import { EditorSlide } from "./EditorSlide";
+import { LoadingSlide } from "./LoadingSlide";
+import { PublishSlide } from "./PublishSlide";
+import { URLSlide } from "./URLSlide";
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -428,12 +429,12 @@ export function OnboardingShell() {
           </div>
         )}
 
-        <a
+        <Link
           href="/sign-in"
           className="rounded-full bg-white px-4 py-1.5 text-[13px] font-medium text-foreground shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-all hover:shadow-md"
         >
           Logga in
-        </a>
+        </Link>
       </div>
 
       <AnimatePresence mode="wait">

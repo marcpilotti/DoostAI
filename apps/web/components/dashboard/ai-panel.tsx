@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import { ArrowUp, Check, ChevronDown, ChevronRight, MoreHorizontal, X, Zap } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence,motion } from "framer-motion";
+import { ArrowUp, Check, ChevronDown, ChevronRight, X, Zap } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { useCallback,useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 
 // ── Types ────────────────────────────────────────────────────────

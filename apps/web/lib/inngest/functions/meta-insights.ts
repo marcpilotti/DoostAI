@@ -1,9 +1,9 @@
+import { adAccounts, and, campaigns, db, eq, isNotNull } from "@doost/db";
 import {
-  MetaAdsClient,
   decryptToken,
   getCampaignInsights,
+  MetaAdsClient,
 } from "@doost/platforms";
-import { adAccounts, campaigns, db, and, eq, isNotNull } from "@doost/db";
 
 import { inngest } from "../client";
 

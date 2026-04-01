@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, RefreshCw } from "lucide-react";
+import { useCallback, useEffect, useRef,useState } from "react";
 
 import type { BrandProfile } from "./OnboardingShell";
 

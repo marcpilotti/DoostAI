@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
 import {
   ArrowDownUp,
   Calendar,
   ChevronDown,
   DollarSign,
+  Grid3X3,
   LayoutGrid,
   LayoutList,
-  Grid3X3,
 } from "lucide-react";
+import { useEffect } from "react";
 
 import { TIME_RANGES } from "@/lib/mock-data";
 

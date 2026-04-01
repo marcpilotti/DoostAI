@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   Check,
   ExternalLink,
   Shield,
 } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
+import { useCallback,useEffect, useState } from "react";
 
 import { AIMessage } from "./AIMessage";
 

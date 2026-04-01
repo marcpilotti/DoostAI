@@ -1,8 +1,7 @@
-import { NextResponse } from "next/server";
+import { anthropic } from "@ai-sdk/anthropic";
 import { auth } from "@clerk/nextjs/server";
 import { generateText } from "ai";
-import { anthropic } from "@ai-sdk/anthropic";
-import { z } from "zod";
+import { NextResponse } from "next/server";
 
 import { MOCK_CAMPAIGNS, MOCK_CREATIVES, MOCK_KPIS } from "@/lib/mock-data";
 

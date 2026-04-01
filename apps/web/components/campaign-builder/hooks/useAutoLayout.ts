@@ -1,8 +1,7 @@
 "use client";
 
-import { useCallback } from "react";
 import dagre from "dagre";
-import type { Node, Edge } from "@xyflow/react";
+import { useCallback } from "react";
 
 import { useCampaignBuilderStore } from "@/lib/stores/campaign-builder";
 

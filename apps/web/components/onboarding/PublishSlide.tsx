@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import { ArrowLeft, ArrowRight, Calendar, Check, Globe, MapPin, Rocket, Save, Shield, Wallet } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
 import { useAuth } from "@clerk/nextjs";
+import { motion, useReducedMotion } from "framer-motion";
+import { ArrowLeft, ArrowRight, Calendar, Globe, MapPin, Rocket, Save, Shield, Wallet } from "lucide-react";
+import { useEffect,useState } from "react";
 
-import { AIMessage } from "./AIMessage";
-import { AuthModal } from "./AuthModal";
 import type { AdData, AdFormat } from "@/components/ads/ad-preview/types";
+
+import { AuthModal } from "./AuthModal";
 
 // Budget estimates based on industry avg CPM ~80 SEK, CTR ~1.5%, CPC ~8 SEK
 function estimateResults(daily: number) {
@@ -33,7 +33,7 @@ const REGIONS = [
 ];
 
 export function PublishSlide({
-  adData, format, goal, brandName, brandLocation, onBack, onPublish,
+  adData, format, goal, brandName: _brandName, brandLocation, onBack, onPublish,
 }: {
   adData: AdData; format: AdFormat; goal: string; brandName: string; brandLocation?: string;
   onBack: () => void;
@@ -89,6 +89,7 @@ export function PublishSlide({
 
   const platformLabel = format.startsWith("meta") ? "Instagram" : format === "google-search" ? "Google" : "LinkedIn";
   const total = durationDays > 0 ? budget * durationDays : null;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const regionLabel = REGIONS.find((r) => r.id === selectedRegion)?.label ?? selectedRegion;
   const estimatedReach = total ? Math.round(total * 10) : budget * 10;
 

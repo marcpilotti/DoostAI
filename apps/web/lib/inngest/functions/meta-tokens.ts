@@ -1,4 +1,4 @@
-import { adAccounts, db, and, lt, eq } from "@doost/db";
+import { adAccounts, and, db, eq,lt } from "@doost/db";
 import { decryptToken, encryptToken, extendToken } from "@doost/platforms";
 
 import { inngest } from "../client";

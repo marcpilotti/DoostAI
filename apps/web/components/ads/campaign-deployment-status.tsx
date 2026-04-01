@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -13,6 +12,7 @@ import {
   Rocket,
   UserPlus,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 type PlatformStatus = {
   platform: string;

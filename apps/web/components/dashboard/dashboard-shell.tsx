@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
 import { Menu, Sparkles } from "lucide-react";
+import { useState } from "react";
 
-import { Sidebar } from "./sidebar";
-import { TopBar } from "./top-bar";
-import { AIPanel } from "./ai-panel";
-import { Breadcrumbs } from "./breadcrumbs";
 import { ToastProvider } from "@/components/ui/toast";
 import { useAIPanelStore } from "@/lib/stores/ai-panel";
+
+import { AIPanel } from "./ai-panel";
+import { Breadcrumbs } from "./breadcrumbs";
+import { Sidebar } from "./sidebar";
+import { TopBar } from "./top-bar";
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);

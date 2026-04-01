@@ -1,8 +1,7 @@
 import { anthropic } from "@ai-sdk/anthropic";
+import { creativePerformance, db, eq } from "@doost/db";
 import { generateObject } from "ai";
 import { z } from "zod";
-
-import { campaigns, creativePerformance, db, and, eq, gt } from "@doost/db";
 
 import { inngest } from "../client";
 

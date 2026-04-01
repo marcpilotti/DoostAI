@@ -1,7 +1,9 @@
 "use client";
 
 import Image from "next/image";
+
 import type { Creative } from "@/lib/mock-data";
+
 import { CreativeCard } from "./creative-card";
 
 export function CreativeGrid({

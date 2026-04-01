@@ -1,9 +1,9 @@
+import { adAccounts, and, campaigns, db, eq, isNotNull } from "@doost/db";
 import {
-  LinkedInAdsClient,
-  getLinkedInCampaignAnalytics,
   decryptToken,
+  getLinkedInCampaignAnalytics,
+  LinkedInAdsClient,
 } from "@doost/platforms";
-import { adAccounts, campaigns, db, and, eq, isNotNull } from "@doost/db";
 
 import { inngest } from "../client";
 

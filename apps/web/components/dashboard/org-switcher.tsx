@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { Building2, ChevronDown, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef,useState } from "react";
 
 /**
  * Organization switcher for agency users.

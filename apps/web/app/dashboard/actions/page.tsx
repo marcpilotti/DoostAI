@@ -1,10 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useToast } from "@/components/ui/toast";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
-  ArrowRight,
   Check,
   Loader2,
   Pause,
@@ -14,6 +10,10 @@ import {
   Users,
   Zap,
 } from "lucide-react";
+import { useEffect,useState } from "react";
+
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useToast } from "@/components/ui/toast";
 
 type Action = {
   id: string;
@@ -52,7 +52,7 @@ export default function ActionsPage() {
   // Generate actions on first visit
   useEffect(() => {
     generateActions();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, []);
 
   async function generateActions() {
@@ -94,7 +94,7 @@ export default function ActionsPage() {
         const data = await res.json();
         setActions((prev) => prev.map((a) => a.id === action.id ? { ...a, status: "done" } : a));
         toast.success("Action executed", data.message ?? action.title);
-        try { (window as any).posthog?.capture("action_executed", { type: action.type, target: action.target }); } catch {}
+        try { (window as unknown as { posthog?: { capture: (event: string, props: Record<string, unknown>) => void } }).posthog?.capture("action_executed", { type: action.type, target: action.target }); } catch {}
       } else {
         setActions((prev) => prev.map((a) => a.id === action.id ? { ...a, status: "failed" } : a));
         toast.error("Action failed", `Could not execute: ${action.title}`);

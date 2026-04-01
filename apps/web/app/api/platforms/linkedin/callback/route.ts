@@ -1,8 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
-
-import { linkedinExchangeCode, encryptToken } from "@doost/platforms";
 import { adAccounts, db } from "@doost/db";
+import { encryptToken,linkedinExchangeCode } from "@doost/platforms";
+import { redirect } from "next/navigation";
 
 export async function GET(req: Request) {
   const { userId } = await auth();

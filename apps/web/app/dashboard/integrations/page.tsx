@@ -1,9 +1,10 @@
 "use client";
 
+import { CheckCircle2, ExternalLink, RefreshCw } from "lucide-react";
 import { useEffect } from "react";
-import { CheckCircle2, ExternalLink, RefreshCw, XCircle } from "lucide-react";
-import { MOCK_INTEGRATIONS } from "@/lib/mock-data";
+
 import { useToast } from "@/components/ui/toast";
+import { MOCK_INTEGRATIONS } from "@/lib/mock-data";
 
 const OAUTH_URLS: Record<string, string> = {
   meta: "/api/platforms/meta/callback",

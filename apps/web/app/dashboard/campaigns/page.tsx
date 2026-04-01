@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { ChevronDown, Copy, MoreHorizontal, Pause, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
-import { MOCK_CAMPAIGNS } from "@/lib/mock-data";
-import type { Campaign } from "@/lib/mock-data";
-import { useToast } from "@/components/ui/toast";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useToast } from "@/components/ui/toast";
+import type { Campaign } from "@/lib/mock-data";
+import { MOCK_CAMPAIGNS } from "@/lib/mock-data";
 
 const STATUS_STYLES: Record<Campaign["status"], { bg: string; text: string; label: string }> = {
   live: { bg: "bg-[var(--doost-bg-badge-ready)]", text: "text-[var(--doost-text-positive)]", label: "Live" },
@@ -33,7 +33,7 @@ function PlatformIcon({ platform }: { platform: string }) {
   return <div className="h-4 w-4 rounded-full bg-[var(--brand-meta)]" />;
 }
 
-function ActionDropdown({ campaign, onPause, onDuplicate, onDelete }: { campaign: Campaign; onPause: () => void; onDuplicate: () => void; onDelete: () => void }) {
+function ActionDropdown({ campaign: _campaign, onPause, onDuplicate, onDelete }: { campaign: Campaign; onPause: () => void; onDuplicate: () => void; onDelete: () => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 

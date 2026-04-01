@@ -1,7 +1,6 @@
 import { openai } from "@ai-sdk/openai";
-import { embed } from "ai";
-
 import { adCreatives, db, gt } from "@doost/db";
+import { embed } from "ai";
 
 import { inngest } from "../client";
 

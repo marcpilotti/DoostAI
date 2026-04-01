@@ -1,7 +1,8 @@
 "use client";
 
-import { useCredits } from "@/hooks/use-credits";
 import { Sparkles } from "lucide-react";
+
+import { useCredits } from "@/hooks/use-credits";
 
 /**
  * CreditGate — wraps an action and blocks if insufficient credits.

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import { MOCK_CAMPAIGNS } from "@/lib/mock-data";
+
 import type { Campaign } from "@/lib/mock-data";
+import { MOCK_CAMPAIGNS } from "@/lib/mock-data";
 
 // ── Funnel visualization ─────────────────────────────────────────
 

@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 import { z } from "zod";
+
 import { deductCredits } from "@/lib/credits/deduct";
 
 const inputSchema = z.object({

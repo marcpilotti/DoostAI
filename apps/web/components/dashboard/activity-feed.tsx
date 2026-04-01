@@ -1,6 +1,7 @@
 "use client";
 
 import { Clock } from "lucide-react";
+
 import type { ActivityItem } from "@/lib/mock-data";
 
 // ── Platform icons — match reference ─────────────────────────────

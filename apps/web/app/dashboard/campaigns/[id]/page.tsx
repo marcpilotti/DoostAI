@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useParams } from "next/navigation";
-import { ArrowLeft, ExternalLink, Pause, Play, TrendingUp } from "lucide-react";
+import { ArrowLeft, Pause, Play, TrendingUp } from "lucide-react";
 import Link from "next/link";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { useParams } from "next/navigation";
+import { useState } from "react";
+import { CartesianGrid, Line, LineChart, ResponsiveContainer,Tooltip, XAxis, YAxis } from "recharts";
 
-import { MOCK_CAMPAIGNS } from "@/lib/mock-data";
 import { useToast } from "@/components/ui/toast";
+import { MOCK_CAMPAIGNS } from "@/lib/mock-data";
 
 // Mock daily data for the detail chart
 const DAILY_DATA = Array.from({ length: 14 }, (_, i) => ({
@@ -38,13 +38,13 @@ export default function CampaignDetailPage() {
   function handlePause() {
     setStatus("paused");
     toast.success("Campaign paused", campaign!.name);
-    try { (window as any).posthog?.capture("campaign_paused", { campaign_id: id, campaign_name: campaign!.name }); } catch {}
+    try { (window as unknown as { posthog?: { capture: (event: string, props: Record<string, unknown>) => void } }).posthog?.capture("campaign_paused", { campaign_id: id, campaign_name: campaign!.name }); } catch {}
   }
 
   function handleResume() {
     setStatus("live");
     toast.success("Campaign resumed", campaign!.name);
-    try { (window as any).posthog?.capture("campaign_resumed", { campaign_id: id, campaign_name: campaign!.name }); } catch {}
+    try { (window as unknown as { posthog?: { capture: (event: string, props: Record<string, unknown>) => void } }).posthog?.capture("campaign_resumed", { campaign_id: id, campaign_name: campaign!.name }); } catch {}
   }
 
   return (

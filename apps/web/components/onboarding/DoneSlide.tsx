@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { ArrowRight, BarChart3, Bell, Check, Eye, Sparkles } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
+import { ArrowRight, BarChart3, Bell, Check, Eye, Sparkles } from "lucide-react";
+import { useEffect,useState } from "react";
 
 import { AIMessage } from "./AIMessage";
 

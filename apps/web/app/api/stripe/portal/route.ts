@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
+import { db, eq, organizations } from "@doost/db";
 
 import { getStripe } from "@/lib/stripe/client";
-import { db, eq, organizations } from "@doost/db";
 
 export async function POST(req: Request) {
   const { userId } = await auth();

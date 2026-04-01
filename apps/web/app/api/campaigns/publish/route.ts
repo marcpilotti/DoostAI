@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 import { z } from "zod";
-import { supabase, safeQuery } from "@/lib/supabase";
+
+import { safeQuery,supabase } from "@/lib/supabase";
 
 export const maxDuration = 30;
 

@@ -1,12 +1,11 @@
-import { z } from "zod";
-
+import type { BrandContext, Platform } from "@doost/ai";
 import {
   generateAdCopy,
   generateAdStrategy,
 } from "@doost/ai";
-import type { BrandContext, Platform } from "@doost/ai";
 import { generateAdBackground } from "@doost/templates/ai-image";
 import { getIndustryBackground } from "@doost/templates/backgrounds";
+import { z } from "zod";
 
 export const maxDuration = 90;
 

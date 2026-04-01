@@ -1,8 +1,8 @@
+import { db, eq, organizations } from "@doost/db";
 import { headers } from "next/headers";
 import Stripe from "stripe";
 
 import { getStripe } from "@/lib/stripe/client";
-import { db, eq, organizations } from "@doost/db";
 
 export async function POST(req: Request) {
   const body = await req.text();

@@ -1,4 +1,4 @@
-import { supabase, safeQuery } from "@/lib/supabase";
+import { safeQuery,supabase } from "@/lib/supabase";
 
 let mockBalance = 2500;
 

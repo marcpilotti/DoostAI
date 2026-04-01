@@ -1,12 +1,11 @@
-import { z } from "zod";
-
 import {
   buildBrandProfile,
   enrichCompany,
-  scrapeWithFallback,
   generateHarmonySet,
+  scrapeWithFallback,
 } from "@doost/brand";
 import { runBrandIntelligencePipeline } from "@doost/intelligence";
+import { z } from "zod";
 
 export const maxDuration = 90;
 
@@ -152,7 +151,8 @@ export async function POST(req: Request) {
         send({ message: "Bygger din varumärkesprofil...", progress: 85 });
 
         // ── Step 3: Merge intelligence ──────────────────────────
-        const { rawScrapeData: _s, rawEnrichmentData: _e, ...clean } = profile;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { rawScrapeData, rawEnrichmentData, ...clean } = profile;
 
         const intel = intelligence?.intelligence ?? null;
 

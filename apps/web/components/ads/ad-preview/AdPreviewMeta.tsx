@@ -13,11 +13,13 @@
  * 6. Platform chrome (avatar, badge, reactions)
  */
 
-import { useState, useEffect, useTransition } from "react";
-import { Globe, MoreHorizontal, ThumbsUp, MessageCircle, Share2, ChevronUp, RefreshCw } from "lucide-react";
+import { ChevronUp, Globe, MessageCircle, MoreHorizontal, RefreshCw,Share2, ThumbsUp } from "lucide-react";
+import { useEffect, useState, useTransition } from "react";
+
 import { generateAdImage } from "@/app/actions/generate-ad-image";
-import type { AdData, AdFormat, FormatPreviewProps } from "./types";
 import { getPrewarmedImage } from "@/lib/image-prewarm";
+
+import type { AdData, FormatPreviewProps } from "./types";
 
 // ── Shared utilities ─────────────────────────────────────────────
 
@@ -42,7 +44,7 @@ function getGradient(primary: string, accent?: string): string {
 
 // ── Meta Feed Preview ────────────────────────────────────────────
 
-function MetaFeedPreview({ data, imageUrl, isImageLoading, onRegenerateImage, isEditing, onFieldChange }: FormatPreviewProps) {
+function MetaFeedPreview({ data, imageUrl, isImageLoading, onRegenerateImage, isEditing: _isEditing, onFieldChange: _onFieldChange }: FormatPreviewProps) {
   const gradient = getGradient(data.brandColor, data.brandAccent);
   const domain = data.brandUrl.replace(/^https?:\/\//, "").replace(/\/$/, "");
 

@@ -1,16 +1,16 @@
 "use client";
 
-import { X, Pencil, ImageIcon, Eye, Settings, Trash2 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence,motion } from "framer-motion";
+import { Eye, ImageIcon, Pencil, Settings, Trash2,X } from "lucide-react";
 
-import { useCampaignBuilderStore } from "@/lib/stores/campaign-builder";
+import { getAvailableModels } from "@/lib/providers/model-router";
 import type {
-  PromptNodeData,
-  CreativeNodeData,
   AdPreviewNodeData,
   CampaignSettingsNodeData,
+  CreativeNodeData,
+  PromptNodeData,
 } from "@/lib/stores/campaign-builder";
-import { getAvailableModels } from "@/lib/providers/model-router";
+import { useCampaignBuilderStore } from "@/lib/stores/campaign-builder";
 
 const NODE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   prompt: Pencil,

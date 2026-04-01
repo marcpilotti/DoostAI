@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { RotateCcw } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 const ROLE_LABELS: Record<string, string> = {
   primary: "Primär",

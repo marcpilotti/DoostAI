@@ -26,9 +26,7 @@ const nextConfig: NextConfig = {
     "@mendable/firecrawl-js",
   ],
   eslint: {
-    // Pre-existing lint errors in inngest functions and stores block builds.
-    // Lint is enforced in CI separately — skip during next build.
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   webpack: (config) => {
     config.module.rules.push({

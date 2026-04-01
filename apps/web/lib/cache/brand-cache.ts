@@ -1,6 +1,5 @@
-import { unstable_cache, revalidateTag } from "next/cache";
-
 import { brandProfiles, db, eq } from "@doost/db";
+import { revalidateTag,unstable_cache } from "next/cache";
 
 type CachedBrandProfile = {
   id: string;

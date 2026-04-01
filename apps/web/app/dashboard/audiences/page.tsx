@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { ChevronDown, ChevronUp, Users } from "lucide-react";
+import { useState } from "react";
+
 import { MOCK_AUDIENCES } from "@/lib/mock-data";
-import type { Audience } from "@/lib/mock-data";
 
 type SortField = "name" | "platform" | "type" | "sizeEstimate" | "linkedCampaigns";
 type SortDir = "asc" | "desc";

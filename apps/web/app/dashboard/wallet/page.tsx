@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
 import { ArrowDown, ArrowUp, Plus, Sparkles } from "lucide-react";
+import { useEffect } from "react";
+
 import { MOCK_TRANSACTIONS } from "@/lib/mock-data";
 
 export default function WalletPage() {

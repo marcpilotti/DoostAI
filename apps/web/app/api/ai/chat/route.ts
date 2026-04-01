@@ -1,6 +1,6 @@
-import { streamText, tool } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { openai } from "@ai-sdk/openai";
+import { streamText, tool } from "ai";
 import { generateText } from "ai";
 import { z } from "zod";
 
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
     return new Response(JSON.stringify({ error: "Invalid input" }), { status: 400 });
   }
 
-  const { messages, model: modelId, pageContext } = parsed.data;
+  const { messages, model: modelId } = parsed.data;
 
   const modelMap: Record<string, string> = {
     "claude-haiku-4-5-20251001": "claude-haiku-4-5-20251001",

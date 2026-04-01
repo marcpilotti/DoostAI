@@ -1,9 +1,9 @@
 "use client";
 
+import { ImageOff } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
 
-import Image from "next/image";
-import { ImageOff } from "lucide-react";
 import type { Creative } from "@/lib/mock-data";
 
 /**

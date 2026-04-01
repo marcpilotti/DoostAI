@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { supabase, safeQuery } from "@/lib/supabase";
+
 import { MOCK_ACTIVITY } from "@/lib/mock-data";
+import { safeQuery,supabase } from "@/lib/supabase";
 
 /**
  * GET /api/dashboard/activity

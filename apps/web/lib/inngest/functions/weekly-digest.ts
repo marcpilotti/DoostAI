@@ -1,8 +1,9 @@
-import { campaigns, creativePerformance, organizations, db, eq, and, gt } from "@doost/db";
+import { and, campaigns, creativePerformance, db, eq, gt,organizations } from "@doost/db";
 
-import { inngest } from "../client";
 import { sendEmail } from "@/lib/email/client";
 import { buildWeeklyDigestHtml } from "@/lib/email/weekly-digest";
+
+import { inngest } from "../client";
 
 export const weeklyDigest = inngest.createFunction(
   {

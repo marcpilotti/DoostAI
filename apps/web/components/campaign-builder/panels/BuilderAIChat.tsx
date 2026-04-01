@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import { ArrowUp, ChevronRight, Sparkles, X } from "lucide-react";
+import { ArrowUp, Sparkles, X } from "lucide-react";
+import { useCallback,useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 
 import { useCampaignBuilderStore } from "@/lib/stores/campaign-builder";

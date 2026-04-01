@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+
 import { getBalance } from "@/lib/credits/check";
 
 export async function GET(req: Request) {

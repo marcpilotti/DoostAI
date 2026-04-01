@@ -1,7 +1,8 @@
-import { z } from "zod";
 import { auth } from "@clerk/nextjs/server";
-import { brandProfiles, db, eq, and } from "@doost/db";
 import { invalidateBrandCopy } from "@doost/ai";
+import { and,brandProfiles, db, eq } from "@doost/db";
+import { z } from "zod";
+
 import { invalidateBrandCache } from "@/lib/cache/brand-cache";
 
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;

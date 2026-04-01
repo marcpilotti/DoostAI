@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import {
   AlertTriangle,
   ArrowRight,
-  CalendarDays,
   Check,
   Eye,
   EyeOff,
@@ -13,13 +11,12 @@ import {
   Mail,
   MapPin,
   Megaphone,
-  Pencil,
   Target,
   ToggleLeft,
   ToggleRight,
-  Wallet,
   Zap,
 } from "lucide-react";
+import { useState } from "react";
 
 type TrackingStatus = {
   hasMetaPixel?: boolean;

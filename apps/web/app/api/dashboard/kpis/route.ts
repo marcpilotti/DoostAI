@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { supabase, safeQuery } from "@/lib/supabase";
-import { MOCK_KPIS, MOCK_CHART_DATA } from "@/lib/mock-data";
+
+import { MOCK_CHART_DATA,MOCK_KPIS } from "@/lib/mock-data";
+import { safeQuery,supabase } from "@/lib/supabase";
 
 /**
  * GET /api/dashboard/kpis
@@ -9,6 +10,7 @@ import { MOCK_KPIS, MOCK_CHART_DATA } from "@/lib/mock-data";
  */
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const range = searchParams.get("range") ?? "6m";
 
   // Try real data from performance_daily

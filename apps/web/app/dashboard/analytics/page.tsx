@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
-import { MOCK_CHART_DATA, MOCK_KPIS } from "@/lib/mock-data";
+import { useCallback, useEffect, useState } from "react";
+import { Bar,BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+
+import { MOCK_CHART_DATA } from "@/lib/mock-data";
 
 type DateRange = "7d" | "30d" | "6m" | "1y";
 

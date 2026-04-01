@@ -1,18 +1,16 @@
 "use client";
 
-import { useEffect } from "react";
-import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import {
-  Building2,
   CheckCircle2,
   CreditCard,
   ExternalLink,
   Key,
   Linkedin,
   Users,
-  XCircle,
 } from "lucide-react";
+import Link from "next/link";
+import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence,motion } from "framer-motion";
+import { useCallback,useEffect, useRef } from "react";
 
 type ConfirmDialogProps = {
   open: boolean;

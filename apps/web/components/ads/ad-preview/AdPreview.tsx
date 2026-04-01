@@ -16,12 +16,13 @@
  * - Preview scales down via CSS if too large
  */
 
-import { useState, useRef, useEffect, useCallback } from "react";
 import { ArrowRight, Check } from "lucide-react";
-import { AdPreviewSwitcher } from "./AdPreviewSwitcher";
-import { AdPreviewMeta } from "./AdPreviewMeta";
+import { useCallback,useEffect, useRef, useState } from "react";
+
 import { AdPreviewGoogle } from "./AdPreviewGoogle";
 import { AdPreviewLinkedIn } from "./AdPreviewLinkedIn";
+import { AdPreviewMeta } from "./AdPreviewMeta";
+import { AdPreviewSwitcher } from "./AdPreviewSwitcher";
 import type { AdData, AdFormat, AdPreviewProps } from "./types";
 
 // ── Main Component ───────────────────────────────────────────────
@@ -30,11 +31,11 @@ export function AdPreview({
   variantA,
   variantB,
   format: initialFormat,
-  strategy,
+  strategy: _strategy,
   onFormatChange,
   onWinnerSelected,
   onPublish,
-  editable = true,
+  editable: _editable = true,
   autoGenerateImage = true,
   defaultCompareMode = "sidebyside",
   hideHeader = false,

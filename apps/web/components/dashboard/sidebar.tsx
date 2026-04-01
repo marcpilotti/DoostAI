@@ -1,10 +1,5 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-
-import Image from "next/image";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useClerk, UserButton, useUser } from "@clerk/nextjs";
 import {
   BarChart3,
@@ -14,19 +9,20 @@ import {
   LayoutGrid,
   LineChart,
   LogOut,
-  Package,
   Search,
   Settings,
   ShoppingBag,
-  TrendingUp,
   User,
-  Users,
   Wallet,
   X,
   Zap,
 } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
+
 import { CreditBalance } from "./credit-balance";
 import { OrgSwitcher } from "./org-switcher";
 
@@ -129,7 +125,7 @@ function UserDropdown() {
 
 export function Sidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
-  const { user } = useUser();
+  useUser();
 
   function isExactActive(href: string) {
     return pathname === href;

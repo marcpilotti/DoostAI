@@ -1,5 +1,5 @@
-import { MetaAdsClient, deployCampaign, decryptToken } from "@doost/platforms";
-import { adAccounts, campaigns, db, eq, and } from "@doost/db";
+import { adAccounts, and,campaigns, db, eq } from "@doost/db";
+import { decryptToken,deployCampaign, MetaAdsClient } from "@doost/platforms";
 
 import { inngest } from "../client";
 

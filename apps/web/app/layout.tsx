@@ -1,11 +1,12 @@
+import "./globals.css";
+
+import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Inter, Permanent_Marker } from "next/font/google";
-import { ClerkProvider } from "@clerk/nextjs";
+
 import { CommandPalette } from "@/components/command-palette";
 import { PostHogProvider } from "@/lib/posthog/provider";
 import { QueryProvider } from "@/lib/query-provider";
-
-import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin"],

@@ -1,10 +1,10 @@
 "use client";
 
-import { Handle, Position, type NodeProps } from "@xyflow/react";
-import { Eye, Globe, Heart, MessageCircle, Send, Share2 } from "lucide-react";
+import { Handle, type NodeProps,Position } from "@xyflow/react";
+import { Eye, Heart, MessageCircle, Send } from "lucide-react";
 
-import { useCampaignBuilderStore } from "@/lib/stores/campaign-builder";
 import type { AdPreviewNodeData } from "@/lib/stores/campaign-builder";
+import { useCampaignBuilderStore } from "@/lib/stores/campaign-builder";
 
 const PLATFORMS = [
   { id: "instagram", label: "IG", icon: "📷" },

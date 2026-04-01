@@ -1,8 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
+import { db, eq, organizations } from "@doost/db";
 import { NextResponse } from "next/server";
 
 import { getStripe } from "@/lib/stripe/client";
-import { db, eq, organizations } from "@doost/db";
 
 /**
  * POST /api/stripe/setup-intent

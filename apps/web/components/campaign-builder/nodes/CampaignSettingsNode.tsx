@@ -1,10 +1,10 @@
 "use client";
 
-import { Handle, Position, type NodeProps } from "@xyflow/react";
+import { Handle, type NodeProps,Position } from "@xyflow/react";
 import { Calendar, Clock, DollarSign, Globe, Settings, TrendingUp, Zap } from "lucide-react";
 
-import { useCampaignBuilderStore } from "@/lib/stores/campaign-builder";
 import type { CampaignSettingsNodeData } from "@/lib/stores/campaign-builder";
+
 
 const STATUS_STYLES = {
   draft: { bg: "bg-[var(--doost-bg-secondary)]", text: "text-[var(--doost-text-muted)]", label: "Draft" },
@@ -22,7 +22,7 @@ function SettingRow({ icon: Icon, label }: { icon: React.ComponentType<{ classNa
   );
 }
 
-export function CampaignSettingsNode({ id, data, selected }: NodeProps) {
+export function CampaignSettingsNode({ data, selected }: NodeProps) {
   const d = data as CampaignSettingsNodeData;
   const status = STATUS_STYLES[d.status ?? "draft"];
 

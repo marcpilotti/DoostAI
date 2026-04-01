@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
 import { SignUp, useAuth } from "@clerk/nextjs";
+import { AnimatePresence,motion } from "framer-motion";
 import { X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect } from "react";
 
 /**
  * AuthModal — slides up when user tries to publish without being signed in.

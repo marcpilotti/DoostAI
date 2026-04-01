@@ -14,7 +14,8 @@
  */
 
 import { Search } from "lucide-react";
-import type { AdData, FormatPreviewProps } from "./types";
+
+import type { AdData } from "./types";
 
 // ── Google Search Preview ────────────────────────────────────────
 

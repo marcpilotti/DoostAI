@@ -1,9 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
 import {
   ArrowLeft,
-  ChevronDown,
   Image as ImageIcon,
   Sparkles,
   Upload,
@@ -11,6 +9,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
+import { useCallback,useState } from "react";
 
 import { getAvailableModels, getCreditCost } from "@/lib/providers/model-router";
 
@@ -63,6 +62,7 @@ export default function CreativeStudioPage() {
   const [referenceImages, setReferenceImages] = useState<string[]>([]);
 
   const models = getAvailableModels("growth"); // TODO: get from user's plan
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const currentModel = models.find((m) => m.id === selectedModel);
   const cost = getCreditCost(selectedModel);
 

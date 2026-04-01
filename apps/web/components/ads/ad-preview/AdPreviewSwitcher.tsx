@@ -6,6 +6,7 @@
  */
 
 import { Sparkles } from "lucide-react";
+
 import type { AdFormat } from "./types";
 
 // ── Platform icons (official brand colors) ──────────────────────

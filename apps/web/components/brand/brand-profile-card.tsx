@@ -1,13 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import {
   ArrowRight,
   Building2,
   Check,
   ChevronDown,
   ExternalLink,
-  FileText,
   Globe,
   MapPin,
   Palette,
@@ -15,8 +13,8 @@ import {
   Sparkles,
   Type,
   Users,
-  X,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { ColorEditor } from "./color-editor";
 
@@ -105,7 +103,7 @@ function ApprovableField({
   onApprove,
   onEdit,
   state,
-  children,
+  children: _children,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
@@ -241,10 +239,12 @@ export function BrandProfileCard({
   const [colors, setColors] = useState(data.colors);
   const [logoUrl, setLogoUrl] = useState<string | null>(data.logos?.primary ?? data.logos?.icon ?? null);
   const [industry, setIndustry] = useState(data.industry ?? "");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [fontFile, setFontFile] = useState<string | null>(null);
   const originalColors = data.colors;
   const logoDarkTheme = data._logoTheme === "dark";
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [cascading, setCascading] = useState(false);
 
   // Animated confidence counter — counts up from 0 to final value over ~1.5s

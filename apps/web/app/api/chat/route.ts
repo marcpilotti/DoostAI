@@ -1,31 +1,30 @@
-import { convertToModelMessages, stepCountIs, streamText, tool } from "ai";
-import { z } from "zod";
-
+import type { BrandContext, Platform } from "@doost/ai";
+import {
+  classifyIntent,
+  DEFAULT_BUDGETS,
+  estimateTokens,
+  generateAdCopy,
+  generateAdStrategy,
+  INDUSTRY_AUDIENCES,
+  INDUSTRY_BUDGETS,
+  routeModel,
+  sniToCategory,
+  traceRouting,
+} from "@doost/ai";
 import {
   buildBrandProfile,
   enrichCompany,
-  scrapeBrand,
   generateHarmonySet,
+  scrapeBrand,
 } from "@doost/brand";
-import { runBrandIntelligencePipeline } from "@doost/intelligence";
-import {
-  generateAdCopy,
-  generateAdStrategy,
-  classifyIntent,
-  estimateTokens,
-  routeModel,
-  trackCost,
-  traceRouting,
-  INDUSTRY_AUDIENCES,
-  INDUSTRY_BUDGETS,
-  DEFAULT_BUDGETS,
-  sniToCategory,
-} from "@doost/ai";
-import type { BrandContext, Platform } from "@doost/ai";
-import { linkedinGetOAuthUrl } from "@doost/platforms";
-import { getIndustryBackground } from "@doost/templates/backgrounds";
-import { generateAdBackground } from "@doost/templates/ai-image";
 import { adAccounts, db, eq } from "@doost/db";
+import { runBrandIntelligencePipeline } from "@doost/intelligence";
+import { linkedinGetOAuthUrl } from "@doost/platforms";
+import { generateAdBackground } from "@doost/templates/ai-image";
+import { getIndustryBackground } from "@doost/templates/backgrounds";
+import { convertToModelMessages, stepCountIs, streamText, tool } from "ai";
+import { z } from "zod";
+
 import { inngest } from "@/lib/inngest/client";
 import {
   checkCampaignLimit,
@@ -187,7 +186,8 @@ ABSOLUTE RULES:
           ]);
 
           const durationMs = Date.now() - start;
-          const { rawScrapeData: _s, rawEnrichmentData: _e, ...clean } =
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { rawScrapeData, rawEnrichmentData, ...clean } =
             profile;
 
           // Override profile with higher-confidence intelligence data
@@ -647,7 +647,7 @@ ABSOLUTE RULES:
           campaignName,
           platforms,
           budget,
-          targeting,
+          targeting: _targeting,
           creative,
         }: {
           orgId: string;

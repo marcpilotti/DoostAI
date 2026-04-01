@@ -1,11 +1,11 @@
 "use client";
 
-import { Handle, Position, type NodeProps } from "@xyflow/react";
+import { Handle, type NodeProps,Position } from "@xyflow/react";
 import { ImageIcon, RefreshCw } from "lucide-react";
 
-import { useCampaignBuilderStore } from "@/lib/stores/campaign-builder";
-import type { CreativeNodeData } from "@/lib/stores/campaign-builder";
 import { getAvailableModels } from "@/lib/providers/model-router";
+import type { CreativeNodeData } from "@/lib/stores/campaign-builder";
+import { useCampaignBuilderStore } from "@/lib/stores/campaign-builder";
 
 const FORMATS = [
   { id: "1:1", label: "□" },
@@ -17,6 +17,7 @@ export function CreativeNode({ id, data, selected }: NodeProps) {
   const d = data as CreativeNodeData;
   const { updateNodeData } = useCampaignBuilderStore();
   const models = getAvailableModels("growth");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const currentModel = models.find((m) => m.id === d.model);
 
   return (

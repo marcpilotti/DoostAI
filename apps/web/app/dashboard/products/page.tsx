@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
-import { MOCK_PRODUCTS } from "@/lib/mock-data";
-import type { Product } from "@/lib/mock-data";
-import { useToast } from "@/components/ui/toast";
+import { useEffect, useState } from "react";
+
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useToast } from "@/components/ui/toast";
+import type { Product } from "@/lib/mock-data";
+import { MOCK_PRODUCTS } from "@/lib/mock-data";
 
 export default function ProductsPage() {
   useEffect(() => { document.title = "Products — Doost AI"; }, []);

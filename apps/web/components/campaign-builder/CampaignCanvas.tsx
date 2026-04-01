@@ -1,27 +1,28 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import {
-  ReactFlow,
-  Background,
-  BackgroundVariant,
-  type OnNodesChange,
-  type OnEdgesChange,
-  type OnConnect,
-  applyNodeChanges,
-  applyEdgeChanges,
-  addEdge,
-} from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
+import {
+  addEdge,
+  applyEdgeChanges,
+  applyNodeChanges,
+  Background,
+  BackgroundVariant,
+  type OnConnect,
+  type OnEdgesChange,
+  type OnNodesChange,
+  ReactFlow,
+} from "@xyflow/react";
 import { ArrowUp, Sparkles } from "lucide-react";
+import { useCallback, useState } from "react";
 
 import { useCampaignBuilderStore } from "@/lib/stores/campaign-builder";
-import { PromptNode } from "./nodes/PromptNode";
-import { CreativeNode } from "./nodes/CreativeNode";
+
+import { AnimatedEdge } from "./edges/AnimatedEdge";
 import { AdPreviewNode } from "./nodes/AdPreviewNode";
 import { CampaignSettingsNode } from "./nodes/CampaignSettingsNode";
-import { AnimatedEdge } from "./edges/AnimatedEdge";
+import { CreativeNode } from "./nodes/CreativeNode";
+import { PromptNode } from "./nodes/PromptNode";
 
 const nodeTypes = {
   prompt: PromptNode,

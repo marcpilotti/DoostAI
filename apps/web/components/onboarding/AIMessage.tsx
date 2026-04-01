@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { useEffect,useState } from "react";
 
 export function AIMessage({
   text,

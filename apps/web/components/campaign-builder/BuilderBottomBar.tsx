@@ -1,10 +1,10 @@
 "use client";
 
-import { Minus, Plus, Maximize2 } from "lucide-react";
 import { useReactFlow } from "@xyflow/react";
+import { Maximize2,Minus, Plus } from "lucide-react";
 
 export function BuilderBottomBar() {
-  const { zoomIn, zoomOut, fitView, getZoom } = useReactFlow();
+  const { zoomIn, zoomOut, fitView } = useReactFlow();
 
   return (
     <div className="flex h-10 shrink-0 items-center justify-between border-t bg-[var(--doost-bg)] px-4" style={{ borderColor: "var(--doost-border)" }}>

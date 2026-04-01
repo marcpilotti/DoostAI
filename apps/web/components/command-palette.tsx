@@ -1,21 +1,19 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { useRouter, usePathname } from "next/navigation";
 import { Command } from "cmdk";
 import {
   BarChart3,
+  FileText,
+  Globe,
   Keyboard,
   MessageSquare,
+  Pause,
   Plus,
   Search,
   Settings,
-  Globe,
-  Pause,
-  FileText,
-  Trash2,
-  Moon,
 } from "lucide-react";
+import { usePathname,useRouter } from "next/navigation";
+import { useCallback,useEffect, useState } from "react";
 
 type CommandItem = {
   group: string;

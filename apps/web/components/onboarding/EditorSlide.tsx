@@ -1,21 +1,23 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowLeft,
   ArrowRight,
   Save,
   Sparkles,
 } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
+import { useCallback, useEffect, useRef,useState } from "react";
 
 import { AdPreview } from "@/components/ads/ad-preview/AdPreview";
 import type { AdData, AdFormat } from "@/components/ads/ad-preview/types";
+
 import { AIMessage } from "./AIMessage";
 import type { BrandProfile } from "./OnboardingShell";
 
 // ── Goals & Platforms ───────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const GOALS = [
   { id: "awareness", label: "Fler besökare" },
   { id: "leads", label: "Fler kunder" },
@@ -76,6 +78,7 @@ export function EditorSlide({
 }) {
   const prefersReduced = useReducedMotion();
   const [state, setState] = useState<EditorState>("loading");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [goal, setGoal] = useState("leads");
   const [platformIdx, setPlatformIdx] = useState(0);
   const [aiMessages, setAiMessages] = useState<string[]>([]);
@@ -365,6 +368,7 @@ export function EditorSlide({
 
   // ── Render ────────────────────────────────────────────────────
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const hasError = state === "ready" && !variantA;
 
   return (

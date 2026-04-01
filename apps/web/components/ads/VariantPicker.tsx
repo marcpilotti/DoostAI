@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Check } from "lucide-react";
 import { motion } from "framer-motion";
+import { Check } from "lucide-react";
+import { useState } from "react";
 
 type Variant = {
   id: string;

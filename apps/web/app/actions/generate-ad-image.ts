@@ -12,7 +12,7 @@
  */
 
 import type { AdData, AdFormat } from "@/components/ads/ad-preview/types";
-import { setImageInCache } from "@/lib/image-cache";
+
 
 // ── Types ────────────────────────────────────────────────────────
 

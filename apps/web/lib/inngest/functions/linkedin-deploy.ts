@@ -1,9 +1,9 @@
-import {
-  LinkedInAdsClient,
-  deploySponsoredContent,
-  decryptToken,
-} from "@doost/platforms";
 import { adAccounts, campaigns, db, eq } from "@doost/db";
+import {
+  decryptToken,
+  deploySponsoredContent,
+  LinkedInAdsClient,
+} from "@doost/platforms";
 
 import { inngest } from "../client";
 

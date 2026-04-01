@@ -6,6 +6,7 @@ import {
 import { brandProfiles, db } from "@doost/db";
 
 import { invalidateBrandCache } from "@/lib/cache/brand-cache";
+
 import { inngest } from "../client";
 
 export const analyzeBrand = inngest.createFunction(

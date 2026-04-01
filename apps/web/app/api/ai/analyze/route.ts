@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
-import { generateText } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
+import { generateText } from "ai";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { deductCredits } from "@/lib/credits/deduct";

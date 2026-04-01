@@ -1,7 +1,8 @@
 "use client";
 
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { Building2, Globe, BarChart3, TrendingUp } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { BarChart3, Building2, Globe, TrendingUp } from "lucide-react";
+
 import { Skeleton } from "@/components/ui/skeleton";
 
 type ProfilePhase = {

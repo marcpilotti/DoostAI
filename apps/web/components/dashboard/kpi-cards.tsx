@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { Activity, Pencil } from "lucide-react";
 
 import type { KPI } from "@/lib/mock-data";
-import { formatNumber, formatCurrency } from "@/lib/mock-data";
+import { formatCurrency,formatNumber } from "@/lib/mock-data";
 
 function formatValue(kpi: KPI): string {
   if (kpi.format === "currency") return `${kpi.prefix ?? ""}${formatCurrency(kpi.value)}`;

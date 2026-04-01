@@ -16,7 +16,9 @@ export function ChannelFilter({
   onTimeRangeChange: (id: string) => void;
   onChannelChange: (id: string) => void;
 }) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const selectedTime = TIME_RANGES.find((t) => t.id === timeRange);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const selectedChannel = CHANNELS.find((c) => c.id === channel);
 
   return (

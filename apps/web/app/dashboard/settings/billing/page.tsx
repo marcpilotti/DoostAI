@@ -1,13 +1,12 @@
 "use client";
 
 import { Check, CreditCard, ExternalLink, Sparkles } from "lucide-react";
-// TODO: Wire orgId from Clerk user/org when DB is connected
 
+// TODO: Wire orgId from Clerk user/org when DB is connected
 import { Button } from "@/components/ui/button";
 import {
-  PLAN_LIMITS,
-  PLAN_PRICES,
   getPlanDisplayName,
+  PLAN_PRICES,
 } from "@/lib/stripe/plan-limits";
 
 const PLANS = ["free", "starter", "pro", "agency"] as const;
