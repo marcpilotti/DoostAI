@@ -49,9 +49,18 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
   const { user } = useUser();
 
+  function isExactActive(href: string) {
+    return pathname === href;
+  }
+
   function isActive(href: string, exact?: boolean) {
     if (exact) return pathname === href;
     return pathname === href || pathname.startsWith(`${href}/`);
+  }
+
+  function isParentOnly(href: string, exact?: boolean) {
+    if (exact) return false;
+    return !isExactActive(href) && pathname.startsWith(`${href}/`);
   }
 
   return (
@@ -69,7 +78,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
           <button className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--doost-text-muted)] hover:bg-[var(--doost-bg-secondary)]">
             <Search className="h-4 w-4" />
           </button>
-          <kbd className="hidden sm:inline-flex h-5 items-center rounded border px-1.5 text-[10px] font-medium text-[var(--doost-text-muted)]" style={{ borderColor: "var(--doost-border)" }}>
+          <kbd className="hidden sm:inline-flex h-5 items-center rounded border px-1.5 text-[10px] font-medium text-[var(--doost-text-muted)]" style={{ borderColor: "var(--doost-border)" }} title="Sök (⌘K)">
             ⌘K
           </kbd>
         </div>
@@ -84,6 +93,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
       <nav className="flex-1 space-y-0.5 px-2">
         {mainNav.map((item) => {
           const active = isActive(item.href, item.exact);
+          const parentOnly = isParentOnly(item.href, item.exact);
           return (
             <Link
               key={item.href}
@@ -91,9 +101,11 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
               onClick={onClose}
               className={cn(
                 "flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] font-medium transition-colors",
-                active
+                active && !parentOnly
                   ? "bg-[var(--doost-bg-active)] text-white"
-                  : "text-[var(--doost-text-secondary)] hover:bg-[var(--doost-bg-secondary)] hover:text-[var(--doost-text)]",
+                  : parentOnly
+                    ? "text-[var(--doost-text)] hover:bg-[var(--doost-bg-secondary)]"
+                    : "text-[var(--doost-text-secondary)] hover:bg-[var(--doost-bg-secondary)] hover:text-[var(--doost-text)]",
               )}
             >
               <item.icon className="h-4 w-4" />

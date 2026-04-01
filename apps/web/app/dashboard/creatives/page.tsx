@@ -41,13 +41,15 @@ function CreativesContent() {
 
   return (
     <div className="px-5 py-4">
-      <CreativeFilters
-        timeRange={timeRange} sort={sort} spendRange={spendRange} view={view}
-        onTimeRangeChange={(v) => updateParam("range", v)}
-        onSortChange={(v) => updateParam("sort", v)}
-        onSpendRangeChange={(v) => updateParam("spend", v)}
-        onViewChange={(v) => updateParam("view", v)}
-      />
+      <div className="pb-4 border-b" style={{ borderColor: "var(--doost-border)" }}>
+        <CreativeFilters
+          timeRange={timeRange} sort={sort} spendRange={spendRange} view={view}
+          onTimeRangeChange={(v) => updateParam("range", v)}
+          onSortChange={(v) => updateParam("sort", v)}
+          onSpendRangeChange={(v) => updateParam("spend", v)}
+          onViewChange={(v) => updateParam("view", v)}
+        />
+      </div>
       <div className="mt-6">
         <CreativeGrid creatives={creatives} view={view} />
       </div>

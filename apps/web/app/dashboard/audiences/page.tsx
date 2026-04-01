@@ -67,7 +67,7 @@ export default function AudiencesPage() {
           </thead>
           <tbody>
             {sorted.map((a) => (
-              <tr key={a.id} className="border-b last:border-0 transition-colors hover:bg-[var(--doost-bg-secondary)]" style={{ borderColor: "var(--doost-border)" }}>
+              <tr key={a.id} className="cursor-pointer border-b last:border-0 transition-colors hover:bg-[var(--doost-bg-secondary)] hover:border-l-2 hover:border-l-[var(--doost-bg-active)]" style={{ borderColor: "var(--doost-border)" }}>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-[var(--doost-text-muted)]" />

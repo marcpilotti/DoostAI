@@ -55,7 +55,11 @@ export default function CampaignDetailPage() {
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div className="flex-1">
-          <h1 className="text-[18px] font-semibold text-[var(--doost-text)]">{campaign.name}</h1>
+          <h1 className="text-[18px] font-semibold text-[var(--doost-text)]">
+            <Link href="/dashboard/campaigns" className="text-[var(--doost-text-muted)] hover:text-[var(--doost-text)]">Kampanjer</Link>
+            <span className="mx-1.5 text-[var(--doost-text-muted)]">/</span>
+            {campaign.name}
+          </h1>
           <p className="text-[12px] capitalize text-[var(--doost-text-muted)]">
             {campaign.platform} · Started {campaign.startDate}
           </p>

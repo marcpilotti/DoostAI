@@ -124,7 +124,7 @@ export default function CampaignsPage() {
       </div>
 
       {/* Status filter */}
-      <div className="mb-4">
+      <div className="mb-4 pb-4 border-b" style={{ borderColor: "var(--doost-border)" }}>
         <div className="relative inline-block">
           <select
             value={statusFilter}
@@ -159,7 +159,7 @@ export default function CampaignsPage() {
             {filteredCampaigns.map((c) => {
               const s = STATUS_STYLES[c.status];
               return (
-                <tr key={c.id} className="cursor-pointer border-b last:border-0 transition-colors hover:bg-[var(--doost-bg-secondary)]" style={{ borderColor: "var(--doost-border)" }} onClick={() => router.push(`/dashboard/campaigns/${c.id}`)}>
+                <tr key={c.id} className="cursor-pointer border-b last:border-0 transition-colors hover:bg-[var(--doost-bg-secondary)] hover:border-l-2 hover:border-l-[var(--doost-bg-active)]" style={{ borderColor: "var(--doost-border)" }} onClick={() => router.push(`/dashboard/campaigns/${c.id}`)}>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <PlatformIcon platform={c.platform} />

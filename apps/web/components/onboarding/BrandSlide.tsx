@@ -77,21 +77,32 @@ function ColorDot({ color, label, role, originalColor, onColorChange }: {
 
 function InlineEdit({ value, onSave }: { value: string; onSave: (v: string) => void }) {
   const [editing, setEditing] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  function handleSave(newValue: string) {
+    onSave(newValue);
+    setEditing(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 500);
+  }
+
   if (editing) {
     return (
       <input
         type="text" defaultValue={value} autoFocus
-        onKeyDown={(e) => { if (e.key === "Enter") { onSave((e.target as HTMLInputElement).value); setEditing(false); } }}
-        onBlur={(e) => { onSave(e.target.value); setEditing(false); }}
+        onKeyDown={(e) => { if (e.key === "Enter") { handleSave((e.target as HTMLInputElement).value); } }}
+        onBlur={(e) => { handleSave(e.target.value); }}
         className="w-full bg-transparent text-[14px] font-medium text-foreground outline-none border-b border-foreground/20"
       />
     );
   }
   return (
-    <button onClick={() => setEditing(true)} className="group flex w-full items-center gap-1 text-left">
-      <span className="truncate text-[14px] font-medium text-foreground">{value || "—"}</span>
-      <Pencil className="h-2.5 w-2.5 shrink-0 text-muted-foreground/20 opacity-0 transition-opacity group-hover:opacity-100" />
-    </button>
+    <div className={saved ? "editable-saved" : ""}>
+      <button onClick={() => setEditing(true)} className="group flex w-full items-center gap-1 text-left">
+        <span className="truncate text-[14px] font-medium text-foreground">{value || "—"}</span>
+        <Pencil className="h-2.5 w-2.5 shrink-0 text-muted-foreground/20 opacity-0 transition-opacity group-hover:opacity-100" />
+      </button>
+    </div>
   );
 }
 

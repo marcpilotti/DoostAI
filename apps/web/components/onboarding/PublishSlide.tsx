@@ -146,8 +146,8 @@ export function PublishSlide({
                       : "bg-muted-foreground/[0.03] text-foreground hover:bg-muted-foreground/[0.06]"
                   }`}
                 >
-                  {b.recommended && budget !== b.daily && (
-                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-foreground px-2 py-px text-[8px] font-bold text-white">★</span>
+                  {b.recommended && (
+                    <span className={`absolute -top-2 left-1/2 -translate-x-1/2 rounded-full px-2 py-px text-[8px] font-bold ${budget === b.daily ? "bg-white/80 text-foreground" : "bg-foreground text-white"}`}>★</span>
                   )}
                   <div className="text-[10px]">{b.icon}</div>
                   <div className="text-[16px] font-bold">{b.daily} kr</div>

@@ -46,7 +46,7 @@ export function KPICards({
 
             {/* Value */}
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-[24px] font-bold leading-none text-[var(--doost-text)]">
+              <span className="text-[28px] font-bold leading-none text-[var(--doost-text)]">
                 {formatValue(kpi)}
               </span>
               {/* Change badge */}
