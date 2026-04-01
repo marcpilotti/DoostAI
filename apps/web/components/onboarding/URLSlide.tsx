@@ -33,6 +33,7 @@ function saveRecentUrl(url: string) {
 export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
   const [input, setInput] = useState("");
   const [urlHint, setUrlHint] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const [recentUrls, setRecentUrls] = useState<string[]>([]);
@@ -67,9 +68,10 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = input.trim();
-    if (!trimmed) return;
+    if (!trimmed || submitting) return;
     let url = trimmed;
     if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
+    setSubmitting(true);
     // #15 Save to recent URLs
     saveRecentUrl(url);
     onSubmit(url);
@@ -98,6 +100,7 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
               spellCheck={false}
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              disabled={submitting}
               onPaste={() => {
                 // Don't auto-submit — user may want to edit the pasted URL first
               }}
@@ -105,17 +108,21 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
                 if (e.key === "Enter") { e.preventDefault(); if (input.trim()) formRef.current?.requestSubmit(); }
               }}
               placeholder="Klistra in din hemsida, t.ex. företag.se"
-              className="min-h-[28px] min-w-0 flex-1 bg-transparent text-[15px] text-foreground outline-none placeholder:text-muted-foreground/35"
+              className="min-h-[28px] min-w-0 flex-1 bg-transparent text-[15px] text-foreground outline-none placeholder:text-muted-foreground/35 disabled:opacity-50"
             />
             {/* Submit — Doost AI symbol as button */}
             <button
               type="submit"
-              disabled={!input.trim()}
+              disabled={!input.trim() || submitting}
               aria-label="Analysera"
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-opacity active:scale-95 disabled:opacity-20"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/symbol.svg" alt="Analysera" className="h-7 w-7" />
+              {submitting ? (
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground/20 border-t-foreground/60" />
+              ) : (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src="/symbol.svg" alt="Analysera" className="h-7 w-7" />
+              )}
             </button>
           </div>
         </form>

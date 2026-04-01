@@ -153,14 +153,19 @@ export function BrandSlide({ profile, onConfirm, onBack }: { profile: BrandProfi
           className="overflow-hidden rounded-2xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)]"
         >
           {/* Header */}
-          <div className="flex items-center gap-3 px-6 pt-5 pb-4">
+          <motion.div
+            initial={prefersReduced ? false : { opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 * 0 }}
+            className="flex items-center gap-3 px-6 pt-5 pb-4"
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`} alt="" width={24} height={24} className="h-6 w-6 shrink-0 rounded" onError={(e) => { (e.target as HTMLImageElement).src = "/symbol.svg"; }} />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <h3 className="truncate text-xl font-bold tracking-tight">{name}</h3>
                 {displayedConfidence > 0 && (
-                  <span className="rounded-full bg-foreground/5 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-foreground/40">
+                  <span title="Baserat på analys av er hemsida, logotyp och företagsdata" className="rounded-full bg-foreground/5 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-foreground/40">
                     {displayedConfidence}% match
                   </span>
                 )}
@@ -170,12 +175,17 @@ export function BrandSlide({ profile, onConfirm, onBack }: { profile: BrandProfi
             <a href={profile.url.startsWith("http") ? profile.url : `https://${profile.url}`} target="_blank" rel="noopener noreferrer" className="rounded-lg p-1.5 text-muted-foreground/20 hover:bg-muted/30 hover:text-muted-foreground/50">
               <ExternalLink className="h-4 w-4" />
             </a>
-          </div>
+          </motion.div>
 
           {/* Visual identity row */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 border-t border-b border-border/8">
+          <motion.div
+            initial={prefersReduced ? false : { opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 * 1 }}
+            className="flex overflow-x-auto sm:grid sm:grid-cols-3 border-t border-b border-border/8"
+          >
             {/* Logo */}
-            <label className="group flex cursor-pointer flex-col items-center justify-center gap-1.5 border-r border-border/8 py-5 transition-colors hover:bg-muted/20">
+            <label className="group flex min-w-[200px] sm:min-w-0 cursor-pointer flex-col items-center justify-center gap-1.5 border-r border-border/8 py-5 transition-colors hover:bg-muted/20">
               {logoUrl ? (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -206,14 +216,14 @@ export function BrandSlide({ profile, onConfirm, onBack }: { profile: BrandProfi
             </label>
 
             {/* Colors */}
-            <div className="flex items-center justify-center gap-3 border-r border-border/8 py-5">
+            <div className="flex min-w-[200px] sm:min-w-0 items-center justify-center gap-3 border-r border-border/8 py-5">
               <ColorDot color={colors.primary} label="Pri" role="primary" originalColor={profile.colors.primary} onColorChange={(c) => setColors((p) => ({ ...p, primary: c }))} />
               <ColorDot color={colors.secondary} label="Sek" role="secondary" originalColor={profile.colors.secondary} onColorChange={(c) => setColors((p) => ({ ...p, secondary: c }))} />
               <ColorDot color={colors.accent} label="Acc" role="accent" originalColor={profile.colors.accent} onColorChange={(c) => setColors((p) => ({ ...p, accent: c }))} />
             </div>
 
             {/* Fonts */}
-            <div className="flex flex-col justify-center px-5 py-5">
+            <div className="flex min-w-[200px] sm:min-w-0 flex-col justify-center px-5 py-5">
               <div className="space-y-2">
                 <div>
                   <div className="text-[10px] text-muted-foreground/30">Rubrik</div>
@@ -225,10 +235,15 @@ export function BrandSlide({ profile, onConfirm, onBack }: { profile: BrandProfi
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Details row */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 border-b border-border/8">
+          <motion.div
+            initial={prefersReduced ? false : { opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 * 2 }}
+            className="grid grid-cols-1 sm:grid-cols-3 border-b border-border/8"
+          >
             <div className="border-r border-border/8 px-5 py-4">
               <div className="mb-1 text-[10px] text-muted-foreground/30">Bransch</div>
               <div className="flex items-center gap-1">
@@ -257,10 +272,15 @@ export function BrandSlide({ profile, onConfirm, onBack }: { profile: BrandProfi
               <div className="mb-1 text-[10px] text-muted-foreground/30">Plats</div>
               <InlineEdit value={location} onSave={setLocation} />
             </div>
-          </div>
+          </motion.div>
 
           {/* CTA */}
-          <div className="px-6 py-5">
+          <motion.div
+            initial={prefersReduced ? false : { opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 * 3 }}
+            className="px-6 py-5"
+          >
             <button onClick={handleConfirm} className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 py-3 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-95">
               Stämmer — skapa min annons
               <ArrowRight className="h-4 w-4" />
@@ -271,7 +291,7 @@ export function BrandSlide({ profile, onConfirm, onBack }: { profile: BrandProfi
                 ← Byt URL
               </button>
             )}
-          </div>
+          </motion.div>
         </motion.div>
 
         <div className="mt-5">

@@ -26,24 +26,36 @@ export default function DashboardPage() {
   const hasCampaigns = MOCK_CAMPAIGNS.length > 0;
 
   if (!hasCampaigns) {
+    const steps = [
+      { label: "Konto skapat", done: true, href: "/dashboard/settings" },
+      { label: "Skapa din första annons", done: false, href: "/" },
+      { label: "Se dina resultat", done: false, href: "/dashboard" },
+    ];
+
     return (
       <div className="flex h-full min-h-[60vh] flex-col items-center justify-center p-6">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--doost-bg-secondary)]">
-          <Plus className="h-6 w-6 text-[var(--doost-text-muted)]" />
+        <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)]">
+          <h2 className="mb-1 text-[16px] font-semibold text-[var(--doost-text)]">
+            Kom igång med Doost AI
+          </h2>
+          <p className="mb-5 text-[13px] text-[var(--doost-text-muted)]">
+            Följ stegen nedan för att lansera din första kampanj.
+          </p>
+          <ul className="space-y-3">
+            {steps.map((step) => (
+              <li key={step.label}>
+                <Link href={step.href} className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-[var(--doost-bg-secondary)]">
+                  <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[12px] ${step.done ? "bg-[var(--doost-bg-active)] text-white" : "border border-[var(--doost-text-muted)]/20 text-[var(--doost-text-muted)]"}`}>
+                    {step.done ? "\u2713" : "\u25CB"}
+                  </span>
+                  <span className={`text-[14px] font-medium ${step.done ? "text-[var(--doost-text-muted)] line-through" : "text-[var(--doost-text)]"}`}>
+                    {step.label}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
-        <h2 className="mt-4 text-[16px] font-semibold text-[var(--doost-text)]">
-          Inga kampanjer ännu
-        </h2>
-        <p className="mt-1 text-[13px] text-[var(--doost-text-muted)]">
-          Kom igång genom att skapa din första annons.
-        </p>
-        <Link
-          href="/"
-          className="mt-5 flex items-center gap-1.5 rounded-lg bg-[var(--doost-bg-active)] px-4 py-2.5 text-[13px] font-medium text-white hover:opacity-90"
-        >
-          <Plus className="h-4 w-4" />
-          Skapa din första annons
-        </Link>
       </div>
     );
   }

@@ -50,6 +50,19 @@ export function LoadingSlide({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [progress, failed]);
 
+  // #24 Micro-steps: while waiting, nudge progress by 2-3% every 3 seconds
+  useEffect(() => {
+    if (progress >= 100 || failed) return;
+    const interval = setInterval(() => {
+      setProgress((p) => {
+        if (p >= 95 || p >= 100) return p;
+        const bump = 2 + Math.random();
+        return Math.min(p + bump, 95);
+      });
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [progress >= 100, failed]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const analyze = useCallback(async () => {
     abortRef.current?.abort();
     const controller = new AbortController();
@@ -214,7 +227,7 @@ export function LoadingSlide({
 
       <div className="mt-6 w-full max-w-xs">
         <div className="h-1 w-full overflow-hidden rounded-full bg-muted-foreground/10">
-          <motion.div className="h-full rounded-full bg-foreground/60" animate={{ width: `${progress}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
+          <motion.div className="h-full rounded-full bg-foreground/60" animate={{ width: `${progress}%` }} transition={{ duration: 1.5, ease: "easeOut" }} />
         </div>
       </div>
     </div>

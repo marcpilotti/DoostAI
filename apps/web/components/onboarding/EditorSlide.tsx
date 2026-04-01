@@ -508,7 +508,7 @@ function LoadingSkeleton({ platformLabel }: { platformLabel: string }) {
       </div>
 
       {/* Fake creative — fills remaining space */}
-      <div className="flex-1 min-h-0 mx-3 mb-3 animate-pulse rounded-xl bg-muted-foreground/5 flex items-center justify-center">
+      <div className="flex-1 min-h-0 mx-3 mb-3 animate-shimmer rounded-xl bg-gradient-to-r from-muted-foreground/5 via-muted-foreground/[0.02] to-muted-foreground/5 bg-[length:200%_100%] flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
           <div className="h-5 w-5 animate-spin motion-reduce:animate-none rounded-full border-2 border-muted-foreground/10 border-t-muted-foreground/30" />
           <p className="text-[11px] text-muted-foreground/25">Genererar {platformLabel}-annons...</p>
