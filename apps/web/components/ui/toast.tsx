@@ -1,7 +1,7 @@
 "use client";
 
-import { AnimatePresence,motion } from "framer-motion";
 import { AlertTriangle, Check, Info,X } from "lucide-react";
+import { AnimatePresence,motion } from "motion/react";
 import { createContext, useCallback, useContext, useState } from "react";
 
 // ── Types ────────────────────────────────────────────────────────

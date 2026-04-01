@@ -1,7 +1,7 @@
 "use client";
 
-import { AnimatePresence,motion } from "framer-motion";
 import { Eye, ImageIcon, Pencil, Settings, Trash2,X } from "lucide-react";
+import { AnimatePresence,motion } from "motion/react";
 
 import { getAvailableModels } from "@/lib/providers/model-router";
 import type {

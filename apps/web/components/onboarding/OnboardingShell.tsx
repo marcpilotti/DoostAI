@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useCallback, useEffect,useRef, useState } from "react";
 
@@ -126,7 +126,7 @@ const slideVariants = {
     scale: 0.99,
     transition: { duration: 0.25 },
   },
-} satisfies import("framer-motion").Variants;
+} satisfies import("motion/react").Variants;
 
 // ── Transition message (between slides) ──────────────────────────
 

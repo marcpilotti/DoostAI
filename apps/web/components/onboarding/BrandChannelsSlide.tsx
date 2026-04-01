@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Check, Info, Send } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";

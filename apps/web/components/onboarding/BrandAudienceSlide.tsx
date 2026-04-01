@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Briefcase, ChevronDown, MapPin, Pencil, Users } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";

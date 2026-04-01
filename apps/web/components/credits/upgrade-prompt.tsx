@@ -1,7 +1,7 @@
 "use client";
 
-import { AnimatePresence,motion } from "framer-motion";
 import { Check, Sparkles,X } from "lucide-react";
+import { AnimatePresence,motion } from "motion/react";
 
 const PLANS = [
   {

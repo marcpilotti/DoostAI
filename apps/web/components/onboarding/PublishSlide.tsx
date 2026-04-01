@@ -1,8 +1,8 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
-import { motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Calendar, Globe, MapPin, Rocket, Save, Shield, Wallet } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { useEffect,useState } from "react";
 
 import type { AdData, AdFormat } from "@/components/ads/ad-preview/types";

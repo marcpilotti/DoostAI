@@ -1,12 +1,12 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowLeft,
   ArrowRight,
   Save,
   Sparkles,
 } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef,useState } from "react";
 
 import { AdPreview } from "@/components/ads/ad-preview/AdPreview";

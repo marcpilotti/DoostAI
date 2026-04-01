@@ -1,6 +1,5 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
   ChevronDown,
@@ -8,6 +7,7 @@ import {
   ImagePlus,
   Pencil,
 } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 
 import { ColorEditor } from "../brand/color-editor";
