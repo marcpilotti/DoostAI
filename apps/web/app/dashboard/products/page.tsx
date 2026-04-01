@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect } from "react";
 import { Plus } from "lucide-react";
 import { MOCK_PRODUCTS } from "@/lib/mock-data";
 
 export default function ProductsPage() {
+  useEffect(() => { document.title = "Products — Doost AI"; }, []);
   return (
     <div className="p-6">
       <div className="mb-6 flex items-center justify-between">

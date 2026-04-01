@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { MOCK_CAMPAIGNS } from "@/lib/mock-data";
 import type { Campaign } from "@/lib/mock-data";
 
@@ -46,6 +47,7 @@ function Funnel({ campaign }: { campaign: Campaign }) {
 // ── Page ─────────────────────────────────────────────────────────
 
 export default function PerformancePage() {
+  useEffect(() => { document.title = "Performance — Doost AI"; }, []);
   const liveCampaigns = MOCK_CAMPAIGNS.filter((c) => c.status === "live" || c.status === "completed");
 
   return (

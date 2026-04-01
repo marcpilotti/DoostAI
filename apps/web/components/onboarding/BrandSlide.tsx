@@ -105,7 +105,7 @@ export function BrandSlide({ profile, onConfirm, onBack }: { profile: BrandProfi
           {/* Header */}
           <div className="flex items-center gap-3 px-6 pt-5 pb-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`} alt="" className="h-6 w-6 shrink-0 rounded" onError={(e) => { (e.target as HTMLImageElement).src = "/symbol.svg"; }} />
+            <img src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`} alt="" width={24} height={24} className="h-6 w-6 shrink-0 rounded" onError={(e) => { (e.target as HTMLImageElement).src = "/symbol.svg"; }} />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <h3 className="truncate text-xl font-bold tracking-tight">{name}</h3>
@@ -123,7 +123,7 @@ export function BrandSlide({ profile, onConfirm, onBack }: { profile: BrandProfi
           </div>
 
           {/* Visual identity row */}
-          <div className="grid grid-cols-3 border-t border-b border-border/8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 border-t border-b border-border/8">
             {/* Logo */}
             <label className="group flex cursor-pointer flex-col items-center justify-center gap-1.5 border-r border-border/8 py-5 transition-colors hover:bg-muted/20">
               {logoUrl ? (
@@ -172,7 +172,7 @@ export function BrandSlide({ profile, onConfirm, onBack }: { profile: BrandProfi
           </div>
 
           {/* Details row */}
-          <div className="grid grid-cols-3 border-b border-border/8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 border-b border-border/8">
             <div className="border-r border-border/8 px-5 py-4">
               <div className="mb-1 text-[10px] text-muted-foreground/30">Bransch</div>
               <div className="flex items-center gap-1">

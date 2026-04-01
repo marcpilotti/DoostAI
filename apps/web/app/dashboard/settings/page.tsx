@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import {
@@ -93,6 +94,7 @@ function GoogleIcon({ className }: { className?: string }) {
 }
 
 export default function SettingsPage() {
+  useEffect(() => { document.title = "Settings — Doost AI"; }, []);
   const { user } = useUser();
 
   return (

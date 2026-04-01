@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { ArrowLeft, RefreshCw } from "lucide-react";
 
 import type { BrandProfile } from "./OnboardingShell";
@@ -17,6 +17,7 @@ export function LoadingSlide({
   onComplete: (profile: BrandProfile) => void;
   onError?: () => void;
 }) {
+  const prefersReduced = useReducedMotion();
   const [messages, setMessages] = useState<string[]>([]);
   const [progress, setProgress] = useState(0);
   const [extractedColors, setExtractedColors] = useState<string[]>([]);
@@ -183,28 +184,28 @@ export function LoadingSlide({
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-6">
-      <div className="mb-6 h-10 w-10 animate-spin rounded-full border-[3px] border-muted-foreground/10 border-t-foreground/60" />
+      <div className="mb-6 h-10 w-10 animate-spin motion-reduce:animate-none rounded-full border-[3px] border-muted-foreground/10 border-t-foreground/60" />
       <p className="mb-4 text-[15px] font-semibold tracking-tight text-foreground">{domain}</p>
 
       <AnimatePresence>
         {extractedColors.length > 0 && (
-          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="mb-4 flex items-center gap-2">
+          <motion.div initial={prefersReduced ? false : { opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="mb-4 flex items-center gap-2">
             {extractedColors.map((color, i) => (
-              <motion.div key={color} initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: i * 0.15 }} className="h-5 w-5 rounded-full ring-2 ring-white" style={{ backgroundColor: color }} />
+              <motion.div key={color} initial={prefersReduced ? false : { scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: i * 0.15 }} className="h-5 w-5 rounded-full ring-2 ring-white" style={{ backgroundColor: color }} />
             ))}
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="min-h-[60px] text-center">
+      <div className="min-h-[60px] text-center" aria-live="polite">
         <AnimatePresence mode="wait">
-          <motion.p key={latestMessage} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 0.6, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.3 }} className="text-[13px] text-muted-foreground">
+          <motion.p key={latestMessage} initial={prefersReduced ? false : { opacity: 0, y: 4 }} animate={{ opacity: 0.6, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.3 }} className="text-[13px] text-muted-foreground">
             {latestMessage}
           </motion.p>
         </AnimatePresence>
         {progress >= 30 && progress < 100 && (
           <AnimatePresence mode="wait">
-            <motion.p key={thinkingPhase} initial={{ opacity: 0 }} animate={{ opacity: 0.3 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }} className="mt-1 text-[11px] text-muted-foreground">
+            <motion.p key={thinkingPhase} initial={prefersReduced ? false : { opacity: 0 }} animate={{ opacity: 0.3 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }} className="mt-1 text-[11px] text-muted-foreground">
               {thinkingTexts[thinkingPhase]}
             </motion.p>
           </AnimatePresence>

@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect } from "react";
 import { ArrowDown, ArrowUp, Plus, Sparkles } from "lucide-react";
 import { MOCK_TRANSACTIONS } from "@/lib/mock-data";
 
 export default function WalletPage() {
+  useEffect(() => { document.title = "Wallet — Doost AI"; }, []);
   const balance = 2496;
   const maxCredits = 2500;
 

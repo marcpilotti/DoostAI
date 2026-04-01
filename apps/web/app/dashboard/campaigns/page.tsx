@@ -1,6 +1,8 @@
 "use client";
 
-import { Copy, MoreHorizontal, Pause, Play, Plus } from "lucide-react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { MoreHorizontal, Plus } from "lucide-react";
 import Link from "next/link";
 
 import { MOCK_CAMPAIGNS } from "@/lib/mock-data";
@@ -21,6 +23,8 @@ function PlatformIcon({ platform }: { platform: string }) {
 }
 
 export default function CampaignsPage() {
+  useEffect(() => { document.title = "Campaigns — Doost AI"; }, []);
+  const router = useRouter();
   return (
     <div className="p-6">
       <div className="mb-6 flex items-center justify-between">
@@ -49,7 +53,7 @@ export default function CampaignsPage() {
             {MOCK_CAMPAIGNS.map((c) => {
               const s = STATUS_STYLES[c.status];
               return (
-                <tr key={c.id} className="cursor-pointer border-b last:border-0 transition-colors hover:bg-[var(--doost-bg-secondary)]" style={{ borderColor: "var(--doost-border)" }} onClick={() => window.location.href = `/dashboard/campaigns/${c.id}`}>
+                <tr key={c.id} className="cursor-pointer border-b last:border-0 transition-colors hover:bg-[var(--doost-bg-secondary)]" style={{ borderColor: "var(--doost-border)" }} onClick={() => router.push(`/dashboard/campaigns/${c.id}`)}>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <PlatformIcon platform={c.platform} />

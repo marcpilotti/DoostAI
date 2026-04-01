@@ -15,6 +15,7 @@ function CreativesContent() {
   const searchParams = useSearchParams();
   const { setOpen: setAIPanelOpen } = useAIPanelStore();
 
+  useEffect(() => { document.title = "Creatives — Doost AI"; }, []);
   useEffect(() => { setAIPanelOpen(true); }, [setAIPanelOpen]);
 
   const timeRange = searchParams.get("range") ?? "30d";

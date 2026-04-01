@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { KPICards } from "@/components/dashboard/kpi-cards";
 import { PerformanceChart } from "@/components/dashboard/performance-chart";
@@ -11,6 +11,7 @@ import { useCampaignActivity } from "@/hooks/use-campaign-activity";
 import { useROASChart } from "@/hooks/use-roas-chart";
 
 export default function DashboardPage() {
+  useEffect(() => { document.title = "Dashboard — Doost AI"; }, []);
   const [selectedKPI, setSelectedKPI] = useState("roas");
   const [timeRange, setTimeRange] = useState("6m");
   const [channel, setChannel] = useState("all");

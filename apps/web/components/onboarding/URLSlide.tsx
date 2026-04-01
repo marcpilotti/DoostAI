@@ -77,6 +77,7 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
             <button
               type="submit"
               disabled={!input.trim()}
+              aria-label="Analysera"
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-opacity active:scale-95 disabled:opacity-20"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}

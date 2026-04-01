@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect } from "react";
 import { CheckCircle2, ExternalLink, RefreshCw, XCircle } from "lucide-react";
 import { MOCK_INTEGRATIONS } from "@/lib/mock-data";
 
 export default function IntegrationsPage() {
+  useEffect(() => { document.title = "Integrations — Doost AI"; }, []);
   return (
     <div className="p-6">
       <h2 className="mb-6 text-[18px] font-semibold text-[var(--doost-text)]">Integrations</h2>

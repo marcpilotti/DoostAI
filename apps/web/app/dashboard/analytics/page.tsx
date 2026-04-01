@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { MOCK_CHART_DATA, MOCK_KPIS } from "@/lib/mock-data";
 
@@ -27,6 +27,7 @@ function downloadCSV(filename: string, rows: Record<string, string | number>[]) 
 }
 
 export default function AnalyticsPage() {
+  useEffect(() => { document.title = "Analytics — Doost AI"; }, []);
   const handleExport = useCallback(() => {
     const rows = [
       ...MOCK_CHART_DATA.map((d) => ({ Month: d.month, "Current ROAS": d.current, "Previous ROAS": d.previous })),

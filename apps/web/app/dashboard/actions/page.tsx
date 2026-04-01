@@ -41,6 +41,7 @@ const PRIORITY_STYLES: Record<string, string> = {
 };
 
 export default function ActionsPage() {
+  useEffect(() => { document.title = "Actions — Doost AI"; }, []);
   const [actions, setActions] = useState<Action[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(false);

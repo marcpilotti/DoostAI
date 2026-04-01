@@ -27,6 +27,8 @@ export function CreativeCard({
           src={creative.imageUrl}
           alt={creative.name}
           loading="lazy"
+          width={400}
+          height={500}
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
         />
       </div>

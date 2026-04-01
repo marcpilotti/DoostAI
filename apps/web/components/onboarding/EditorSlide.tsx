@@ -329,7 +329,7 @@ export function EditorSlide({
   const hasError = state === "ready" && !variantA;
 
   return (
-    <div className="flex h-full flex-col px-4 py-4 sm:px-6">
+    <div className="flex h-full flex-col px-4 py-4 pb-20 sm:px-6">
       {/* ── Card container ─────────────────────────────────────── */}
       <div className="relative mx-auto w-full max-w-2xl min-h-0 flex-1 overflow-hidden">
         {state === "loading" && !variantA ? (
@@ -356,10 +356,12 @@ export function EditorSlide({
 
             {/* Platform tabs */}
             <div className="shrink-0 border-t border-border/8 px-5 py-2.5">
-              <div className="flex items-center justify-center gap-1">
+              <div className="flex items-center justify-center gap-1" role="tablist">
                 {PLATFORMS.map((p, idx) => (
                   <button
                     key={p.id}
+                    role="tab"
+                    aria-selected={idx === platformIdx}
                     onClick={() => setPlatformIdx(idx)}
                     disabled={state === "loading" || state === "regenerating"}
                     className={`rounded-lg px-4 py-1.5 text-[12px] font-medium transition-all disabled:opacity-30 ${
@@ -413,7 +415,7 @@ export function EditorSlide({
             className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-white/70 backdrop-blur-sm"
           >
             <div className="flex flex-col items-center gap-2">
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-200 border-t-indigo-600" />
+              <div className="h-5 w-5 animate-spin motion-reduce:animate-none rounded-full border-2 border-indigo-200 border-t-indigo-600" />
               <p className="text-xs font-medium text-muted-foreground">Anpassar din annons...</p>
             </div>
           </motion.div>
@@ -429,7 +431,7 @@ export function EditorSlide({
 
       {/* Back */}
       <div className={`mx-auto w-full max-w-2xl shrink-0 pb-2 text-center transition-opacity ${state === "loading" ? "pointer-events-none opacity-0" : "opacity-100"}`}>
-        <button onClick={onBack} className="text-[12px] text-muted-foreground/40 hover:text-muted-foreground">
+        <button onClick={onBack} aria-label="Tillbaka" className="text-[12px] text-muted-foreground/40 hover:text-muted-foreground">
           <ArrowLeft className="mr-1 inline h-3 w-3" /> Tillbaka
         </button>
       </div>
@@ -460,7 +462,7 @@ function LoadingSkeleton({ platformLabel }: { platformLabel: string }) {
       {/* Fake creative — fills remaining space */}
       <div className="flex-1 min-h-0 mx-3 mb-3 animate-pulse rounded-xl bg-muted-foreground/5 flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground/10 border-t-muted-foreground/30" />
+          <div className="h-5 w-5 animate-spin motion-reduce:animate-none rounded-full border-2 border-muted-foreground/10 border-t-muted-foreground/30" />
           <p className="text-[11px] text-muted-foreground/25">Genererar {platformLabel}-annons...</p>
         </div>
       </div>

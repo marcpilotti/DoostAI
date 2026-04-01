@@ -113,10 +113,12 @@ export function PublishSlide({
             <div className="mb-2.5 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/30">
               <Wallet className="h-3 w-3" /> Daglig budget
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2" role="radiogroup" aria-label="Daglig budget">
               {BUDGETS.map((b) => (
                 <button
                   key={b.daily}
+                  role="radio"
+                  aria-checked={budget === b.daily}
                   onClick={() => setBudget(b.daily)}
                   className={`relative flex-1 rounded-xl py-3 text-center transition-all ${
                     budget === b.daily
@@ -141,10 +143,12 @@ export function PublishSlide({
               <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/30">
                 <Calendar className="h-3 w-3" /> Tid
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1" role="radiogroup" aria-label="Tid">
                 {DURATIONS.map((d) => (
                   <button
                     key={d.days}
+                    role="radio"
+                    aria-checked={durationDays === d.days}
                     onClick={() => setDurationDays(d.days)}
                     className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-[13px] font-medium transition-all ${
                       durationDays === d.days ? "bg-foreground text-white" : "text-foreground hover:bg-muted-foreground/[0.04]"
@@ -160,10 +164,12 @@ export function PublishSlide({
               <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/30">
                 <MapPin className="h-3 w-3" /> Region
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1" role="radiogroup" aria-label="Region">
                 {REGIONS.map((r) => (
                   <button
                     key={r.id}
+                    role="radio"
+                    aria-checked={selectedRegion === r.id}
                     onClick={() => setSelectedRegion(r.id)}
                     className={`flex w-full items-center rounded-lg px-3 py-2 text-[13px] font-medium transition-all ${
                       selectedRegion === r.id ? "bg-foreground text-white" : "text-foreground hover:bg-muted-foreground/[0.04]"
@@ -220,7 +226,7 @@ export function PublishSlide({
           >
             {isPublishing ? (
               <>
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                <div className="h-4 w-4 animate-spin motion-reduce:animate-none rounded-full border-2 border-white/30 border-t-white" />
                 Publicerar...
               </>
             ) : (
@@ -234,7 +240,7 @@ export function PublishSlide({
 
         {/* Back */}
         <div className="mt-4 text-center">
-          <button onClick={onBack} className="text-[12px] text-muted-foreground/30 hover:text-muted-foreground">
+          <button onClick={onBack} aria-label="Tillbaka" className="text-[12px] text-muted-foreground/30 hover:text-muted-foreground">
             <ArrowLeft className="mr-1 inline h-3 w-3" /> Tillbaka
           </button>
         </div>
