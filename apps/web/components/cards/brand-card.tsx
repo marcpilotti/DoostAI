@@ -14,7 +14,7 @@ import { PlatformChip } from "./platform-chip";
 // ── Helpers ─────────────────────────────────────────────────────
 
 function Divider() {
-  return <div className="my-6 h-px bg-[#F0F0F0]" />;
+  return <div className="my-4 h-px bg-[#F0F0F0]" />;
 }
 
 function adjustColor(hex: string, amount: number): string {
@@ -66,7 +66,7 @@ function ColorSwatch({ color, label, onChange }: {
     <div className="relative flex flex-col items-center gap-2">
       <button
         onClick={() => setOpen(!open)}
-        className="h-12 w-12 rounded-full shadow-sm transition-transform hover:scale-110"
+        className="h-10 w-10 rounded-full shadow-sm transition-transform hover:scale-110"
         style={{ backgroundColor: color }}
         aria-label={`Ändra färg ${label}: ${color}`}
       />
@@ -202,7 +202,7 @@ export function BrandCard({ profile, onConfirm, onBack }: {
       initial={prefersReduced ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="mx-auto w-full max-w-[480px] rounded-2xl border border-[#EEEEEE] bg-white p-8 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.05)]"
+      className="mx-auto w-full max-w-[480px] rounded-xl border border-[#e2e8f0] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
     >
       {/* 1. Brand name + domain + match + logo upload */}
       <div className="flex items-start gap-3">
@@ -224,7 +224,7 @@ export function BrandCard({ profile, onConfirm, onBack }: {
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h2 className="truncate text-[28px] font-bold leading-tight" style={{ color: colors.primary }}>{name}</h2>
+            <h2 className="truncate text-[22px] font-bold leading-tight" style={{ color: colors.primary }}>{name}</h2>
             <a href={profile.url.startsWith("http") ? profile.url : `https://${profile.url}`} target="_blank" rel="noopener noreferrer" className="shrink-0 p-1 text-[#AAAAAA] hover:text-[#111111]">
               <ExternalLink className="h-4 w-4" />
             </a>

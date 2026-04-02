@@ -12,7 +12,7 @@ import { PlatformChip } from "./platform-chip";
 // ── Helpers ─────────────────────────────────────────────────────
 
 function Divider() {
-  return <div className="my-6 h-px bg-[#F0F0F0]" />;
+  return <div className="my-4 h-px bg-[#F0F0F0]" />;
 }
 
 // ── Objectives ──────────────────────────────────────────────────
@@ -57,7 +57,7 @@ export function CampaignCard({ brandName, aiRecommendedObjective, onConfirm, onB
       initial={prefersReduced ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="mx-auto w-full max-w-[480px] rounded-2xl border border-[#EEEEEE] bg-white p-8 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.05)]"
+      className="mx-auto w-full max-w-[480px] rounded-xl border border-[#e2e8f0] bg-white p-6 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.05)]"
     >
       {/* 1. Header */}
       <h2 className="text-2xl font-bold text-[#111111]">Kampanjmål</h2>

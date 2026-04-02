@@ -283,35 +283,23 @@ export function OnboardingShell() {
   const showStepBar = step && step !== "url" && step !== "loading" && step !== "done" && step !== null;
 
   return (
-    <div id="main" className="h-[100dvh] overflow-y-auto bg-page pb-[env(safe-area-inset-bottom)]">
+    <div id="main" className="h-[100dvh] overflow-y-auto bg-[#fafafa] pb-[env(safe-area-inset-bottom)]">
       <div aria-live="assertive" className="sr-only">{announcement}</div>
 
-      {/* ── Header ──────────────────────────────────────────── */}
-      <div className="sticky top-0 z-50 bg-page/95 backdrop-blur-sm">
-        <div className="flex items-center justify-between px-5 py-4">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.svg" alt="Doost AI" className="h-6" />
-          <Link
-            href="/sign-in"
-            className="rounded-btn bg-card px-4 py-1.5 text-small font-medium text-d-text-primary shadow-card transition-all hover:shadow-md border border-d-border"
-          >
-            Logga in
-          </Link>
-        </div>
-
-        {/* Step indicator */}
-        {showStepBar && (
-          <div className="border-b border-d-border-light px-5 pb-4">
-            <StepBar
-              steps={getStepBarSteps(step)}
-              onStepClick={jumpToStep}
-            />
-          </div>
-        )}
+      {/* ── Header — compact ─────────────────────────────────── */}
+      <div className="sticky top-0 z-50 flex items-center justify-between bg-[#fafafa]/95 px-5 py-2.5 backdrop-blur-sm">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.svg" alt="Doost AI" className="h-5" />
+        <Link
+          href="/sign-in"
+          className="rounded-md bg-white px-3 py-1 text-xs font-medium text-[#0f172a] border border-[#e2e8f0] hover:bg-[#f8fafc]"
+        >
+          Logga in
+        </Link>
       </div>
 
       {/* ── Content ─────────────────────────────────────────── */}
-      <div className="mx-auto w-full max-w-lg px-4 py-6 sm:px-6">
+      <div className="mx-auto w-full max-w-[480px] px-4 py-4 sm:px-6">
         <AnimatePresence mode="wait">
           {transitionMessage && (
             <TransitionMessage key="transition" text={transitionMessage} />
@@ -406,6 +394,16 @@ export function OnboardingShell() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Step indicator — below the card */}
+        {showStepBar && (
+          <div className="mt-6 pb-4">
+            <StepBar
+              steps={getStepBarSteps(step)}
+              onStepClick={jumpToStep}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
