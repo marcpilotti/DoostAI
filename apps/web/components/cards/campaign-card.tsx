@@ -4,13 +4,16 @@ import { Check, ClipboardList, Eye, LinkIcon, ShoppingCart } from "lucide-react"
 import { motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
-import { CardShell } from "@/components/ui/card-shell";
-import { FieldLabel } from "@/components/ui/field-label";
 import { Input } from "@/components/ui/input";
-import { Pill } from "@/components/ui/pill";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+
+import { PlatformChip } from "./platform-chip";
+
+// ── Helpers ─────────────────────────────────────────────────────
+
+function Divider() {
+  return <div className="my-6 h-px bg-[#F0F0F0]" />;
+}
 
 // ── Objectives ──────────────────────────────────────────────────
 
@@ -49,123 +52,104 @@ export function CampaignCard({ brandName, aiRecommendedObjective, onConfirm, onB
     });
   }
 
-  const cellVariants = {
-    hidden: { opacity: 0, y: 16 },
-    show: { opacity: 1, y: 0 },
-  };
-
   return (
-    <CardShell noPadding>
-      {/* ── Header ──────────────────────────────────────── */}
-      <div className="p-card-p sm:p-card-p-lg">
-        <h2 className="text-card-title text-d-text-primary">Kampanjinställningar</h2>
-        <p className="mt-1 text-small text-d-text-secondary">Välj mål och namnge din kampanj</p>
-      </div>
+    <motion.div
+      initial={prefersReduced ? false : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="mx-auto w-full max-w-[480px] rounded-2xl border border-[#EEEEEE] bg-white p-8 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.05)]"
+    >
+      {/* 1. Header */}
+      <h2 className="text-2xl font-bold text-[#111111]">Kampanjmål</h2>
+      <p className="mt-1 text-sm text-[#666666]">Välj mål och namnge din kampanj</p>
 
-      <Separator className="bg-d-border-light" />
+      {/* 2. Divider */}
+      <Divider />
 
-      {/* ── Objective grid ──────────────────────────────── */}
-      <div className="p-card-p sm:p-card-p-lg">
-        <FieldLabel className="mb-3">Kampanjmål</FieldLabel>
-        <motion.div
-          className="grid grid-cols-2 gap-grid-gap"
-          variants={{ show: { transition: { staggerChildren: 0.08 } } }}
-          initial={prefersReduced ? false : "hidden"}
-          animate="show"
-        >
-          {OBJECTIVES.map((obj) => {
-            const isSelected = selected === obj.id;
-            const isRecommended = obj.id === aiRecommendedObjective;
+      {/* 3. 2x2 objective grid */}
+      <div className="grid grid-cols-2 gap-3">
+        {OBJECTIVES.map((obj) => {
+          const isSelected = selected === obj.id;
+          const isRecommended = obj.id === aiRecommendedObjective;
 
-            return (
-              <motion.button
-                key={obj.id}
-                variants={cellVariants}
-                onClick={() => setSelected(obj.id)}
-                whileHover={{ y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                className={cn(
-                  "relative rounded-cell p-cell-p text-left transition-all",
-                  isSelected
-                    ? "bg-accent-light border-[1.5px] border-accent shadow-card-active"
-                    : "bg-surface border border-transparent hover:border-d-border",
-                )}
-              >
-                {/* AI recommended pill */}
-                {isRecommended && (
-                  <Pill variant="blue" className="absolute -top-2.5 left-3 text-[9px]">
-                    AI-rekommenderad
-                  </Pill>
-                )}
-
-                {/* Selection checkmark */}
-                {isSelected && (
-                  <div className="absolute -right-1.5 -top-1.5 flex h-[22px] w-[22px] items-center justify-center rounded-full bg-accent text-white">
-                    <Check className="h-3 w-3" strokeWidth={3} />
-                  </div>
-                )}
-
-                <obj.icon className={cn("h-5 w-5 mb-2", isSelected ? "text-accent" : "text-d-text-hint")} />
-                <p className="text-[14px] font-semibold text-d-text-primary">{obj.label}</p>
-                <p className="mt-0.5 text-xs text-d-text-secondary">{obj.description}</p>
-              </motion.button>
-            );
-          })}
-        </motion.div>
-      </div>
-
-      <Separator className="bg-d-border-light" />
-
-      {/* ── Campaign name ───────────────────────────────── */}
-      <div className="p-card-p sm:p-card-p-lg">
-        <FieldLabel className="mb-2">Kampanjnamn</FieldLabel>
-        <Input
-          value={campaignName}
-          onChange={(e) => setCampaignName(e.target.value)}
-          className="bg-surface rounded-cell text-[15px] font-semibold border-0 h-auto p-3"
-        />
-      </div>
-
-      <Separator className="bg-d-border-light" />
-
-      {/* ── Platform select ─────────────────────────────── */}
-      <div className="p-card-p sm:p-card-p-lg">
-        <FieldLabel className="mb-3">Plattformar</FieldLabel>
-        <div className="flex flex-wrap gap-2">
-          {Object.entries(platforms).map(([name, active]) => (
+          return (
             <button
-              key={name}
-              onClick={() => setPlatforms((p) => ({ ...p, [name]: !p[name] }))}
+              key={obj.id}
+              onClick={() => setSelected(obj.id)}
               className={cn(
-                "rounded-pill px-4 py-2 text-small font-medium transition-all border",
-                active
-                  ? "bg-accent-light text-accent border-accent-border"
-                  : "bg-surface text-d-text-secondary border-d-border-light hover:border-d-border",
+                "relative rounded-xl p-4 text-left transition-all",
+                isSelected
+                  ? "border-[1.5px] border-[#3B82F6] bg-[#F0F7FF]"
+                  : "border border-[#E5E5E5] bg-white hover:border-[#CCCCCC]",
               )}
             >
-              {name} {active && "✓"}
+              {/* AI recommended badge */}
+              {isRecommended && (
+                <span className="absolute -top-2.5 left-3 rounded-full bg-[#F0F7FF] border border-[#3B82F6] px-2 py-0.5 text-[9px] font-medium text-[#3B82F6]">
+                  AI-rekommenderad
+                </span>
+              )}
+
+              {/* Selection checkmark */}
+              {isSelected && (
+                <div className="absolute -right-1.5 -top-1.5 flex h-[22px] w-[22px] items-center justify-center rounded-full bg-[#3B82F6] text-white">
+                  <Check className="h-3 w-3" strokeWidth={3} />
+                </div>
+              )}
+
+              <obj.icon className={cn("h-5 w-5 mb-2", isSelected ? "text-[#3B82F6]" : "text-[#AAAAAA]")} />
+              <p className="text-sm font-semibold text-[#111111]">{obj.label}</p>
+              <p className="mt-0.5 text-xs text-[#666666]">{obj.description}</p>
             </button>
-          ))}
-        </div>
+          );
+        })}
       </div>
 
-      <Separator className="bg-d-border-light" />
+      {/* 4. Divider */}
+      <Divider />
 
-      {/* ── CTA ─────────────────────────────────────────── */}
-      <div className="flex items-center gap-3 p-card-p sm:p-card-p-lg">
-        <Button
-          onClick={handleConfirm}
-          className="flex-1 rounded-btn bg-d-text-primary text-white hover:bg-d-text-primary/90"
-          size="lg"
+      {/* 5. Campaign name */}
+      <p className="mb-2 text-[13px] font-medium text-[#999999]">Kampanjnamn</p>
+      <Input
+        value={campaignName}
+        onChange={(e) => setCampaignName(e.target.value)}
+        className="h-auto rounded-xl border-[#E5E5E5] bg-white p-3 text-base font-semibold text-[#111111] focus-visible:ring-1 focus-visible:ring-[#3B82F6]"
+      />
+
+      {/* 6. Divider */}
+      <Divider />
+
+      {/* 7. Platforms */}
+      <p className="mb-3 text-[13px] font-medium text-[#999999]">Annonskanaler</p>
+      <div className="flex flex-wrap gap-2">
+        {Object.entries(platforms).map(([name, active]) => (
+          <PlatformChip
+            key={name}
+            name={name}
+            selected={active}
+            onToggle={() => setPlatforms((p) => ({ ...p, [name]: !p[name] }))}
+          />
+        ))}
+      </div>
+
+      {/* 8. Divider + CTA */}
+      <Divider />
+
+      <button
+        onClick={handleConfirm}
+        className="w-full rounded-xl bg-[#111111] py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-[#222222]"
+      >
+        Fortsätt till budget →
+      </button>
+
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="mt-4 w-full text-center text-sm text-[#999999] hover:text-[#111111] transition-colors"
         >
-          Fortsätt till budget →
-        </Button>
-        {onBack && (
-          <Button variant="outline" onClick={onBack} className="rounded-btn border-d-border" size="lg">
-            ← Tillbaka
-          </Button>
-        )}
-      </div>
-    </CardShell>
+          ← Tillbaka
+        </button>
+      )}
+    </motion.div>
   );
 }

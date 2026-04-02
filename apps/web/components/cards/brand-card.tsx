@@ -5,17 +5,17 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { HexColorPicker } from "react-colorful";
 
-import { Button } from "@/components/ui/button";
-import { CardShell } from "@/components/ui/card-shell";
-import { FieldLabel } from "@/components/ui/field-label";
 import { Input } from "@/components/ui/input";
-import { Pill } from "@/components/ui/pill";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 import type { BrandProfile } from "../onboarding/OnboardingShell";
+import { PlatformChip } from "./platform-chip";
 
 // ── Helpers ─────────────────────────────────────────────────────
+
+function Divider() {
+  return <div className="my-6 h-px bg-[#F0F0F0]" />;
+}
 
 function adjustColor(hex: string, amount: number): string {
   const clamp = (n: number) => Math.max(0, Math.min(255, n));
@@ -53,33 +53,6 @@ function compressImage(file: File, maxSize: number): Promise<string> {
   });
 }
 
-function getMatchPill(score: number): { variant: "green" | "blue" | "amber"; label: string } {
-  if (score >= 85) return { variant: "green", label: "Utmärkt matchning" };
-  if (score >= 60) return { variant: "blue", label: "Bra start" };
-  return { variant: "amber", label: "Hjälp oss förbättra" };
-}
-
-// ── Bento Cell wrapper ──────────────────────────────────────────
-
-function BentoCell({ children, className, onClick }: {
-  children: React.ReactNode;
-  className?: string;
-  onClick?: () => void;
-}) {
-  return (
-    <div
-      className={cn(
-        "rounded-cell bg-surface p-cell-p transition-all",
-        onClick && "cursor-pointer hover:border-accent hover:border",
-        className,
-      )}
-      onClick={onClick}
-    >
-      {children}
-    </div>
-  );
-}
-
 // ── Color swatch with picker ────────────────────────────────────
 
 function ColorSwatch({ color, label, onChange }: {
@@ -90,14 +63,14 @@ function ColorSwatch({ color, label, onChange }: {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="relative flex flex-col items-center gap-1.5">
+    <div className="relative flex flex-col items-center gap-2">
       <button
         onClick={() => setOpen(!open)}
-        className="h-11 w-11 rounded-[10px] shadow-sm transition-transform hover:scale-110 hover:z-10"
+        className="h-12 w-12 rounded-full shadow-sm transition-transform hover:scale-110"
         style={{ backgroundColor: color }}
         aria-label={`Ändra färg ${label}: ${color}`}
       />
-      <span className="font-mono text-[10px] text-d-text-hint">{color}</span>
+      <span className="font-mono text-xs text-[#999999]">{color}</span>
 
       <AnimatePresence>
         {open && (
@@ -105,12 +78,12 @@ function ColorSwatch({ color, label, onChange }: {
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 4 }}
-            className="absolute top-14 z-50 rounded-cell bg-card p-3 shadow-lg border border-d-border"
+            className="absolute top-16 z-50 rounded-xl bg-white p-3 shadow-lg border border-[#EEEEEE]"
           >
             <HexColorPicker color={color} onChange={onChange} />
             <button
               onClick={() => setOpen(false)}
-              className="mt-2 w-full text-center text-xs text-d-text-hint hover:text-d-text-primary"
+              className="mt-2 w-full text-center text-xs text-[#999999] hover:text-[#111111]"
             >
               Stäng
             </button>
@@ -137,7 +110,7 @@ function EditableText({ value, onSave, className }: {
         autoFocus
         onKeyDown={(e) => { if (e.key === "Enter") { onSave((e.target as HTMLInputElement).value); setEditing(false); } }}
         onBlur={(e) => { onSave(e.target.value); setEditing(false); }}
-        className={cn("h-auto border-0 bg-card px-2 py-1 shadow-sm ring-1 ring-accent/30 text-[15px] font-semibold", className)}
+        className={cn("h-auto border border-[#E5E5E5] bg-white px-2 py-1 text-base font-semibold text-[#111111] shadow-sm ring-0 focus-visible:ring-1 focus-visible:ring-[#3B82F6]", className)}
       />
     );
   }
@@ -147,32 +120,10 @@ function EditableText({ value, onSave, className }: {
       onClick={() => setEditing(true)}
       className="group flex w-full items-center gap-1.5 text-left"
     >
-      <span className={cn("text-[15px] font-semibold text-d-text-primary", className)}>
+      <span className={cn("text-base font-semibold text-[#111111]", className)}>
         {value || "Klicka för att ange"}
       </span>
-      <Pencil className="h-3 w-3 shrink-0 text-d-text-hint opacity-0 transition-opacity group-hover:opacity-100" />
-    </button>
-  );
-}
-
-// ── Platform chip ───────────────────────────────────────────────
-
-function PlatformChip({ name, selected, onToggle }: {
-  name: string;
-  selected: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <button
-      onClick={onToggle}
-      className={cn(
-        "rounded-pill px-4 py-2 text-small font-medium transition-all",
-        selected
-          ? "bg-accent-light text-accent border border-accent-border"
-          : "bg-surface text-d-text-secondary border border-d-border-light hover:border-d-border",
-      )}
-    >
-      {name} {selected && "✓"}
+      <Pencil className="h-3 w-3 shrink-0 text-[#AAAAAA] opacity-0 transition-opacity group-hover:opacity-100" />
     </button>
   );
 }
@@ -235,7 +186,6 @@ export function BrandCard({ profile, onConfirm, onBack }: {
 
   const name = stripSuffix(profile.name);
   const domain = profile.url.replace(/^https?:\/\//, "").replace(/\/$/, "");
-  const match = confidence > 0 ? getMatchPill(confidence) : null;
 
   function handleConfirm() {
     onConfirm({
@@ -247,23 +197,21 @@ export function BrandCard({ profile, onConfirm, onBack }: {
     });
   }
 
-  // Bento cell stagger animation
-  const cellVariants = {
-    hidden: { opacity: 0, y: 16 },
-    show: { opacity: 1, y: 0 },
-  };
-
   return (
-    <CardShell noPadding className="overflow-hidden">
-      {/* ── Header row ──────────────────────────────────── */}
-      <div className="flex items-center gap-3 p-card-p sm:p-card-p-lg">
-        {/* Logo */}
-        <label className="group flex h-14 w-14 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-cell bg-surface shadow-sm transition-transform hover:scale-105">
+    <motion.div
+      initial={prefersReduced ? false : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="mx-auto w-full max-w-[480px] rounded-2xl border border-[#EEEEEE] bg-white p-8 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.05)]"
+    >
+      {/* 1. Brand name + domain + match + logo upload */}
+      <div className="flex items-start gap-3">
+        <label className="group flex h-14 w-14 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-[#FAFAFA] transition-transform hover:scale-105">
           {logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={logoUrl} alt={name} className="h-full w-full object-contain p-1.5" />
           ) : (
-            <ImagePlus className="h-5 w-5 text-d-text-hint" />
+            <ImagePlus className="h-5 w-5 text-[#AAAAAA]" />
           )}
           <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" className="hidden" onChange={(e) => {
             const f = e.target.files?.[0];
@@ -276,135 +224,122 @@ export function BrandCard({ profile, onConfirm, onBack }: {
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h2 className="truncate text-card-title" style={{ color: colors.primary }}>{name}</h2>
-            {match && (
-              <Pill variant={match.variant}>{confidence}% — {match.label}</Pill>
-            )}
+            <h2 className="truncate text-[28px] font-bold leading-tight" style={{ color: colors.primary }}>{name}</h2>
+            <a href={profile.url.startsWith("http") ? profile.url : `https://${profile.url}`} target="_blank" rel="noopener noreferrer" className="shrink-0 p-1 text-[#AAAAAA] hover:text-[#111111]">
+              <ExternalLink className="h-4 w-4" />
+            </a>
           </div>
-          <p className="text-small text-d-text-secondary">{domain}</p>
+          <p className="text-sm text-[#999999]">{domain}</p>
+          {confidence > 0 && (
+            <p className="mt-0.5 text-[13px] font-medium text-[#CC8800]">{confidence}% matchning</p>
+          )}
         </div>
-
-        <a href={profile.url.startsWith("http") ? profile.url : `https://${profile.url}`} target="_blank" rel="noopener noreferrer" className="shrink-0 rounded-btn p-2 text-d-text-hint hover:text-d-text-primary hover:bg-surface">
-          <ExternalLink className="h-4 w-4" />
-        </a>
       </div>
-      {logoError && <p className="px-card-p text-xs text-d-danger">{logoError}</p>}
+      {logoError && <p className="mt-1 text-xs text-red-500">{logoError}</p>}
 
-      <Separator className="bg-d-border-light" />
+      {/* 2. Divider */}
+      <Divider />
 
-      {/* ── Bento grid ──────────────────────────────────── */}
-      <motion.div
-        className="grid grid-cols-2 gap-grid-gap p-card-p sm:p-card-p-lg"
-        variants={{ show: { transition: { staggerChildren: 0.08 } } }}
-        initial={prefersReduced ? false : "hidden"}
-        animate="show"
-      >
-        {/* Colors — full width */}
-        <motion.div variants={cellVariants} className="col-span-2">
-          <BentoCell>
-            <FieldLabel className="mb-3">Varumärkesfärger</FieldLabel>
-            <div className="flex gap-6 justify-center">
-              <ColorSwatch color={colors.primary} label="Primär" onChange={(c) => setColors((p) => ({ ...p, primary: c }))} />
-              <ColorSwatch color={colors.secondary} label="Sekundär" onChange={(c) => setColors((p) => ({ ...p, secondary: c }))} />
-              <ColorSwatch color={colors.accent} label="Accent" onChange={(c) => setColors((p) => ({ ...p, accent: c }))} />
-            </div>
-          </BentoCell>
-        </motion.div>
+      {/* 3. Färger */}
+      <p className="mb-3 text-[13px] font-medium text-[#999999]">Färger</p>
+      <div className="flex justify-center gap-8">
+        <ColorSwatch color={colors.primary} label="Primär" onChange={(c) => setColors((p) => ({ ...p, primary: c }))} />
+        <ColorSwatch color={colors.secondary} label="Sekundär" onChange={(c) => setColors((p) => ({ ...p, secondary: c }))} />
+        <ColorSwatch color={colors.accent} label="Accent" onChange={(c) => setColors((p) => ({ ...p, accent: c }))} />
+      </div>
 
-        {/* Heading font — left column */}
-        <motion.div variants={cellVariants}>
-          <BentoCell>
-            <FieldLabel className="mb-1">Rubrikfont</FieldLabel>
-            <p className="text-[16px] font-bold text-d-text-primary">{profile.fonts?.heading ?? "Inter"}</p>
-          </BentoCell>
-        </motion.div>
+      {/* 4. Divider */}
+      <Divider />
 
-        {/* Body font — right column */}
-        <motion.div variants={cellVariants}>
-          <BentoCell>
-            <FieldLabel className="mb-1">Brödtextfont</FieldLabel>
-            <p className="text-[16px] text-d-text-primary">{profile.fonts?.body ?? "Inter"}</p>
-          </BentoCell>
-        </motion.div>
+      {/* 5. Typsnitt */}
+      <p className="mb-3 text-[13px] font-medium text-[#999999]">Typsnitt</p>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <p className="text-xs text-[#AAAAAA]">Rubrik</p>
+          <p className="text-base font-semibold text-[#111111]">{profile.fonts?.heading ?? "Inter"} <span className="font-normal text-[#999999]">Semi Bold</span></p>
+        </div>
+        <div>
+          <p className="text-xs text-[#AAAAAA]">Brödtext</p>
+          <p className="text-base text-[#111111]">{profile.fonts?.body ?? "Inter"} <span className="text-[#999999]">Regular</span></p>
+        </div>
+      </div>
 
-        {/* Industry — left column */}
-        <motion.div variants={cellVariants}>
-          <BentoCell>
-            <FieldLabel className="mb-2">Bransch</FieldLabel>
-            <div className="flex items-center gap-1">
-              <select
-                value={industry}
-                onChange={(e) => setIndustry(e.target.value)}
-                className="w-full appearance-none bg-transparent text-[15px] font-semibold text-d-text-primary outline-none cursor-pointer truncate pr-4"
-              >
-                <option value="">Välj bransch...</option>
-                {industry && !INDUSTRIES.includes(industry) && (
-                  <option key={industry} value={industry}>{industry} (AI-detekterad)</option>
-                )}
-                {INDUSTRIES.map((ind) => <option key={ind} value={ind}>{ind}</option>)}
-              </select>
-              <ChevronDown className="h-4 w-4 shrink-0 text-d-text-hint" />
-            </div>
-          </BentoCell>
-        </motion.div>
+      {/* 6. Divider */}
+      <Divider />
 
-        {/* Location — right column */}
-        <motion.div variants={cellVariants}>
-          <BentoCell>
-            <FieldLabel className="mb-2">Plats</FieldLabel>
-            <EditableText value={location} onSave={setLocation} />
-          </BentoCell>
-        </motion.div>
-
-        {/* Target audience — full width */}
-        <motion.div variants={cellVariants} className="col-span-2">
-          <BentoCell>
-            <FieldLabel className="mb-2">Målgrupp</FieldLabel>
-            <EditableText value={audience} onSave={setAudience} />
-          </BentoCell>
-        </motion.div>
-
-        {/* Publish to — full width */}
-        <motion.div variants={cellVariants} className="col-span-2">
-          <BentoCell>
-            <FieldLabel className="mb-3">Publicera till</FieldLabel>
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(channels).map(([name, selected]) => (
-                <PlatformChip
-                  key={name}
-                  name={name}
-                  selected={selected}
-                  onToggle={() => setChannels((p) => ({ ...p, [name]: !p[name] }))}
-                />
-              ))}
-            </div>
-          </BentoCell>
-        </motion.div>
-      </motion.div>
-
-      <Separator className="bg-d-border-light" />
-
-      {/* ── Action footer ───────────────────────────────── */}
-      <div className="flex items-center gap-3 p-card-p sm:p-card-p-lg">
-        <Button
-          onClick={handleConfirm}
-          className="flex-1 rounded-btn bg-d-text-primary text-white hover:bg-d-text-primary/90"
-          size="lg"
-        >
-          Bekräfta varumärke
-          <span className="ml-1">→</span>
-        </Button>
-        {onBack && (
-          <Button
-            variant="outline"
-            onClick={onBack}
-            className="rounded-btn border-d-border text-d-text-primary"
-            size="lg"
+      {/* 7. Detail rows: Bransch, Målgrupp, Plats */}
+      <div>
+        <p className="text-xs text-[#AAAAAA]">Bransch</p>
+        <div className="mt-1 flex items-center gap-1">
+          <select
+            value={industry}
+            onChange={(e) => setIndustry(e.target.value)}
+            className="w-full appearance-none bg-transparent text-base font-semibold text-[#111111] outline-none cursor-pointer truncate pr-4"
           >
-            ← Tillbaka
-          </Button>
-        )}
+            <option value="">Välj bransch...</option>
+            {industry && !INDUSTRIES.includes(industry) && (
+              <option key={industry} value={industry}>{industry} (AI-detekterad)</option>
+            )}
+            {INDUSTRIES.map((ind) => <option key={ind} value={ind}>{ind}</option>)}
+          </select>
+          <ChevronDown className="h-4 w-4 shrink-0 text-[#AAAAAA]" />
+        </div>
       </div>
-    </CardShell>
+
+      <Divider />
+
+      <div>
+        <p className="text-xs text-[#AAAAAA]">Målgrupp</p>
+        <div className="mt-1">
+          <EditableText value={audience} onSave={setAudience} />
+        </div>
+      </div>
+
+      <Divider />
+
+      <div>
+        <p className="text-xs text-[#AAAAAA]">Plats</p>
+        <div className="mt-1">
+          <EditableText value={location} onSave={setLocation} />
+        </div>
+      </div>
+
+      {/* 8. Divider */}
+      <Divider />
+
+      {/* 9. Annonskanaler */}
+      <p className="mb-3 text-[13px] font-medium text-[#999999]">Annonskanaler</p>
+      <div className="flex flex-wrap gap-2">
+        {Object.entries(channels).map(([channelName, selected]) => (
+          <PlatformChip
+            key={channelName}
+            name={channelName}
+            selected={selected}
+            onToggle={() => setChannels((p) => ({ ...p, [channelName]: !p[channelName] }))}
+          />
+        ))}
+      </div>
+
+      {/* 10. Divider */}
+      <Divider />
+
+      {/* 11. CTA */}
+      <button
+        onClick={handleConfirm}
+        className="w-full rounded-xl bg-[#111111] py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-[#222222]"
+      >
+        Ser bra ut — fortsätt →
+      </button>
+
+      {/* 12. Back link */}
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="mt-4 w-full text-center text-sm text-[#999999] hover:text-[#111111] transition-colors"
+        >
+          ← Ändra URL
+        </button>
+      )}
+    </motion.div>
   );
 }

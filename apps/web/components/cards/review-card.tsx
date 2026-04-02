@@ -1,12 +1,14 @@
 "use client";
 
 import { Pencil } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
 
-import { CardShell } from "@/components/ui/card-shell";
-import { Pill } from "@/components/ui/pill";
-import { PulsatingButton } from "@/components/ui/pulsating-button";
-import { Separator } from "@/components/ui/separator";
+// ── Helpers ─────────────────────────────────────────────────────
+
+function Divider() {
+  return <div className="my-6 h-px bg-[#F0F0F0]" />;
+}
 
 // ── Types ───────────────────────────────────────────────────────
 
@@ -30,13 +32,13 @@ function SummaryRow({ label, value, onEdit }: {
   return (
     <div className="flex items-center justify-between py-3">
       <div>
-        <p className="text-xs text-d-text-hint">{label}</p>
-        <p className="text-[15px] font-semibold text-d-text-primary">{value}</p>
+        <p className="text-xs text-[#AAAAAA]">{label}</p>
+        <p className="text-base font-semibold text-[#111111]">{value}</p>
       </div>
       {onEdit && (
         <button
           onClick={onEdit}
-          className="flex items-center gap-1 rounded-btn px-2 py-1 text-xs text-accent hover:bg-accent-light transition-colors focus-visible:ring-2 focus-visible:ring-accent-light focus-visible:outline-none"
+          className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-[#3B82F6] hover:bg-[#F0F7FF] transition-colors"
         >
           <Pencil className="h-3 w-3" />
           Ändra
@@ -54,27 +56,31 @@ export function ReviewCard({ data, onPublish, onEdit, onBack }: {
   onEdit: (step: number) => void;
   onBack?: () => void;
 }) {
+  const prefersReduced = useReducedMotion();
   const [confirmed, setConfirmed] = useState(false);
   const monthlyBudget = data.dailyBudget * 30;
 
-  const scorePill = data.variantScore >= 75
-    ? { variant: "green" as const, label: `${data.variantScore}/100` }
-    : data.variantScore >= 50
-      ? { variant: "amber" as const, label: `${data.variantScore}/100` }
-      : { variant: "amber" as const, label: `${data.variantScore}/100` };
+  function handlePublish() {
+    if (!confirmed) return;
+    onPublish();
+  }
 
   return (
-    <CardShell noPadding>
-      {/* ── Header ──────────────────────────────────────── */}
-      <div className="p-card-p sm:p-card-p-lg">
-        <h2 className="text-card-title text-d-text-primary">Granska och publicera</h2>
-        <p className="mt-1 text-small text-d-text-secondary">Kontrollera alla uppgifter innan du publicerar</p>
-      </div>
+    <motion.div
+      initial={prefersReduced ? false : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="mx-auto w-full max-w-[480px] rounded-2xl border border-[#EEEEEE] bg-white p-8 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.05)]"
+    >
+      {/* 1. Header */}
+      <h2 className="text-2xl font-bold text-[#111111]">Granska och publicera</h2>
+      <p className="mt-1 text-sm text-[#666666]">Kontrollera alla uppgifter innan du publicerar</p>
 
-      <Separator className="bg-d-border-light" />
+      {/* 2. Divider */}
+      <Divider />
 
-      {/* ── Summary rows ────────────────────────────────── */}
-      <div className="divide-y divide-d-border-light px-card-p sm:px-card-p-lg">
+      {/* 3. Summary rows */}
+      <div className="divide-y divide-[#F0F0F0]">
         <SummaryRow
           label="Varumärke"
           value={`${data.brandName} — ${data.brandUrl}`}
@@ -95,17 +101,21 @@ export function ReviewCard({ data, onPublish, onEdit, onBack }: {
           value={`${data.dailyBudget} kr/dag (${monthlyBudget.toLocaleString("sv-SE")} kr/mån)`}
           onEdit={() => onEdit(3)}
         />
+
+        {/* 4. Creative row with score pill */}
         <div className="flex items-center justify-between py-3">
           <div>
-            <p className="text-xs text-d-text-hint">Kreativ</p>
+            <p className="text-xs text-[#AAAAAA]">Kreativ</p>
             <div className="flex items-center gap-2">
-              <p className="text-[15px] font-semibold text-d-text-primary">{data.variantLabel}</p>
-              <Pill variant={scorePill.variant}>{scorePill.label}</Pill>
+              <p className="text-base font-semibold text-[#111111]">{data.variantLabel}</p>
+              <span className="inline-flex items-center rounded-full border border-[#86EFAC] bg-[#F0FDF4] px-2 py-0.5 text-xs font-medium text-[#059669]">
+                {data.variantScore}/100
+              </span>
             </div>
           </div>
           <button
             onClick={() => onEdit(4)}
-            className="flex items-center gap-1 rounded-btn px-2 py-1 text-xs text-accent hover:bg-accent-light transition-colors focus-visible:ring-2 focus-visible:ring-accent-light focus-visible:outline-none"
+            className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-[#3B82F6] hover:bg-[#F0F7FF] transition-colors"
           >
             <Pencil className="h-3 w-3" />
             Ändra
@@ -113,11 +123,12 @@ export function ReviewCard({ data, onPublish, onEdit, onBack }: {
         </div>
       </div>
 
-      <Separator className="bg-d-border-light" />
+      {/* 5. Divider */}
+      <Divider />
 
-      {/* ── Budget confirmation banner ──────────────────── */}
-      <div className="mx-card-p sm:mx-card-p-lg my-4 rounded-cell bg-d-warning-light border border-d-warning-border p-4">
-        <p className="text-sm text-d-warning font-medium">
+      {/* 6. Budget warning */}
+      <div className="rounded-xl border border-[#FDE68A] bg-[#FFFBEB] p-4">
+        <p className="text-sm font-medium text-[#92400E]">
           Du spenderar upp till {data.dailyBudget} kr/dag (max {monthlyBudget.toLocaleString("sv-SE")} kr/mån).
           Du kan pausa eller ändra din budget när som helst.
         </p>
@@ -126,35 +137,32 @@ export function ReviewCard({ data, onPublish, onEdit, onBack }: {
             type="checkbox"
             checked={confirmed}
             onChange={(e) => setConfirmed(e.target.checked)}
-            className="h-4 w-4 rounded accent-accent"
+            className="h-4 w-4 rounded accent-[#3B82F6]"
           />
-          <span className="text-xs text-d-text-secondary">Jag förstår och godkänner</span>
+          <span className="text-xs text-[#666666]">Jag förstår och godkänner</span>
         </label>
       </div>
 
-      <Separator className="bg-d-border-light" />
+      {/* 7. Divider */}
+      <Divider />
 
-      {/* ── CTA ─────────────────────────────────────────── */}
-      <div className="flex flex-col items-center gap-3 p-card-p sm:p-card-p-lg">
-        <PulsatingButton
-          onClick={handlePublish}
-          disabled={!confirmed}
-          className="w-full rounded-btn text-[15px] font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
-          pulseColor="#2563EB"
+      {/* 8. Publish CTA — BLUE */}
+      <button
+        onClick={handlePublish}
+        disabled={!confirmed}
+        className="w-full rounded-xl bg-[#3B82F6] py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-[#2563EB] disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        Publicera kampanj 🚀
+      </button>
+
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="mt-4 w-full text-center text-sm text-[#999999] hover:text-[#111111] transition-colors"
         >
-          Publicera kampanj 🚀
-        </PulsatingButton>
-        {onBack && (
-          <button onClick={onBack} className="text-xs text-d-text-hint hover:text-d-text-primary">
-            ← Tillbaka
-          </button>
-        )}
-      </div>
-    </CardShell>
+          ← Tillbaka
+        </button>
+      )}
+    </motion.div>
   );
-
-  function handlePublish() {
-    if (!confirmed) return;
-    onPublish();
-  }
 }

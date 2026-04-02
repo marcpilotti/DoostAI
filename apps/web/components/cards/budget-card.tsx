@@ -1,17 +1,18 @@
 "use client";
 
-import { Check, Lightbulb } from "lucide-react";
-import { motion } from "motion/react";
+import { Check } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
-import { CardShell } from "@/components/ui/card-shell";
-import { FieldLabel } from "@/components/ui/field-label";
 import { NumberTicker } from "@/components/ui/number-ticker";
-import { Pill } from "@/components/ui/pill";
-import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
+
+// ── Helpers ─────────────────────────────────────────────────────
+
+function Divider() {
+  return <div className="my-6 h-px bg-[#F0F0F0]" />;
+}
 
 // ── Preset tiers ────────────────────────────────────────────────
 
@@ -59,6 +60,7 @@ export function BudgetCard({ onConfirm, onBack }: {
   onConfirm: (data: { dailyBudget: number }) => void;
   onBack?: () => void;
 }) {
+  const prefersReduced = useReducedMotion();
   const [budget, setBudget] = useState(150);
   const metrics = calcMetrics(budget);
 
@@ -67,133 +69,132 @@ export function BudgetCard({ onConfirm, onBack }: {
   }
 
   return (
-    <CardShell noPadding>
-      {/* ── Header ──────────────────────────────────────── */}
-      <div className="p-card-p sm:p-card-p-lg">
-        <h2 className="text-card-title text-d-text-primary">Budget</h2>
-        <p className="mt-1 text-small text-d-text-secondary">Välj din dagliga annonsbudget</p>
+    <motion.div
+      initial={prefersReduced ? false : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="mx-auto w-full max-w-[480px] rounded-2xl border border-[#EEEEEE] bg-white p-8 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.05)]"
+    >
+      {/* 1. Header */}
+      <h2 className="text-2xl font-bold text-[#111111]">Budget</h2>
+      <p className="mt-1 text-sm text-[#666666]">Välj din dagliga annonsbudget</p>
+
+      {/* 2. Divider */}
+      <Divider />
+
+      {/* 3. Tier cards */}
+      <div className="grid grid-cols-3 gap-3">
+        {TIERS.map((tier) => {
+          const isSelected = budget === tier.daily;
+          return (
+            <button
+              key={tier.id}
+              onClick={() => setBudget(tier.daily)}
+              className={cn(
+                "relative rounded-xl p-4 text-center transition-all",
+                isSelected
+                  ? "border-[1.5px] border-[#3B82F6] bg-[#F0F7FF]"
+                  : "border border-[#E5E5E5] bg-white hover:border-[#CCCCCC]",
+              )}
+            >
+              {tier.recommended && (
+                <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#F0FDF4] border border-[#86EFAC] px-2 py-0.5 text-[9px] font-medium text-[#059669]">
+                  Bäst värde
+                </span>
+              )}
+              {isSelected && (
+                <div className="absolute -right-1.5 -top-1.5 flex h-[22px] w-[22px] items-center justify-center rounded-full bg-[#3B82F6] text-white">
+                  <Check className="h-3 w-3" strokeWidth={3} />
+                </div>
+              )}
+              <p className="text-xs text-[#AAAAAA]">{tier.label}</p>
+              <p className="mt-1 text-[28px] font-extrabold text-[#111111]">{tier.daily} kr</p>
+              <p className="text-xs text-[#666666]">/dag</p>
+              <p className="mt-1 text-[10px] text-[#AAAAAA]">{tier.reach}/dag</p>
+            </button>
+          );
+        })}
       </div>
 
-      <Separator className="bg-d-border-light" />
+      {/* 4. Divider */}
+      <Divider />
 
-      {/* ── Preset tiers ────────────────────────────────── */}
-      <div className="p-card-p sm:p-card-p-lg">
-        <FieldLabel className="mb-3">Välj budget</FieldLabel>
-        <div className="grid grid-cols-3 gap-grid-gap">
-          {TIERS.map((tier) => {
-            const isSelected = budget === tier.daily;
-            return (
-              <motion.button
-                key={tier.id}
-                whileHover={{ y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setBudget(tier.daily)}
-                className={cn(
-                  "relative rounded-cell p-cell-p text-center transition-all",
-                  isSelected
-                    ? "bg-accent-light border-[1.5px] border-accent shadow-card-active"
-                    : "bg-surface border border-transparent hover:border-d-border",
-                )}
-              >
-                {tier.recommended && (
-                  <Pill variant="green" className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[9px] whitespace-nowrap">
-                    Bäst värde
-                  </Pill>
-                )}
-                {isSelected && (
-                  <div className="absolute -right-1.5 -top-1.5 flex h-[22px] w-[22px] items-center justify-center rounded-full bg-accent text-white">
-                    <Check className="h-3 w-3" strokeWidth={3} />
-                  </div>
-                )}
-                <p className="text-xs text-d-text-hint">{tier.label}</p>
-                <p className="text-metric text-d-text-primary mt-1">{tier.daily} kr</p>
-                <p className="text-xs text-d-text-secondary">/dag</p>
-                <p className="text-[10px] text-d-text-hint mt-1">{tier.reach}/dag</p>
-              </motion.button>
-            );
-          })}
+      {/* 5. Slider */}
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[13px] font-medium text-[#999999]">Anpassad budget</p>
+        <span className="text-[28px] font-extrabold text-[#111111]">{budget} kr<span className="text-xs font-normal text-[#666666]">/dag</span></span>
+      </div>
+      <Slider
+        value={[budget]}
+        onValueChange={([v]) => setBudget(v ?? 150)}
+        min={20}
+        max={500}
+        step={10}
+        className="w-full"
+      />
+      <div className="flex justify-between mt-1 text-[10px] text-[#AAAAAA]">
+        <span>20 kr</span>
+        <span>500 kr</span>
+      </div>
+
+      {/* 6. Divider */}
+      <Divider />
+
+      {/* 7. Metric numbers */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="text-center">
+          <p className="text-[28px] font-extrabold text-[#111111]">
+            <NumberTicker value={metrics.monthlyReach} className="text-[28px] font-extrabold text-[#111111]" />
+          </p>
+          <p className="text-[10px] text-[#AAAAAA] mt-1">Räckvidd/mån</p>
+        </div>
+        <div className="text-center">
+          <p className="text-[28px] font-extrabold text-[#111111]">
+            <NumberTicker value={metrics.monthlyClicks} className="text-[28px] font-extrabold text-[#111111]" />
+          </p>
+          <p className="text-[10px] text-[#AAAAAA] mt-1">Klick/mån</p>
+        </div>
+        <div className="text-center">
+          <p className="text-[28px] font-extrabold text-[#111111]">
+            <NumberTicker value={parseFloat(metrics.cpc)} decimalPlaces={1} className="text-[28px] font-extrabold text-[#111111]" /> kr
+          </p>
+          <p className="text-[10px] text-[#AAAAAA] mt-1">Kostnad/klick</p>
         </div>
       </div>
 
-      <Separator className="bg-d-border-light" />
-
-      {/* ── Custom slider ───────────────────────────────── */}
-      <div className="p-card-p sm:p-card-p-lg">
-        <div className="flex items-center justify-between mb-3">
-          <FieldLabel>Anpassad budget</FieldLabel>
-          <span className="text-metric text-d-text-primary">{budget} kr<span className="text-xs font-normal text-d-text-secondary">/dag</span></span>
-        </div>
-        <Slider
-          value={[budget]}
-          onValueChange={([v]) => setBudget(v ?? 150)}
-          min={20}
-          max={500}
-          step={10}
-          className="w-full"
-        />
-        <div className="flex justify-between mt-1 text-[10px] text-d-text-hint">
-          <span>20 kr</span>
-          <span>500 kr</span>
-        </div>
-      </div>
-
-      <Separator className="bg-d-border-light" />
-
-      {/* ── Live metrics ────────────────────────────────── */}
-      <div className="p-card-p sm:p-card-p-lg">
-        <FieldLabel className="mb-3">Uppskattad räckvidd</FieldLabel>
-        <div className="grid grid-cols-3 gap-grid-gap">
-          <div className="rounded-cell bg-surface p-cell-p text-center">
-            <p className="text-metric text-d-text-primary"><NumberTicker value={metrics.monthlyReach} className="text-metric text-d-text-primary" /></p>
-            <p className="text-[10px] text-d-text-hint mt-1">Räckvidd/mån</p>
-          </div>
-          <div className="rounded-cell bg-surface p-cell-p text-center">
-            <p className="text-metric text-d-text-primary"><NumberTicker value={metrics.monthlyClicks} className="text-metric text-d-text-primary" /></p>
-            <p className="text-[10px] text-d-text-hint mt-1">Klick/mån</p>
-          </div>
-          <div className="rounded-cell bg-surface p-cell-p text-center">
-            <p className="text-metric text-d-text-primary"><NumberTicker value={parseFloat(metrics.cpc)} decimalPlaces={1} className="text-metric text-d-text-primary" /> kr</p>
-            <p className="text-[10px] text-d-text-hint mt-1">Kostnad/klick</p>
-          </div>
-        </div>
-      </div>
-
-      <Separator className="bg-d-border-light" />
-
-      {/* ── Mini bar chart ──────────────────────────────── */}
-      <div className="px-card-p sm:px-card-p-lg pb-2">
+      {/* 8. Mini bar chart */}
+      <div className="mt-4">
         <MiniBarChart budget={budget} />
-        <div className="flex justify-between mt-1 text-[10px] text-d-text-hint">
+        <div className="flex justify-between mt-1 text-[10px] text-[#AAAAAA]">
           <span>Dag 1</span>
           <span>Dag 30</span>
         </div>
       </div>
 
-      {/* ── Reassurance banner ──────────────────────────── */}
-      <div className="mx-card-p sm:mx-card-p-lg mb-4 flex items-center gap-2 rounded-cell bg-d-success-light p-3">
-        <Lightbulb className="h-4 w-4 shrink-0 text-d-success" />
-        <span className="text-sm font-medium text-d-success">
-          Betala bara för resultat. Ändra eller pausa din budget när som helst.
-        </span>
-      </div>
+      {/* 9. Reassurance text (green, no card bg) */}
+      <p className="mt-4 text-sm font-medium text-[#059669]">
+        Betala bara för resultat. Ändra eller pausa din budget när som helst.
+      </p>
 
-      <Separator className="bg-d-border-light" />
+      {/* 10. Divider */}
+      <Divider />
 
-      {/* ── CTA ─────────────────────────────────────────── */}
-      <div className="flex items-center gap-3 p-card-p sm:p-card-p-lg">
-        <Button
-          onClick={handleConfirm}
-          className="flex-1 rounded-btn bg-d-text-primary text-white hover:bg-d-text-primary/90"
-          size="lg"
+      {/* 11. CTA */}
+      <button
+        onClick={handleConfirm}
+        className="w-full rounded-xl bg-[#111111] py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-[#222222]"
+      >
+        Fortsätt till annonsförhandsgranskning →
+      </button>
+
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="mt-4 w-full text-center text-sm text-[#999999] hover:text-[#111111] transition-colors"
         >
-          Fortsätt till annonsförhandsgranskning →
-        </Button>
-        {onBack && (
-          <Button variant="outline" onClick={onBack} className="rounded-btn border-d-border" size="lg">
-            ← Tillbaka
-          </Button>
-        )}
-      </div>
-    </CardShell>
+          ← Tillbaka
+        </button>
+      )}
+    </motion.div>
   );
 }
