@@ -46,6 +46,10 @@ export default function RootLayout({
         <meta name="theme-color" content="#6366f1" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <link rel="manifest" href="/manifest.json" />
+        <link
+          href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap"
+          rel="stylesheet"
+        />
       </head>
       <body
         className={`${inter.variable} ${marker.variable} font-sans antialiased`}

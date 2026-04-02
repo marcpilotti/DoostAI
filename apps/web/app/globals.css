@@ -4,30 +4,97 @@
 
 @layer base {
   :root {
-    --background: 40 6% 97%;
-    --foreground: 221 54% 13%;
-    --card: 0 0% 100%;
-    --card-foreground: 221 54% 13%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 221 54% 13%;
+    /* ── shadcn/ui HSL variables ─────────────────────────── */
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
     --primary: 239 84% 67%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 239 84% 67%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 221 20% 46%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 239 84% 67%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
     --ring: 239 84% 67%;
     --radius: 0.5rem;
-    --brand-blue: 216 70% 55%;
-    --brand-teal: 170 100% 39%;
 
-    /* Doost Dashboard tokens — full set per spec */
+    /* ── Wizard design tokens (DESIGN_REFERENCE.md) ──────── */
+
+    /* Primary */
+    --color-primary: #6366F1;
+    --color-primary-hover: #4F46E5;
+    --color-primary-light: #A5B4FC;
+    --color-primary-subtle: #EEF2FF;
+    --color-primary-glow: rgba(99, 102, 241, 0.15);
+
+    /* Surfaces */
+    --color-bg-base: #09090B;
+    --color-bg-elevated: #18181B;
+    --color-bg-raised: #27272A;
+    --color-bg-input: #1C1C21;
+    --color-bg-hover: #2D2D33;
+
+    /* Borders */
+    --color-border-default: #27272A;
+    --color-border-subtle: #1E1E23;
+    --color-border-focus: #6366F1;
+
+    /* Text */
+    --color-text-primary: #FAFAFA;
+    --color-text-secondary: #A1A1AA;
+    --color-text-muted: #71717A;
+    --color-text-inverse: #09090B;
+
+    /* Semantic */
+    --color-success: #22C55E;
+    --color-success-bg: rgba(34, 197, 94, 0.1);
+    --color-warning: #F59E0B;
+    --color-warning-bg: rgba(245, 158, 11, 0.1);
+    --color-error: #EF4444;
+    --color-error-bg: rgba(239, 68, 68, 0.1);
+
+    /* Platform brands */
+    --color-meta: #1877F2;
+    --color-google: #4285F4;
+    --color-linkedin: #0A66C2;
+    --color-tiktok: #000000;
+    --color-snapchat: #FFFC00;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.3);
+    --shadow-xl: 0 16px 50px rgba(0, 0, 0, 0.4);
+    --shadow-glow: 0 0 40px var(--color-primary-glow);
+    --shadow-glow-sm: 0 0 20px var(--color-primary-glow);
+
+    /* Spacing (8px base) */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+
+    /* Border radius */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+    --radius-full: 9999px;
+
+    /* ── Doost Dashboard tokens (preserved) ──────────────── */
     --doost-bg: #FFFFFF;
     --doost-bg-secondary: #F7F7F5;
     --doost-bg-card: #FFFFFF;
@@ -56,56 +123,9 @@
     --doost-radius-md: 8px;
     --doost-radius-lg: 12px;
     --doost-radius-card: 10px;
-
-    /* Shadow tokens */
-    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-    --shadow-md: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
-    --shadow-lg: 0 4px 12px rgba(0,0,0,0.1), 0 16px 32px rgba(0,0,0,0.08);
-
-    /* Text hierarchy */
-    --text-muted: rgba(0,0,0,0.5);
-    --text-faint: rgba(0,0,0,0.4);
-    --text-ghost: rgba(0,0,0,0.15); /* decorative only — do not use for meaningful text */
-
-    /* Semantic colors */
-    --color-error: #DC2626;
-    --color-error-light: #FEF2F2;
-    --color-info: #3B82F6;
-    --color-info-light: #EFF6FF;
-    --color-warning: #F59E0B;
-    --color-warning-light: #FFFBEB;
-
-    /* Platform brand colors */
-    --brand-meta: #0081FB;
-    --brand-google: #4285F4;
-    --brand-linkedin: #0A66C2;
-    --brand-snapchat: #FFFC00;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 221 54% 23%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --brand-blue: 216 70% 55%;
-    --brand-teal: 170 100% 39%;
-
-    /* Doost Dashboard tokens — dark mode */
     --doost-bg: #1A1A1A;
     --doost-bg-secondary: #111111;
     --doost-bg-card: #222222;
@@ -115,6 +135,7 @@
     --doost-text-muted: #666666;
     --doost-border: #333333;
   }
+
   .theme {
     --animate-shimmer-slide: shimmer-slide var(--speed) ease-in-out infinite alternate;
     --animate-spin-around: spin-around calc(var(--speed) * 2) infinite linear;
@@ -131,6 +152,70 @@
   }
 }
 
+/* ═══════════════════════════════════════════════════════════
+   WIZARD — AI presence effects (DESIGN_REFERENCE.md)
+   ═══════════════════════════════════════════════════════════ */
+
+/* Ambient background glow */
+.wizard-bg {
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 40%, rgba(99, 102, 241, 0.04) 0%, transparent 70%),
+    var(--color-bg-base);
+}
+
+/* AI breathing pulse — apply to ONE element per screen only */
+@keyframes ai-breathe {
+  0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.1); }
+  50% { box-shadow: 0 0 35px rgba(99, 102, 241, 0.2); }
+}
+.ai-breathe {
+  animation: ai-breathe 3s ease-in-out infinite;
+}
+.ai-breathe:hover {
+  animation: none;
+}
+
+/* Gradient border — used on brand card and URL input only */
+.ai-border {
+  position: relative;
+  border: 1px solid transparent;
+}
+.ai-border::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0.03) 50%, rgba(99, 102, 241, 0.1) 100%);
+  z-index: -1;
+  opacity: 0.5;
+  transition: opacity 300ms ease;
+  pointer-events: none;
+}
+.ai-border:hover::after { opacity: 1; }
+
+/* Film grain texture overlay */
+.wizard-grain::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 40;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Skeleton shimmer (CSS-only, no Framer Motion) */
+.skeleton {
+  background: linear-gradient(90deg, var(--color-bg-raised) 25%, var(--color-bg-hover) 50%, var(--color-bg-raised) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite ease-in-out;
+  border-radius: var(--radius-sm);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SHARED ANIMATIONS
+   ═══════════════════════════════════════════════════════════ */
+
 /* Hide scrollbar but allow scroll */
 .no-scrollbar {
   -ms-overflow-style: none;
@@ -140,22 +225,6 @@
   display: none;
 }
 
-/* Message slide-up animation */
-@keyframes message-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.animate-message-in {
-  animation: message-in 0.3s ease-out both;
-}
-
-/* Shimmer loading animation */
 @keyframes shimmer {
   from { background-position: 200% 0; }
   to { background-position: -200% 0; }
@@ -164,19 +233,22 @@
   animation: shimmer 1.5s ease-in-out infinite;
 }
 
-/* Card materialize — premium tool card entrance */
-@keyframes card-materialize {
-  from {
-    opacity: 0;
-    transform: translateY(16px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+@keyframes message-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-message-in {
+  animation: message-in 0.3s ease-out both;
 }
 
-/* Skeleton to content morph */
+@keyframes card-materialize {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-card-in {
+  animation: card-materialize 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 @keyframes skeleton-reveal {
   from { opacity: 0; transform: scale(0.97); }
   to { opacity: 1; transform: scale(1); }
@@ -185,67 +257,59 @@
   animation: skeleton-reveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.animate-card-in {
-  animation: card-materialize 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  .animate-message-in,
-  .animate-shimmer,
-  .animate-card-in,
-  .animate-skeleton-reveal,
-  .animate-spin,
-  .typing-dot {
-    animation: none !important;
-  }
-  * {
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* Rainbow glow under chat input */
-.rainbow-glow {
-  position: relative;
-}
-.rainbow-glow::after {
-  content: "";
-  position: absolute;
-  bottom: -4px;
-  left: 15%;
-  right: 15%;
-  height: 32px;
-  background: linear-gradient(
-    90deg,
-    #f97316 0%,
-    #ec4899 20%,
-    #8b5cf6 40%,
-    #6366f1 55%,
-    #3b82f6 70%,
-    #06b6d4 85%,
-    #10b981 100%
-  );
-  filter: blur(24px);
-  opacity: 0.2;
-  border-radius: 9999px;
-  pointer-events: none;
-}
-
-/* Typing indicator dots */
 @keyframes typing-bounce {
-  0%,
-  60%,
-  100% {
-    opacity: 0.3;
-    transform: translateY(0);
-  }
-  30% {
-    opacity: 1;
-    transform: translateY(-4px);
-  }
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-4px); }
 }
 .typing-dot {
   animation: typing-bounce 1.2s ease-in-out infinite;
+}
+
+@keyframes confetti-burst {
+  0% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--angle)) translateY(0) scale(1); }
+  70% { opacity: 0.6; }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--angle)) translateY(60px) scale(0.2); }
+}
+.confetti-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color);
+  animation: confetti-burst 1.5s ease-out forwards;
+}
+
+@keyframes editable-flash {
+  0% { background-color: rgba(16, 185, 129, 0.15); }
+  100% { background-color: transparent; }
+}
+.editable-saved {
+  animation: editable-flash 0.5s ease-out;
+  border-radius: 2px;
+}
+
+@keyframes progress-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+.progress-pulse {
+  animation: progress-pulse 2s ease-in-out infinite;
+}
+
+@keyframes kenburns {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.06); }
+}
+
+@keyframes dashmove {
+  to { stroke-dashoffset: -10; }
+}
+
+@keyframes deploy-icon-enter {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+.deploy-icon-enter {
+  animation: deploy-icon-enter 0.3s ease-out;
 }
 
 /* Brand profile card glow */
@@ -257,14 +321,25 @@
   position: absolute;
   inset: -1px;
   border-radius: 1rem;
-  background: linear-gradient(
-    135deg,
-    rgba(99, 102, 241, 0.15),
-    rgba(139, 92, 246, 0.1),
-    rgba(6, 182, 212, 0.1)
-  );
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1), rgba(6, 182, 212, 0.1));
   z-index: -1;
   filter: blur(8px);
+  pointer-events: none;
+}
+
+/* Rainbow glow under chat input */
+.rainbow-glow { position: relative; }
+.rainbow-glow::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 15%;
+  right: 15%;
+  height: 32px;
+  background: linear-gradient(90deg, #f97316 0%, #ec4899 20%, #8b5cf6 40%, #6366f1 55%, #3b82f6 70%, #06b6d4 85%, #10b981 100%);
+  filter: blur(24px);
+  opacity: 0.2;
+  border-radius: 9999px;
   pointer-events: none;
 }
 
@@ -291,75 +366,33 @@
   }
 }
 
-/* Deploy icon enter animation */
-@keyframes deploy-icon-enter {
-  from {
-    opacity: 0;
-    transform: scale(0.5);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-.deploy-icon-enter {
-  animation: deploy-icon-enter 0.3s ease-out;
-}
+/* ═══════════════════════════════════════════════════════════
+   REDUCED MOTION
+   ═══════════════════════════════════════════════════════════ */
 
-/* Confetti dots */
-@keyframes confetti-burst {
-  0% {
-    opacity: 1;
-    transform: translate(-50%, -50%) rotate(var(--angle)) translateY(0) scale(1);
+@media (prefers-reduced-motion: reduce) {
+  .animate-message-in,
+  .animate-shimmer,
+  .animate-card-in,
+  .animate-skeleton-reveal,
+  .animate-spin,
+  .typing-dot,
+  .ai-breathe,
+  .skeleton {
+    animation: none !important;
   }
-  70% {
-    opacity: 0.6;
+  .wizard-grain::before {
+    display: none;
   }
-  100% {
-    opacity: 0;
-    transform: translate(-50%, -50%) rotate(var(--angle)) translateY(60px) scale(0.2);
+  * {
+    transition-duration: 0.01ms !important;
   }
 }
-.confetti-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--color);
-  animation: confetti-burst 1.5s ease-out forwards;
-}
 
-/* Editable text save flash */
-@keyframes editable-flash {
-  0% { background-color: rgba(16, 185, 129, 0.15); }
-  100% { background-color: transparent; }
-}
-.editable-saved {
-  animation: editable-flash 0.5s ease-out;
-  border-radius: 2px;
-}
+/* ═══════════════════════════════════════════════════════════
+   FOCUS VISIBLE
+   ═══════════════════════════════════════════════════════════ */
 
-/* Progress breadcrumb pulse */
-@keyframes progress-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
-}
-.progress-pulse {
-  animation: progress-pulse 2s ease-in-out infinite;
-}
-
-/* Ken Burns subtle zoom — gives background images life */
-@keyframes kenburns {
-  0% { transform: scale(1); }
-  100% { transform: scale(1.06); }
-}
-
-/* Campaign builder edge animation */
-@keyframes dashmove {
-  to { stroke-dashoffset: -10; }
-}
-
-/* Focus visible — only for buttons, links, and custom roles.
-   Inputs/selects/textareas handle their own focus via component classes. */
 @layer base {
   button:focus-visible,
   a:focus-visible,
@@ -368,37 +401,27 @@
   [role="option"]:focus-visible,
   [tabindex]:focus-visible:not(input):not(select):not(textarea) {
     outline: none;
-    box-shadow: 0 0 0 3px #EFF6FF;
-    border-radius: var(--doost-radius-sm, 6px);
+    box-shadow: 0 0 0 3px var(--color-primary-glow);
+    border-radius: var(--radius-sm);
   }
 }
 
+/* ═══════════════════════════════════════════════════════════
+   MAGIC UI KEYFRAMES
+   ═══════════════════════════════════════════════════════════ */
+
 @theme inline {
   @keyframes shimmer-slide {
-  to {
-    transform: translate(calc(100cqw - 100%), 0);
-    }
+    to { transform: translate(calc(100cqw - 100%), 0); }
   }
   @keyframes spin-around {
-  0% {
-    transform: translateZ(0) rotate(0);
-    }
-  15%, 35% {
-    transform: translateZ(0) rotate(90deg);
-    }
-  65%, 85% {
-    transform: translateZ(0) rotate(270deg);
-    }
-  100% {
-    transform: translateZ(0) rotate(360deg);
-    }
+    0% { transform: translateZ(0) rotate(0); }
+    15%, 35% { transform: translateZ(0) rotate(90deg); }
+    65%, 85% { transform: translateZ(0) rotate(270deg); }
+    100% { transform: translateZ(0) rotate(360deg); }
   }
   @keyframes pulse {
-  0%, 100% {
-    boxShadow: 0 0 0 0 var(--pulse-color);
-    }
-  50% {
-    boxShadow: 0 0 0 8px var(--pulse-color);
-    }
+    0%, 100% { boxShadow: 0 0 0 0 var(--pulse-color); }
+    50% { boxShadow: 0 0 0 8px var(--pulse-color); }
   }
 }
