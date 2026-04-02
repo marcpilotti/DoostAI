@@ -77,7 +77,7 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
   };
 
   return (
-    <div className="flex h-full flex-col items-center justify-center px-6">
+    <div className="flex w-full flex-col items-center px-6">
       {/* "Skippa byrån." in sketch font */}
       <h1 className="text-center font-sketch text-[36px] sm:text-[48px] md:text-[64px] text-[#0f172a]">
         Skippa byrån.

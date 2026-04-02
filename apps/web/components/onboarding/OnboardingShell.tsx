@@ -299,7 +299,7 @@ export function OnboardingShell() {
       </div>
 
       {/* ── Content ─────────────────────────────────────────── */}
-      <div className="mx-auto w-full max-w-[480px] px-4 py-4 sm:px-6">
+      <div className={`mx-auto w-full px-4 py-4 sm:px-6 ${step === "url" || step === "loading" || step === "done" ? "max-w-2xl" : "max-w-[480px]"}`}>
         <AnimatePresence mode="wait">
           {transitionMessage && (
             <TransitionMessage key="transition" text={transitionMessage} />
@@ -307,14 +307,14 @@ export function OnboardingShell() {
 
           {/* Step 1: URL input */}
           {step === "url" && (
-            <motion.div key="url" variants={prefersReduced ? undefined : slideVariants} initial="enter" animate="center" exit="exit">
+            <motion.div key="url" variants={prefersReduced ? undefined : slideVariants} initial="enter" animate="center" exit="exit" className="flex min-h-[70vh] items-center justify-center">
               <URLSlide onSubmit={handleURLSubmit} />
             </motion.div>
           )}
 
           {/* Loading */}
           {step === "loading" && (
-            <motion.div key="loading" variants={prefersReduced ? undefined : slideVariants} initial="enter" animate="center" exit="exit">
+            <motion.div key="loading" variants={prefersReduced ? undefined : slideVariants} initial="enter" animate="center" exit="exit" className="flex min-h-[70vh] items-center justify-center">
               <LoadingSlide url={urlRef.current} onComplete={handleAnalysisComplete} onError={handleLoadingError} />
             </motion.div>
           )}
