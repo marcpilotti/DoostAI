@@ -118,7 +118,7 @@ function TransitionMessage({ text }: { text: string }) {
       transition={{ duration: 0.2 }}
       className="flex h-full items-center justify-center"
     >
-      <p className="text-center text-sm text-d-text-secondary">{text}</p>
+      <p className="text-center text-sm text-[#64748b]">{text}</p>
     </motion.div>
   );
 }

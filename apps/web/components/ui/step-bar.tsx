@@ -40,8 +40,8 @@ function StepBar({ steps, onStepClick, className }: StepBarProps) {
               aria-label={step.label}
               className={cn(
                 "rounded-full transition-all duration-300",
-                isDone ? "h-2 w-2 bg-[#111111]" : "h-1.5 w-1.5 bg-[#DDDDDD]",
-                step.state === "completed" && "cursor-pointer hover:bg-[#333333]",
+                isDone ? "h-2 w-2 bg-[#0f172a]" : "h-1.5 w-1.5 bg-[#e2e8f0]",
+                step.state === "completed" && "cursor-pointer hover:bg-[#1e293b]",
                 step.state === "upcoming" && "cursor-default",
               )}
             />
@@ -51,7 +51,7 @@ function StepBar({ steps, onStepClick, className }: StepBarProps) {
 
       {/* Step X av N */}
       {currentIndex >= 0 && (
-        <p className="text-xs text-[#999999]">
+        <p className="text-xs text-[#94a3b8]">
           Steg {currentIndex + 1} av {totalSteps}
         </p>
       )}

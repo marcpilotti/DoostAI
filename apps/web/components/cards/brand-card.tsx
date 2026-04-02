@@ -14,7 +14,7 @@ import { PlatformChip } from "./platform-chip";
 // ── Helpers ─────────────────────────────────────────────────────
 
 function Divider() {
-  return <div className="my-4 h-px bg-[#F0F0F0]" />;
+  return <div className="my-4 h-px bg-[#f1f5f9]" />;
 }
 
 function adjustColor(hex: string, amount: number): string {
@@ -70,7 +70,7 @@ function ColorSwatch({ color, label, onChange }: {
         style={{ backgroundColor: color }}
         aria-label={`Ändra färg ${label}: ${color}`}
       />
-      <span className="font-mono text-xs text-[#999999]">{color}</span>
+      <span className="font-mono text-xs text-[#94a3b8]">{color}</span>
 
       <AnimatePresence>
         {open && (
@@ -78,12 +78,12 @@ function ColorSwatch({ color, label, onChange }: {
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 4 }}
-            className="absolute top-16 z-50 rounded-xl bg-white p-3 shadow-lg border border-[#EEEEEE]"
+            className="absolute top-16 z-50 rounded-xl bg-white p-3 shadow-lg border border-[#e2e8f0]"
           >
             <HexColorPicker color={color} onChange={onChange} />
             <button
               onClick={() => setOpen(false)}
-              className="mt-2 w-full text-center text-xs text-[#999999] hover:text-[#111111]"
+              className="mt-2 w-full text-center text-xs text-[#94a3b8] hover:text-[#0f172a]"
             >
               Stäng
             </button>
@@ -110,7 +110,7 @@ function EditableText({ value, onSave, className }: {
         autoFocus
         onKeyDown={(e) => { if (e.key === "Enter") { onSave((e.target as HTMLInputElement).value); setEditing(false); } }}
         onBlur={(e) => { onSave(e.target.value); setEditing(false); }}
-        className={cn("h-auto border border-[#E5E5E5] bg-white px-2 py-1 text-base font-semibold text-[#111111] shadow-sm ring-0 focus-visible:ring-1 focus-visible:ring-[#3B82F6]", className)}
+        className={cn("h-auto border border-[#e2e8f0] bg-white px-2 py-1 text-base font-semibold text-[#0f172a] shadow-sm ring-0 focus-visible:ring-1 focus-visible:ring-[#3B82F6]", className)}
       />
     );
   }
@@ -120,10 +120,10 @@ function EditableText({ value, onSave, className }: {
       onClick={() => setEditing(true)}
       className="group flex w-full items-center gap-1.5 text-left"
     >
-      <span className={cn("text-base font-semibold text-[#111111]", className)}>
+      <span className={cn("text-base font-semibold text-[#0f172a]", className)}>
         {value || "Klicka för att ange"}
       </span>
-      <Pencil className="h-3 w-3 shrink-0 text-[#AAAAAA] opacity-0 transition-opacity group-hover:opacity-100" />
+      <Pencil className="h-3 w-3 shrink-0 text-[#94a3b8] opacity-0 transition-opacity group-hover:opacity-100" />
     </button>
   );
 }
@@ -211,7 +211,7 @@ export function BrandCard({ profile, onConfirm, onBack }: {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={logoUrl} alt={name} className="h-full w-full object-contain p-1.5" />
           ) : (
-            <ImagePlus className="h-5 w-5 text-[#AAAAAA]" />
+            <ImagePlus className="h-5 w-5 text-[#94a3b8]" />
           )}
           <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" className="hidden" onChange={(e) => {
             const f = e.target.files?.[0];
@@ -225,13 +225,13 @@ export function BrandCard({ profile, onConfirm, onBack }: {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h2 className="truncate text-[22px] font-bold leading-tight" style={{ color: colors.primary }}>{name}</h2>
-            <a href={profile.url.startsWith("http") ? profile.url : `https://${profile.url}`} target="_blank" rel="noopener noreferrer" className="shrink-0 p-1 text-[#AAAAAA] hover:text-[#111111]">
+            <a href={profile.url.startsWith("http") ? profile.url : `https://${profile.url}`} target="_blank" rel="noopener noreferrer" className="shrink-0 p-1 text-[#94a3b8] hover:text-[#0f172a]">
               <ExternalLink className="h-4 w-4" />
             </a>
           </div>
-          <p className="text-sm text-[#999999]">{domain}</p>
+          <p className="text-sm text-[#94a3b8]">{domain}</p>
           {confidence > 0 && (
-            <p className="mt-0.5 text-[13px] font-medium text-[#CC8800]">{confidence}% matchning</p>
+            <p className="mt-0.5 text-[13px] font-medium text-[#d97706]">{confidence}% matchning</p>
           )}
         </div>
       </div>
@@ -241,7 +241,7 @@ export function BrandCard({ profile, onConfirm, onBack }: {
       <Divider />
 
       {/* 3. Färger */}
-      <p className="mb-3 text-[13px] font-medium text-[#999999]">Färger</p>
+      <p className="mb-3 text-[13px] font-medium text-[#94a3b8]">Färger</p>
       <div className="flex justify-center gap-8">
         <ColorSwatch color={colors.primary} label="Primär" onChange={(c) => setColors((p) => ({ ...p, primary: c }))} />
         <ColorSwatch color={colors.secondary} label="Sekundär" onChange={(c) => setColors((p) => ({ ...p, secondary: c }))} />
@@ -252,15 +252,15 @@ export function BrandCard({ profile, onConfirm, onBack }: {
       <Divider />
 
       {/* 5. Typsnitt */}
-      <p className="mb-3 text-[13px] font-medium text-[#999999]">Typsnitt</p>
+      <p className="mb-3 text-[13px] font-medium text-[#94a3b8]">Typsnitt</p>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <p className="text-xs text-[#AAAAAA]">Rubrik</p>
-          <p className="text-base font-semibold text-[#111111]">{profile.fonts?.heading ?? "Inter"} <span className="font-normal text-[#999999]">Semi Bold</span></p>
+          <p className="text-xs text-[#94a3b8]">Rubrik</p>
+          <p className="text-base font-semibold text-[#0f172a]">{profile.fonts?.heading ?? "Inter"} <span className="font-normal text-[#94a3b8]">Semi Bold</span></p>
         </div>
         <div>
-          <p className="text-xs text-[#AAAAAA]">Brödtext</p>
-          <p className="text-base text-[#111111]">{profile.fonts?.body ?? "Inter"} <span className="text-[#999999]">Regular</span></p>
+          <p className="text-xs text-[#94a3b8]">Brödtext</p>
+          <p className="text-base text-[#0f172a]">{profile.fonts?.body ?? "Inter"} <span className="text-[#94a3b8]">Regular</span></p>
         </div>
       </div>
 
@@ -269,12 +269,12 @@ export function BrandCard({ profile, onConfirm, onBack }: {
 
       {/* 7. Detail rows: Bransch, Målgrupp, Plats */}
       <div>
-        <p className="text-xs text-[#AAAAAA]">Bransch</p>
+        <p className="text-xs text-[#94a3b8]">Bransch</p>
         <div className="mt-1 flex items-center gap-1">
           <select
             value={industry}
             onChange={(e) => setIndustry(e.target.value)}
-            className="w-full appearance-none bg-transparent text-base font-semibold text-[#111111] outline-none cursor-pointer truncate pr-4"
+            className="w-full appearance-none bg-transparent text-base font-semibold text-[#0f172a] outline-none cursor-pointer truncate pr-4"
           >
             <option value="">Välj bransch...</option>
             {industry && !INDUSTRIES.includes(industry) && (
@@ -282,14 +282,14 @@ export function BrandCard({ profile, onConfirm, onBack }: {
             )}
             {INDUSTRIES.map((ind) => <option key={ind} value={ind}>{ind}</option>)}
           </select>
-          <ChevronDown className="h-4 w-4 shrink-0 text-[#AAAAAA]" />
+          <ChevronDown className="h-4 w-4 shrink-0 text-[#94a3b8]" />
         </div>
       </div>
 
       <Divider />
 
       <div>
-        <p className="text-xs text-[#AAAAAA]">Målgrupp</p>
+        <p className="text-xs text-[#94a3b8]">Målgrupp</p>
         <div className="mt-1">
           <EditableText value={audience} onSave={setAudience} />
         </div>
@@ -298,7 +298,7 @@ export function BrandCard({ profile, onConfirm, onBack }: {
       <Divider />
 
       <div>
-        <p className="text-xs text-[#AAAAAA]">Plats</p>
+        <p className="text-xs text-[#94a3b8]">Plats</p>
         <div className="mt-1">
           <EditableText value={location} onSave={setLocation} />
         </div>
@@ -308,7 +308,7 @@ export function BrandCard({ profile, onConfirm, onBack }: {
       <Divider />
 
       {/* 9. Annonskanaler */}
-      <p className="mb-3 text-[13px] font-medium text-[#999999]">Annonskanaler</p>
+      <p className="mb-3 text-[13px] font-medium text-[#94a3b8]">Annonskanaler</p>
       <div className="flex flex-wrap gap-2">
         {Object.entries(channels).map(([channelName, selected]) => (
           <PlatformChip
@@ -326,7 +326,7 @@ export function BrandCard({ profile, onConfirm, onBack }: {
       {/* 11. CTA */}
       <button
         onClick={handleConfirm}
-        className="w-full rounded-xl bg-[#111111] py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-[#222222]"
+        className="w-full rounded-md bg-[#0f172a] py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-[#1e293b]"
       >
         Ser bra ut — fortsätt →
       </button>
@@ -335,7 +335,7 @@ export function BrandCard({ profile, onConfirm, onBack }: {
       {onBack && (
         <button
           onClick={onBack}
-          className="mt-4 w-full text-center text-sm text-[#999999] hover:text-[#111111] transition-colors"
+          className="mt-4 w-full text-center text-sm text-[#94a3b8] hover:text-[#0f172a] transition-colors"
         >
           ← Ändra URL
         </button>

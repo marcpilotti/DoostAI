@@ -172,22 +172,22 @@ export function LoadingSlide({
   if (failed) {
     return (
       <div className="flex h-full flex-col items-center justify-center px-6" role="alert">
-        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-surface">
-          <RefreshCw className="h-5 w-5 text-d-text-hint" />
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#f8fafc]">
+          <RefreshCw className="h-5 w-5 text-[#94a3b8]" />
         </div>
-        <h3 className="mb-1 text-card-title text-d-text-primary">{`Vi kunde inte analysera ${domain}`}</h3>
-        <p className="mb-5 max-w-xs text-center text-[13px] text-d-text-secondary">
+        <h3 className="mb-1 text-xl font-semibold text-[#0f172a]">{`Vi kunde inte analysera ${domain}`}</h3>
+        <p className="mb-5 max-w-xs text-center text-[13px] text-[#64748b]">
           {failReason || "Kontrollera att adressen st\u00e4mmer och att hemsidan \u00e4r tillg\u00e4nglig, och f\u00f6rs\u00f6k igen."}
         </p>
         <div className="flex items-center gap-3">
           {onError && (
-            <button onClick={onError} className="flex items-center gap-1.5 text-[12px] text-d-text-hint hover:text-d-text-secondary">
+            <button onClick={onError} className="flex items-center gap-1.5 text-[12px] text-[#94a3b8] hover:text-[#64748b]">
               <ArrowLeft className="h-3 w-3" /> Byt URL
             </button>
           )}
           <button
             onClick={analyze}
-            className="flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-[13px] font-semibold text-white hover:opacity-90 active:scale-95"
+            className="flex items-center gap-2 rounded-full bg-[#0f172a] px-5 py-2.5 text-[13px] font-semibold text-white hover:opacity-90 active:scale-95"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Försök igen
@@ -199,8 +199,8 @@ export function LoadingSlide({
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-6">
-      <div className="mb-6 h-10 w-10 animate-spin motion-reduce:animate-none rounded-full border-[3px] border-d-border border-t-d-text-primary/60" />
-      <p className="mb-4 text-[15px] font-semibold tracking-tight text-d-text-primary">{domain}</p>
+      <div className="mb-6 h-10 w-10 animate-spin motion-reduce:animate-none rounded-full border-[3px] border-[#e2e8f0] border-t-[#0f172a]/60" />
+      <p className="mb-4 text-[15px] font-semibold tracking-tight text-[#0f172a]">{domain}</p>
 
       <AnimatePresence>
         {extractedColors.length > 0 && (
@@ -214,13 +214,13 @@ export function LoadingSlide({
 
       <div className="min-h-[60px] text-center" aria-live="polite">
         <AnimatePresence mode="wait">
-          <motion.p key={latestMessage} initial={prefersReduced ? false : { opacity: 0, y: 4 }} animate={{ opacity: 0.6, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.3 }} className="text-[13px] text-d-text-secondary">
+          <motion.p key={latestMessage} initial={prefersReduced ? false : { opacity: 0, y: 4 }} animate={{ opacity: 0.6, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.3 }} className="text-[13px] text-[#64748b]">
             {latestMessage}
           </motion.p>
         </AnimatePresence>
         {progress >= 30 && progress < 100 && (
           <AnimatePresence mode="wait">
-            <motion.p key={thinkingPhase} initial={prefersReduced ? false : { opacity: 0 }} animate={{ opacity: 0.3 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }} className="mt-1 text-[11px] text-d-text-hint">
+            <motion.p key={thinkingPhase} initial={prefersReduced ? false : { opacity: 0 }} animate={{ opacity: 0.3 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }} className="mt-1 text-[11px] text-[#94a3b8]">
               {thinkingTexts[thinkingPhase]}
             </motion.p>
           </AnimatePresence>
@@ -228,8 +228,8 @@ export function LoadingSlide({
       </div>
 
       <div className="mt-6 w-full max-w-xs">
-        <div className="h-1 w-full overflow-hidden rounded-full bg-d-border">
-          <motion.div className="h-full rounded-full bg-primary/60" animate={{ width: `${progress}%` }} transition={{ duration: 1.5, ease: "easeOut" }} />
+        <div className="h-1 w-full overflow-hidden rounded-full bg-[#e2e8f0]">
+          <motion.div className="h-full rounded-full bg-[#0f172a]/60" animate={{ width: `${progress}%` }} transition={{ duration: 1.5, ease: "easeOut" }} />
         </div>
       </div>
     </div>

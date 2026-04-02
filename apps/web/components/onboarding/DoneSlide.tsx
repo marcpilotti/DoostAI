@@ -4,9 +4,6 @@ import { ArrowRight, BarChart3, Bell, Check, Eye, Sparkles } from "lucide-react"
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect,useState } from "react";
 
-import { CardShell } from "@/components/ui/card-shell";
-import { Pill } from "@/components/ui/pill";
-
 import { AIMessage } from "./AIMessage";
 
 const DONE_MESSAGES = [
@@ -82,7 +79,7 @@ export function DoneSlide({ brandName, onDashboard, onRestart }: { brandName?: s
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           className="absolute -inset-3 rounded-full bg-foreground/10"
         />
-        <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-d-text-primary">
+        <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-[#0f172a]">
           <motion.div
             initial={prefersReduced ? false : { scale: 0, rotate: -45 }}
             animate={{ scale: 1, rotate: 0 }}
@@ -108,7 +105,7 @@ export function DoneSlide({ brandName, onDashboard, onRestart }: { brandName?: s
           initial={prefersReduced ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className="mb-6 text-[14px] text-d-text-secondary"
+          className="mb-6 text-[14px] text-[#64748b]"
         >
           {brandName} når nu nya kunder
         </motion.p>
@@ -126,9 +123,9 @@ export function DoneSlide({ brandName, onDashboard, onRestart }: { brandName?: s
         transition={{ delay: 1 }}
         className="mb-6 w-full max-w-sm"
       >
-        <CardShell noPadding className="overflow-hidden">
+        <div className="rounded-xl border border-[#e2e8f0] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] overflow-hidden">
           <div className="px-5 py-4">
-            <p className="mb-3 text-[12px] font-semibold uppercase tracking-wider text-d-text-hint">Vad händer nu</p>
+            <p className="mb-3 text-[12px] font-semibold uppercase tracking-wider text-[#94a3b8]">Vad händer nu</p>
             <div className="space-y-3">
               {[
                 { icon: Eye, title: "Granskning", desc: "Annonsplattformen granskar din annons (1-24h)", time: "Nu" },
@@ -143,19 +140,19 @@ export function DoneSlide({ brandName, onDashboard, onRestart }: { brandName?: s
                   transition={{ delay: 1.2 + i * 0.15 }}
                   className="flex items-center gap-3"
                 >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface">
-                    <item.icon className="h-4 w-4 text-d-text-hint" />
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f8fafc]">
+                    <item.icon className="h-4 w-4 text-[#94a3b8]" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[12px] font-medium text-d-text-primary">{item.title}</p>
-                    <p className="text-[11px] text-d-text-hint">{item.desc}</p>
+                    <p className="text-[12px] font-medium text-[#0f172a]">{item.title}</p>
+                    <p className="text-[11px] text-[#94a3b8]">{item.desc}</p>
                   </div>
-                  <Pill variant="gray">{item.time}</Pill>
+                  <span className="rounded-full bg-[#f1f5f9] px-2 py-0.5 text-xs text-[#94a3b8]">{item.time}</span>
                 </motion.div>
               ))}
             </div>
           </div>
-        </CardShell>
+        </div>
       </motion.div>
 
       {/* CTA */}
@@ -164,7 +161,7 @@ export function DoneSlide({ brandName, onDashboard, onRestart }: { brandName?: s
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.8 }}
         onClick={onDashboard}
-        className="flex items-center gap-2 rounded-full bg-primary px-5 py-3.5 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-95"
+        className="flex items-center gap-2 rounded-full bg-[#0f172a] px-5 py-3.5 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-95"
       >
         Gå till dashboard
         <ArrowRight className="h-4 w-4" />
@@ -177,7 +174,7 @@ export function DoneSlide({ brandName, onDashboard, onRestart }: { brandName?: s
           animate={{ opacity: 1 }}
           transition={{ delay: 1.0 }}
           onClick={onRestart}
-          className="mt-3 rounded-full border border-d-border px-6 py-2.5 text-[13px] font-medium text-d-text-secondary transition-all hover:border-d-text-hint hover:text-d-text-primary active:scale-95"
+          className="mt-3 rounded-full border border-[#e2e8f0] px-6 py-2.5 text-[13px] font-medium text-[#64748b] transition-all hover:border-[#94a3b8] hover:text-[#0f172a] active:scale-95"
         >
           Skapa ny annons
         </motion.button>
@@ -187,14 +184,14 @@ export function DoneSlide({ brandName, onDashboard, onRestart }: { brandName?: s
         initial={prefersReduced ? false : { opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2 }}
-        className="mt-3 text-[11px] text-d-text-hint"
+        className="mt-3 text-[11px] text-[#94a3b8]"
       >
         {paused ? (
           <span>Automatisk omdirigering pausad</span>
         ) : (
           <>
             Omdirigeras om {countdown}s...{" "}
-            <button onClick={() => setPaused(true)} className="underline hover:text-d-text-secondary">Stanna kvar</button>
+            <button onClick={() => setPaused(true)} className="underline hover:text-[#64748b]">Stanna kvar</button>
           </>
         )}
       </motion.p>

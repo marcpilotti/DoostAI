@@ -79,17 +79,17 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
   return (
     <div className="flex h-full flex-col items-center justify-center px-6">
       {/* "Skippa byrån." in sketch font */}
-      <h1 className="text-center font-sketch text-[36px] sm:text-[48px] md:text-[64px] text-d-text-primary">
+      <h1 className="text-center font-sketch text-[36px] sm:text-[48px] md:text-[64px] text-[#0f172a]">
         Skippa byrån.
       </h1>
-      <p className="mt-3 max-w-sm text-center text-body-lg text-d-text-secondary">
+      <p className="mt-3 max-w-sm text-center text-[15px] text-[#64748b]">
         Klistra in din hemsida — vi skapar din annons med AI.
       </p>
 
       {/* Input card */}
       <div className="mt-10 w-full max-w-lg px-2 sm:px-0">
         <form ref={formRef} onSubmit={handleSubmit}>
-          <div className="flex items-center gap-3 rounded-card border-[1.5px] border-d-border bg-card px-5 py-4 shadow-card">
+          <div className="flex items-center gap-3 rounded-xl border-[1.5px] border-[#e2e8f0] bg-white px-5 py-4 shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
             <input
               ref={inputRef}
               type="text"
@@ -116,7 +116,7 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
               type="submit"
               disabled={!input.trim() || submitting}
               aria-label="Analysera"
-              className="flex shrink-0 items-center gap-1.5 rounded-btn bg-d-text-primary px-4 py-2.5 text-small font-semibold text-white transition-opacity active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex shrink-0 items-center gap-1.5 rounded-md bg-[#0f172a] px-4 py-2.5 text-sm font-semibold text-white transition-opacity active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {submitting ? (
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
@@ -146,7 +146,7 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
                 key={ext}
                 type="button"
                 onClick={() => setInput(`${input.trim()}${ext}`)}
-                className="rounded-pill bg-card px-3 py-2 min-h-[40px] text-[12px] flex items-center font-medium text-d-text-secondary shadow-card border border-d-border transition-colors hover:text-d-text-primary"
+                className="rounded-full bg-white px-3 py-2 min-h-[40px] text-[12px] flex items-center font-medium text-[#64748b] shadow-[0_1px_3px_rgba(0,0,0,0.05)] border border-[#e2e8f0] transition-colors hover:text-[#0f172a]"
               >
                 {input.trim()}{ext}
               </button>
@@ -172,7 +172,7 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
                   key={url}
                   type="button"
                   onClick={() => { setInput(url.replace(/^https?:\/\//, "")); }}
-                  className="rounded-pill bg-card px-3 py-1 text-[11px] font-medium text-d-text-secondary shadow-card border border-d-border transition-colors hover:text-d-text-primary"
+                  className="rounded-full bg-white px-3 py-1 text-[11px] font-medium text-[#64748b] shadow-[0_1px_3px_rgba(0,0,0,0.05)] border border-[#e2e8f0] transition-colors hover:text-[#0f172a]"
                 >
                   {url.replace(/^https?:\/\//, "").replace(/\/$/, "")}
                 </button>

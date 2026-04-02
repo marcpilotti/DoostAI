@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 // ── Helpers ─────────────────────────────────────────────────────
 
 function Divider() {
-  return <div className="my-4 h-px bg-[#F0F0F0]" />;
+  return <div className="my-4 h-px bg-[#f1f5f9]" />;
 }
 
 // ── Preset tiers ────────────────────────────────────────────────
@@ -73,11 +73,11 @@ export function BudgetCard({ onConfirm, onBack }: {
       initial={prefersReduced ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="mx-auto w-full max-w-[480px] rounded-xl border border-[#e2e8f0] bg-white p-6 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.05)]"
+      className="mx-auto w-full max-w-[480px] rounded-xl border border-[#e2e8f0] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
     >
       {/* 1. Header */}
-      <h2 className="text-2xl font-bold text-[#111111]">Budget</h2>
-      <p className="mt-1 text-sm text-[#666666]">Välj din dagliga annonsbudget</p>
+      <h2 className="text-2xl font-bold text-[#0f172a]">Budget</h2>
+      <p className="mt-1 text-sm text-[#64748b]">Välj din dagliga annonsbudget</p>
 
       {/* 2. Divider */}
       <Divider />
@@ -94,7 +94,7 @@ export function BudgetCard({ onConfirm, onBack }: {
                 "relative rounded-xl p-4 text-center transition-all",
                 isSelected
                   ? "border-[1.5px] border-[#3B82F6] bg-[#F0F7FF]"
-                  : "border border-[#E5E5E5] bg-white hover:border-[#CCCCCC]",
+                  : "border border-[#e2e8f0] bg-white hover:border-[#cbd5e1]",
               )}
             >
               {tier.recommended && (
@@ -107,10 +107,10 @@ export function BudgetCard({ onConfirm, onBack }: {
                   <Check className="h-3 w-3" strokeWidth={3} />
                 </div>
               )}
-              <p className="text-xs text-[#AAAAAA]">{tier.label}</p>
-              <p className="mt-1 text-[28px] font-extrabold text-[#111111]">{tier.daily} kr</p>
-              <p className="text-xs text-[#666666]">/dag</p>
-              <p className="mt-1 text-[10px] text-[#AAAAAA]">{tier.reach}/dag</p>
+              <p className="text-xs text-[#94a3b8]">{tier.label}</p>
+              <p className="mt-1 text-[28px] font-extrabold text-[#0f172a]">{tier.daily} kr</p>
+              <p className="text-xs text-[#64748b]">/dag</p>
+              <p className="mt-1 text-[10px] text-[#94a3b8]">{tier.reach}/dag</p>
             </button>
           );
         })}
@@ -121,8 +121,8 @@ export function BudgetCard({ onConfirm, onBack }: {
 
       {/* 5. Slider */}
       <div className="flex items-center justify-between mb-3">
-        <p className="text-[13px] font-medium text-[#999999]">Anpassad budget</p>
-        <span className="text-[28px] font-extrabold text-[#111111]">{budget} kr<span className="text-xs font-normal text-[#666666]">/dag</span></span>
+        <p className="text-[13px] font-medium text-[#94a3b8]">Anpassad budget</p>
+        <span className="text-[28px] font-extrabold text-[#0f172a]">{budget} kr<span className="text-xs font-normal text-[#64748b]">/dag</span></span>
       </div>
       <Slider
         value={[budget]}
@@ -132,7 +132,7 @@ export function BudgetCard({ onConfirm, onBack }: {
         step={10}
         className="w-full"
       />
-      <div className="flex justify-between mt-1 text-[10px] text-[#AAAAAA]">
+      <div className="flex justify-between mt-1 text-[10px] text-[#94a3b8]">
         <span>20 kr</span>
         <span>500 kr</span>
       </div>
@@ -143,29 +143,29 @@ export function BudgetCard({ onConfirm, onBack }: {
       {/* 7. Metric numbers */}
       <div className="grid grid-cols-3 gap-4">
         <div className="text-center">
-          <p className="text-[28px] font-extrabold text-[#111111]">
-            <NumberTicker value={metrics.monthlyReach} className="text-[28px] font-extrabold text-[#111111]" />
+          <p className="text-[28px] font-extrabold text-[#0f172a]">
+            <NumberTicker value={metrics.monthlyReach} className="text-[28px] font-extrabold text-[#0f172a]" />
           </p>
-          <p className="text-[10px] text-[#AAAAAA] mt-1">Räckvidd/mån</p>
+          <p className="text-[10px] text-[#94a3b8] mt-1">Räckvidd/mån</p>
         </div>
         <div className="text-center">
-          <p className="text-[28px] font-extrabold text-[#111111]">
-            <NumberTicker value={metrics.monthlyClicks} className="text-[28px] font-extrabold text-[#111111]" />
+          <p className="text-[28px] font-extrabold text-[#0f172a]">
+            <NumberTicker value={metrics.monthlyClicks} className="text-[28px] font-extrabold text-[#0f172a]" />
           </p>
-          <p className="text-[10px] text-[#AAAAAA] mt-1">Klick/mån</p>
+          <p className="text-[10px] text-[#94a3b8] mt-1">Klick/mån</p>
         </div>
         <div className="text-center">
-          <p className="text-[28px] font-extrabold text-[#111111]">
-            <NumberTicker value={parseFloat(metrics.cpc)} decimalPlaces={1} className="text-[28px] font-extrabold text-[#111111]" /> kr
+          <p className="text-[28px] font-extrabold text-[#0f172a]">
+            <NumberTicker value={parseFloat(metrics.cpc)} decimalPlaces={1} className="text-[28px] font-extrabold text-[#0f172a]" /> kr
           </p>
-          <p className="text-[10px] text-[#AAAAAA] mt-1">Kostnad/klick</p>
+          <p className="text-[10px] text-[#94a3b8] mt-1">Kostnad/klick</p>
         </div>
       </div>
 
       {/* 8. Mini bar chart */}
       <div className="mt-4">
         <MiniBarChart budget={budget} />
-        <div className="flex justify-between mt-1 text-[10px] text-[#AAAAAA]">
+        <div className="flex justify-between mt-1 text-[10px] text-[#94a3b8]">
           <span>Dag 1</span>
           <span>Dag 30</span>
         </div>
@@ -182,7 +182,7 @@ export function BudgetCard({ onConfirm, onBack }: {
       {/* 11. CTA */}
       <button
         onClick={handleConfirm}
-        className="w-full rounded-xl bg-[#111111] py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-[#222222]"
+        className="w-full rounded-md bg-[#0f172a] py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-[#1e293b]"
       >
         Fortsätt till annonsförhandsgranskning →
       </button>
@@ -190,7 +190,7 @@ export function BudgetCard({ onConfirm, onBack }: {
       {onBack && (
         <button
           onClick={onBack}
-          className="mt-4 w-full text-center text-sm text-[#999999] hover:text-[#111111] transition-colors"
+          className="mt-4 w-full text-center text-sm text-[#94a3b8] hover:text-[#0f172a] transition-colors"
         >
           ← Tillbaka
         </button>

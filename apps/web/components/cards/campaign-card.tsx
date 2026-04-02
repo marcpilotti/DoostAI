@@ -12,7 +12,7 @@ import { PlatformChip } from "./platform-chip";
 // ── Helpers ─────────────────────────────────────────────────────
 
 function Divider() {
-  return <div className="my-4 h-px bg-[#F0F0F0]" />;
+  return <div className="my-4 h-px bg-[#f1f5f9]" />;
 }
 
 // ── Objectives ──────────────────────────────────────────────────
@@ -57,11 +57,11 @@ export function CampaignCard({ brandName, aiRecommendedObjective, onConfirm, onB
       initial={prefersReduced ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="mx-auto w-full max-w-[480px] rounded-xl border border-[#e2e8f0] bg-white p-6 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.05)]"
+      className="mx-auto w-full max-w-[480px] rounded-xl border border-[#e2e8f0] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
     >
       {/* 1. Header */}
-      <h2 className="text-2xl font-bold text-[#111111]">Kampanjmål</h2>
-      <p className="mt-1 text-sm text-[#666666]">Välj mål och namnge din kampanj</p>
+      <h2 className="text-2xl font-bold text-[#0f172a]">Kampanjmål</h2>
+      <p className="mt-1 text-sm text-[#64748b]">Välj mål och namnge din kampanj</p>
 
       {/* 2. Divider */}
       <Divider />
@@ -80,7 +80,7 @@ export function CampaignCard({ brandName, aiRecommendedObjective, onConfirm, onB
                 "relative rounded-xl p-4 text-left transition-all",
                 isSelected
                   ? "border-[1.5px] border-[#3B82F6] bg-[#F0F7FF]"
-                  : "border border-[#E5E5E5] bg-white hover:border-[#CCCCCC]",
+                  : "border border-[#e2e8f0] bg-white hover:border-[#cbd5e1]",
               )}
             >
               {/* AI recommended badge */}
@@ -97,9 +97,9 @@ export function CampaignCard({ brandName, aiRecommendedObjective, onConfirm, onB
                 </div>
               )}
 
-              <obj.icon className={cn("h-5 w-5 mb-2", isSelected ? "text-[#3B82F6]" : "text-[#AAAAAA]")} />
-              <p className="text-sm font-semibold text-[#111111]">{obj.label}</p>
-              <p className="mt-0.5 text-xs text-[#666666]">{obj.description}</p>
+              <obj.icon className={cn("h-5 w-5 mb-2", isSelected ? "text-[#3B82F6]" : "text-[#94a3b8]")} />
+              <p className="text-sm font-semibold text-[#0f172a]">{obj.label}</p>
+              <p className="mt-0.5 text-xs text-[#64748b]">{obj.description}</p>
             </button>
           );
         })}
@@ -109,18 +109,18 @@ export function CampaignCard({ brandName, aiRecommendedObjective, onConfirm, onB
       <Divider />
 
       {/* 5. Campaign name */}
-      <p className="mb-2 text-[13px] font-medium text-[#999999]">Kampanjnamn</p>
+      <p className="mb-2 text-[13px] font-medium text-[#94a3b8]">Kampanjnamn</p>
       <Input
         value={campaignName}
         onChange={(e) => setCampaignName(e.target.value)}
-        className="h-auto rounded-xl border-[#E5E5E5] bg-white p-3 text-base font-semibold text-[#111111] focus-visible:ring-1 focus-visible:ring-[#3B82F6]"
+        className="h-auto rounded-xl border-[#e2e8f0] bg-white p-3 text-base font-semibold text-[#0f172a] focus-visible:ring-1 focus-visible:ring-[#3B82F6]"
       />
 
       {/* 6. Divider */}
       <Divider />
 
       {/* 7. Platforms */}
-      <p className="mb-3 text-[13px] font-medium text-[#999999]">Annonskanaler</p>
+      <p className="mb-3 text-[13px] font-medium text-[#94a3b8]">Annonskanaler</p>
       <div className="flex flex-wrap gap-2">
         {Object.entries(platforms).map(([name, active]) => (
           <PlatformChip
@@ -137,7 +137,7 @@ export function CampaignCard({ brandName, aiRecommendedObjective, onConfirm, onB
 
       <button
         onClick={handleConfirm}
-        className="w-full rounded-xl bg-[#111111] py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-[#222222]"
+        className="w-full rounded-md bg-[#0f172a] py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-[#1e293b]"
       >
         Fortsätt till budget →
       </button>
@@ -145,7 +145,7 @@ export function CampaignCard({ brandName, aiRecommendedObjective, onConfirm, onB
       {onBack && (
         <button
           onClick={onBack}
-          className="mt-4 w-full text-center text-sm text-[#999999] hover:text-[#111111] transition-colors"
+          className="mt-4 w-full text-center text-sm text-[#94a3b8] hover:text-[#0f172a] transition-colors"
         >
           ← Tillbaka
         </button>

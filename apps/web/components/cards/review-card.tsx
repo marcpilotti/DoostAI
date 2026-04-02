@@ -7,7 +7,7 @@ import { useState } from "react";
 // ── Helpers ─────────────────────────────────────────────────────
 
 function Divider() {
-  return <div className="my-4 h-px bg-[#F0F0F0]" />;
+  return <div className="my-4 h-px bg-[#f1f5f9]" />;
 }
 
 // ── Types ───────────────────────────────────────────────────────
@@ -32,8 +32,8 @@ function SummaryRow({ label, value, onEdit }: {
   return (
     <div className="flex items-center justify-between py-3">
       <div>
-        <p className="text-xs text-[#AAAAAA]">{label}</p>
-        <p className="text-base font-semibold text-[#111111]">{value}</p>
+        <p className="text-xs text-[#94a3b8]">{label}</p>
+        <p className="text-base font-semibold text-[#0f172a]">{value}</p>
       </div>
       {onEdit && (
         <button
@@ -70,17 +70,17 @@ export function ReviewCard({ data, onPublish, onEdit, onBack }: {
       initial={prefersReduced ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="mx-auto w-full max-w-[480px] rounded-xl border border-[#e2e8f0] bg-white p-6 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.05)]"
+      className="mx-auto w-full max-w-[480px] rounded-xl border border-[#e2e8f0] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
     >
       {/* 1. Header */}
-      <h2 className="text-2xl font-bold text-[#111111]">Granska och publicera</h2>
-      <p className="mt-1 text-sm text-[#666666]">Kontrollera alla uppgifter innan du publicerar</p>
+      <h2 className="text-2xl font-bold text-[#0f172a]">Granska och publicera</h2>
+      <p className="mt-1 text-sm text-[#64748b]">Kontrollera alla uppgifter innan du publicerar</p>
 
       {/* 2. Divider */}
       <Divider />
 
       {/* 3. Summary rows */}
-      <div className="divide-y divide-[#F0F0F0]">
+      <div className="divide-y divide-[#f1f5f9]">
         <SummaryRow
           label="Varumärke"
           value={`${data.brandName} — ${data.brandUrl}`}
@@ -105,9 +105,9 @@ export function ReviewCard({ data, onPublish, onEdit, onBack }: {
         {/* 4. Creative row with score pill */}
         <div className="flex items-center justify-between py-3">
           <div>
-            <p className="text-xs text-[#AAAAAA]">Kreativ</p>
+            <p className="text-xs text-[#94a3b8]">Kreativ</p>
             <div className="flex items-center gap-2">
-              <p className="text-base font-semibold text-[#111111]">{data.variantLabel}</p>
+              <p className="text-base font-semibold text-[#0f172a]">{data.variantLabel}</p>
               <span className="inline-flex items-center rounded-full border border-[#86EFAC] bg-[#F0FDF4] px-2 py-0.5 text-xs font-medium text-[#059669]">
                 {data.variantScore}/100
               </span>
@@ -139,7 +139,7 @@ export function ReviewCard({ data, onPublish, onEdit, onBack }: {
             onChange={(e) => setConfirmed(e.target.checked)}
             className="h-4 w-4 rounded accent-[#3B82F6]"
           />
-          <span className="text-xs text-[#666666]">Jag förstår och godkänner</span>
+          <span className="text-xs text-[#64748b]">Jag förstår och godkänner</span>
         </label>
       </div>
 
@@ -158,7 +158,7 @@ export function ReviewCard({ data, onPublish, onEdit, onBack }: {
       {onBack && (
         <button
           onClick={onBack}
-          className="mt-4 w-full text-center text-sm text-[#999999] hover:text-[#111111] transition-colors"
+          className="mt-4 w-full text-center text-sm text-[#94a3b8] hover:text-[#0f172a] transition-colors"
         >
           ← Tillbaka
         </button>

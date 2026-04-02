@@ -50,13 +50,13 @@ export function PlatformChip({ name, selected, onToggle }: {
         "flex h-[42px] w-[120px] items-center gap-2 rounded-[10px] px-2.5 transition-all",
         selected
           ? "border-[1.5px] border-[#3B82F6] bg-[#F0F7FF]"
-          : "border border-[#E5E5E5] bg-white hover:border-[#CCCCCC]",
+          : "border border-[#e2e8f0] bg-white hover:border-[#cbd5e1]",
       )}
     >
       {Icon && <Icon />}
       <span className={cn(
         "text-[13px] font-medium",
-        selected ? "text-[#3B82F6]" : "text-[#111111]",
+        selected ? "text-[#3B82F6]" : "text-[#0f172a]",
       )}>
         {name}
       </span>

@@ -382,7 +382,7 @@ export function EditorSlide({
             initial={prefersReduced ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
-            className="flex h-full flex-col overflow-hidden rounded-card border-[1.5px] border-d-border bg-card shadow-card"
+            className="flex h-full flex-col overflow-hidden rounded-xl border-[1.5px] border-[#e2e8f0] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
           >
             {/* Ad preview — fills available space */}
             <div className="min-h-0 flex-1 overflow-hidden">
@@ -407,10 +407,10 @@ export function EditorSlide({
                     aria-selected={idx === platformIdx}
                     onClick={() => setPlatformIdx(idx)}
                     disabled={state === "loading" || state === "regenerating"}
-                    className={`rounded-btn px-4 py-1.5 text-[12px] font-medium transition-all disabled:opacity-30 ${
+                    className={`rounded-md px-4 py-1.5 text-[12px] font-medium transition-all disabled:opacity-30 ${
                       idx === platformIdx
-                        ? "bg-d-text-primary text-white"
-                        : "text-d-text-hint hover:text-d-text-secondary"
+                        ? "bg-[#0f172a] text-white"
+                        : "text-[#94a3b8] hover:text-[#64748b]"
                     }`}
                   >
                     {p.label}
@@ -423,7 +423,7 @@ export function EditorSlide({
             <div className="shrink-0 border-t border-border/20 px-5 py-4">
               <button
                 onClick={() => { if (variantA) handlePublish(variantA); }}
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3.5 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-95"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-[#0f172a] px-5 py-3.5 text-[14px] font-semibold text-white transition-all hover:opacity-90 active:scale-95"
               >
                 {`G\u00e5 vidare till publicering \u2192`}
               </button>
@@ -436,7 +436,7 @@ export function EditorSlide({
               <Sparkles className="h-6 w-6 text-red-400" />
             </div>
             <div className="text-center">
-              <p className="text-sm font-medium text-d-text-primary/70">{`Kunde inte generera annonsen. F\u00f6rs\u00f6k igen eller \u00e4ndra prompten.`}</p>
+              <p className="text-sm font-medium text-[#0f172a]/70">{`Kunde inte generera annonsen. F\u00f6rs\u00f6k igen eller \u00e4ndra prompten.`}</p>
               <div className="mt-2 space-y-1">
                 <p className="text-xs text-muted-foreground/50">
                   Annonstext {hasCopy ? "\u2713" : "\u2717"}
@@ -491,10 +491,10 @@ export function EditorSlide({
 
       {/* Back + Save draft (#17) */}
       <div className={`mx-auto flex w-full max-w-2xl shrink-0 items-center justify-center gap-4 pb-2 transition-opacity ${state === "loading" ? "pointer-events-none opacity-0" : "opacity-100"}`}>
-        <button onClick={onBack} aria-label="Tillbaka" className="text-[12px] text-d-text-hint hover:text-d-text-secondary">
+        <button onClick={onBack} aria-label="Tillbaka" className="text-[12px] text-[#94a3b8] hover:text-[#64748b]">
           <ArrowLeft className="mr-1 inline h-3 w-3" /> Tillbaka
         </button>
-        <button onClick={handleSaveDraft} className="text-[12px] text-d-text-hint hover:text-d-text-secondary">
+        <button onClick={handleSaveDraft} className="text-[12px] text-[#94a3b8] hover:text-[#64748b]">
           {draftSaved ? "Sparat!" : <><Save className="mr-1 inline h-3 w-3" /> Spara utkast</>}
         </button>
       </div>
@@ -506,7 +506,7 @@ export function EditorSlide({
 
 function LoadingSkeleton({ platformLabel }: { platformLabel: string }) {
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-card border-[1.5px] border-d-border bg-card shadow-card">
+    <div className="flex h-full flex-col overflow-hidden rounded-xl border-[1.5px] border-[#e2e8f0] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
       {/* Fake ad header */}
       <div className="flex items-center gap-2.5 px-4 py-3">
         <div className="h-8 w-8 animate-shimmer rounded-full bg-muted-foreground/8" />
