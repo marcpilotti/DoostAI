@@ -195,7 +195,7 @@ export function BrandCard({ profile, onConfirm, onBack }: {
       initial={prefersReduced ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="mx-auto w-full max-w-[480px] rounded-xl border border-[#e2e8f0] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
+      className="mx-auto w-full max-w-md rounded-xl border border-[#e2e8f0] bg-white px-5 py-6 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
     >
       {/* 1. Brand name + domain + match + logo upload */}
       <div className="flex items-start gap-3">

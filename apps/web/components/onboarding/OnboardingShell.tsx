@@ -299,7 +299,7 @@ export function OnboardingShell() {
       </div>
 
       {/* ── Content ─────────────────────────────────────────── */}
-      <div className={`mx-auto w-full px-4 py-4 sm:px-6 ${step === "url" || step === "loading" || step === "done" ? "max-w-2xl" : "max-w-[480px]"}`}>
+      <div className={`mx-auto w-full px-4 py-4 sm:px-6 ${step === "url" || step === "loading" || step === "done" ? "max-w-2xl" : "max-w-md"}`}>
         <AnimatePresence mode="wait">
           {transitionMessage && (
             <TransitionMessage key="transition" text={transitionMessage} />
