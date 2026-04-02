@@ -325,6 +325,9 @@ export function BrandCard({ profile, onConfirm, onBack }: {
                 className="w-full appearance-none bg-transparent text-[15px] font-semibold text-d-text-primary outline-none cursor-pointer truncate pr-4"
               >
                 <option value="">Välj bransch...</option>
+                {industry && !INDUSTRIES.includes(industry) && (
+                  <option key={industry} value={industry}>{industry} (AI-detekterad)</option>
+                )}
                 {INDUSTRIES.map((ind) => <option key={ind} value={ind}>{ind}</option>)}
               </select>
               <ChevronDown className="h-4 w-4 shrink-0 text-d-text-hint" />
