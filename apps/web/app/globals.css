@@ -367,8 +367,8 @@
   [role="radio"]:focus-visible,
   [role="option"]:focus-visible,
   [tabindex]:focus-visible:not(input):not(select):not(textarea) {
-    outline: 2px solid var(--doost-bg-active, #1A1A1A);
-    outline-offset: 2px;
+    outline: none;
+    box-shadow: 0 0 0 3px #EFF6FF;
     border-radius: var(--doost-radius-sm, 6px);
   }
 }

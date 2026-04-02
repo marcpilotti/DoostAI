@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown, ExternalLink, ImagePlus, Pencil } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { HexColorPicker } from "react-colorful";
 
@@ -186,6 +186,7 @@ export function BrandCard({ profile, onConfirm, onBack }: {
   onConfirm: (updated: BrandProfile) => void;
   onBack?: () => void;
 }) {
+  const prefersReduced = useReducedMotion();
   const [colors, setColors] = useState({
     primary: profile.colors?.primary ?? "#6366f1",
     secondary: profile.colors?.secondary ?? "#4f46e5",
@@ -282,7 +283,7 @@ export function BrandCard({ profile, onConfirm, onBack }: {
       <motion.div
         className="grid grid-cols-2 gap-grid-gap p-card-p sm:p-card-p-lg"
         variants={{ show: { transition: { staggerChildren: 0.08 } } }}
-        initial="hidden"
+        initial={prefersReduced ? false : "hidden"}
         animate="show"
       >
         {/* Colors — full width */}
@@ -384,7 +385,7 @@ export function BrandCard({ profile, onConfirm, onBack }: {
             className="rounded-btn border-d-border text-d-text-primary"
             size="lg"
           >
-            Ändra
+            ← Tillbaka
           </Button>
         )}
       </div>

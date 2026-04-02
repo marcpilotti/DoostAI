@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, ClipboardList, Eye, LinkIcon, ShoppingCart } from "lucide-react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,7 @@ export function CampaignCard({ brandName, aiRecommendedObjective, onConfirm, onB
   onConfirm: (data: { objective: string; campaignName: string; platforms: string[] }) => void;
   onBack?: () => void;
 }) {
+  const prefersReduced = useReducedMotion();
   const defaultObjective = aiRecommendedObjective ?? "sales";
   const [selected, setSelected] = useState<ObjectiveId>(defaultObjective);
   const [campaignName, setCampaignName] = useState(`${brandName} kampanj 2026`);
@@ -69,7 +70,7 @@ export function CampaignCard({ brandName, aiRecommendedObjective, onConfirm, onB
         <motion.div
           className="grid grid-cols-2 gap-grid-gap"
           variants={{ show: { transition: { staggerChildren: 0.08 } } }}
-          initial="hidden"
+          initial={prefersReduced ? false : "hidden"}
           animate="show"
         >
           {OBJECTIVES.map((obj) => {

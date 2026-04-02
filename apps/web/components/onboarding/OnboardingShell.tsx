@@ -381,8 +381,8 @@ export function OnboardingShell() {
               <ReviewCard
                 data={{
                   brandName: brandRef.current?.name ?? "",
-                  brandUrl: brandRef.current?.url ?? "",
-                  objective: campaignRef.current?.objective ?? "sales",
+                  brandUrl: (brandRef.current?.url ?? "").replace(/^https?:\/\//, "").replace(/\/$/, ""),
+                  objective: { awareness: "Synlighet", traffic: "Webbplatsbesök", sales: "Försäljning", leads: "Leads" }[campaignRef.current?.objective ?? "sales"] ?? campaignRef.current?.objective ?? "Försäljning",
                   platforms: campaignRef.current?.platforms ?? ["Meta"],
                   dailyBudget: budgetRef.current?.dailyBudget ?? 150,
                   variantLabel: "Variant A",
