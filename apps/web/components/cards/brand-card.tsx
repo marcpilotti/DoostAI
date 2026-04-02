@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 import type { BrandProfile } from "../onboarding/OnboardingShell";
-import { PlatformChip } from "./platform-chip";
 
 // ── Helpers ─────────────────────────────────────────────────────
 
@@ -163,12 +162,6 @@ export function BrandCard({ profile, onConfirm, onBack }: {
   const [audience, setAudience] = useState(
     typeof profile.targetAudience === "string" ? profile.targetAudience : profile.targetAudience?.demographic ?? "",
   );
-  const [channels, setChannels] = useState<Record<string, boolean>>({
-    Meta: true,
-    Google: true,
-    LinkedIn: false,
-  });
-
   // Confidence count-up
   const targetConfidence = profile._intelligence?.overallConfidence ?? 0;
   const [confidence, setConfidence] = useState(0);
@@ -304,23 +297,6 @@ export function BrandCard({ profile, onConfirm, onBack }: {
         </div>
       </div>
 
-      {/* 8. Divider */}
-      <Divider />
-
-      {/* 9. Annonskanaler */}
-      <p className="mb-3 text-[13px] font-medium text-[#94a3b8]">Annonskanaler</p>
-      <div className="flex flex-wrap gap-2">
-        {Object.entries(channels).map(([channelName, selected]) => (
-          <PlatformChip
-            key={channelName}
-            name={channelName}
-            selected={selected}
-            onToggle={() => setChannels((p) => ({ ...p, [channelName]: !p[channelName] }))}
-          />
-        ))}
-      </div>
-
-      {/* 10. Divider */}
       <Divider />
 
       {/* 11. CTA */}
