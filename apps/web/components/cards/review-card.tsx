@@ -36,7 +36,7 @@ function SummaryRow({ label, value, onEdit }: {
       {onEdit && (
         <button
           onClick={onEdit}
-          className="flex items-center gap-1 rounded-btn px-2 py-1 text-xs text-accent hover:bg-accent-light transition-colors"
+          className="flex items-center gap-1 rounded-btn px-2 py-1 text-xs text-accent hover:bg-accent-light transition-colors focus-visible:ring-2 focus-visible:ring-accent-light focus-visible:outline-none"
         >
           <Pencil className="h-3 w-3" />
           Ändra
@@ -105,7 +105,7 @@ export function ReviewCard({ data, onPublish, onEdit, onBack }: {
           </div>
           <button
             onClick={() => onEdit(4)}
-            className="flex items-center gap-1 rounded-btn px-2 py-1 text-xs text-accent hover:bg-accent-light transition-colors"
+            className="flex items-center gap-1 rounded-btn px-2 py-1 text-xs text-accent hover:bg-accent-light transition-colors focus-visible:ring-2 focus-visible:ring-accent-light focus-visible:outline-none"
           >
             <Pencil className="h-3 w-3" />
             Ändra

@@ -146,7 +146,7 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
                 key={ext}
                 type="button"
                 onClick={() => setInput(`${input.trim()}${ext}`)}
-                className="rounded-full bg-white px-3 py-2 min-h-[40px] text-[12px] flex items-center font-medium text-muted-foreground shadow-sm transition-colors hover:text-foreground"
+                className="rounded-pill bg-card px-3 py-2 min-h-[40px] text-[12px] flex items-center font-medium text-d-text-secondary shadow-card border border-d-border transition-colors hover:text-d-text-primary"
               >
                 {input.trim()}{ext}
               </button>
@@ -172,7 +172,7 @@ export function URLSlide({ onSubmit }: { onSubmit: (url: string) => void }) {
                   key={url}
                   type="button"
                   onClick={() => { setInput(url.replace(/^https?:\/\//, "")); }}
-                  className="rounded-full bg-white px-3 py-1 text-[11px] font-medium text-muted-foreground shadow-sm transition-colors hover:text-foreground"
+                  className="rounded-pill bg-card px-3 py-1 text-[11px] font-medium text-d-text-secondary shadow-card border border-d-border transition-colors hover:text-d-text-primary"
                 >
                   {url.replace(/^https?:\/\//, "").replace(/\/$/, "")}
                 </button>

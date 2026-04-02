@@ -4,6 +4,9 @@ import { ArrowRight, BarChart3, Bell, Check, Eye, Sparkles } from "lucide-react"
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect,useState } from "react";
 
+import { CardShell } from "@/components/ui/card-shell";
+import { Pill } from "@/components/ui/pill";
+
 import { AIMessage } from "./AIMessage";
 
 const DONE_MESSAGES = [
@@ -79,7 +82,7 @@ export function DoneSlide({ brandName, onDashboard, onRestart }: { brandName?: s
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           className="absolute -inset-3 rounded-full bg-foreground/10"
         />
-        <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-foreground">
+        <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-d-text-primary">
           <motion.div
             initial={prefersReduced ? false : { scale: 0, rotate: -45 }}
             animate={{ scale: 1, rotate: 0 }}
@@ -105,7 +108,7 @@ export function DoneSlide({ brandName, onDashboard, onRestart }: { brandName?: s
           initial={prefersReduced ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className="mb-6 text-[14px] text-muted-foreground/50"
+          className="mb-6 text-[14px] text-d-text-secondary"
         >
           {brandName} når nu nya kunder
         </motion.p>
@@ -121,36 +124,38 @@ export function DoneSlide({ brandName, onDashboard, onRestart }: { brandName?: s
         initial={prefersReduced ? false : { opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1 }}
-        className="mb-6 w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+        className="mb-6 w-full max-w-sm"
       >
-        <div className="px-5 py-4">
-          <p className="mb-3 text-[12px] font-semibold uppercase tracking-wider text-muted-foreground/30">Vad händer nu</p>
-          <div className="space-y-3">
-            {[
-              { icon: Eye, title: "Granskning", desc: "Annonsplattformen granskar din annons (1-24h)", time: "Nu" },
-              { icon: Bell, title: "Notis", desc: "Du får ett mejl när annonsen är godkänd", time: "Idag" },
-              { icon: BarChart3, title: "Resultat", desc: "Klick, visningar och ROAS i din dashboard", time: "Imorgon" },
-              { icon: Sparkles, title: "AI-optimering", desc: "Doost AI analyserar och föreslår förbättringar", time: "Löpande" },
-            ].map((item, i) => (
-              <motion.div
-                key={item.title}
-                initial={prefersReduced ? false : { opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 1.2 + i * 0.15 }}
-                className="flex items-center gap-3"
-              >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted-foreground/[0.04]">
-                  <item.icon className="h-4 w-4 text-muted-foreground/40" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[12px] font-medium text-foreground">{item.title}</p>
-                  <p className="text-[11px] text-muted-foreground/40">{item.desc}</p>
-                </div>
-                <span className="shrink-0 text-[10px] text-muted-foreground/40">{item.time}</span>
-              </motion.div>
-            ))}
+        <CardShell noPadding className="overflow-hidden">
+          <div className="px-5 py-4">
+            <p className="mb-3 text-[12px] font-semibold uppercase tracking-wider text-d-text-hint">Vad händer nu</p>
+            <div className="space-y-3">
+              {[
+                { icon: Eye, title: "Granskning", desc: "Annonsplattformen granskar din annons (1-24h)", time: "Nu" },
+                { icon: Bell, title: "Notis", desc: "Du får ett mejl när annonsen är godkänd", time: "Idag" },
+                { icon: BarChart3, title: "Resultat", desc: "Klick, visningar och ROAS i din dashboard", time: "Imorgon" },
+                { icon: Sparkles, title: "AI-optimering", desc: "Doost AI analyserar och föreslår förbättringar", time: "Löpande" },
+              ].map((item, i) => (
+                <motion.div
+                  key={item.title}
+                  initial={prefersReduced ? false : { opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 1.2 + i * 0.15 }}
+                  className="flex items-center gap-3"
+                >
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface">
+                    <item.icon className="h-4 w-4 text-d-text-hint" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[12px] font-medium text-d-text-primary">{item.title}</p>
+                    <p className="text-[11px] text-d-text-hint">{item.desc}</p>
+                  </div>
+                  <Pill variant="gray">{item.time}</Pill>
+                </motion.div>
+              ))}
+            </div>
           </div>
-        </div>
+        </CardShell>
       </motion.div>
 
       {/* CTA */}
@@ -172,7 +177,7 @@ export function DoneSlide({ brandName, onDashboard, onRestart }: { brandName?: s
           animate={{ opacity: 1 }}
           transition={{ delay: 1.0 }}
           onClick={onRestart}
-          className="mt-3 rounded-full border border-foreground/10 px-6 py-2.5 text-[13px] font-medium text-foreground/60 transition-all hover:border-foreground/20 hover:text-foreground active:scale-95"
+          className="mt-3 rounded-full border border-d-border px-6 py-2.5 text-[13px] font-medium text-d-text-secondary transition-all hover:border-d-text-hint hover:text-d-text-primary active:scale-95"
         >
           Skapa ny annons
         </motion.button>
@@ -182,14 +187,14 @@ export function DoneSlide({ brandName, onDashboard, onRestart }: { brandName?: s
         initial={prefersReduced ? false : { opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2 }}
-        className="mt-3 text-[11px] text-muted-foreground/20"
+        className="mt-3 text-[11px] text-d-text-hint"
       >
         {paused ? (
           <span>Automatisk omdirigering pausad</span>
         ) : (
           <>
             Omdirigeras om {countdown}s...{" "}
-            <button onClick={() => setPaused(true)} className="underline hover:text-muted-foreground/40">Stanna kvar</button>
+            <button onClick={() => setPaused(true)} className="underline hover:text-d-text-secondary">Stanna kvar</button>
           </>
         )}
       </motion.p>

@@ -29,7 +29,7 @@ function StepBar({ steps, onStepClick, className }: StepBarProps) {
   return (
     <nav
       aria-label="Steg i processen"
-      className={cn("flex items-center justify-center gap-0", className)}
+      className={cn("flex items-center justify-center gap-0 overflow-x-auto", className)}
     >
       {steps.map((step, i) => (
         <React.Fragment key={i}>
@@ -37,7 +37,7 @@ function StepBar({ steps, onStepClick, className }: StepBarProps) {
           {i > 0 && (
             <div
               className={cn(
-                "h-0.5 w-10 transition-colors duration-300",
+                "h-0.5 w-10 transition-all duration-300",
                 step.state === "upcoming" ? "bg-d-border" : "bg-d-success",
               )}
             />
@@ -51,7 +51,7 @@ function StepBar({ steps, onStepClick, className }: StepBarProps) {
               onClick={() => step.state === "completed" && onStepClick?.(i)}
               aria-current={step.state === "current" ? "step" : undefined}
               className={cn(
-                "flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-all duration-200",
+                "flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-all duration-300",
                 step.state === "completed" &&
                   "bg-d-success text-white cursor-pointer hover:bg-d-success/90",
                 step.state === "current" &&
@@ -68,7 +68,7 @@ function StepBar({ steps, onStepClick, className }: StepBarProps) {
             </button>
             <span
               className={cn(
-                "text-[11px] font-medium whitespace-nowrap",
+                "hidden text-[11px] font-medium whitespace-nowrap sm:block",
                 step.state === "current"
                   ? "text-d-text-primary"
                   : "text-d-text-hint",

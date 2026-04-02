@@ -172,16 +172,16 @@ export function LoadingSlide({
   if (failed) {
     return (
       <div className="flex h-full flex-col items-center justify-center px-6" role="alert">
-        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted-foreground/5">
-          <RefreshCw className="h-5 w-5 text-muted-foreground/40" />
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-surface">
+          <RefreshCw className="h-5 w-5 text-d-text-hint" />
         </div>
-        <h3 className="mb-1 text-[15px] font-semibold text-foreground">{`Vi kunde inte analysera ${domain}`}</h3>
-        <p className="mb-5 max-w-xs text-center text-[13px] text-muted-foreground/50">
+        <h3 className="mb-1 text-card-title text-d-text-primary">{`Vi kunde inte analysera ${domain}`}</h3>
+        <p className="mb-5 max-w-xs text-center text-[13px] text-d-text-secondary">
           {failReason || "Kontrollera att adressen st\u00e4mmer och att hemsidan \u00e4r tillg\u00e4nglig, och f\u00f6rs\u00f6k igen."}
         </p>
         <div className="flex items-center gap-3">
           {onError && (
-            <button onClick={onError} className="flex items-center gap-1.5 text-[12px] text-muted-foreground/40 hover:text-muted-foreground">
+            <button onClick={onError} className="flex items-center gap-1.5 text-[12px] text-d-text-hint hover:text-d-text-secondary">
               <ArrowLeft className="h-3 w-3" /> Byt URL
             </button>
           )}
@@ -199,8 +199,8 @@ export function LoadingSlide({
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-6">
-      <div className="mb-6 h-10 w-10 animate-spin motion-reduce:animate-none rounded-full border-[3px] border-muted-foreground/10 border-t-foreground/60" />
-      <p className="mb-4 text-[15px] font-semibold tracking-tight text-foreground">{domain}</p>
+      <div className="mb-6 h-10 w-10 animate-spin motion-reduce:animate-none rounded-full border-[3px] border-d-border border-t-d-text-primary/60" />
+      <p className="mb-4 text-[15px] font-semibold tracking-tight text-d-text-primary">{domain}</p>
 
       <AnimatePresence>
         {extractedColors.length > 0 && (
@@ -214,13 +214,13 @@ export function LoadingSlide({
 
       <div className="min-h-[60px] text-center" aria-live="polite">
         <AnimatePresence mode="wait">
-          <motion.p key={latestMessage} initial={prefersReduced ? false : { opacity: 0, y: 4 }} animate={{ opacity: 0.6, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.3 }} className="text-[13px] text-muted-foreground">
+          <motion.p key={latestMessage} initial={prefersReduced ? false : { opacity: 0, y: 4 }} animate={{ opacity: 0.6, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.3 }} className="text-[13px] text-d-text-secondary">
             {latestMessage}
           </motion.p>
         </AnimatePresence>
         {progress >= 30 && progress < 100 && (
           <AnimatePresence mode="wait">
-            <motion.p key={thinkingPhase} initial={prefersReduced ? false : { opacity: 0 }} animate={{ opacity: 0.3 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }} className="mt-1 text-[11px] text-muted-foreground">
+            <motion.p key={thinkingPhase} initial={prefersReduced ? false : { opacity: 0 }} animate={{ opacity: 0.3 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }} className="mt-1 text-[11px] text-d-text-hint">
               {thinkingTexts[thinkingPhase]}
             </motion.p>
           </AnimatePresence>
@@ -228,7 +228,7 @@ export function LoadingSlide({
       </div>
 
       <div className="mt-6 w-full max-w-xs">
-        <div className="h-1 w-full overflow-hidden rounded-full bg-muted-foreground/10">
+        <div className="h-1 w-full overflow-hidden rounded-full bg-d-border">
           <motion.div className="h-full rounded-full bg-primary/60" animate={{ width: `${progress}%` }} transition={{ duration: 1.5, ease: "easeOut" }} />
         </div>
       </div>

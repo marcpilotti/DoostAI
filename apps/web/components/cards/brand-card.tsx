@@ -17,6 +17,15 @@ import type { BrandProfile } from "../onboarding/OnboardingShell";
 
 // ── Helpers ─────────────────────────────────────────────────────
 
+function adjustColor(hex: string, amount: number): string {
+  const clamp = (n: number) => Math.max(0, Math.min(255, n));
+  const h = hex.replace("#", "");
+  const r = clamp(parseInt(h.substring(0, 2), 16) + amount);
+  const g = clamp(parseInt(h.substring(2, 4), 16) + amount);
+  const b = clamp(parseInt(h.substring(4, 6), 16) + amount);
+  return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+}
+
 function stripSuffix(name: string): string {
   return name.replace(/\s+(AB|HB|KB|Inc\.?|Ltd\.?|LLC|GmbH|Corp\.?|Co\.?)$/i, "").trim();
 }
@@ -187,10 +196,14 @@ export function BrandCard({ profile, onConfirm, onBack }: {
   onBack?: () => void;
 }) {
   const prefersReduced = useReducedMotion();
-  const [colors, setColors] = useState({
-    primary: profile.colors?.primary ?? "#6366f1",
-    secondary: profile.colors?.secondary ?? "#4f46e5",
-    accent: profile.colors?.accent ?? "#10b981",
+  const [colors, setColors] = useState(() => {
+    const primary = profile.colors?.primary ?? "#6366f1";
+    const secondary = profile.colors?.secondary ?? "#4f46e5";
+    let accent = profile.colors?.accent ?? "#10b981";
+    if (accent.toLowerCase() === primary.toLowerCase()) {
+      accent = adjustColor(primary, -30);
+    }
+    return { primary, secondary, accent };
   });
   const [logoUrl, setLogoUrl] = useState<string | null>(profile.logo?.url ?? profile.logos?.primary ?? null);
   const [logoError, setLogoError] = useState<string | null>(null);

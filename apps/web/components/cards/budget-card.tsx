@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CardShell } from "@/components/ui/card-shell";
 import { FieldLabel } from "@/components/ui/field-label";
+import { NumberTicker } from "@/components/ui/number-ticker";
 import { Pill } from "@/components/ui/pill";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
@@ -143,15 +144,15 @@ export function BudgetCard({ onConfirm, onBack }: {
         <FieldLabel className="mb-3">Uppskattad räckvidd</FieldLabel>
         <div className="grid grid-cols-3 gap-grid-gap">
           <div className="rounded-cell bg-surface p-cell-p text-center">
-            <p className="text-metric text-d-text-primary">{metrics.monthlyReach.toLocaleString("sv-SE")}</p>
+            <p className="text-metric text-d-text-primary"><NumberTicker value={metrics.monthlyReach} className="text-metric text-d-text-primary" /></p>
             <p className="text-[10px] text-d-text-hint mt-1">Räckvidd/mån</p>
           </div>
           <div className="rounded-cell bg-surface p-cell-p text-center">
-            <p className="text-metric text-d-text-primary">{metrics.monthlyClicks.toLocaleString("sv-SE")}</p>
+            <p className="text-metric text-d-text-primary"><NumberTicker value={metrics.monthlyClicks} className="text-metric text-d-text-primary" /></p>
             <p className="text-[10px] text-d-text-hint mt-1">Klick/mån</p>
           </div>
           <div className="rounded-cell bg-surface p-cell-p text-center">
-            <p className="text-metric text-d-text-primary">{metrics.cpc} kr</p>
+            <p className="text-metric text-d-text-primary"><NumberTicker value={parseFloat(metrics.cpc)} decimalPlaces={1} className="text-metric text-d-text-primary" /> kr</p>
             <p className="text-[10px] text-d-text-hint mt-1">Kostnad/klick</p>
           </div>
         </div>
