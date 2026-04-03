@@ -16,20 +16,19 @@ type PlatformDef = {
 };
 
 const PLATFORMS: PlatformDef[] = [
-  { id: "meta", name: "Meta", subtitle: "Facebook & Instagram", color: "var(--color-meta)", formats: ["Feed & Stories", "Reels", "Instagram"] },
-  { id: "google", name: "Google", subtitle: "Sök & Display", color: "var(--color-google)", formats: ["Sök", "Display", "YouTube"] },
-  { id: "linkedin", name: "LinkedIn", subtitle: "B2B & företag", color: "var(--color-linkedin)", formats: ["Sponsored", "InMail", "B2B"] },
-  { id: "tiktok", name: "TikTok", subtitle: "Video & Reels", color: "#000000", formats: ["In-Feed", "TopView", "Spark Ads"], comingSoon: true },
-  { id: "snapchat", name: "Snapchat", subtitle: "AR & Story Ads", color: "#FFFC00", formats: ["Snap Ads", "Story Ads", "AR Lens"], comingSoon: true },
+  { id: "meta", name: "Meta", subtitle: "Facebook & Instagram", color: "#1877F2", formats: ["Feed & Stories", "Reels", "Instagram"] },
+  { id: "google", name: "Google", subtitle: "Sök & Display", color: "#4285F4", formats: ["Sök", "Display", "YouTube"] },
+  { id: "linkedin", name: "LinkedIn", subtitle: "B2B-fokus", color: "#0A66C2", formats: ["Sponsored", "InMail", "B2B"] },
+  { id: "tiktok", name: "TikTok", subtitle: "Kortvideo & Gen Z", color: "#25F4EE", formats: ["In-Feed", "TopView"], comingSoon: true },
+  { id: "snapchat", name: "Snapchat", subtitle: "AR & Story Ads", color: "#FFFC00", formats: ["Snap Ads", "AR Lens"], comingSoon: true },
 ];
 
-// 6th slot placeholder
 const COMING_SOON_PLACEHOLDER: PlatformDef = {
   id: "snapchat" as Platform,
   name: "Pinterest",
   subtitle: "Shopping & Inspiration",
   color: "#E60023",
-  formats: ["Pins", "Shopping", "Idea Ads"],
+  formats: ["Pins", "Shopping"],
   comingSoon: true,
 };
 
@@ -49,61 +48,71 @@ function PlatformCard({
   return (
     <motion.button
       onClick={isSoon ? undefined : onToggle}
-      whileHover={isSoon ? {} : { y: -2, boxShadow: "var(--shadow-md)" }}
-      whileTap={isSoon ? {} : { scale: 0.98 }}
+      whileHover={isSoon ? {} : { y: -3 }}
+      whileTap={isSoon ? {} : { scale: 0.97 }}
       transition={transitions.snappy}
-      className="relative flex flex-col items-center gap-2 text-center"
+      className="relative flex flex-col items-center text-center"
       style={{
-        padding: "16px 12px 12px",
-        borderRadius: "var(--radius-lg)",
-        background: "var(--color-bg-elevated)",
+        padding: "24px 16px 18px",
+        borderRadius: 16,
+        background: selected
+          ? "linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(99,102,241,0.02) 100%)"
+          : "rgba(255,255,255,0.03)",
         border: selected
-          ? "2px solid var(--color-primary)"
-          : "1px solid var(--color-border-default)",
-        boxShadow: selected ? "var(--shadow-glow-sm)" : "none",
+          ? "1.5px solid var(--color-primary)"
+          : "1px solid rgba(255,255,255,0.06)",
+        boxShadow: selected
+          ? "0 0 24px rgba(99,102,241,0.15), inset 0 1px 0 rgba(255,255,255,0.05)"
+          : "inset 0 1px 0 rgba(255,255,255,0.03)",
         cursor: isSoon ? "default" : "pointer",
-        opacity: isSoon ? 0.45 : 1,
+        opacity: isSoon ? 0.35 : 1,
+        minHeight: isSoon ? 90 : "auto",
       }}
     >
-      {/* Recommended badge */}
+      {/* REKOM badge */}
       {recommended && !isSoon && (
         <span
-          className="absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap text-text-overline"
+          className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap"
           style={{
-            padding: "2px 10px",
-            borderRadius: "var(--radius-full)",
-            background: "var(--color-primary-glow)",
-            color: "var(--color-primary-light)",
+            padding: "3px 12px",
+            borderRadius: 20,
+            background: "var(--color-primary)",
+            color: "#fff",
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: "0.08em",
           }}
         >
           REKOM.
         </span>
       )}
 
-      {/* "Snart" badge for coming soon */}
+      {/* Snart badge */}
       {isSoon && (
         <span
-          className="absolute -top-2 right-3 text-text-overline"
+          className="absolute -top-2 right-3"
           style={{
             padding: "2px 8px",
-            borderRadius: "var(--radius-full)",
-            background: "var(--color-bg-raised)",
+            borderRadius: 20,
+            background: "rgba(255,255,255,0.06)",
             color: "var(--color-text-muted)",
+            fontSize: 10,
+            fontWeight: 600,
           }}
         >
           Snart
         </span>
       )}
 
-      {/* Checkmark — top right */}
+      {/* Checkmark top-right */}
       {!isSoon && (
-        <div className="absolute -right-1.5 -top-1.5">
+        <div className="absolute -right-2 -top-2">
           {selected ? (
-            <motion.svg width="24" height="24" viewBox="0 0 24 24">
+            <motion.svg width="26" height="26" viewBox="0 0 26 26">
               <motion.circle
-                cx="12"
-                cy="12"
-                r="11"
+                cx="13"
+                cy="13"
+                r="12"
                 fill="var(--color-primary)"
                 stroke="var(--color-bg-base)"
                 strokeWidth="2"
@@ -112,10 +121,10 @@ function PlatformCard({
                 transition={transitions.snappy}
               />
               <motion.path
-                d="M7 12l3.5 3.5 6-7"
+                d="M8 13l3.5 3.5 6.5-7"
                 fill="none"
-                stroke="var(--color-text-inverse)"
-                strokeWidth="2"
+                stroke="#fff"
+                strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 variants={checkmarkVariants}
@@ -125,9 +134,11 @@ function PlatformCard({
             </motion.svg>
           ) : (
             <div
-              className="h-5 w-5 rounded-full"
               style={{
-                border: "2px solid var(--color-border-default)",
+                width: 22,
+                height: 22,
+                borderRadius: "50%",
+                border: "1.5px solid rgba(255,255,255,0.12)",
                 background: "var(--color-bg-base)",
               }}
             />
@@ -135,39 +146,52 @@ function PlatformCard({
         </div>
       )}
 
-      {/* Large icon */}
+      {/* Icon */}
       <div
-        className="flex h-11 w-11 items-center justify-center rounded-lg text-lg font-bold"
+        className="mb-3 flex items-center justify-center"
         style={{
-          background: isSoon ? "var(--color-bg-raised)" : platform.color,
-          color: platform.color === "#FFFC00" || platform.color === "#000000" ? (isSoon ? "var(--color-text-muted)" : platform.color === "#FFFC00" ? "#000" : "#fff") : "#fff",
+          width: 52,
+          height: 52,
+          borderRadius: 14,
+          background: isSoon ? "rgba(255,255,255,0.04)" : platform.color,
+          color: isSoon ? "var(--color-text-muted)" : "#fff",
+          fontSize: 22,
+          fontWeight: 800,
+          boxShadow: isSoon ? "none" : `0 4px 16px ${platform.color}40`,
         }}
       >
         {platform.name.charAt(0)}
       </div>
 
-      {/* Name + subtitle */}
-      <div>
-        <span className="text-text-h3 block font-bold" style={{ color: isSoon ? "var(--color-text-muted)" : "var(--color-text-primary)" }}>
-          {platform.name}
-        </span>
-        <span className="text-text-caption" style={{ color: "var(--color-text-muted)" }}>
-          {platform.subtitle}
-        </span>
-      </div>
+      {/* Name */}
+      <span
+        className="mb-0.5 text-[15px] font-bold"
+        style={{ color: isSoon ? "var(--color-text-muted)" : "var(--color-text-primary)" }}
+      >
+        {platform.name}
+      </span>
 
-      {/* Format tags — hide on coming soon to save space */}
+      {/* Subtitle */}
+      <span
+        className="mb-2 text-[12px]"
+        style={{ color: "var(--color-text-muted)" }}
+      >
+        {platform.subtitle}
+      </span>
+
+      {/* Format tags */}
       {!isSoon && (
         <div className="flex flex-wrap justify-center gap-1">
           {platform.formats.map((f) => (
             <span
               key={f}
-              className="text-[11px] font-medium"
               style={{
-                padding: "1px 7px",
-                borderRadius: "var(--radius-full)",
-                border: "1px solid var(--color-border-default)",
-                color: "var(--color-text-secondary)",
+                padding: "2px 8px",
+                borderRadius: 20,
+                border: "1px solid rgba(255,255,255,0.08)",
+                color: selected ? "var(--color-primary-light)" : "var(--color-text-muted)",
+                fontSize: 11,
+                fontWeight: 500,
               }}
             >
               {f}
@@ -269,7 +293,8 @@ export function PlatformSelectSlide() {
       initial="hidden"
       animate="visible"
       transition={transitions.spring}
-      className="flex flex-col gap-2"
+      className="flex flex-col"
+      style={{ gap: 10 }}
     >
       <div>
         <h2 className="text-text-h1" style={{ color: "var(--color-text-primary)" }}>
@@ -288,9 +313,10 @@ export function PlatformSelectSlide() {
 
       {/* 3×2 grid */}
       <motion.div
-        className="grid gap-2.5"
+        className="grid"
         style={{
           gridTemplateColumns: "repeat(3, 1fr)",
+          gap: 10,
           maxWidth: 640,
         }}
         variants={{ visible: { transition: transitions.stagger } }}
@@ -320,7 +346,7 @@ export function PlatformSelectSlide() {
       <button
         onClick={handleContinue}
         disabled={selectedPlatforms.length === 0}
-        className="cta-primary ml-auto mt-2"
+        className="cta-primary ml-auto mt-1"
       >
         Skapa annonser →
       </button>
