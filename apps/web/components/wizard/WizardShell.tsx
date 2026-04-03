@@ -11,10 +11,10 @@ import { AdViewSlide } from "./slides/AdViewSlide";
 import { AudienceSlide } from "./slides/AudienceSlide";
 import { BrandCardSlide } from "./slides/BrandCardSlide";
 import { BudgetSlide } from "./slides/BudgetSlide";
+import { LoadingSlide } from "./slides/LoadingSlide";
 import { PlatformSelectSlide } from "./slides/PlatformSelectSlide";
 import { ReviewPublishSlide } from "./slides/ReviewPublishSlide";
 import { TargetingSlide } from "./slides/TargetingSlide";
-import { LoadingSlide } from "./slides/LoadingSlide";
 import { UrlInputSlide } from "./slides/UrlInputSlide";
 
 const CTA_LABELS: Record<string, string> = {

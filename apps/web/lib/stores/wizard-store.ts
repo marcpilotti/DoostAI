@@ -254,6 +254,12 @@ export const useWizardStore = create<WizardState & WizardActions>()(
         targeting: state.targeting,
         publishMode: state.publishMode,
       }),
+      onRehydrateStorage: () => (state) => {
+        // If user refreshes during transient steps, reset to safe state
+        if (state && (state.step === "loading" || state.step === "done")) {
+          state.step = state.brand ? "brand" : "url";
+        }
+      },
     }
   )
 );

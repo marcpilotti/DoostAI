@@ -86,8 +86,8 @@ export function UrlInputSlide() {
                 products: p.products || [],
                 prices: p.prices || [],
                 offers: p.offers || [],
-                detectedLocation: p.detectedLocation,
-                recommendedPlatforms: p.recommendedPlatforms,
+                detectedLocation: p.detectedLocation || p.location,
+                recommendedPlatforms: p.recommendedPlatforms || p.competitors ? ["meta", "google"] : [],
                 socialProfiles: p.socialProfiles,
               });
 

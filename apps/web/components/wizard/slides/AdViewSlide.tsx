@@ -187,26 +187,30 @@ export function AdViewSlide() {
                 brandName={brand?.name || ""}
                 logoUrl={brand?.logoUrl}
               >
-                {ad.imageUrl ? (
-                  <img
-                    src={ad.imageUrl}
-                    alt={ad.headline}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div
-                    className="flex h-full w-full items-center justify-center p-4 text-center"
-                    style={{
-                      background: brand?.colors.primary || "var(--color-primary)",
-                      color: "#fff",
-                    }}
-                  >
-                    <div>
-                      <p className="text-lg font-bold">{ad.headline}</p>
-                      <p className="mt-1 text-sm opacity-80">{ad.bodyCopy}</p>
-                    </div>
+                <div
+                  className="relative flex h-full w-full items-center justify-center p-4 text-center"
+                  style={{
+                    background: brand?.colors.primary || "var(--color-primary)",
+                    color: "#fff",
+                  }}
+                >
+                  {/* Background image if available — falls back to solid color */}
+                  {ad.imageUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={ad.imageUrl}
+                      alt=""
+                      className="absolute inset-0 h-full w-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                  )}
+                  <div className="relative z-10">
+                    <p className="text-lg font-bold drop-shadow-md">{ad.headline}</p>
+                    <p className="mt-1 text-sm opacity-90 drop-shadow-md">{ad.bodyCopy}</p>
                   </div>
-                )}
+                </div>
               </PlatformMockup>
 
               {/* Selection + edit controls */}
