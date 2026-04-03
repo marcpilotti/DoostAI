@@ -23,6 +23,7 @@ const config: Config = {
         sans: ["Satoshi", "system-ui", "sans-serif"],
         display: ["Satoshi", "system-ui", "sans-serif"],
         mono: ["JetBrains Mono", "monospace"],
+        sketch: ["var(--font-marker)", "cursive"],
       },
 
       // ── Typography scale (DESIGN_REFERENCE) ──────────────
