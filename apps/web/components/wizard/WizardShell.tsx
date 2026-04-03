@@ -18,7 +18,7 @@ import { TargetingSlide } from "./slides/TargetingSlide";
 import { UrlInputSlide } from "./slides/UrlInputSlide";
 
 const CTA_LABELS: Record<string, string> = {
-  url: "Analysera →",
+  url: "",
   brand: "Fortsätt →",
   audience: "Fortsätt →",
   platforms: "Skapa annonser →",
@@ -54,20 +54,18 @@ function SlideContent({ step }: { step: string }) {
 }
 
 export function WizardShell() {
-  const { step, direction } = useWizardStore();
-  const { canGoBack, handleBack, stepIndex } = useWizardNavigation();
+  const { step, direction, footerAction, footerDisabled } = useWizardStore();
+  const { canGoBack, handleBack } = useWizardNavigation();
 
-  // Hide shell chrome for loading/done/url states
   const isTransient = step === "loading" || step === "done";
   const showProgressBar = !isTransient && step !== "url";
   const ctaLabel = CTA_LABELS[step] || "";
+  const showFooter = !isTransient && step !== "url";
 
   return (
     <div className="wizard-bg wizard-grain flex h-dvh flex-col overflow-hidden">
-      {/* Header — hidden on URL slide */}
       {showProgressBar && <ProgressBar />}
 
-      {/* Content area */}
       <main
         id="main"
         className="flex flex-1 items-center justify-center overflow-hidden p-6"
@@ -89,13 +87,12 @@ export function WizardShell() {
         </div>
       </main>
 
-      {/* Footer */}
-      {!isTransient && stepIndex > 0 && (
+      {/* Footer — back left, CTA right */}
+      {showFooter && (
         <footer
           className="flex h-[72px] flex-shrink-0 items-center justify-between px-6"
           style={{ borderTop: "1px solid var(--color-border-subtle)" }}
         >
-          {/* Back button */}
           {canGoBack ? (
             <button onClick={handleBack} className="ghost-back">
               ← Tillbaka
@@ -104,11 +101,14 @@ export function WizardShell() {
             <div />
           )}
 
-          {/* CTA — each slide handles its own submit via the store.
-              For slides that need a footer CTA, it's rendered here as a visual anchor.
-              The actual click handler is inside each slide. */}
           {ctaLabel && (
-            <div id="wizard-footer-cta-portal" />
+            <button
+              onClick={() => footerAction?.()}
+              disabled={footerDisabled}
+              className="cta-primary"
+            >
+              {ctaLabel}
+            </button>
           )}
         </footer>
       )}

@@ -1,16 +1,21 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
 import { cardVariants, listItemVariants,transitions } from "@/lib/motion";
 import { useWizardStore } from "@/lib/stores/wizard-store";
 
 export function BrandCardSlide() {
-  const { brand, setBrand } = useWizardStore();
+  const { brand, setBrand, setFooterAction } = useWizardStore();
   const { handleNext } = useWizardNavigation();
   const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    setFooterAction(() => handleNext());
+    return () => setFooterAction(null);
+  }, [handleNext, setFooterAction]);
 
   if (!brand) return null;
 
@@ -177,11 +182,6 @@ export function BrandCardSlide() {
           </motion.div>
         )}
       </motion.div>
-
-      {/* CTA */}
-      <button onClick={handleNext} className="cta-primary ml-auto mt-2">
-        Fortsätt →
-      </button>
     </motion.div>
   );
 }

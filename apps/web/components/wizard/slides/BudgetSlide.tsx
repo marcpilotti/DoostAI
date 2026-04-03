@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useCallback,useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
 import { cardVariants,transitions } from "@/lib/motion";
@@ -41,7 +41,7 @@ function estimateReach(budget: number, days: number): { min: number; max: number
 }
 
 export function BudgetSlide() {
-  const { brand, budget, setBudget } = useWizardStore();
+  const { brand, budget, setBudget, setFooterAction } = useWizardStore();
   const { handleNext } = useWizardNavigation();
 
   const [totalBudget, setTotalBudget] = useState(budget?.totalBudget || 5000);
@@ -67,6 +67,11 @@ export function BudgetSlide() {
     });
     handleNext();
   }, [landingUrl, totalBudget, durationDays, startDate, setBudget, handleNext]);
+
+  useEffect(() => {
+    setFooterAction(() => handleContinue());
+    return () => setFooterAction(null);
+  }, [handleContinue, setFooterAction]);
 
   return (
     <motion.div
@@ -174,10 +179,6 @@ export function BudgetSlide() {
       <p className="text-text-body-sm" style={{ color: "var(--color-primary-light)" }}>
         Vi optimerar budgetfördelningen automatiskt
       </p>
-
-      <button onClick={handleContinue} className="cta-primary ml-auto">
-        Fortsätt →
-      </button>
     </motion.div>
   );
 }

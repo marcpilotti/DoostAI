@@ -132,6 +132,8 @@ type WizardState = {
   projections: ProjectionData | null;
   publishMode: "self" | "managed" | null;
   isGeneratingAds: boolean;
+  footerAction: (() => void) | null;
+  footerDisabled: boolean;
 };
 
 type WizardActions = {
@@ -151,6 +153,7 @@ type WizardActions = {
   setProjections: (projections: ProjectionData) => void;
   setPublishMode: (mode: "self" | "managed") => void;
   setIsGeneratingAds: (val: boolean) => void;
+  setFooterAction: (action: (() => void) | null, disabled?: boolean) => void;
   reset: () => void;
 };
 
@@ -167,6 +170,8 @@ const initialState: WizardState = {
   projections: null,
   publishMode: null,
   isGeneratingAds: false,
+  footerAction: null,
+  footerDisabled: false,
 };
 
 function getNextStep(current: WizardStep): WizardStep {
@@ -240,6 +245,7 @@ export const useWizardStore = create<WizardState & WizardActions>()(
       setProjections: (projections) => set({ projections }),
       setPublishMode: (mode) => set({ publishMode: mode }),
       setIsGeneratingAds: (val) => set({ isGeneratingAds: val }),
+      setFooterAction: (action, disabled = false) => set({ footerAction: action, footerDisabled: disabled }),
       reset: () => set(initialState),
     }),
     {

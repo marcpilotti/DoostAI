@@ -115,27 +115,52 @@ export function UrlInputSlide() {
   }, [input, setUrl, setStep, setBrand, setAudience]);
 
   return (
-    <motion.div
-      variants={cardVariants}
-      initial="hidden"
-      animate="visible"
-      transition={transitions.spring}
-      className="flex flex-col items-center text-center"
-    >
-      <h1
-        className="text-text-hero mb-3"
-        style={{ color: "var(--color-text-primary)" }}
-      >
-        Ange din webbadress så skapar vi dina annonser med AI
-      </h1>
+    <div className="flex h-dvh flex-col overflow-hidden">
+      {/* Logo top-left */}
+      <header className="flex h-14 flex-shrink-0 items-center px-6">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.png" alt="Doost AI" className="h-7" />
+      </header>
 
-      <div className="mt-8 flex w-full flex-col items-center" style={{ maxWidth: 440 }}>
-        {/* URL input with ai-border gradient */}
-        <div
-          className="ai-border w-full"
+      {/* Centered content */}
+      <motion.div
+        variants={cardVariants}
+        initial="hidden"
+        animate="visible"
+        transition={transitions.spring}
+        className="flex flex-1 flex-col items-center justify-center text-center"
+        style={{ padding: "0 24px 72px" }}
+      >
+        {/* Hero headline */}
+        <h1
+          className="mb-3 font-black italic"
           style={{
-            borderRadius: "var(--radius-md)",
-            padding: 1,
+            color: "var(--color-text-primary)",
+            fontSize: "clamp(36px, 6vw, 56px)",
+            lineHeight: 1.05,
+            letterSpacing: "-0.03em",
+          }}
+        >
+          Skippa byrån.
+        </h1>
+
+        {/* Subtitle */}
+        <p
+          className="mb-8 text-[16px]"
+          style={{ color: "var(--color-text-muted)" }}
+        >
+          Klistra in din hemsida — vi skapar din annons med AI.
+        </p>
+
+        {/* Input + button inline */}
+        <div
+          className="flex w-full items-center gap-0 overflow-hidden"
+          style={{
+            maxWidth: 520,
+            borderRadius: 14,
+            background: "var(--color-bg-elevated)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
           }}
         >
           <input
@@ -146,57 +171,63 @@ export function UrlInputSlide() {
               setError("");
             }}
             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-            placeholder="mittforetag.se"
+            placeholder="Klistra in din hemsida, t.ex. företag.se"
             disabled={isLoading}
             autoFocus
-            className="url-input w-full font-medium outline-none"
+            className="url-input min-w-0 flex-1 bg-transparent font-medium outline-none"
             style={{
-              background: "var(--color-bg-input)",
-              border: "1px solid var(--color-border-default)",
-              borderRadius: "var(--radius-md)",
               color: "var(--color-text-primary)",
-              padding: "14px 20px",
-              fontSize: 18,
+              padding: "16px 20px",
+              fontSize: 15,
+              border: "none",
             }}
           />
+          <button
+            onClick={handleSubmit}
+            disabled={!input.trim() || isLoading}
+            className="flex flex-shrink-0 items-center gap-2 font-semibold transition-all disabled:opacity-40"
+            style={{
+              background: "var(--color-primary)",
+              color: "#fff",
+              padding: "12px 24px",
+              margin: "6px",
+              borderRadius: 10,
+              fontSize: 14,
+              border: "none",
+              cursor: !input.trim() || isLoading ? "not-allowed" : "pointer",
+            }}
+          >
+            {isLoading ? (
+              <>
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                Analyserar...
+              </>
+            ) : (
+              "Analysera"
+            )}
+          </button>
         </div>
 
+        {/* Error */}
         {error && (
           <motion.p
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-2 self-start text-[13px]"
+            className="mt-3 text-[13px]"
             style={{ color: "var(--color-error)" }}
           >
             {error}
           </motion.p>
         )}
 
-        {/* CTA — auto-width, centered */}
-        <button
-          onClick={handleSubmit}
-          disabled={!input.trim() || isLoading}
-          className="cta-primary mt-5"
-          style={{ minWidth: 180, padding: "14px 40px" }}
+        {/* Social proof */}
+        <p
+          className="mt-6 text-[13px]"
+          style={{ color: "var(--color-text-muted)" }}
         >
-          {isLoading ? (
-            <span className="flex items-center justify-center gap-2">
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              Analyserar...
-            </span>
-          ) : (
-            "Analysera →"
-          )}
-        </button>
-      </div>
-
-      {/* Social proof */}
-      <p
-        className="mt-8 text-[13px]"
-        style={{ color: "var(--color-text-muted)" }}
-      >
-        Gratis att testa · Inga konton krävs · Klart på 2 min
-      </p>
-    </motion.div>
+          Testa med idewerksbeauty.se eller eraase.se
+        </p>
+      </motion.div>
+    </div>
   );
 }

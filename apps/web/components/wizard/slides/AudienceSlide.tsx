@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useCallback,useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
 import { cardVariants, listItemVariants,transitions } from "@/lib/motion";
@@ -106,8 +106,13 @@ function TagList({
 }
 
 export function AudienceSlide() {
-  const { audience, setAudience, brand } = useWizardStore();
+  const { audience, setAudience, brand, setFooterAction } = useWizardStore();
   const { handleNext } = useWizardNavigation();
+
+  useEffect(() => {
+    setFooterAction(() => handleNext());
+    return () => setFooterAction(null);
+  }, [handleNext, setFooterAction]);
 
   const interests = audience?.interests || [];
   const challenges = audience?.challenges || [];
@@ -199,10 +204,6 @@ export function AudienceSlide() {
           ))}
         </motion.ol>
       </div>
-
-      <button onClick={handleNext} className="cta-primary ml-auto mt-1">
-        Fortsätt →
-      </button>
     </motion.div>
   );
 }

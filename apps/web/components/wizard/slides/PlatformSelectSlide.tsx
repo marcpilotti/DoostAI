@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import { useEffect } from "react";
 
 import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
 import { cardVariants, checkmarkVariants, listItemVariants, transitions } from "@/lib/motion";
@@ -246,7 +247,7 @@ function PlatformCard({
 /* ── Main slide ─────────────────────────────────────────── */
 
 export function PlatformSelectSlide() {
-  const { selectedPlatforms, togglePlatform, brand, setIsGeneratingAds } =
+  const { selectedPlatforms, togglePlatform, brand, setIsGeneratingAds, setFooterAction } =
     useWizardStore();
   const { handleNext } = useWizardNavigation();
 
@@ -329,6 +330,11 @@ export function PlatformSelectSlide() {
     }
   };
 
+  useEffect(() => {
+    setFooterAction(() => handleContinue(), selectedPlatforms.length === 0);
+    return () => setFooterAction(null);
+  }, [selectedPlatforms, setFooterAction]);
+
   return (
     <motion.div
       variants={cardVariants}
@@ -385,14 +391,6 @@ export function PlatformSelectSlide() {
           />
         </motion.div>
       </motion.div>
-
-      <button
-        onClick={handleContinue}
-        disabled={selectedPlatforms.length === 0}
-        className="cta-primary ml-auto mt-1"
-      >
-        Skapa annonser →
-      </button>
     </motion.div>
   );
 }

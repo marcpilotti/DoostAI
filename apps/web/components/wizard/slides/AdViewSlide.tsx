@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
 import { cardVariants, checkmarkVariants,transitions } from "@/lib/motion";
@@ -19,7 +19,7 @@ const PLATFORM_TAB_LABELS: Record<string, string> = {
 };
 
 export function AdViewSlide() {
-  const { ads, selectedPlatforms, brand, isGeneratingAds, toggleAdSelection, updateAd, setAds } =
+  const { ads, selectedPlatforms, brand, isGeneratingAds, toggleAdSelection, updateAd, setAds, setFooterAction } =
     useWizardStore();
   const { handleNext } = useWizardNavigation();
   const [activeTab, setActiveTab] = useState<Platform>(selectedPlatforms[0] || "meta");
@@ -27,6 +27,11 @@ export function AdViewSlide() {
   const [editForm, setEditForm] = useState({ headline: "", bodyCopy: "", cta: "" });
 
   const selectedCount = ads.filter((a) => a.selected).length;
+
+  useEffect(() => {
+    setFooterAction(() => handleNext(), selectedCount === 0);
+    return () => setFooterAction(null);
+  }, [selectedCount, handleNext, setFooterAction]);
   const filteredAds = ads.filter((a) => a.platform === activeTab || ads.length <= 2);
   const editingAd = ads.find((a) => a.id === editingAdId);
 
@@ -267,14 +272,6 @@ export function AdViewSlide() {
           🔄 Generera om
         </button>
       )}
-
-      <button
-        onClick={handleNext}
-        disabled={selectedCount === 0}
-        className="cta-primary ml-auto"
-      >
-        Ställ in budget →
-      </button>
 
       {/* Edit overlay */}
       <EditOverlay open={!!editingAdId} onClose={() => setEditingAdId(null)}>

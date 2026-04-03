@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useCallback,useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
 import { cardVariants,transitions } from "@/lib/motion";
@@ -35,7 +35,7 @@ function estimateProjections(
 }
 
 export function TargetingSlide() {
-  const { brand, budget, targeting, setTargeting, setProjections, selectedPlatforms } = useWizardStore();
+  const { brand, budget, targeting, setTargeting, setProjections, selectedPlatforms, setFooterAction } = useWizardStore();
   const { handleNext } = useWizardNavigation();
 
   const detectedLocation = brand?.detectedLocation || "Hela Sverige";
@@ -81,6 +81,11 @@ export function TargetingSlide() {
     });
     handleNext();
   }, [locations, ageMin, ageMax, gender, linkedinRoles, hasLinkedIn, projections, setTargeting, setProjections, handleNext]);
+
+  useEffect(() => {
+    setFooterAction(() => handleContinue());
+    return () => setFooterAction(null);
+  }, [handleContinue, setFooterAction]);
 
   return (
     <motion.div
@@ -300,10 +305,6 @@ export function TargetingSlide() {
           ⓘ Uppskattning baserad på branschdata
         </p>
       </div>
-
-      <button onClick={handleContinue} className="cta-primary ml-auto">
-        Granska kampanj →
-      </button>
     </motion.div>
   );
 }
