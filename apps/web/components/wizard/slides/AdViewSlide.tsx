@@ -7,6 +7,8 @@ import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
 import { cardVariants, checkmarkVariants, transitions } from "@/lib/motion";
 import { type Platform, useWizardStore } from "@/lib/stores/wizard-store";
 
+import { AdPreviewBrand } from "../shared/AdPreviewBrand";
+import { AdPreviewHero } from "../shared/AdPreviewHero";
 import { EditOverlay } from "../shared/EditOverlay";
 import { PlatformMockup } from "../shared/PlatformMockup";
 
@@ -312,19 +314,28 @@ export function AdViewSlide() {
                     alt={ad.headline}
                     className="h-full w-full object-cover"
                   />
+                ) : ad.template === "brand" ? (
+                  <AdPreviewBrand
+                    headline={ad.headline}
+                    bodyCopy={ad.bodyCopy}
+                    cta={ad.cta}
+                    brandName={brand?.name || ""}
+                    logoUrl={brand?.logoUrl}
+                    primaryColor={brand?.colors.primary || "#6366F1"}
+                    secondaryColor={brand?.colors.secondary}
+                    accentColor={brand?.colors.accent}
+                  />
                 ) : (
-                  <div
-                    className="flex h-full w-full items-center justify-center p-4 text-center"
-                    style={{
-                      background: brand?.colors.primary || "var(--color-primary)",
-                      color: "#fff",
-                    }}
-                  >
-                    <div>
-                      <p className="text-lg font-bold drop-shadow-md">{ad.headline}</p>
-                      <p className="mt-1 text-sm opacity-90 drop-shadow-md">{ad.bodyCopy}</p>
-                    </div>
-                  </div>
+                  <AdPreviewHero
+                    headline={ad.headline}
+                    bodyCopy={ad.bodyCopy}
+                    cta={ad.cta}
+                    brandName={brand?.name || ""}
+                    logoUrl={brand?.logoUrl}
+                    imageUrl={ad.imageUrl || undefined}
+                    primaryColor={brand?.colors.primary || "#6366F1"}
+                    secondaryColor={brand?.colors.secondary}
+                  />
                 )}
               </PlatformMockup>
 
@@ -390,43 +401,31 @@ export function AdViewSlide() {
       <EditOverlay open={!!editingAdId} onClose={() => setEditingAdId(null)}>
         {editingAd && (
           <div className="flex gap-6">
-            {/* Live preview — CSS clone of template */}
-            <div className="flex-1">
-              <div
-                className="flex aspect-square items-center justify-center overflow-hidden p-6 text-center"
-                style={{
-                  background: brand?.colors.primary
-                    ? `linear-gradient(135deg, ${brand.colors.primary} 0%, ${brand.colors.secondary || brand.colors.primary}80 100%)`
-                    : "var(--color-primary)",
-                  color: "#fff",
-                  borderRadius: 14,
-                  position: "relative",
-                }}
-              >
-                {/* Logo */}
-                {brand?.logoUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={brand.logoUrl}
-                    alt=""
-                    className="absolute left-4 top-4 h-8 w-8 rounded-lg object-contain"
-                    style={{ backgroundColor: "rgba(255,255,255,0.15)" }}
-                  />
-                )}
-                <div>
-                  <p className="text-xl font-bold drop-shadow-md">{editForm.headline || "Headline"}</p>
-                  <p className="mt-2 text-sm opacity-85 drop-shadow-md">{editForm.bodyCopy || "Body copy"}</p>
-                  <div
-                    className="mx-auto mt-4 inline-block rounded-lg px-6 py-2 text-sm font-bold"
-                    style={{
-                      background: "rgba(255,255,255,0.95)",
-                      color: brand?.colors.primary || "var(--color-primary)",
-                    }}
-                  >
-                    {editForm.cta || "Läs mer"} →
-                  </div>
-                </div>
-              </div>
+            {/* Live preview — uses same CSS templates */}
+            <div className="flex-1 overflow-hidden" style={{ borderRadius: 14 }}>
+              {editingAd.template === "brand" ? (
+                <AdPreviewBrand
+                  headline={editForm.headline || "Headline"}
+                  bodyCopy={editForm.bodyCopy || "Body copy"}
+                  cta={editForm.cta || "Läs mer"}
+                  brandName={brand?.name || ""}
+                  logoUrl={brand?.logoUrl}
+                  primaryColor={brand?.colors.primary || "#6366F1"}
+                  secondaryColor={brand?.colors.secondary}
+                  accentColor={brand?.colors.accent}
+                />
+              ) : (
+                <AdPreviewHero
+                  headline={editForm.headline || "Headline"}
+                  bodyCopy={editForm.bodyCopy || "Body copy"}
+                  cta={editForm.cta || "Läs mer"}
+                  brandName={brand?.name || ""}
+                  logoUrl={brand?.logoUrl}
+                  imageUrl={editingAd.imageUrl || undefined}
+                  primaryColor={brand?.colors.primary || "#6366F1"}
+                  secondaryColor={brand?.colors.secondary}
+                />
+              )}
             </div>
 
             {/* Edit form */}
