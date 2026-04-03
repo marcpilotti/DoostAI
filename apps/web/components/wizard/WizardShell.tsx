@@ -54,14 +54,15 @@ export function WizardShell() {
   const { step, direction } = useWizardStore();
   const { canGoBack, handleBack, stepIndex } = useWizardNavigation();
 
-  // Hide shell chrome for loading/done states
+  // Hide shell chrome for loading/done/url states
   const isTransient = step === "loading" || step === "done";
+  const showProgressBar = !isTransient && step !== "url";
   const ctaLabel = CTA_LABELS[step] || "";
 
   return (
     <div className="wizard-bg wizard-grain flex h-dvh flex-col overflow-hidden">
-      {/* Header */}
-      {!isTransient && <ProgressBar />}
+      {/* Header — hidden on URL slide */}
+      {showProgressBar && <ProgressBar />}
 
       {/* Content area */}
       <main

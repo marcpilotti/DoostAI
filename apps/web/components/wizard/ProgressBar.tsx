@@ -32,15 +32,18 @@ export function ProgressBar() {
       className="flex h-14 flex-shrink-0 items-center gap-4 border-b px-6"
       style={{ borderColor: "var(--color-border-subtle)" }}
     >
-      {/* Logo */}
+      {/* Logo — left */}
       <span className="text-text-h3 font-bold" style={{ color: "var(--color-text-primary)" }}>
         Doost
       </span>
 
-      {/* Progress bar */}
+      {/* Spacer pushes progress bar to the right */}
+      <div className="flex-1" />
+
+      {/* Progress bar — right aligned */}
       <div
-        className="relative flex-1"
-        style={{ maxWidth: 200 }}
+        className="relative"
+        style={{ width: 200 }}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
       >
