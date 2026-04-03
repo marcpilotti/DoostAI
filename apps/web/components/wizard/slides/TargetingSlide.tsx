@@ -301,19 +301,7 @@ export function TargetingSlide() {
         </p>
       </div>
 
-      <button
-        onClick={handleContinue}
-        className="ai-breathe ml-auto font-semibold transition-all"
-        style={{
-          background: "var(--color-primary)",
-          color: "var(--color-text-inverse)",
-          padding: "12px 28px",
-          borderRadius: "var(--radius-sm)",
-          fontSize: 16,
-          border: "none",
-          boxShadow: "var(--shadow-glow-sm)",
-        }}
-      >
+      <button onClick={handleContinue} className="cta-primary ml-auto">
         Granska kampanj →
       </button>
     </motion.div>

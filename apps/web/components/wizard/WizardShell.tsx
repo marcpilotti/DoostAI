@@ -97,17 +97,7 @@ export function WizardShell() {
         >
           {/* Back button */}
           {canGoBack ? (
-            <button
-              onClick={handleBack}
-              className="text-text-body-sm font-medium transition-colors"
-              style={{
-                color: "var(--color-text-secondary)",
-                background: "transparent",
-                padding: "10px 20px",
-                borderRadius: "var(--radius-sm)",
-                border: "1px solid var(--color-border-default)",
-              }}
-            >
+            <button onClick={handleBack} className="ghost-back">
               ← Tillbaka
             </button>
           ) : (

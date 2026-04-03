@@ -149,7 +149,7 @@ export function UrlInputSlide() {
             placeholder="mittforetag.se"
             disabled={isLoading}
             autoFocus
-            className="w-full font-medium outline-none transition-shadow focus:ring-[3px]"
+            className="url-input w-full font-medium outline-none"
             style={{
               background: "var(--color-bg-input)",
               border: "1px solid var(--color-border-default)",
@@ -157,9 +157,6 @@ export function UrlInputSlide() {
               color: "var(--color-text-primary)",
               padding: "14px 20px",
               fontSize: 18,
-              boxShadow: "none",
-              // focus ring via CSS variable
-              ["--tw-ring-color" as string]: "var(--color-primary-glow)",
             }}
           />
         </div>
@@ -179,17 +176,8 @@ export function UrlInputSlide() {
         <button
           onClick={handleSubmit}
           disabled={!input.trim() || isLoading}
-          className="ai-breathe mt-5 font-semibold transition-all hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
-          style={{
-            background: "var(--color-primary)",
-            color: "var(--color-text-inverse)",
-            padding: "14px 40px",
-            borderRadius: "var(--radius-sm)",
-            fontSize: 16,
-            border: "none",
-            boxShadow: "var(--shadow-glow-sm)",
-            minWidth: 180,
-          }}
+          className="cta-primary mt-5"
+          style={{ minWidth: 180, padding: "14px 40px" }}
         >
           {isLoading ? (
             <span className="flex items-center justify-center gap-2">

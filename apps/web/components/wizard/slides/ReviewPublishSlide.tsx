@@ -148,15 +148,7 @@ export function ReviewPublishSlide() {
         <div className="flex gap-3">
           <button
             onClick={() => (window.location.href = "/dashboard")}
-            className="text-text-body font-semibold"
-            style={{
-              padding: "12px 28px",
-              borderRadius: "var(--radius-sm)",
-              background: "var(--color-primary)",
-              color: "var(--color-text-inverse)",
-              border: "none",
-              boxShadow: "var(--shadow-glow-sm)",
-            }}
+            className="cta-primary"
           >
             Gå till dashboard →
           </button>
@@ -182,11 +174,13 @@ export function ReviewPublishSlide() {
         className="flex items-start gap-4 p-4"
         style={{
           borderRadius: "var(--radius-lg)",
-          background: "var(--color-bg-elevated)",
+          background: "linear-gradient(135deg, var(--color-bg-elevated) 0%, rgba(99, 102, 241, 0.03) 100%)",
           border: "1px solid var(--color-border-default)",
+          boxShadow: "var(--shadow-md)",
         }}
       >
         {brand?.logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img src={brand.logoUrl} alt="" className="h-10 w-10 rounded-lg object-contain" />
         ) : (
           <div

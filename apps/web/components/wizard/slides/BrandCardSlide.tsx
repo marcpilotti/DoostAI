@@ -24,7 +24,7 @@ export function BrandCardSlide() {
       initial="hidden"
       animate="visible"
       transition={transitions.spring}
-      className="flex flex-col gap-4"
+      className="flex w-full flex-col gap-4"
     >
       <div className="flex items-center justify-between">
         <div>
@@ -179,19 +179,7 @@ export function BrandCardSlide() {
       </motion.div>
 
       {/* CTA */}
-      <button
-        onClick={handleNext}
-        className="ai-breathe ml-auto mt-2 font-semibold transition-all"
-        style={{
-          background: "var(--color-primary)",
-          color: "var(--color-text-inverse)",
-          padding: "12px 28px",
-          borderRadius: "var(--radius-sm)",
-          fontSize: 16,
-          border: "none",
-          boxShadow: "var(--shadow-glow-sm)",
-        }}
-      >
+      <button onClick={handleNext} className="cta-primary ml-auto mt-2">
         Fortsätt →
       </button>
     </motion.div>

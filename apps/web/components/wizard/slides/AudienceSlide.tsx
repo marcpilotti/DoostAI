@@ -202,19 +202,7 @@ export function AudienceSlide() {
         </div>
       </div>
 
-      <button
-        onClick={handleNext}
-        className="ai-breathe ml-auto mt-2 font-semibold transition-all"
-        style={{
-          background: "var(--color-primary)",
-          color: "var(--color-text-inverse)",
-          padding: "12px 28px",
-          borderRadius: "var(--radius-sm)",
-          fontSize: 16,
-          border: "none",
-          boxShadow: "var(--shadow-glow-sm)",
-        }}
-      >
+      <button onClick={handleNext} className="cta-primary ml-auto mt-2">
         Fortsätt →
       </button>
     </motion.div>
