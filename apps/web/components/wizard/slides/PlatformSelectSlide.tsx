@@ -273,6 +273,20 @@ export function PlatformSelectSlide() {
     setIsGeneratingAds(true);
     handleNext();
 
+    // Generate AI background image in parallel with ad copy
+    const imagePromise = fetch("/api/ads/generate-image", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        industry: brand?.industry || "",
+        description: brand?.description || "",
+        brandName: brand?.name || "",
+      }),
+    })
+      .then((r) => r.json())
+      .then((data: { success: boolean; imageUrl?: string }) => data.success ? data.imageUrl : null)
+      .catch(() => null);
+
     try {
       const response = await fetch("/api/ad/generate", {
         method: "POST",
@@ -318,7 +332,9 @@ export function PlatformSelectSlide() {
             const data = JSON.parse(raw);
 
             if (data.event === "complete" && data.result) {
-              const { copies, backgroundUrl } = data.result;
+              const { copies } = data.result;
+              // Wait for AI image (may already be done)
+              const aiImageUrl = await imagePromise;
               const ads = (copies || []).map(
                 (c: Record<string, string>, i: number) => ({
                   id: `ad-${i}`,
@@ -327,7 +343,7 @@ export function PlatformSelectSlide() {
                   headline: c.headline || c.headlines?.[0] || "",
                   bodyCopy: c.bodyCopy || c.descriptions?.[0] || "",
                   cta: c.cta || "Läs mer",
-                  imageUrl: backgroundUrl,
+                  imageUrl: i === 0 ? (aiImageUrl || null) : null, // Hero gets AI image, Brand gets gradient
                   selected: i === 0,
                 })
               );
