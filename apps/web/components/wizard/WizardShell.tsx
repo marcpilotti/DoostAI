@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
+import { useRef } from "react";
 
 import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
 import { slideVariants, transitions } from "@/lib/motion";
@@ -56,6 +57,7 @@ function SlideContent({ step }: { step: string }) {
 export function WizardShell() {
   const { step, direction, footerAction, footerDisabled } = useWizardStore();
   const { canGoBack, handleBack } = useWizardNavigation();
+  const ctaRef = useRef<HTMLButtonElement>(null);
 
   const isTransient = step === "loading" || step === "done";
   const showProgressBar = !isTransient && step !== "url";
@@ -94,21 +96,41 @@ export function WizardShell() {
           style={{ borderTop: "1px solid var(--color-border-subtle)" }}
         >
           {canGoBack ? (
-            <button onClick={handleBack} className="ghost-back">
+            <motion.button
+              onClick={handleBack}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
+              className="ghost-back"
+            >
               ← Tillbaka
-            </button>
+            </motion.button>
           ) : (
             <div />
           )}
 
           {ctaLabel && (
-            <button
+            <motion.button
+              ref={ctaRef}
               onClick={() => footerAction?.()}
               disabled={footerDisabled}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              animate={{
+                boxShadow: [
+                  "0 0 12px rgba(99,102,241,0.15)",
+                  "0 0 20px rgba(99,102,241,0.3)",
+                  "0 0 12px rgba(99,102,241,0.15)",
+                ],
+              }}
+              transition={{
+                boxShadow: { duration: 2.5, repeat: Infinity, ease: "easeInOut" },
+                scale: { type: "spring", damping: 20, stiffness: 300 },
+              }}
               className="cta-primary"
             >
               {ctaLabel}
-            </button>
+            </motion.button>
           )}
         </footer>
       )}

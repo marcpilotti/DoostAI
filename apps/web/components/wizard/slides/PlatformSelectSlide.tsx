@@ -108,7 +108,22 @@ function PlatformCard({
       onClick={isSoon ? undefined : onToggle}
       whileHover={isSoon ? {} : { y: -3 }}
       whileTap={isSoon ? {} : { scale: 0.97 }}
-      transition={transitions.snappy}
+      animate={
+        selected
+          ? {
+              boxShadow: [
+                "0 0 20px rgba(99,102,241,0.12)",
+                "0 0 28px rgba(99,102,241,0.22)",
+                "0 0 20px rgba(99,102,241,0.12)",
+              ],
+            }
+          : { boxShadow: "0 0 0px rgba(99,102,241,0)" }
+      }
+      transition={
+        selected
+          ? { boxShadow: { duration: 2, repeat: Infinity, ease: "easeInOut" }, ...transitions.snappy }
+          : transitions.snappy
+      }
       className="relative flex h-full w-full flex-col items-center text-center"
       style={{
         padding: "16px 10px 10px",
@@ -119,17 +134,17 @@ function PlatformCard({
         border: selected
           ? "2px solid var(--color-primary)"
           : "1px solid rgba(255,255,255,0.06)",
-        boxShadow: selected
-          ? "0 0 20px rgba(99,102,241,0.12)"
-          : "none",
         cursor: isSoon ? "default" : "pointer",
         opacity: isSoon ? 0.4 : 1,
       }}
     >
       {/* REKOM badge */}
       {recommended && !isSoon && (
-        <span
+        <motion.span
           className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", damping: 15, stiffness: 400, delay: 0.3 }}
           style={{
             padding: "3px 12px",
             borderRadius: 20,
@@ -141,7 +156,7 @@ function PlatformCard({
           }}
         >
           REKOM.
-        </span>
+        </motion.span>
       )}
 
       {/* Snart badge */}

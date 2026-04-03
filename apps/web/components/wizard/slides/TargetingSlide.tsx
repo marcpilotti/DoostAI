@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
@@ -110,35 +110,45 @@ export function TargetingSlide() {
           Plats
         </label>
         <div className="flex flex-wrap gap-1.5">
-          {locations.map((loc) => (
-            <span
-              key={loc}
-              className="flex items-center gap-1.5 text-text-body-sm font-medium"
-              style={{
-                padding: "6px 12px",
-                borderRadius: "var(--radius-sm)",
-                background: "var(--color-bg-raised)",
-                border: "1px solid var(--color-border-default)",
-                color: "var(--color-text-secondary)",
-              }}
-            >
-              {loc}
-              <button onClick={() => removeLocation(loc)} className="text-[14px]" style={{ color: "var(--color-text-muted)" }}>
-                ×
-              </button>
-            </span>
-          ))}
+          <AnimatePresence>
+            {locations.map((loc) => (
+              <motion.span
+                key={loc}
+                layout
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                transition={{ type: "spring", damping: 20, stiffness: 300 }}
+                className="flex items-center gap-1.5 text-text-body-sm font-medium"
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: "var(--radius-sm)",
+                  background: "var(--color-bg-raised)",
+                  border: "1px solid var(--color-border-default)",
+                  color: "var(--color-text-secondary)",
+                }}
+              >
+                {loc}
+                <button onClick={() => removeLocation(loc)} className="text-[14px]" style={{ color: "var(--color-text-muted)" }}>
+                  ×
+                </button>
+              </motion.span>
+            ))}
+          </AnimatePresence>
         </div>
         <div className="mt-2 flex gap-2">
           {QUICK_LOCATIONS.filter((l) => !locations.includes(l)).map((loc) => (
-            <button
+            <motion.button
               key={loc}
               onClick={() => addLocation(loc)}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
               className="text-text-body-sm"
               style={{ color: "var(--color-text-muted)" }}
             >
               + {loc}
-            </button>
+            </motion.button>
           ))}
         </div>
       </div>
@@ -223,32 +233,42 @@ export function TargetingSlide() {
               transition={transitions.spring}
               className="mt-2 flex flex-wrap gap-1.5"
             >
-              {linkedinRoles.map((role) => (
-                <span
-                  key={role}
-                  className="flex items-center gap-1.5 text-text-body-sm"
-                  style={{
-                    padding: "6px 12px",
-                    borderRadius: "var(--radius-sm)",
-                    background: "var(--color-bg-raised)",
-                    border: "1px solid var(--color-border-default)",
-                    color: "var(--color-text-secondary)",
-                  }}
-                >
-                  {role}
-                  <button
-                    onClick={() => setLinkedInRoles(linkedinRoles.filter((r) => r !== role))}
-                    className="text-[14px]"
-                    style={{ color: "var(--color-text-muted)" }}
+              <AnimatePresence>
+                {linkedinRoles.map((role) => (
+                  <motion.span
+                    key={role}
+                    layout
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ type: "spring", damping: 20, stiffness: 300 }}
+                    className="flex items-center gap-1.5 text-text-body-sm"
+                    style={{
+                      padding: "6px 12px",
+                      borderRadius: "var(--radius-sm)",
+                      background: "var(--color-bg-raised)",
+                      border: "1px solid var(--color-border-default)",
+                      color: "var(--color-text-secondary)",
+                    }}
                   >
-                    ×
-                  </button>
-                </span>
-              ))}
+                    {role}
+                    <button
+                      onClick={() => setLinkedInRoles(linkedinRoles.filter((r) => r !== role))}
+                      className="text-[14px]"
+                      style={{ color: "var(--color-text-muted)" }}
+                    >
+                      ×
+                    </button>
+                  </motion.span>
+                ))}
+              </AnimatePresence>
               {["VD", "Marknadschef", "CTO"].filter((r) => !linkedinRoles.includes(r)).map((role) => (
-                <button
+                <motion.button
                   key={role}
                   onClick={() => setLinkedInRoles([...linkedinRoles, role])}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: "spring", damping: 20, stiffness: 300 }}
                   className="text-text-body-sm"
                   style={{
                     padding: "6px 12px",
@@ -259,7 +279,7 @@ export function TargetingSlide() {
                   }}
                 >
                   + {role}
-                </button>
+                </motion.button>
               ))}
             </motion.div>
           )}
@@ -267,8 +287,11 @@ export function TargetingSlide() {
       )}
 
       {/* Projections */}
-      <div
+      <motion.div
         className="mt-1 rounded-lg p-4"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", damping: 25, stiffness: 200, delay: 0.2 }}
         style={{
           background: "var(--color-bg-elevated)",
           border: "1px solid var(--color-border-subtle)",
@@ -304,7 +327,7 @@ export function TargetingSlide() {
         <p className="mt-2 text-center text-text-caption" style={{ color: "var(--color-text-muted)" }}>
           ⓘ Uppskattning baserad på branschdata
         </p>
-      </div>
+      </motion.div>
     </motion.div>
   );
 }

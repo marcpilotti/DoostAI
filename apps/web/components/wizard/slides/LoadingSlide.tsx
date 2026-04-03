@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useEffect,useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { transitions } from "@/lib/motion";
 import { useWizardStore } from "@/lib/stores/wizard-store";
@@ -13,9 +13,24 @@ const PHASES = [
   "Bygger din profil...",
 ];
 
+const PARTICLE_COUNT = 6;
+
 export function LoadingSlide() {
   const { brand } = useWizardStore();
   const [phaseIndex, setPhaseIndex] = useState(0);
+
+  const particles = useMemo(
+    () =>
+      Array.from({ length: PARTICLE_COUNT }, (_, i) => ({
+        id: i,
+        angle: (360 / PARTICLE_COUNT) * i,
+        radius: 52 + Math.random() * 16,
+        size: 3 + Math.random() * 3,
+        duration: 4 + Math.random() * 2,
+        delay: i * 0.3,
+      })),
+    []
+  );
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -44,6 +59,45 @@ export function LoadingSlide() {
         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
         style={{ borderRadius: "50%" }}
       >
+        {/* Floating particles */}
+        {particles.map((p) => {
+          const rad1 = (p.angle * Math.PI) / 180;
+          const rad2 = ((p.angle + 120) * Math.PI) / 180;
+          const rad3 = ((p.angle + 240) * Math.PI) / 180;
+          return (
+            <motion.div
+              key={p.id}
+              className="absolute rounded-full"
+              style={{
+                width: p.size,
+                height: p.size,
+                background: "var(--color-primary)",
+                opacity: 0.4,
+              }}
+              animate={{
+                x: [
+                  Math.cos(rad1) * p.radius,
+                  Math.cos(rad2) * p.radius,
+                  Math.cos(rad3) * p.radius,
+                  Math.cos(rad1) * p.radius,
+                ],
+                y: [
+                  Math.sin(rad1) * p.radius,
+                  Math.sin(rad2) * p.radius,
+                  Math.sin(rad3) * p.radius,
+                  Math.sin(rad1) * p.radius,
+                ],
+                opacity: [0.2, 0.5, 0.2],
+              }}
+              transition={{
+                duration: p.duration,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: p.delay,
+              }}
+            />
+          );
+        })}
         {brand?.logoUrl ? (
           <motion.img
             src={brand.logoUrl}

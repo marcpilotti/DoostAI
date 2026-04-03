@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
 
 import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
@@ -38,28 +38,35 @@ function TagList({
         {label}
       </span>
       <div className="mt-1 flex flex-wrap gap-1.5">
-        {items.map((item) => (
-          <span
-            key={item}
-            className="flex items-center gap-1 text-[13px] font-medium"
-            style={{
-              padding: "4px 10px",
-              borderRadius: 20,
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              color: "var(--color-text-secondary)",
-            }}
-          >
-            {item}
-            <button
-              onClick={() => onRemove(item)}
-              className="ml-0.5 text-[12px] transition-colors hover:text-white"
-              style={{ color: "var(--color-text-muted)" }}
+        <AnimatePresence>
+          {items.map((item) => (
+            <motion.span
+              key={item}
+              layout
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
+              className="flex items-center gap-1 text-[13px] font-medium"
+              style={{
+                padding: "4px 10px",
+                borderRadius: 20,
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                color: "var(--color-text-secondary)",
+              }}
             >
-              ×
-            </button>
-          </span>
-        ))}
+              {item}
+              <button
+                onClick={() => onRemove(item)}
+                className="ml-0.5 text-[12px] transition-colors hover:text-white"
+                style={{ color: "var(--color-text-muted)" }}
+              >
+                ×
+              </button>
+            </motion.span>
+          ))}
+        </AnimatePresence>
 
         {adding ? (
           <input
@@ -86,8 +93,11 @@ function TagList({
             }}
           />
         ) : (
-          <button
+          <motion.button
             onClick={() => setAdding(true)}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ type: "spring", damping: 20, stiffness: 300 }}
             className="text-[13px] font-medium transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
             style={{
               padding: "4px 10px",
@@ -98,7 +108,7 @@ function TagList({
             }}
           >
             + Lägg till
-          </button>
+          </motion.button>
         )}
       </div>
     </div>
@@ -190,15 +200,18 @@ export function AudienceSlide() {
               className="flex items-start gap-2 text-[14px]"
               style={{ color: "var(--color-text-secondary)" }}
             >
-              <span
+              <motion.span
                 className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", damping: 20, stiffness: 300, delay: i * 0.08 }}
                 style={{
                   background: "var(--color-primary-glow)",
                   color: "var(--color-primary-light)",
                 }}
               >
                 {i + 1}
-              </span>
+              </motion.span>
               <span>{usp}</span>
             </motion.li>
           ))}

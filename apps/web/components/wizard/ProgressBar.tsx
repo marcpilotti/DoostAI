@@ -4,7 +4,6 @@ import { AnimatePresence,motion } from "motion/react";
 import { useState } from "react";
 
 import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
-import { transitions } from "@/lib/motion";
 import {
   STEP_LABELS,
   WIZARD_STEPS,
@@ -65,7 +64,7 @@ export function ProgressBar() {
             }}
             initial={false}
             animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+            transition={{ type: "spring", damping: 20, stiffness: 200 }}
           />
         </div>
 
@@ -73,10 +72,10 @@ export function ProgressBar() {
         <AnimatePresence>
           {showTooltip && (
             <motion.div
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={transitions.snappy}
+              initial={{ opacity: 0, y: 6, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 4, scale: 0.95 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
               className="absolute left-0 top-full z-[60] mt-2 min-w-[180px] p-3"
               style={{
                 borderRadius: "var(--radius-md)",

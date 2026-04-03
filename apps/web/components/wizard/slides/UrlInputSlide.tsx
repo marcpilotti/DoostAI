@@ -132,27 +132,33 @@ export function UrlInputSlide() {
         style={{ padding: "0 24px 72px" }}
       >
         {/* Hero headline */}
-        <h1
+        <motion.h1
           className="mb-3 font-sketch"
           style={{
             color: "var(--color-text-primary)",
             fontSize: "clamp(40px, 7vw, 64px)",
             lineHeight: 1.1,
           }}
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", damping: 25, stiffness: 200 }}
         >
           Skippa byrån.
-        </h1>
+        </motion.h1>
 
         {/* Subtitle */}
-        <p
+        <motion.p
           className="mb-8 text-[16px]"
           style={{ color: "var(--color-text-muted)" }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", damping: 25, stiffness: 200, delay: 0.1 }}
         >
           Klistra in din hemsida — vi skapar din annons med AI.
-        </p>
+        </motion.p>
 
         {/* Input + button inline */}
-        <div
+        <motion.div
           className="flex w-full items-center gap-0 overflow-hidden"
           style={{
             maxWidth: 520,
@@ -161,6 +167,9 @@ export function UrlInputSlide() {
             border: "1px solid rgba(255,255,255,0.08)",
             boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
           }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", damping: 25, stiffness: 200, delay: 0.2 }}
         >
           <input
             type="url"
@@ -181,9 +190,12 @@ export function UrlInputSlide() {
               border: "none",
             }}
           />
-          <button
+          <motion.button
             onClick={handleSubmit}
             disabled={!input.trim() || isLoading}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ type: "spring", damping: 20, stiffness: 300 }}
             className="flex flex-shrink-0 items-center gap-2 font-semibold transition-all disabled:opacity-40"
             style={{
               background: "var(--color-primary)",
@@ -204,8 +216,8 @@ export function UrlInputSlide() {
             ) : (
               "Analysera"
             )}
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
 
         {/* Error */}
         {error && (

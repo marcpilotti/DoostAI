@@ -234,23 +234,39 @@ export function AdViewSlide() {
 
       {/* Platform tabs */}
       {selectedPlatforms.length > 1 && (
-        <div className="flex gap-2">
+        <div className="relative flex gap-2">
           {selectedPlatforms.map((p) => (
-            <button
+            <motion.button
               key={p}
               onClick={() => setActiveTab(p)}
-              className="text-[13px] font-medium transition-colors"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
+              className="relative text-[13px] font-medium"
               style={{
                 padding: "5px 14px",
                 borderRadius: 20,
-                background: activeTab === p ? "var(--color-primary-glow)" : "transparent",
+                background: "transparent",
                 color: activeTab === p ? "var(--color-primary-light)" : "var(--color-text-muted)",
                 border: activeTab === p ? "none" : "1px solid rgba(255,255,255,0.06)",
               }}
             >
-              {activeTab === p ? "● " : "○ "}
-              {PLATFORM_TAB_LABELS[p]}
-            </button>
+              {activeTab === p && (
+                <motion.div
+                  layoutId="adview-tab-bg"
+                  className="absolute inset-0"
+                  style={{
+                    borderRadius: 20,
+                    background: "var(--color-primary-glow)",
+                  }}
+                  transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                />
+              )}
+              <span className="relative z-10">
+                {activeTab === p ? "● " : "○ "}
+                {PLATFORM_TAB_LABELS[p]}
+              </span>
+            </motion.button>
           ))}
         </div>
       )}
@@ -261,14 +277,15 @@ export function AdViewSlide() {
           {[0, 1].map((i) => (
             <motion.div
               key={i}
-              className="skeleton overflow-hidden"
+              className="overflow-hidden"
               style={{
                 borderRadius: 14,
                 aspectRatio: "4/3",
+                background: "var(--color-bg-raised)",
               }}
               initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: i * 0.15 }}
+              animate={{ opacity: [0.3, 0.6, 0.3] }}
+              transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.15 }}
             />
           ))}
         </div>
@@ -357,13 +374,16 @@ export function AdViewSlide() {
 
       {/* Regenerate button */}
       {!isGeneratingAds && !isRendering && (
-        <button
+        <motion.button
           onClick={handleRegenerate}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          transition={{ type: "spring", damping: 20, stiffness: 300 }}
           className="self-center text-[13px] font-medium"
           style={{ color: "var(--color-text-secondary)" }}
         >
           🔄 Generera om
-        </button>
+        </motion.button>
       )}
 
       {/* Edit overlay with live preview */}
@@ -467,19 +487,25 @@ export function AdViewSlide() {
                 />
               </div>
               <div className="mt-auto flex justify-end gap-2">
-                <button
+                <motion.button
                   onClick={() => setEditingAdId(null)}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: "spring", damping: 20, stiffness: 300 }}
                   className="ghost-back"
                 >
                   Avbryt
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   onClick={handleSaveEdit}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: "spring", damping: 20, stiffness: 300 }}
                   className="cta-primary"
                   style={{ padding: "10px 24px", fontSize: 14 }}
                 >
                   Spara & rendera
-                </button>
+                </motion.button>
               </div>
             </div>
           </div>

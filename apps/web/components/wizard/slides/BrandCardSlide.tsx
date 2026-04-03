@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 
 import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
@@ -40,13 +40,16 @@ export function BrandCardSlide() {
             Så ser ditt varumärke ut för AI:n. Redigera om något stämmer dåligt.
           </p>
         </div>
-        <button
+        <motion.button
           onClick={() => setIsEditing(!isEditing)}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          transition={{ type: "spring", damping: 20, stiffness: 300 }}
           className="text-text-body-sm font-medium"
           style={{ color: "var(--color-primary)" }}
         >
           {isEditing ? "Klar" : "✎ Redigera"}
-        </button>
+        </motion.button>
       </div>
 
       {/* Brand card */}
@@ -58,9 +61,12 @@ export function BrandCardSlide() {
           boxShadow: "var(--shadow-lg), var(--shadow-glow-sm)",
           padding: "var(--space-6)",
         }}
+        variants={{ visible: { transition: { staggerChildren: 0.1, delayChildren: 0.1 } } }}
+        initial="hidden"
+        animate="visible"
       >
         {/* Header: logo + name + industry */}
-        <div className="flex items-start gap-4">
+        <motion.div variants={listItemVariants} className="flex items-start gap-4">
           {brand.logoUrl ? (
             <img
               src={brand.logoUrl}
@@ -100,7 +106,7 @@ export function BrandCardSlide() {
               {brand.subIndustry && ` · ${brand.subIndustry}`}
             </p>
           </div>
-        </div>
+        </motion.div>
 
         {/* Description */}
         <motion.div
@@ -129,10 +135,12 @@ export function BrandCardSlide() {
         <motion.div variants={listItemVariants} className="mt-4 flex items-center gap-2">
           {Object.entries(brand.colors).map(([name, hex]) =>
             hex ? (
-              <div
+              <motion.div
                 key={name}
-                className="h-8 w-8 cursor-pointer transition-transform hover:scale-[1.15]"
+                className="h-8 w-8 cursor-pointer"
                 title={name}
+                whileHover={{ scale: 1.2, boxShadow: `0 0 20px ${hex}80` }}
+                transition={{ type: "spring", damping: 20, stiffness: 300 }}
                 style={{
                   backgroundColor: hex,
                   borderRadius: "var(--radius-sm)",
@@ -151,21 +159,27 @@ export function BrandCardSlide() {
               Produkter
             </span>
             <div className="mt-1.5 flex flex-wrap gap-1.5">
-              {brand.products.map((p) => (
-                <span
-                  key={p}
-                  className="text-text-body-sm"
-                  style={{
-                    padding: "4px 10px",
-                    borderRadius: "var(--radius-sm)",
-                    background: "var(--color-bg-raised)",
-                    border: "1px solid var(--color-border-default)",
-                    color: "var(--color-text-secondary)",
-                  }}
-                >
-                  {p}
-                </span>
-              ))}
+              <AnimatePresence>
+                {brand.products.map((p, i) => (
+                  <motion.span
+                    key={p}
+                    className="text-text-body-sm"
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ type: "spring", damping: 20, stiffness: 300, delay: i * 0.05 }}
+                    style={{
+                      padding: "4px 10px",
+                      borderRadius: "var(--radius-sm)",
+                      background: "var(--color-bg-raised)",
+                      border: "1px solid var(--color-border-default)",
+                      color: "var(--color-text-secondary)",
+                    }}
+                  >
+                    {p}
+                  </motion.span>
+                ))}
+              </AnimatePresence>
             </div>
           </motion.div>
         )}

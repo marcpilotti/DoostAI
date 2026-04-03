@@ -151,23 +151,39 @@ export function BudgetSlide() {
         <label className="text-text-caption mb-1.5 block" style={{ color: "var(--color-text-muted)" }}>
           Kampanjperiod
         </label>
-        <div className="flex gap-2">
+        <div className="relative flex gap-2">
           {DURATION_OPTIONS.map((opt) => (
-            <button
+            <motion.button
               key={opt.days}
               onClick={() => setDurationDays(opt.days)}
-              className="text-text-body-sm font-medium transition-colors"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
+              className="relative text-text-body-sm font-medium"
               style={{
                 padding: "8px 16px",
                 borderRadius: "var(--radius-full)",
-                background: durationDays === opt.days ? "var(--color-primary-glow)" : "transparent",
+                background: "transparent",
                 color: durationDays === opt.days ? "var(--color-primary-light)" : "var(--color-text-muted)",
                 border: durationDays === opt.days ? "none" : "1px solid var(--color-border-default)",
               }}
             >
-              {durationDays === opt.days ? "● " : ""}
-              {opt.label}
-            </button>
+              {durationDays === opt.days && (
+                <motion.div
+                  layoutId="budget-duration-bg"
+                  className="absolute inset-0"
+                  style={{
+                    borderRadius: "var(--radius-full)",
+                    background: "var(--color-primary-glow)",
+                  }}
+                  transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                />
+              )}
+              <span className="relative z-10">
+                {durationDays === opt.days ? "● " : ""}
+                {opt.label}
+              </span>
+            </motion.button>
           ))}
         </div>
         <p className="mt-2 text-text-body-sm" style={{ color: "var(--color-text-muted)" }}>
@@ -176,9 +192,15 @@ export function BudgetSlide() {
       </div>
 
       {/* AI note */}
-      <p className="text-text-body-sm" style={{ color: "var(--color-primary-light)" }}>
+      <motion.p
+        className="text-text-body-sm"
+        style={{ color: "var(--color-primary-light)" }}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", damping: 25, stiffness: 200, delay: 0.4 }}
+      >
         Vi optimerar budgetfördelningen automatiskt
-      </p>
+      </motion.p>
     </motion.div>
   );
 }

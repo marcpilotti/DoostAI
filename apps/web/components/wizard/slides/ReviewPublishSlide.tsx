@@ -80,9 +80,9 @@ export function ReviewPublishSlide() {
         className="flex flex-col items-center gap-6 text-center"
       >
         <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={transitions.snappy}
+          initial={{ scale: 0, rotate: -20 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", damping: 10, stiffness: 300 }}
           className="flex h-16 w-16 items-center justify-center rounded-full text-3xl"
           style={{ background: "var(--color-success-bg)" }}
         >
@@ -99,8 +99,11 @@ export function ReviewPublishSlide() {
         </div>
 
         {/* LinkedIn share */}
-        <div
+        <motion.div
           className="w-full max-w-sm p-4"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", damping: 25, stiffness: 200, delay: 0.3 }}
           style={{
             borderRadius: "var(--radius-lg)",
             background: "var(--color-bg-elevated)",
@@ -111,11 +114,14 @@ export function ReviewPublishSlide() {
             Jag skapade just mina första AI-annonser med @DoostAI på under 2 minuter!
           </p>
           <div className="mt-3 flex gap-2">
-            <button
+            <motion.button
               onClick={() => {
                 const text = encodeURIComponent("Jag skapade just mina första AI-annonser med @DoostAI på under 2 minuter!");
                 window.open(`https://www.linkedin.com/sharing/share-offsite/?text=${text}`, "_blank");
               }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
               className="flex-1 text-text-body-sm font-semibold"
               style={{
                 padding: "10px",
@@ -126,11 +132,14 @@ export function ReviewPublishSlide() {
               }}
             >
               Dela på LinkedIn
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               onClick={() => {
                 navigator.clipboard.writeText(`${brand?.url || ""}`);
               }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
               className="text-text-body-sm font-medium"
               style={{
                 padding: "10px 16px",
@@ -141,17 +150,20 @@ export function ReviewPublishSlide() {
               }}
             >
               Kopiera länk
-            </button>
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
 
         <div className="flex gap-3">
-          <button
+          <motion.button
             onClick={() => (window.location.href = "/dashboard")}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ type: "spring", damping: 20, stiffness: 300 }}
             className="cta-primary"
           >
             Gå till dashboard →
-          </button>
+          </motion.button>
         </div>
       </motion.div>
     );
@@ -170,8 +182,11 @@ export function ReviewPublishSlide() {
       </h2>
 
       {/* Summary */}
-      <div
+      <motion.div
         className="flex items-start gap-4 p-4"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", damping: 25, stiffness: 200, delay: 0.1 }}
         style={{
           borderRadius: "var(--radius-lg)",
           background: "linear-gradient(135deg, var(--color-bg-elevated) 0%, rgba(99, 102, 241, 0.03) 100%)",
@@ -201,7 +216,7 @@ export function ReviewPublishSlide() {
             {projections ? `${Math.round(projections.reachMin / 1000)}K–${Math.round(projections.reachMax / 1000)}K visn.` : ""} · {locationStr} · {ageStr}
           </p>
         </div>
-      </div>
+      </motion.div>
 
       {publishError && (
         <motion.div
@@ -235,9 +250,12 @@ export function ReviewPublishSlide() {
             </p>
 
             {/* Self-serve */}
-            <button
+            <motion.button
               onClick={() => setPublishState("self-connect")}
-              className="flex items-start gap-3 p-4 text-left transition-all"
+              whileHover={{ y: -2, boxShadow: "0 0 20px rgba(99,102,241,0.12)" }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
+              className="flex items-start gap-3 p-4 text-left"
               style={{
                 borderRadius: "var(--radius-lg)",
                 background: "var(--color-bg-elevated)",
@@ -254,12 +272,15 @@ export function ReviewPublishSlide() {
                 </p>
               </div>
               <span style={{ color: "var(--color-text-muted)" }}>→</span>
-            </button>
+            </motion.button>
 
             {/* Managed */}
-            <button
+            <motion.button
               onClick={() => setPublishState("managed-confirm")}
-              className="flex items-start gap-3 p-4 text-left transition-all"
+              whileHover={{ y: -2, boxShadow: "0 0 20px rgba(99,102,241,0.12)" }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
+              className="flex items-start gap-3 p-4 text-left"
               style={{
                 borderRadius: "var(--radius-lg)",
                 background: "var(--color-bg-elevated)",
@@ -276,7 +297,7 @@ export function ReviewPublishSlide() {
                 </p>
               </div>
               <span style={{ color: "var(--color-text-muted)" }}>→</span>
-            </button>
+            </motion.button>
 
             <p className="text-text-caption text-center" style={{ color: "var(--color-text-muted)" }}>
               Genom att fortsätta godkänner du villkoren
@@ -305,10 +326,13 @@ export function ReviewPublishSlide() {
                 <span className="text-text-body font-medium capitalize" style={{ color: "var(--color-text-primary)" }}>
                   {platform}
                 </span>
-                <button
+                <motion.button
                   onClick={() => {
                     window.open(`/api/platforms/${platform}/callback`, "_blank");
                   }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: "spring", damping: 20, stiffness: 300 }}
                   className="text-text-body-sm font-medium"
                   style={{
                     padding: "8px 16px",
@@ -319,12 +343,15 @@ export function ReviewPublishSlide() {
                   }}
                 >
                   Anslut
-                </button>
+                </motion.button>
               </div>
             ))}
 
-            <button
+            <motion.button
               onClick={() => handlePublish("self")}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
               className="mt-2 w-full font-semibold"
               style={{
                 padding: "12px 28px",
@@ -337,7 +364,7 @@ export function ReviewPublishSlide() {
               }}
             >
               🚀 Skapa konto & publicera
-            </button>
+            </motion.button>
           </motion.div>
         )}
 
@@ -359,20 +386,33 @@ export function ReviewPublishSlide() {
                 "Publicering inom 24h",
                 "Följ resultaten i dashboarden",
               ].map((step, i) => (
-                <li key={i} className="flex items-center gap-2 text-text-body" style={{ color: "var(--color-text-secondary)" }}>
-                  <span
+                <motion.li
+                  key={i}
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ type: "spring", damping: 25, stiffness: 200, delay: i * 0.1 }}
+                  className="flex items-center gap-2 text-text-body"
+                  style={{ color: "var(--color-text-secondary)" }}
+                >
+                  <motion.span
                     className="flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", damping: 15, stiffness: 400, delay: i * 0.1 + 0.05 }}
                     style={{ background: "var(--color-primary-glow)", color: "var(--color-primary-light)" }}
                   >
                     {i + 1}
-                  </span>
+                  </motion.span>
                   {step}
-                </li>
+                </motion.li>
               ))}
             </ol>
 
-            <button
+            <motion.button
               onClick={() => handlePublish("managed")}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
               className="mt-2 w-full font-semibold"
               style={{
                 padding: "12px 28px",
@@ -385,7 +425,7 @@ export function ReviewPublishSlide() {
               }}
             >
               🚀 Skapa konto & skicka kampanj
-            </button>
+            </motion.button>
           </motion.div>
         )}
 
