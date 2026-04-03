@@ -109,7 +109,7 @@ function PlatformCard({
       whileHover={isSoon ? {} : { y: -3 }}
       whileTap={isSoon ? {} : { scale: 0.97 }}
       transition={transitions.snappy}
-      className="relative flex w-full flex-col items-center text-center"
+      className="relative flex h-full w-full flex-col items-center text-center"
       style={{
         padding: "16px 10px 10px",
         borderRadius: 16,
@@ -373,7 +373,7 @@ export function PlatformSelectSlide() {
         animate="visible"
       >
         {PLATFORMS.map((p) => (
-          <motion.div key={p.id} variants={listItemVariants}>
+          <motion.div key={p.id} variants={listItemVariants} className="flex">
             <PlatformCard
               platform={p}
               selected={selectedPlatforms.includes(p.id)}
@@ -382,7 +382,7 @@ export function PlatformSelectSlide() {
             />
           </motion.div>
         ))}
-        <motion.div variants={listItemVariants}>
+        <motion.div variants={listItemVariants} className="flex">
           <PlatformCard
             platform={COMING_SOON_EXTRA}
             selected={false}
