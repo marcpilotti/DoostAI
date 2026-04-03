@@ -33,9 +33,8 @@ export function ProgressBar() {
       style={{ borderColor: "var(--color-border-subtle)" }}
     >
       {/* Logo — left */}
-      <span className="text-text-h3 font-bold" style={{ color: "var(--color-text-primary)" }}>
-        Doost
-      </span>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/logo.png" alt="Doost AI" className="h-7" />
 
       {/* Spacer pushes progress bar to the right */}
       <div className="flex-1" />
