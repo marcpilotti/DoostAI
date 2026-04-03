@@ -12,12 +12,14 @@ import { AdPreviewHero } from "../shared/AdPreviewHero";
 import { AnimatedReel } from "../shared/AnimatedReel";
 import { ArtDirectorPanel } from "../shared/ArtDirectorPanel";
 import { BeforeAfterSplit } from "../shared/BeforeAfterSplit";
+import { BonusFormats } from "../shared/BonusFormats";
 import { EditOverlay } from "../shared/EditOverlay";
+import { ExportPackage } from "../shared/ExportPackage";
 import { ParallaxPhone } from "../shared/ParallaxPhone";
 import { RevealSequence } from "../shared/RevealSequence";
 import { SmartCropPreview } from "../shared/SmartCropPreview";
 
-type ViewMode = "reveal" | "phone" | "reel" | "formats";
+type ViewMode = "reveal" | "phone" | "reel" | "formats" | "export";
 
 export function AdViewSlide() {
   const { ads, selectedPlatforms, brand, isGeneratingAds, toggleAdSelection, setAds, setFooterAction } = useWizardStore();
@@ -137,6 +139,7 @@ export function AdViewSlide() {
           { id: "phone" as ViewMode, label: "📱 Preview" },
           { id: "reel" as ViewMode, label: "🎬 Reel" },
           { id: "formats" as ViewMode, label: "📐 Format" },
+          { id: "export" as ViewMode, label: "📦 Paket" },
         ]).map((t) => (
           <motion.button key={t.id} onClick={() => setViewMode(t.id)} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="text-[10px] font-medium" style={{ padding: "3px 10px", borderRadius: 16, background: viewMode === t.id ? "var(--color-primary-glow)" : "transparent", color: viewMode === t.id ? "var(--color-primary-light)" : "var(--color-text-muted)", border: viewMode === t.id ? "none" : "1px solid rgba(255,255,255,0.06)" }}>
             {t.label}
@@ -187,8 +190,28 @@ export function AdViewSlide() {
       {viewMode === "formats" && heroAd && (
         <div className="flex flex-col gap-3">
           <SmartCropPreview adContent={renderAdContent(heroAd)} />
+          <BonusFormats
+            headline={heroAd.headline}
+            bodyCopy={heroAd.bodyCopy}
+            cta={heroAd.cta}
+            brandName={brand?.name || ""}
+            primaryColor={brand?.colors.primary || "#6366F1"}
+            logoUrl={brand?.logoUrl}
+          />
           {brand?.url && <BeforeAfterSplit websiteUrl={brand.url} adContent={renderAdContent(heroAd)} />}
         </div>
+      )}
+
+      {/* ─── EXPORT VIEW ─── */}
+      {viewMode === "export" && heroAd && (
+        <ExportPackage
+          brandName={brand?.name || ""}
+          headline={heroAd.headline}
+          bodyCopy={heroAd.bodyCopy}
+          cta={heroAd.cta}
+          primaryColor={brand?.colors.primary || "#6366F1"}
+          logoUrl={brand?.logoUrl}
+        />
       )}
 
       {/* Edit overlay */}
