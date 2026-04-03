@@ -1,11 +1,11 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
-import { cardVariants, checkmarkVariants,transitions } from "@/lib/motion";
-import { type Platform,useWizardStore } from "@/lib/stores/wizard-store";
+import { cardVariants, checkmarkVariants, transitions } from "@/lib/motion";
+import { type Platform, useWizardStore } from "@/lib/stores/wizard-store";
 
 import { EditOverlay } from "../shared/EditOverlay";
 import { PlatformMockup } from "../shared/PlatformMockup";
@@ -18,22 +18,93 @@ const PLATFORM_TAB_LABELS: Record<string, string> = {
   snapchat: "Snapchat",
 };
 
+/**
+ * Render an ad via the Satori pipeline and return a data URL.
+ */
+async function renderAdImage(params: {
+  template: string;
+  headline: string;
+  bodyCopy: string;
+  cta: string;
+  brandName: string;
+  logoUrl?: string;
+  imageUrl?: string;
+  colors: Record<string, string | undefined>;
+}): Promise<string | null> {
+  try {
+    const res = await fetch("/api/ads/render", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(params),
+    });
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return URL.createObjectURL(blob);
+  } catch {
+    return null;
+  }
+}
+
 export function AdViewSlide() {
-  const { ads, selectedPlatforms, brand, isGeneratingAds, toggleAdSelection, updateAd, setAds, setFooterAction } =
-    useWizardStore();
+  const {
+    ads,
+    selectedPlatforms,
+    brand,
+    isGeneratingAds,
+    toggleAdSelection,
+    updateAd,
+    setAds,
+    setFooterAction,
+  } = useWizardStore();
   const { handleNext } = useWizardNavigation();
   const [activeTab, setActiveTab] = useState<Platform>(selectedPlatforms[0] || "meta");
   const [editingAdId, setEditingAdId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ headline: "", bodyCopy: "", cta: "" });
+  const [renderedUrls, setRenderedUrls] = useState<Record<string, string>>({});
+  const [isRendering, setIsRendering] = useState(false);
 
   const selectedCount = ads.filter((a) => a.selected).length;
+  const filteredAds = ads.filter((a) => a.platform === activeTab || ads.length <= 2);
+  const editingAd = ads.find((a) => a.id === editingAdId);
 
+  // Register footer action
   useEffect(() => {
     setFooterAction(() => handleNext(), selectedCount === 0);
     return () => setFooterAction(null);
   }, [selectedCount, handleNext, setFooterAction]);
-  const filteredAds = ads.filter((a) => a.platform === activeTab || ads.length <= 2);
-  const editingAd = ads.find((a) => a.id === editingAdId);
+
+  // Render ads via Satori when they change
+  const renderAds = useCallback(async () => {
+    if (ads.length === 0 || !brand) return;
+    setIsRendering(true);
+
+    const results: Record<string, string> = {};
+
+    await Promise.all(
+      ads.map(async (ad) => {
+        const url = await renderAdImage({
+          template: ad.template,
+          headline: ad.headline,
+          bodyCopy: ad.bodyCopy,
+          cta: ad.cta,
+          brandName: brand.name,
+          logoUrl: brand.logoUrl,
+          imageUrl: ad.imageUrl || undefined,
+          colors: brand.colors,
+        });
+        if (url) results[ad.id] = url;
+      })
+    );
+
+    setRenderedUrls(results);
+    setIsRendering(false);
+  }, [ads, brand]);
+
+  useEffect(() => {
+    if (ads.length > 0 && !isGeneratingAds) {
+      renderAds();
+    }
+  }, [ads, isGeneratingAds, renderAds]);
 
   const handleStartEdit = (adId: string) => {
     const ad = ads.find((a) => a.id === adId);
@@ -43,10 +114,30 @@ export function AdViewSlide() {
     }
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (editingAdId) {
       updateAd(editingAdId, editForm);
       setEditingAdId(null);
+
+      // Re-render the edited ad
+      if (brand) {
+        const ad = ads.find((a) => a.id === editingAdId);
+        if (ad) {
+          const url = await renderAdImage({
+            template: ad.template,
+            headline: editForm.headline,
+            bodyCopy: editForm.bodyCopy,
+            cta: editForm.cta,
+            brandName: brand.name,
+            logoUrl: brand.logoUrl,
+            imageUrl: ad.imageUrl || undefined,
+            colors: brand.colors,
+          });
+          if (url) {
+            setRenderedUrls((prev) => ({ ...prev, [editingAdId]: url }));
+          }
+        }
+      }
     }
   };
 
@@ -130,7 +221,7 @@ export function AdViewSlide() {
       initial="hidden"
       animate="visible"
       transition={transitions.spring}
-      className="relative flex flex-col gap-4"
+      className="relative flex flex-col gap-3"
     >
       <div className="flex items-center justify-between">
         <h2 className="text-text-h1" style={{ color: "var(--color-text-primary)" }}>
@@ -148,13 +239,13 @@ export function AdViewSlide() {
             <button
               key={p}
               onClick={() => setActiveTab(p)}
-              className="text-text-body-sm font-medium transition-colors"
+              className="text-[13px] font-medium transition-colors"
               style={{
-                padding: "6px 14px",
-                borderRadius: "var(--radius-full)",
+                padding: "5px 14px",
+                borderRadius: 20,
                 background: activeTab === p ? "var(--color-primary-glow)" : "transparent",
                 color: activeTab === p ? "var(--color-primary-light)" : "var(--color-text-muted)",
-                border: activeTab === p ? "none" : "1px solid var(--color-border-default)",
+                border: activeTab === p ? "none" : "1px solid rgba(255,255,255,0.06)",
               }}
             >
               {activeTab === p ? "● " : "○ "}
@@ -165,26 +256,31 @@ export function AdViewSlide() {
       )}
 
       {/* Ads grid */}
-      {isGeneratingAds ? (
-        <div className="grid grid-cols-2 gap-4">
+      {isGeneratingAds || isRendering ? (
+        <div className="grid grid-cols-2 gap-3">
           {[0, 1].map((i) => (
-            <div
+            <motion.div
               key={i}
-              className="skeleton aspect-square"
+              className="skeleton overflow-hidden"
               style={{
-                borderRadius: "var(--radius-lg)",
-                minHeight: 200,
+                borderRadius: 14,
+                aspectRatio: "4/3",
               }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: i * 0.15 }}
             />
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {filteredAds.map((ad) => (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {filteredAds.map((ad, i) => (
             <motion.div
               key={ad.id}
+              initial={{ opacity: 0, y: 12, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ delay: i * 0.2, ...transitions.spring }}
               whileHover={{ y: -3 }}
-              transition={transitions.spring}
               className="relative"
             >
               <PlatformMockup
@@ -192,37 +288,34 @@ export function AdViewSlide() {
                 brandName={brand?.name || ""}
                 logoUrl={brand?.logoUrl}
               >
-                <div
-                  className="relative flex h-full w-full items-center justify-center p-4 text-center"
-                  style={{
-                    background: brand?.colors.primary || "var(--color-primary)",
-                    color: "#fff",
-                  }}
-                >
-                  {/* Background image if available — falls back to solid color */}
-                  {ad.imageUrl && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={ad.imageUrl}
-                      alt=""
-                      className="absolute inset-0 h-full w-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
-                    />
-                  )}
-                  <div className="relative z-10">
-                    <p className="text-lg font-bold drop-shadow-md">{ad.headline}</p>
-                    <p className="mt-1 text-sm opacity-90 drop-shadow-md">{ad.bodyCopy}</p>
+                {renderedUrls[ad.id] ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={renderedUrls[ad.id]}
+                    alt={ad.headline}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div
+                    className="flex h-full w-full items-center justify-center p-4 text-center"
+                    style={{
+                      background: brand?.colors.primary || "var(--color-primary)",
+                      color: "#fff",
+                    }}
+                  >
+                    <div>
+                      <p className="text-lg font-bold drop-shadow-md">{ad.headline}</p>
+                      <p className="mt-1 text-sm opacity-90 drop-shadow-md">{ad.bodyCopy}</p>
+                    </div>
                   </div>
-                </div>
+                )}
               </PlatformMockup>
 
               {/* Selection + edit controls */}
-              <div className="mt-2 flex items-center justify-between">
+              <div className="mt-1.5 flex items-center justify-between">
                 <button
                   onClick={() => toggleAdSelection(ad.id)}
-                  className="flex items-center gap-2 text-text-body-sm font-medium"
+                  className="flex items-center gap-1.5 text-[13px] font-medium"
                   style={{
                     color: ad.selected ? "var(--color-primary-light)" : "var(--color-text-muted)",
                   }}
@@ -233,7 +326,7 @@ export function AdViewSlide() {
                       <motion.path
                         d="M6 10l3 3 5-6"
                         fill="none"
-                        stroke="var(--color-text-inverse)"
+                        stroke="#fff"
                         strokeWidth="2"
                         strokeLinecap="round"
                         variants={checkmarkVariants}
@@ -244,14 +337,14 @@ export function AdViewSlide() {
                   ) : (
                     <div
                       className="h-[18px] w-[18px] rounded-full"
-                      style={{ border: "2px solid var(--color-border-default)" }}
+                      style={{ border: "1.5px solid rgba(255,255,255,0.12)" }}
                     />
                   )}
                   {ad.selected ? "Vald" : "Välj"}
                 </button>
                 <button
                   onClick={() => handleStartEdit(ad.id)}
-                  className="text-text-body-sm"
+                  className="text-[13px]"
                   style={{ color: "var(--color-text-muted)" }}
                 >
                   ✎ Redigera
@@ -263,33 +356,55 @@ export function AdViewSlide() {
       )}
 
       {/* Regenerate button */}
-      {!isGeneratingAds && (
+      {!isGeneratingAds && !isRendering && (
         <button
           onClick={handleRegenerate}
-          className="text-text-body-sm font-medium"
+          className="self-center text-[13px] font-medium"
           style={{ color: "var(--color-text-secondary)" }}
         >
           🔄 Generera om
         </button>
       )}
 
-      {/* Edit overlay */}
+      {/* Edit overlay with live preview */}
       <EditOverlay open={!!editingAdId} onClose={() => setEditingAdId(null)}>
         {editingAd && (
           <div className="flex gap-6">
-            {/* Live preview */}
+            {/* Live preview — CSS clone of template */}
             <div className="flex-1">
               <div
-                className="flex aspect-square items-center justify-center p-4 text-center"
+                className="flex aspect-square items-center justify-center overflow-hidden p-6 text-center"
                 style={{
-                  background: brand?.colors.primary || "var(--color-primary)",
+                  background: brand?.colors.primary
+                    ? `linear-gradient(135deg, ${brand.colors.primary} 0%, ${brand.colors.secondary || brand.colors.primary}80 100%)`
+                    : "var(--color-primary)",
                   color: "#fff",
-                  borderRadius: "var(--radius-lg)",
+                  borderRadius: 14,
+                  position: "relative",
                 }}
               >
+                {/* Logo */}
+                {brand?.logoUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={brand.logoUrl}
+                    alt=""
+                    className="absolute left-4 top-4 h-8 w-8 rounded-lg object-contain"
+                    style={{ backgroundColor: "rgba(255,255,255,0.15)" }}
+                  />
+                )}
                 <div>
-                  <p className="text-lg font-bold">{editForm.headline}</p>
-                  <p className="mt-1 text-sm opacity-80">{editForm.bodyCopy}</p>
+                  <p className="text-xl font-bold drop-shadow-md">{editForm.headline || "Headline"}</p>
+                  <p className="mt-2 text-sm opacity-85 drop-shadow-md">{editForm.bodyCopy || "Body copy"}</p>
+                  <div
+                    className="mx-auto mt-4 inline-block rounded-lg px-6 py-2 text-sm font-bold"
+                    style={{
+                      background: "rgba(255,255,255,0.95)",
+                      color: brand?.colors.primary || "var(--color-primary)",
+                    }}
+                  >
+                    {editForm.cta || "Läs mer"} →
+                  </div>
                 </div>
               </div>
             </div>
@@ -297,7 +412,7 @@ export function AdViewSlide() {
             {/* Edit form */}
             <div className="flex flex-1 flex-col gap-3">
               <div>
-                <label className="text-text-caption mb-1 block" style={{ color: "var(--color-text-muted)" }}>
+                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                   Headline
                 </label>
                 <input
@@ -307,15 +422,15 @@ export function AdViewSlide() {
                   style={{
                     background: "var(--color-bg-input)",
                     border: "1px solid var(--color-border-default)",
-                    borderRadius: "var(--radius-md)",
-                    padding: "12px 16px",
+                    borderRadius: 10,
+                    padding: "10px 14px",
                     color: "var(--color-text-primary)",
-                    fontSize: 16,
+                    fontSize: 15,
                   }}
                 />
               </div>
               <div>
-                <label className="text-text-caption mb-1 block" style={{ color: "var(--color-text-muted)" }}>
+                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                   Brödtext
                 </label>
                 <textarea
@@ -326,39 +441,44 @@ export function AdViewSlide() {
                   style={{
                     background: "var(--color-bg-input)",
                     border: "1px solid var(--color-border-default)",
-                    borderRadius: "var(--radius-md)",
-                    padding: "12px 16px",
+                    borderRadius: 10,
+                    padding: "10px 14px",
                     color: "var(--color-text-primary)",
-                    fontSize: 16,
+                    fontSize: 15,
+                  }}
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
+                  CTA
+                </label>
+                <input
+                  value={editForm.cta}
+                  onChange={(e) => setEditForm((f) => ({ ...f, cta: e.target.value }))}
+                  className="w-full outline-none"
+                  style={{
+                    background: "var(--color-bg-input)",
+                    border: "1px solid var(--color-border-default)",
+                    borderRadius: 10,
+                    padding: "10px 14px",
+                    color: "var(--color-text-primary)",
+                    fontSize: 15,
                   }}
                 />
               </div>
               <div className="mt-auto flex justify-end gap-2">
                 <button
                   onClick={() => setEditingAdId(null)}
-                  className="text-text-body-sm font-medium"
-                  style={{
-                    padding: "10px 20px",
-                    borderRadius: "var(--radius-sm)",
-                    border: "1px solid var(--color-border-default)",
-                    color: "var(--color-text-secondary)",
-                    background: "transparent",
-                  }}
+                  className="ghost-back"
                 >
                   Avbryt
                 </button>
                 <button
                   onClick={handleSaveEdit}
-                  className="text-text-body-sm font-semibold"
-                  style={{
-                    padding: "10px 20px",
-                    borderRadius: "var(--radius-sm)",
-                    background: "var(--color-primary)",
-                    color: "var(--color-text-inverse)",
-                    border: "none",
-                  }}
+                  className="cta-primary"
+                  style={{ padding: "10px 24px", fontSize: 14 }}
                 >
-                  Spara
+                  Spara & rendera
                 </button>
               </div>
             </div>

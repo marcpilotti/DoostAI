@@ -9,43 +9,37 @@ type PlatformMockupProps = {
   children: React.ReactNode;
 };
 
-function MetaMockup({ brandName, children }: Omit<PlatformMockupProps, "platform">) {
+function MetaMockup({ brandName, logoUrl, children }: Omit<PlatformMockupProps, "platform">) {
   return (
     <div
       className="overflow-hidden"
       style={{
-        borderRadius: "var(--radius-lg)",
-        background: "var(--color-bg-elevated)",
-        border: "1px solid var(--color-border-default)",
+        borderRadius: 14,
+        background: "rgba(255,255,255,0.03)",
+        border: "1px solid rgba(255,255,255,0.06)",
       }}
     >
       <div
-        className="flex items-center gap-2 px-3.5 py-2.5 text-[13px]"
-        style={{
-          color: "var(--color-text-secondary)",
-          borderBottom: "1px solid var(--color-border-subtle)",
-        }}
+        className="flex items-center gap-2.5 px-3 py-2"
+        style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
       >
-        <div
-          className="h-8 w-8 rounded-full"
-          style={{ background: "var(--color-bg-raised)" }}
-        />
+        {logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={logoUrl} alt="" className="h-7 w-7 rounded-full object-contain" style={{ background: "rgba(255,255,255,0.1)" }} />
+        ) : (
+          <div className="flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold" style={{ background: "var(--color-bg-raised)", color: "var(--color-text-muted)" }}>
+            {brandName.charAt(0)}
+          </div>
+        )}
         <div>
-          <div className="font-medium" style={{ color: "var(--color-text-primary)" }}>
-            {brandName}
-          </div>
-          <div className="text-[11px]" style={{ color: "var(--color-text-muted)" }}>
-            Sponsrad
-          </div>
+          <div className="text-[12px] font-semibold" style={{ color: "var(--color-text-primary)" }}>{brandName}</div>
+          <div className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Sponsrad</div>
         </div>
       </div>
-      <div className="aspect-[4/3] w-full">{children}</div>
+      <div className="aspect-square w-full">{children}</div>
       <div
-        className="flex items-center gap-4 px-3.5 py-2 text-[12px]"
-        style={{
-          color: "var(--color-text-muted)",
-          borderTop: "1px solid var(--color-border-subtle)",
-        }}
+        className="flex items-center gap-3 px-3 py-1.5 text-[11px]"
+        style={{ color: "var(--color-text-muted)", borderTop: "1px solid rgba(255,255,255,0.04)" }}
       >
         <span>👍 Gilla</span>
         <span>💬 Kommentera</span>
