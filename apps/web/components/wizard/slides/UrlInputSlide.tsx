@@ -117,7 +117,7 @@ export function UrlInputSlide() {
   return (
     <div className="flex h-dvh flex-col overflow-hidden">
       {/* Logo top-left */}
-      <header className="flex h-14 flex-shrink-0 items-center px-6">
+      <header className="flex h-14 flex-shrink-0 items-center px-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo.png" alt="Doost AI" className="h-7" />
       </header>
@@ -133,12 +133,11 @@ export function UrlInputSlide() {
       >
         {/* Hero headline */}
         <h1
-          className="mb-3 font-black italic"
+          className="mb-3 font-sketch"
           style={{
             color: "var(--color-text-primary)",
-            fontSize: "clamp(36px, 6vw, 56px)",
-            lineHeight: 1.05,
-            letterSpacing: "-0.03em",
+            fontSize: "clamp(40px, 7vw, 64px)",
+            lineHeight: 1.1,
           }}
         >
           Skippa byrån.
