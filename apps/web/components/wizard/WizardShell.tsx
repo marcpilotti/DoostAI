@@ -14,6 +14,7 @@ import { BudgetSlide } from "./slides/BudgetSlide";
 import { PlatformSelectSlide } from "./slides/PlatformSelectSlide";
 import { ReviewPublishSlide } from "./slides/ReviewPublishSlide";
 import { TargetingSlide } from "./slides/TargetingSlide";
+import { LoadingSlide } from "./slides/LoadingSlide";
 import { UrlInputSlide } from "./slides/UrlInputSlide";
 
 const CTA_LABELS: Record<string, string> = {
@@ -31,6 +32,8 @@ function SlideContent({ step }: { step: string }) {
   switch (step) {
     case "url":
       return <UrlInputSlide />;
+    case "loading":
+      return <LoadingSlide />;
     case "brand":
       return <BrandCardSlide />;
     case "audience":
