@@ -444,7 +444,7 @@ function AdMockupCard({ ad, brand, label, index, selected, platform, onToggle, o
   return (
     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: index * 0.15 }}
-      className="flex w-full min-w-full max-w-[240px] flex-shrink-0 snap-center flex-col items-center gap-2 mx-auto md:min-w-0 md:w-auto md:max-w-[240px] md:flex-1">
+      className="flex w-full min-w-full max-w-[200px] flex-shrink-0 snap-center flex-col items-center gap-2 mx-auto md:min-w-0 md:w-auto md:max-w-[200px] md:flex-1">
       {/* Select toggle + angle label */}
       <div className="flex items-center gap-2">
         <motion.button onClick={onToggle} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
@@ -457,7 +457,7 @@ function AdMockupCard({ ad, brand, label, index, selected, platform, onToggle, o
 
       {/* Device mockup with tilt */}
       <motion.div initial={{ rotate: -1.5 }} whileHover={{ rotate: 0, scale: 1.02 }} transition={transitions.spring}
-        className="relative w-full cursor-pointer" style={{ maxHeight: "min(50vh, 400px)" }} onClick={onEdit}>
+        className="relative w-full cursor-pointer overflow-hidden" style={{ maxHeight: "min(45vh, 360px)" }} onClick={onEdit}>
         {selected && (
           <div className="absolute -right-1 -top-1 z-40 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 shadow-lg">
             <Check className="h-3.5 w-3.5 text-white" />
