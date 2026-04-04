@@ -7,7 +7,6 @@ import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
 import { slideVariants, transitions } from "@/lib/motion";
 import { useWizardStore, WIZARD_STEPS } from "@/lib/stores/wizard-store";
 
-import { ProgressBar } from "./ProgressBar";
 import { AdViewSlide } from "./slides/AdViewSlide";
 import { AudienceSlide } from "./slides/AudienceSlide";
 import { BrandCardSlide } from "./slides/BrandCardSlide";
@@ -60,7 +59,6 @@ export function WizardShell() {
   const ctaRef = useRef<HTMLButtonElement>(null);
 
   const isTransient = step === "loading" || step === "done";
-  const showProgressBar = !isTransient && step !== "url";
   const ctaLabel = CTA_LABELS[step] || "";
   const showFooter = !isTransient && step !== "url";
 
@@ -99,8 +97,6 @@ export function WizardShell() {
           transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
         />
       ))}
-
-      {showProgressBar && <ProgressBar />}
 
       <main
         id="main"
