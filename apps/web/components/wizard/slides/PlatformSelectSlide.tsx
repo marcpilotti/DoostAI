@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 
 import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
 import { cardVariants, checkmarkVariants, listItemVariants, transitions } from "@/lib/motion";
@@ -268,7 +268,7 @@ export function PlatformSelectSlide() {
 
   const recommended = brand?.recommendedPlatforms || ["meta", "google"];
 
-  const handleContinue = async () => {
+  const handleContinue = useCallback(async () => {
     if (selectedPlatforms.length === 0) return;
     setIsGeneratingAds(true);
     handleNext();
@@ -345,12 +345,12 @@ export function PlatformSelectSlide() {
     } finally {
       useWizardStore.getState().setIsGeneratingAds(false);
     }
-  };
+  }, [selectedPlatforms, brand, handleNext, setIsGeneratingAds]);
 
   useEffect(() => {
     setFooterAction(() => handleContinue(), selectedPlatforms.length === 0);
     return () => setFooterAction(null);
-  }, [selectedPlatforms, setFooterAction]);
+  }, [selectedPlatforms, setFooterAction, handleContinue]);
 
   return (
     <motion.div

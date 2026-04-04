@@ -226,7 +226,27 @@ export function AdViewSlide() {
   }, [brand, selectedPlatforms, preGeneratedImageUrl, setAds]);
 
   if (isGeneratingAds) return <AdGenerationLoading brand={brand} />;
-  if (!brand || ads.length === 0) return null;
+
+  if (!brand) return null;
+
+  if (ads.length === 0) {
+    return (
+      <motion.div variants={cardVariants} initial="hidden" animate="visible" transition={transitions.spring} className="flex flex-col items-center justify-center gap-4 py-12 text-center">
+        <p className="text-text-body" style={{ color: "var(--color-text-secondary)" }}>
+          Annonserna kunde inte genereras.
+        </p>
+        <motion.button
+          onClick={handleRegenerate}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          className="cta-primary"
+          style={{ padding: "10px 24px", fontSize: 14 }}
+        >
+          Försök igen
+        </motion.button>
+      </motion.div>
+    );
+  }
 
   const { aspect } = PLATFORM_CONFIG[activePlatform];
 
