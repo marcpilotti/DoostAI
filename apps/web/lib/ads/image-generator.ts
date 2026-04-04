@@ -18,11 +18,31 @@ function ensureConfig() {
   fal.config({ credentials: process.env.FAL_KEY || "" });
 }
 
+const INDUSTRY_SCENES: Record<string, string> = {
+  "Skönhet & Kosmetik": "luxury skincare products on marble surface, serums and creams beautifully arranged",
+  "Frisör & Salong": "modern hair salon interior, styling tools, mirrors with warm lighting",
+  "Restaurang & Café": "beautifully plated food on rustic table, warm restaurant ambiance",
+  "E-handel": "premium product packaging, clean minimalist product display",
+  "SaaS & Tech": "modern workspace with sleek technology, clean desk setup with screens",
+  "Hälsa & Wellness": "spa environment, natural ingredients, calm zen atmosphere",
+  "Fastigheter": "beautiful modern home interior, sunlit living space",
+  "Bygg & Renovering": "freshly renovated room, construction craftsmanship, modern tools",
+  "Träning & Gym": "modern gym equipment, athletic environment, energetic atmosphere",
+  "Mode & Kläder": "fashion items on display, fabric textures, stylish accessories",
+  "Fotografi": "professional camera equipment, studio lighting setup",
+  "Tandvård": "modern dental clinic, clean bright medical environment",
+  "Juridik & Redovisning": "elegant office, leather-bound books, professional desk",
+  "Marknadsföring & Reklam": "creative workspace, screens with analytics, modern office",
+  "Resor & Turism": "stunning travel destination, scenic landscape, adventure",
+  "Inredning & Design": "beautifully designed interior space, designer furniture",
+  "Livsmedel & Dagligvaror": "fresh produce display, artisan food arrangement",
+  "Finans & Försäkring": "modern financial district, glass buildings, professional",
+  "Bilverkstad & Motor": "premium car detail, automotive workshop, polished vehicles",
+};
+
 function buildPrompt(industry: string, description: string, brandName: string): string {
-  const context = industry
-    ? `for a ${industry} business`
-    : `for a business called ${brandName}`;
-  return `High resolution sharp advertising photo ${context}. ${description ? description.slice(0, 80) + "." : ""} Professional commercial photography, crisp and in focus, well-lit, vibrant colors, modern and premium. Everything in sharp focus. ABSOLUTELY NO TEXT, NO WORDS, NO LETTERS, NO LOGOS, NO WATERMARKS. No people. Suitable as ad background with text overlay. 4K, sharp details throughout.`;
+  const scene = INDUSTRY_SCENES[industry] || (industry ? `${industry} business environment, relevant products and setting` : "modern business environment");
+  return `Professional advertising photograph: ${scene}. ${description ? description.slice(0, 80) + "." : ""} Sharp focus throughout, well-lit, vibrant colors, premium commercial photography. NO TEXT, NO WORDS, NO LETTERS, NO LOGOS, NO WATERMARKS, NO PEOPLE. Clean background suitable for text overlay. 4K resolution.`;
 }
 
 export async function generateAdImage(params: {
