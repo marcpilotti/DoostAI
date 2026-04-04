@@ -342,22 +342,7 @@ async function downloadBestLogo(
 
   const logoDevDataUrl = logoDevResult.status === "fulfilled" ? logoDevResult.value : null;
 
-  // Process Logo.dev result
-  if (logoDevDataUrl) {
-    const check = validateLogoQuality(logoDevDataUrl);
-    if (check.valid) {
-      console.log(`[L4 Download] ${domain} → Logo.dev OK (${logoDevDataUrl.length} chars)`);
-      const logo: DownloadedLogo = { dataUrl: logoDevDataUrl, source: "logo.dev", theme: "light", width: 128, quality: "high" };
-      variants.push(logo);
-      if (!primary) primary = logo;
-    } else {
-      console.log(`[L4 Download] ${domain} → Logo.dev rejected: ${check.reason} (${logoDevDataUrl.length} chars)`);
-    }
-  } else {
-    console.log(`[L4 Download] ${domain} → Logo.dev failed (404 or error)`);
-  }
-
-  // Process all Brandfetch results
+  // Process Brandfetch FIRST — higher quality, more variants
   for (let i = 0; i < brandfetchResults.length; i++) {
     const result = brandfetchResults[i]!;
     const bf = bfTargets[i]!;
@@ -376,6 +361,21 @@ async function downloadBestLogo(
     } else {
       console.log(`[L4 Download] ${domain} → Brandfetch ${bf.type}/${bf.theme} failed (CDN error)`);
     }
+  }
+
+  // Logo.dev as fallback if Brandfetch didn't produce a primary
+  if (logoDevDataUrl) {
+    const check = validateLogoQuality(logoDevDataUrl);
+    if (check.valid) {
+      console.log(`[L4 Download] ${domain} → Logo.dev OK (${logoDevDataUrl.length} chars)`);
+      const logo: DownloadedLogo = { dataUrl: logoDevDataUrl, source: "logo.dev", theme: "light", width: 128, quality: "high" };
+      variants.push(logo);
+      if (!primary) primary = logo;
+    } else {
+      console.log(`[L4 Download] ${domain} → Logo.dev rejected: ${check.reason} (${logoDevDataUrl.length} chars)`);
+    }
+  } else {
+    console.log(`[L4 Download] ${domain} → Logo.dev failed (404 or error)`);
   }
 
   // -----------------------------------------------------------------------
