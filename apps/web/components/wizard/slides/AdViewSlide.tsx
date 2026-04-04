@@ -618,12 +618,7 @@ export function AdViewSlide() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="flex flex-col gap-4">
-      {/* Header */}
-      <div>
-        <div className="flex items-center justify-between">
-          <h2 className="text-text-h1" style={{ color: "var(--color-text-primary)" }}>Dina annonser</h2>
-        </div>
-      </div>
+
 
       {/* Platform tab switcher */}
       <PlatformTabSwitcher active={activePlatform} onChange={setActivePlatform} brandColor={brand.colors.primary || "#6366F1"} />
