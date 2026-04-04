@@ -1,18 +1,18 @@
 "use server";
 
 /**
- * Server Action: Generate AI background image for ad preview.
+ * Server Action: Generate a complete ad image with embedded text.
  *
  * Flow:
  * 1. Classify industry + mood from ad copy (cached per ad ID)
- * 2. Build format-specific image prompt
- * 3. Call gpt-image-1 → return image URL
+ * 2. Call the ad-image-pipeline (GPT-4o → verify → retry → Satori fallback)
+ * 3. Return image URL
  *
- * Never exposes OPENAI_API_KEY to client.
+ * Never exposes API keys to client.
  */
 
 import type { AdData, AdFormat } from "@/components/ads/ad-preview/types";
-
+import { generateCompleteAdImage, type AdImageInput } from "@/lib/ads/ad-image-pipeline";
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -31,16 +31,6 @@ type GenerateResult = {
 
 const classificationCache = new Map<string, IndustryClassification>();
 
-// ── Format-specific composition hints ────────────────────────────
-
-// gpt-image-1 supported sizes: 1024x1024, 1024x1536, 1536x1024, auto
-const FORMAT_CONFIG: Record<string, { size: string; composition: string }> = {
-  "meta-feed": { size: "1024x1024", composition: "square, centered subject" },
-  "meta-stories": { size: "1024x1536", composition: "vertical, subject in upper third" },
-  "google-search": { size: "1024x1024", composition: "square" },
-  "linkedin": { size: "1536x1024", composition: "horizontal, professional setting" },
-};
-
 // ── Step 1: Classify industry from ad copy ───────────────────────
 
 async function classifyIndustry(
@@ -48,19 +38,12 @@ async function classifyIndustry(
   headline: string,
   primaryText: string,
 ): Promise<IndustryClassification> {
-  // Check cache first
   const cached = classificationCache.get(adId);
   if (cached) return cached;
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    // Fallback classification
-    const fallback: IndustryClassification = {
-      industry: "business",
-      mood: "professional",
-      keywords: ["modern", "clean", "corporate"],
-    };
-    return fallback;
+    return { industry: "business", mood: "professional", keywords: ["modern", "clean", "corporate"] };
   }
 
   try {
@@ -103,7 +86,6 @@ Return only valid JSON, no other text.`,
     };
 
     const text = data.content.find((c) => c.type === "text")?.text ?? "";
-    // Extract JSON from response (might have markdown code blocks)
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error("No JSON in response");
 
@@ -114,7 +96,6 @@ Return only valid JSON, no other text.`,
       keywords: Array.isArray(parsed.keywords) ? parsed.keywords.slice(0, 5) : ["modern", "clean"],
     };
 
-    // Cache it
     if (classificationCache.size > 200) {
       const oldest = classificationCache.keys().next().value;
       if (oldest) classificationCache.delete(oldest);
@@ -128,146 +109,44 @@ Return only valid JSON, no other text.`,
   }
 }
 
-// ── Step 2: Build image prompt ───────────────────────────────────
-
-function buildImagePrompt(
-  classification: IndustryClassification,
-  format: AdFormat,
-): string {
-  const config = FORMAT_CONFIG[format] ?? FORMAT_CONFIG["meta-feed"]!;
-
-  const prompt = [
-    `${classification.industry} business, ${classification.mood} atmosphere,`,
-    `${classification.keywords.join(", ")},`,
-    `${config.composition},`,
-    `cinematic lighting, ultra-sharp commercial photography,`,
-    `editorial quality, 8K resolution,`,
-    `no text, no logos, no watermarks, no people unless explicitly needed,`,
-    `photorealistic, award-winning advertising photography`,
-  ].join("\n");
-
-  if (process.env.NODE_ENV === "development") {
-    console.log("[generateAdImage] Prompt:", prompt);
-  }
-
-  return prompt;
-}
-
-// ── Step 3: Call gpt-image-1 ─────────────────────────────────────
-
-async function callImageApi(
-  prompt: string,
-  format: AdFormat,
-  retryCount = 0,
-): Promise<GenerateResult> {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey || apiKey.startsWith("sk-proj-placeholder")) {
-    console.error("[generateAdImage] OPENAI_API_KEY not configured");
-    return null;
-  }
-
-  const config = FORMAT_CONFIG[format] ?? FORMAT_CONFIG["meta-feed"]!;
-
-  try {
-    const response = await fetch("https://api.openai.com/v1/images/generations", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-image-1.5",
-        prompt,
-        size: config.size,
-        quality: "low",
-        n: 1,
-        output_format: "jpeg",
-      }),
-      signal: AbortSignal.timeout(45000),
-    });
-
-    if (!response.ok) {
-      const errorBody = await response.text().catch(() => "");
-      const status = response.status;
-
-      // Handle specific error types
-      if (status === 401) {
-        console.error("[generateAdImage] Invalid API key");
-        return null;
-      }
-      if (status === 400 && errorBody.includes("content_policy")) {
-        // Content policy violation — retry with milder prompt
-        if (retryCount < 3) {
-          console.warn(`[generateAdImage] Content policy violation, retry ${retryCount + 1}/3`);
-          const milderPrompt = prompt.replace(/, [^,]+$/, "") + ", clean and minimal";
-          return callImageApi(milderPrompt, format, retryCount + 1);
-        }
-        console.error("[generateAdImage] Content policy: max retries exceeded");
-        return null;
-      }
-      if (status === 429) {
-        console.warn("[generateAdImage] Rate limited");
-        return null;
-      }
-
-      console.error(`[generateAdImage] API error ${status}:`, errorBody.slice(0, 200));
-      return null;
-    }
-
-    const data = await response.json() as {
-      data: Array<{ b64_json?: string }>;
-    };
-
-    const b64 = data.data[0]?.b64_json;
-    if (!b64) {
-      console.error("[generateAdImage] No b64_json in response");
-      return null;
-    }
-
-    // Return base64 data URL directly — in-memory cache doesn't work
-    // across Vercel serverless instances (server action ≠ API route)
-    const imageUrl = `data:image/jpeg;base64,${b64}`;
-
-    return { imageUrl, prompt };
-  } catch (err) {
-    if (err instanceof DOMException && err.name === "AbortError") {
-      console.error("[generateAdImage] Timeout after 45s");
-    } else {
-      console.error("[generateAdImage] Failed:", err instanceof Error ? err.message : err);
-    }
-    return null;
-  }
-}
-
-// Image cache moved to @/lib/image-cache.ts (server actions can't export non-async values)
-
 // ── Main export ──────────────────────────────────────────────────
 
 export async function generateAdImage(
-  adData: Pick<AdData, "id" | "headline" | "primaryText" | "brandName">,
+  adData: Pick<AdData, "id" | "headline" | "primaryText" | "brandName"> & {
+    brandColor?: string;
+    brandAccent?: string;
+    logoUrl?: string | null;
+  },
   format: AdFormat,
 ): Promise<GenerateResult> {
-  if (format === "google-search") {
-    // Google Search has no background image
-    return null;
-  }
+  if (format === "google-search") return null;
 
-  // Step 1: Classify
+  // Classify industry from ad copy
   const classification = await classifyIndustry(
     adData.id,
     adData.headline,
     adData.primaryText,
   );
 
-  // Step 2: Build prompt
-  const prompt = buildImagePrompt(classification, format);
+  // Build pipeline input
+  const input: AdImageInput = {
+    brandName: adData.brandName,
+    brandColor: adData.brandColor ?? "#6366f1",
+    brandAccent: adData.brandAccent,
+    logoUrl: adData.logoUrl,
+    industry: classification.industry,
+    headline: adData.headline,
+    bodyCopy: adData.primaryText,
+    cta: "Läs mer",
+    format,
+  };
 
-  // Step 3: Generate
-  const result = await callImageApi(prompt, format);
+  const result = await generateCompleteAdImage(input);
 
   if (result) {
-    console.log(`[generateAdImage] Success: ${adData.brandName} (${format})`);
+    console.log(`[generateAdImage] Success: ${adData.brandName} (${format}) via ${result.method}, ${result.attempts} attempt(s)`);
+    return { imageUrl: result.imageUrl, prompt: result.prompt };
   }
 
-  return result;
+  return null;
 }

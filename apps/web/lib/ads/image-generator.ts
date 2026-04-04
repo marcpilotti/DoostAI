@@ -18,7 +18,7 @@ function ensureConfig() {
   fal.config({ credentials: process.env.FAL_KEY || "" });
 }
 
-const INDUSTRY_SCENES: Record<string, string> = {
+export const INDUSTRY_SCENES: Record<string, string> = {
   "Skönhet & Kosmetik": "luxury skincare products on marble surface, serums and creams beautifully arranged",
   "Frisör & Salong": "modern hair salon interior, styling tools, mirrors with warm lighting",
   "Restaurang & Café": "beautifully plated food on rustic table, warm restaurant ambiance",

@@ -3,10 +3,9 @@ import {
   generateAdCopy,
   generateAdStrategy,
 } from "@doost/ai";
-import { getIndustryBackground } from "@doost/templates/backgrounds";
 import { z } from "zod";
 
-import { generateAdImage } from "@/lib/ads/image-generator";
+import { generateAdImagePair, type AdImageInput } from "@/lib/ads/ad-image-pipeline";
 
 export const maxDuration = 90;
 
@@ -38,7 +37,7 @@ const inputSchema = z.object({
  * POST /api/ad/generate
  *
  * SSE endpoint that streams ad generation progress.
- * Steps: strategy → copy → images (all streamed as events).
+ * Flow: strategy + copy in parallel → images (need copy for embedded text)
  *
  * Events:
  *   { event: "strategy", strategy: {...} }
@@ -83,12 +82,8 @@ export async function POST(req: Request) {
           url: brand.url,
         };
 
-        // ── Strategy + Copy + Images — ALL in parallel ────────────
-        // Strategy is NOT passed to generateAdCopy (only forwarded to client),
-        // so there's no reason to block copy on strategy completion.
         send({ event: "progress", message: "Bygger din annons...", progress: 10 });
 
-        // Wrap each promise with a 30s timeout to prevent hanging
         const withTimeout = <T>(p: Promise<T>, label: string, ms = 30_000): Promise<T> =>
           Promise.race([
             p,
@@ -97,7 +92,8 @@ export async function POST(req: Request) {
             ),
           ]);
 
-        const [strategySettled, copySettled, falImageA, falImageB, unsplashBgUrl] = await Promise.allSettled([
+        // ── Step 1: Strategy + Copy in parallel ──────────────────
+        const [strategySettled, copySettled] = await Promise.allSettled([
           withTimeout(generateAdStrategy({
             brand: brandContext,
             platform,
@@ -109,17 +105,6 @@ export async function POST(req: Request) {
             language: detectedLanguage,
             variants: 2,
           }), "copy"),
-          withTimeout(generateAdImage({
-            industry: brand.industry ?? "",
-            description: brand.description ?? brand.name,
-            brandName: brand.name,
-          }), "imageA"),
-          withTimeout(generateAdImage({
-            industry: brand.industry ?? "",
-            description: `${brand.description ?? brand.name} — premium style`,
-            brandName: brand.name,
-          }), "imageB"),
-          withTimeout(getIndustryBackground(brand.industry ?? ""), "unsplash", 10_000),
         ]);
 
         // Extract strategy (non-critical — UI-only metadata)
@@ -141,7 +126,6 @@ export async function POST(req: Request) {
 
         const copyResults = copySettled.value;
 
-        // Send copy as soon as it's ready
         const copies = copyResults.map((c, i) => ({
           id: `${c.platform}-${c.variant}-${i}`,
           platform: c.platform,
@@ -154,18 +138,48 @@ export async function POST(req: Request) {
           descriptions: c.descriptions,
         }));
 
-        send({ event: "copy", copies, progress: 60 });
+        send({ event: "copy", copies, progress: 50 });
 
-        // ── Step 3: Resolve images ───────────────────────────────
-        send({ event: "progress", message: "Skapar AI-bakgrund i era färger...", progress: 70 });
+        // ── Step 2: Generate images with embedded text ───────────
+        // Images depend on copy (need headline/body/CTA for text in image)
+        send({ event: "progress", message: "Skapar annonsbilder med AI...", progress: 60 });
 
-        const imgA = falImageA.status === "fulfilled" ? falImageA.value : null;
-        const imgB = falImageB.status === "fulfilled" ? falImageB.value : null;
-        const unsplashBg = unsplashBgUrl.status === "fulfilled" ? unsplashBgUrl.value : null;
+        const copyA = copies[0];
+        const copyB = copies[1] ?? copies[0];
 
-        let bgUrl = imgA?.url ?? unsplashBg;
-        const bgUrlB = imgB?.url ?? bgUrl;
+        const imageInputA: AdImageInput = {
+          brandName: brand.name,
+          brandColor: brand.colors.primary,
+          brandAccent: brand.colors.accent ?? brand.colors.secondary,
+          industry: brand.industry ?? "",
+          headline: copyA!.headline,
+          bodyCopy: copyA!.bodyCopy,
+          cta: copyA!.cta,
+          format: platform === "linkedin" ? "linkedin" : "meta-feed",
+        };
 
+        const imageInputB: AdImageInput = {
+          brandName: brand.name,
+          brandColor: brand.colors.primary,
+          brandAccent: brand.colors.accent ?? brand.colors.secondary,
+          industry: brand.industry ?? "",
+          headline: copyB!.headline,
+          bodyCopy: copyB!.bodyCopy,
+          cta: copyB!.cta,
+          format: platform === "linkedin" ? "linkedin" : "meta-feed",
+        };
+
+        // Both variants in parallel
+        const [imgA, imgB] = await withTimeout(
+          generateAdImagePair(imageInputA, imageInputB),
+          "images",
+          60_000,
+        );
+
+        let bgUrl = imgA?.imageUrl ?? null;
+        const bgUrlB = imgB?.imageUrl ?? bgUrl;
+
+        // SVG gradient fallback if both images failed entirely
         if (!bgUrl) {
           const p = brand.colors.primary ?? "#6366f1";
           const a = brand.colors.accent ?? brand.colors.secondary ?? "#4f46e5";
@@ -182,11 +196,11 @@ export async function POST(req: Request) {
 </svg>`)}`;
         }
 
-        if (imgA?.url) {
-          send({ event: "image_a", imageUrl: imgA.url, progress: 85 });
+        if (imgA?.imageUrl) {
+          send({ event: "image_a", imageUrl: imgA.imageUrl, progress: 85 });
         }
-        if (imgB?.url && imgB.url !== imgA?.url) {
-          send({ event: "image_b", imageUrl: imgB.url, progress: 90 });
+        if (imgB?.imageUrl && imgB.imageUrl !== imgA?.imageUrl) {
+          send({ event: "image_b", imageUrl: imgB.imageUrl, progress: 90 });
         }
 
         // ── Complete ─────────────────────────────────────────────
