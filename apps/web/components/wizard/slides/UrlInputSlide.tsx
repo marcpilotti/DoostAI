@@ -20,7 +20,7 @@ const urlSchema = z.string().min(3).refine(
 );
 
 export function UrlInputSlide() {
-  const { url, setUrl, setStep, setBrand, setAudience } = useWizardStore();
+  const { url, setUrl, setStep, setBrand, setAudience, setPreGeneratedImageUrl } = useWizardStore();
   const [input, setInput] = useState(url || "");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -91,6 +91,11 @@ export function UrlInputSlide() {
                 socialProfiles: p.socialProfiles,
               });
 
+              // Store pre-generated ad image if available
+              if (data.preGeneratedImageUrl) {
+                setPreGeneratedImageUrl(data.preGeneratedImageUrl);
+              }
+
               if (p.targetAudience || p.valuePropositions?.length) {
                 setAudience({
                   interests: [],
@@ -112,7 +117,7 @@ export function UrlInputSlide() {
     } finally {
       setIsLoading(false);
     }
-  }, [input, setUrl, setStep, setBrand, setAudience]);
+  }, [input, setUrl, setStep, setBrand, setAudience, setPreGeneratedImageUrl]);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden">

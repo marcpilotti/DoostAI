@@ -7,6 +7,8 @@ import {
 import { runBrandIntelligencePipeline } from "@doost/intelligence";
 import { z } from "zod";
 
+import { generateAdImage } from "@/lib/ads/image-generator";
+
 export const maxDuration = 90;
 
 const inputSchema = z.object({
@@ -129,10 +131,10 @@ export async function POST(req: Request) {
           send({ message: `Hittade ${parts.join(" och ")}`, progress: 50 });
         }
 
-        // ── Step 2: AI Analysis + Intelligence ──────────────────
+        // ── Step 2: AI Analysis + Intelligence + Pre-generate image ──
         send({ message: "Analyserar ert varumärke med AI...", progress: 65 });
 
-        const [profile, intelligence] = await Promise.all([
+        const [profile, intelligence, preImageResult] = await Promise.all([
           buildBrandProfile(scrapeResult, enrichment ?? undefined),
           runBrandIntelligencePipeline({
             url: scrapeResult.url,
@@ -146,6 +148,11 @@ export async function POST(req: Request) {
             companyName: enrichment?.name ?? domain,
             enrichedIndustry: enrichment?.industry,
           }).catch(() => null),
+          generateAdImage({
+            industry: enrichment?.industry ?? "",
+            description: enrichment?.name ?? domain,
+            brandName: enrichment?.name ?? domain,
+          }).catch(() => ({ url: null })),
         ]);
 
         send({ message: "Bygger din varumärkesprofil...", progress: 85 });
@@ -215,7 +222,12 @@ export async function POST(req: Request) {
         };
 
         // ── Complete ────────────────────────────────────────────
-        send({ event: "complete", profile: result, progress: 100 });
+        send({
+          event: "complete",
+          profile: result,
+          preGeneratedImageUrl: preImageResult?.url ?? null,
+          progress: 100,
+        });
       } catch (err) {
         send({
           event: "error",

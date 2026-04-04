@@ -132,6 +132,7 @@ type WizardState = {
   projections: ProjectionData | null;
   publishMode: "self" | "managed" | null;
   isGeneratingAds: boolean;
+  preGeneratedImageUrl: string | null;
   footerAction: (() => void) | null;
   footerDisabled: boolean;
 };
@@ -153,6 +154,7 @@ type WizardActions = {
   setProjections: (projections: ProjectionData) => void;
   setPublishMode: (mode: "self" | "managed") => void;
   setIsGeneratingAds: (val: boolean) => void;
+  setPreGeneratedImageUrl: (url: string | null) => void;
   setFooterAction: (action: (() => void) | null, disabled?: boolean) => void;
   reset: () => void;
 };
@@ -170,6 +172,7 @@ const initialState: WizardState = {
   projections: null,
   publishMode: null,
   isGeneratingAds: false,
+  preGeneratedImageUrl: null,
   footerAction: null,
   footerDisabled: false,
 };
@@ -245,6 +248,7 @@ export const useWizardStore = create<WizardState & WizardActions>()(
       setProjections: (projections) => set({ projections }),
       setPublishMode: (mode) => set({ publishMode: mode }),
       setIsGeneratingAds: (val) => set({ isGeneratingAds: val }),
+      setPreGeneratedImageUrl: (url) => set({ preGeneratedImageUrl: url }),
       setFooterAction: (action, disabled = false) => set({ footerAction: action, footerDisabled: disabled }),
       reset: () => set(initialState),
     }),

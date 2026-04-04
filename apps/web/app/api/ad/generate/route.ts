@@ -3,9 +3,10 @@ import {
   generateAdCopy,
   generateAdStrategy,
 } from "@doost/ai";
-import { generateAdBackground } from "@doost/templates/ai-image";
 import { getIndustryBackground } from "@doost/templates/backgrounds";
 import { z } from "zod";
+
+import { generateAdImage } from "@/lib/ads/image-generator";
 
 export const maxDuration = 90;
 
@@ -96,7 +97,7 @@ export async function POST(req: Request) {
             ),
           ]);
 
-        const [strategySettled, copySettled, aiImageA, aiImageB, unsplashBgUrl] = await Promise.allSettled([
+        const [strategySettled, copySettled, falImageA, falImageB, unsplashBgUrl] = await Promise.allSettled([
           withTimeout(generateAdStrategy({
             brand: brandContext,
             platform,
@@ -108,21 +109,15 @@ export async function POST(req: Request) {
             language: detectedLanguage,
             variants: 2,
           }), "copy"),
-          withTimeout(generateAdBackground({
+          withTimeout(generateAdImage({
             industry: brand.industry ?? "",
+            description: brand.description ?? brand.name,
             brandName: brand.name,
-            primaryColor: brand.colors.primary ?? "#6366f1",
-            accentColor: brand.colors.accent,
-            style: "modern",
-            format: "square",
           }), "imageA"),
-          withTimeout(generateAdBackground({
+          withTimeout(generateAdImage({
             industry: brand.industry ?? "",
+            description: `${brand.description ?? brand.name} — premium style`,
             brandName: brand.name,
-            primaryColor: brand.colors.accent ?? brand.colors.secondary ?? "#4f46e5",
-            accentColor: brand.colors.primary ?? "#6366f1",
-            style: "premium",
-            format: "square",
           }), "imageB"),
           withTimeout(getIndustryBackground(brand.industry ?? ""), "unsplash", 10_000),
         ]);
@@ -164,12 +159,12 @@ export async function POST(req: Request) {
         // ── Step 3: Resolve images ───────────────────────────────
         send({ event: "progress", message: "Skapar AI-bakgrund i era färger...", progress: 70 });
 
-        const imgA = aiImageA.status === "fulfilled" ? aiImageA.value : null;
-        const imgB = aiImageB.status === "fulfilled" ? aiImageB.value : null;
+        const imgA = falImageA.status === "fulfilled" ? falImageA.value : null;
+        const imgB = falImageB.status === "fulfilled" ? falImageB.value : null;
         const unsplashBg = unsplashBgUrl.status === "fulfilled" ? unsplashBgUrl.value : null;
 
-        let bgUrl = imgA?.imageUrl ?? unsplashBg;
-        const bgUrlB = imgB?.imageUrl ?? bgUrl;
+        let bgUrl = imgA?.url ?? unsplashBg;
+        const bgUrlB = imgB?.url ?? bgUrl;
 
         if (!bgUrl) {
           const p = brand.colors.primary ?? "#6366f1";
@@ -187,11 +182,11 @@ export async function POST(req: Request) {
 </svg>`)}`;
         }
 
-        if (imgA?.imageUrl) {
-          send({ event: "image_a", imageUrl: imgA.imageUrl, progress: 85 });
+        if (imgA?.url) {
+          send({ event: "image_a", imageUrl: imgA.url, progress: 85 });
         }
-        if (imgB?.imageUrl && imgB.imageUrl !== imgA?.imageUrl) {
-          send({ event: "image_b", imageUrl: imgB.imageUrl, progress: 90 });
+        if (imgB?.url && imgB.url !== imgA?.url) {
+          send({ event: "image_b", imageUrl: imgB.url, progress: 90 });
         }
 
         // ── Complete ─────────────────────────────────────────────

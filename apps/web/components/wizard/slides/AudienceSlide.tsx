@@ -71,7 +71,9 @@ export function AudienceSlide() {
   const { audience, setAudience, brand, setBrand, setFooterAction } = useWizardStore();
   const { handleNext } = useWizardNavigation();
 
-  const [industry, setIndustry] = useState(brand?.industry || "");
+  const isCustomIndustry = brand?.industry && !INDUSTRIES.includes(brand.industry);
+  const [industry, setIndustry] = useState(isCustomIndustry ? "Övrigt" : (brand?.industry || ""));
+  const [customIndustry, setCustomIndustry] = useState(isCustomIndustry ? (brand?.industry || "") : "");
   const [targets, setTargets] = useState<string[]>(() => {
     if (audience?.interests && audience.interests.length > 0) return audience.interests;
     return getSuggestedAudiences(brand?.industry || "");
@@ -89,10 +91,22 @@ export function AudienceSlide() {
   // Sync industry back to brand
   const handleIndustryChange = useCallback((value: string) => {
     setIndustry(value);
-    if (brand) setBrand({ ...brand, industry: value });
-    // Update suggested audiences when industry changes
-    const suggestions = getSuggestedAudiences(value);
-    setTargets(suggestions);
+    if (value === "Övrigt") {
+      setCustomIndustry("");
+      // Don't update brand yet — wait for custom input
+    } else {
+      setCustomIndustry("");
+      if (brand) setBrand({ ...brand, industry: value });
+      const suggestions = getSuggestedAudiences(value);
+      setTargets(suggestions);
+    }
+  }, [brand, setBrand]);
+
+  const handleCustomIndustryChange = useCallback((value: string) => {
+    setCustomIndustry(value);
+    if (brand && value.trim()) {
+      setBrand({ ...brand, industry: value.trim() });
+    }
   }, [brand, setBrand]);
 
   // Sync targets to audience store
@@ -156,6 +170,27 @@ export function AudienceSlide() {
             <option key={ind} value={ind}>{ind}</option>
           ))}
         </select>
+        {industry === "Övrigt" && (
+          <motion.input
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            value={customIndustry}
+            onChange={(e) => handleCustomIndustryChange(e.target.value)}
+            placeholder="Skriv din bransch..."
+            autoFocus
+            className="mt-2 w-full outline-none"
+            style={{
+              background: "var(--color-bg-input)",
+              border: "1px solid var(--color-border-focus)",
+              borderRadius: 10,
+              padding: "10px 14px",
+              color: "var(--color-text-primary)",
+              fontSize: 14,
+              boxShadow: "0 0 0 3px var(--color-primary-glow)",
+            }}
+          />
+        )}
       </div>
 
       {/* ── Target audience pills ── */}

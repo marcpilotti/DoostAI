@@ -28,10 +28,9 @@ import {
   TimelineRailLayout,
   TinderSwipeLayout,
 } from "../shared/layouts";
-import { RevealSequence } from "../shared/RevealSequence";
 import { SmartCropPreview } from "../shared/SmartCropPreview";
 
-type ViewMode = "reveal" | "layout" | "reel" | "formats" | "export";
+type ViewMode = "layout" | "reel" | "formats" | "export";
 
 type LayoutId =
   | "stack"
@@ -59,32 +58,19 @@ const LAYOUTS: { id: LayoutId; label: string; icon: string }[] = [
 ];
 
 export function AdViewSlide() {
-  const { ads, selectedPlatforms, brand, isGeneratingAds, toggleAdSelection, setAds, setFooterAction } = useWizardStore();
+  const { ads, selectedPlatforms, brand, isGeneratingAds, toggleAdSelection, setAds, setFooterAction, preGeneratedImageUrl } = useWizardStore();
   const { handleNext } = useWizardNavigation();
   const [editingAdId, setEditingAdId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>("reveal");
+  const [viewMode, setViewMode] = useState<ViewMode>("layout");
   const [layoutId, setLayoutId] = useState<LayoutId>("magazine");
-  const [revealDone, setRevealDone] = useState(false);
 
   const selectedCount = ads.filter((a) => a.selected).length;
   const heroAd = ads.find((a) => a.template === "hero");
-
-  const strategies = brand ? [
-    brand.industry ? `Optimerat för ${brand.industry}` : "Branschanpassat",
-    "Emotionell + aspirational",
-    "Konverteringsfokuserat",
-  ] : [];
 
   useEffect(() => {
     setFooterAction(() => handleNext(), selectedCount === 0);
     return () => setFooterAction(null);
   }, [selectedCount, handleNext, setFooterAction]);
-
-  useEffect(() => {
-    if (ads.length > 0 && !isGeneratingAds && !revealDone) setViewMode("reveal");
-  }, [ads, isGeneratingAds, revealDone]);
-
-  const handleRevealComplete = useCallback(() => { setRevealDone(true); setViewMode("layout"); }, []);
 
   const renderAdContent = useCallback(
     (ad: AdCreative) =>
@@ -99,7 +85,6 @@ export function AdViewSlide() {
   const handleRegenerate = async () => {
     if (!brand) return;
     useWizardStore.getState().setIsGeneratingAds(true);
-    setRevealDone(false);
     try {
       const res = await fetch("/api/ad/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ brand: { name: brand.name, description: brand.description, industry: brand.industry, targetAudience: brand.targetAudience, valuePropositions: brand.valuePropositions, url: brand.url, colors: brand.colors, fonts: brand.fonts }, platform: selectedPlatforms[0], language: "sv" }) });
       if (!res.ok) throw new Error("fail");
@@ -119,7 +104,8 @@ export function AdViewSlide() {
           try {
             const d = JSON.parse(raw);
             if (d.event === "complete" && d.result?.copies) {
-              setAds(d.result.copies.map((c: Record<string, string>, i: number) => ({ id: `ad-${Date.now()}-${i}`, platform: selectedPlatforms[0], template: i === 0 ? "hero" as const : "brand" as const, headline: c.headline || "", bodyCopy: c.bodyCopy || "", cta: c.cta || "Läs mer", imageUrl: d.result.backgroundUrl, selected: i === 0 })));
+              const bgUrl = d.result.backgroundUrl || preGeneratedImageUrl;
+              setAds(d.result.copies.map((c: Record<string, string>, i: number) => ({ id: `ad-${Date.now()}-${i}`, platform: selectedPlatforms[0], template: i === 0 ? "hero" as const : "brand" as const, headline: c.headline || "", bodyCopy: c.bodyCopy || "", cta: c.cta || "Läs mer", imageUrl: bgUrl, selected: i === 0 })));
             }
           } catch { /* */ }
         }
@@ -139,11 +125,6 @@ export function AdViewSlide() {
 
   // ─── LOADING ───
   if (isGeneratingAds) return <AdGenerationLoading brand={brand} />;
-
-  // ─── REVEAL ───
-  if (viewMode === "reveal" && !revealDone && ads.length > 0) {
-    return <RevealSequence brandName={brand?.name || ""} industry={brand?.industry || ""} strategies={strategies} onComplete={handleRevealComplete} />;
-  }
 
   // ─── MAIN ───
   return (
