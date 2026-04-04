@@ -88,7 +88,7 @@ const COMING_SOON_EXTRA: PlatformDef = {
   comingSoon: true,
 };
 
-/* ── Card component ─────────────────────────────────────── */
+/* ── Card component — compact, clean ───────────────────── */
 
 function PlatformCard({
   platform,
@@ -106,155 +106,62 @@ function PlatformCard({
   return (
     <motion.button
       onClick={isSoon ? undefined : onToggle}
-      whileHover={isSoon ? {} : { y: -3 }}
+      whileHover={isSoon ? {} : { y: -2 }}
       whileTap={isSoon ? {} : { scale: 0.97 }}
-      animate={
-        selected
-          ? {
-              boxShadow: [
-                "0 0 20px rgba(99,102,241,0.12)",
-                "0 0 28px rgba(99,102,241,0.22)",
-                "0 0 20px rgba(99,102,241,0.12)",
-              ],
-            }
-          : { boxShadow: "0 0 0px rgba(99,102,241,0)" }
-      }
-      transition={
-        selected
-          ? { boxShadow: { duration: 2, repeat: Infinity, ease: "easeInOut" }, ...transitions.snappy }
-          : transitions.snappy
-      }
-      className="relative flex h-full w-full flex-col items-center text-center"
+      transition={transitions.snappy}
+      className="relative flex w-full items-center gap-3 text-left"
       style={{
-        padding: "16px 10px 10px",
-        borderRadius: 16,
-        background: selected
-          ? "linear-gradient(135deg, rgba(99,102,241,0.10) 0%, rgba(99,102,241,0.03) 100%)"
-          : "rgba(255,255,255,0.025)",
-        border: selected
-          ? "2px solid var(--color-primary)"
-          : "1px solid rgba(255,255,255,0.06)",
+        padding: "12px 14px",
+        borderRadius: 12,
+        background: selected ? "rgba(99,102,241,0.08)" : "rgba(255,255,255,0.02)",
+        border: selected ? "1px solid var(--color-primary)" : "1px solid rgba(255,255,255,0.06)",
         cursor: isSoon ? "default" : "pointer",
-        opacity: isSoon ? 0.4 : 1,
+        opacity: isSoon ? 0.35 : 1,
       }}
     >
-      {/* REKOM badge */}
-      {recommended && !isSoon && (
-        <motion.span
-          className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", damping: 15, stiffness: 400, delay: 0.3 }}
-          style={{
-            padding: "3px 12px",
-            borderRadius: 20,
-            background: "var(--color-primary)",
-            color: "#fff",
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: "0.08em",
-          }}
-        >
-          REKOM.
-        </motion.span>
-      )}
+      {/* Icon — smaller */}
+      <div className="shrink-0" style={{ transform: "scale(0.8)", transformOrigin: "center" }}>
+        {platform.icon}
+      </div>
 
-      {/* Snart badge */}
-      {isSoon && (
-        <span
-          className="absolute -top-2 right-3"
-          style={{
-            padding: "2px 8px",
-            borderRadius: 20,
-            background: "rgba(255,255,255,0.06)",
-            color: "var(--color-text-muted)",
-            fontSize: 10,
-            fontWeight: 600,
-          }}
-        >
-          Snart
+      {/* Text */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="text-[13px] font-semibold" style={{ color: isSoon ? "var(--color-text-muted)" : "var(--color-text-primary)" }}>
+            {platform.name}
+          </span>
+          {recommended && !isSoon && (
+            <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: "var(--color-primary-light)" }}>
+              Rekom.
+            </span>
+          )}
+          {isSoon && (
+            <span className="text-[9px] font-medium" style={{ color: "var(--color-text-muted)" }}>Snart</span>
+          )}
+        </div>
+        <span className="text-[11px]" style={{ color: "var(--color-text-muted)" }}>
+          {platform.subtitle}
         </span>
-      )}
+      </div>
 
-      {/* Checkmark top-right */}
+      {/* Check */}
       {!isSoon && (
-        <div className="absolute -right-2 -top-2">
+        <div className="shrink-0">
           {selected ? (
-            <motion.svg width="20" height="20" viewBox="0 0 26 26">
-              <motion.circle
-                cx="13"
-                cy="13"
-                r="12"
-                fill="var(--color-primary)"
-                stroke="var(--color-bg-base)"
-                strokeWidth="2"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={transitions.snappy}
-              />
-              <motion.path
-                d="M8 13l3.5 3.5 6.5-7"
-                fill="none"
-                stroke="#fff"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                variants={checkmarkVariants}
-                initial="hidden"
-                animate="visible"
-              />
-            </motion.svg>
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={transitions.snappy}
+              className="flex h-5 w-5 items-center justify-center rounded-full"
+              style={{ background: "var(--color-primary)" }}
+            >
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round"><path d="M2.5 6l2.5 2.5 4.5-5" /></svg>
+            </motion.div>
           ) : (
-            <div
-              style={{
-                width: 22,
-                height: 22,
-                borderRadius: "50%",
-                border: "1.5px solid rgba(255,255,255,0.12)",
-                background: "var(--color-bg-base)",
-              }}
-            />
+            <div className="h-5 w-5 rounded-full" style={{ border: "1.5px solid rgba(255,255,255,0.12)" }} />
           )}
         </div>
       )}
-
-      {/* Icon */}
-      <div className="mb-2">{platform.icon}</div>
-
-      {/* Name */}
-      <span
-        className="mb-0.5 text-[13px] font-bold"
-        style={{ color: isSoon ? "var(--color-text-muted)" : "var(--color-text-primary)" }}
-      >
-        {platform.name}
-      </span>
-
-      {/* Subtitle */}
-      <span
-        className="mb-1.5 text-[11px]"
-        style={{ color: "var(--color-text-muted)" }}
-      >
-        {platform.subtitle}
-      </span>
-
-      {/* Format tags */}
-      <div className="flex flex-wrap justify-center gap-1">
-        {platform.formats.map((f) => (
-          <span
-            key={f}
-            style={{
-              padding: "2px 8px",
-              borderRadius: 20,
-              border: "1px solid rgba(255,255,255,0.08)",
-              color: selected ? "var(--color-primary-light)" : "var(--color-text-muted)",
-              fontSize: 10,
-              fontWeight: 500,
-            }}
-          >
-            {f}
-          </span>
-        ))}
-      </div>
     </motion.button>
   );
 }
@@ -385,13 +292,8 @@ export function PlatformSelectSlide() {
 
       {/* 3×2 grid — all cards equal height */}
       <motion.div
-        className="grid"
-        style={{
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gridAutoRows: "1fr",
-          gap: 10,
-          maxWidth: 640,
-        }}
+        className="flex flex-col"
+        style={{ gap: 6 }}
         variants={{ visible: { transition: transitions.stagger } }}
         initial="hidden"
         animate="visible"
