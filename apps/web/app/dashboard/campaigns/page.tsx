@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDown, Copy, MoreHorizontal, Pause, Plus, Trash2 } from "lucide-react";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -194,7 +195,7 @@ export default function CampaignsPage() {
             {filteredCampaigns.map((c) => {
               const s = STATUS_STYLES[c.status];
               return (
-                <tr key={c.id} tabIndex={0} className="cursor-pointer border-b last:border-0 transition-colors hover:bg-[var(--doost-bg-secondary)] hover:shadow-[inset_3px_0_0_var(--doost-bg-active)] focus-visible:bg-[var(--doost-bg-secondary)] focus-visible:shadow-[inset_3px_0_0_var(--doost-bg-active)] focus-visible:outline-none" style={{ borderColor: "var(--doost-border)" }} onClick={() => router.push(`/dashboard/campaigns/${c.id}`)} onKeyDown={(e) => { if (e.key === "Enter") router.push(`/dashboard/campaigns/${c.id}`); }} onMouseEnter={() => router.prefetch(`/dashboard/campaigns/${c.id}`)}>
+                <motion.tr key={c.id} tabIndex={0} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.25, delay: filteredCampaigns.indexOf(c) * 0.03 }} whileHover={{ backgroundColor: "var(--doost-bg-secondary)" }} className="cursor-pointer border-b last:border-0 transition-shadow hover:shadow-[inset_3px_0_0_var(--doost-bg-active)] focus-visible:bg-[var(--doost-bg-secondary)] focus-visible:shadow-[inset_3px_0_0_var(--doost-bg-active)] focus-visible:outline-none" style={{ borderColor: "var(--doost-border)" }} onClick={() => router.push(`/dashboard/campaigns/${c.id}`)} onKeyDown={(e) => { if (e.key === "Enter") router.push(`/dashboard/campaigns/${c.id}`); }} onMouseEnter={() => router.prefetch(`/dashboard/campaigns/${c.id}`)}>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <PlatformIcon platform={c.platform} />
@@ -217,7 +218,7 @@ export default function CampaignsPage() {
                       onDelete={() => setDeleteTarget(c)}
                     />
                   </td>
-                </tr>
+                </motion.tr>
               );
             })}
             {filteredCampaigns.length === 0 && (

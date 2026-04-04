@@ -1,6 +1,7 @@
 "use client";
 
 import { Clock } from "lucide-react";
+import { motion } from "motion/react";
 
 import type { ActivityItem } from "@/lib/mock-data";
 
@@ -53,10 +54,14 @@ export function ActivityFeed({ items }: { items: ActivityItem[] }) {
     <div>
       <h2 className="mb-4 text-[16px] font-semibold text-[var(--doost-text)]">Kampanjaktivitet</h2>
       <div className="space-y-1">
-        {items.map((item) => (
-          <div
+        {items.map((item, index) => (
+          <motion.div
             key={item.id}
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-[var(--doost-bg)]"
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.25, delay: index * 0.04, ease: [0.25, 0.46, 0.45, 0.94] }}
+            whileHover={{ x: 4, backgroundColor: "var(--doost-bg)" }}
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors"
           >
             <PlatformIcon platform={item.platform} />
 
@@ -80,7 +85,7 @@ export function ActivityFeed({ items }: { items: ActivityItem[] }) {
               <Clock className="h-3 w-3" />
               {item.timestamp}
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
     </div>

@@ -1,11 +1,11 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 
 import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
 import { slideVariants, transitions } from "@/lib/motion";
-import { useWizardStore } from "@/lib/stores/wizard-store";
+import { useWizardStore, WIZARD_STEPS } from "@/lib/stores/wizard-store";
 
 import { ProgressBar } from "./ProgressBar";
 import { AdViewSlide } from "./slides/AdViewSlide";
@@ -64,13 +64,47 @@ export function WizardShell() {
   const ctaLabel = CTA_LABELS[step] || "";
   const showFooter = !isTransient && step !== "url";
 
+  // Parallax offset based on step progress (0 to 1)
+  const stepIndex = WIZARD_STEPS.indexOf(step as typeof WIZARD_STEPS[number]);
+  const progress = stepIndex >= 0 ? stepIndex / (WIZARD_STEPS.length - 1) : 0;
+
+  const orbs = useMemo(
+    () => [
+      { x: 15, y: 25, size: 280, color: "rgba(99, 102, 241, 0.04)", speed: 1.2 },
+      { x: 80, y: 60, size: 200, color: "rgba(168, 85, 247, 0.03)", speed: -0.8 },
+      { x: 50, y: 80, size: 320, color: "rgba(99, 102, 241, 0.025)", speed: 0.6 },
+    ],
+    []
+  );
+
   return (
-    <div className="wizard-bg wizard-grain flex h-dvh flex-col overflow-hidden">
+    <div className="wizard-bg wizard-grain flex h-dvh flex-col overflow-hidden relative">
+      {/* Parallax background orbs */}
+      {orbs.map((orb, i) => (
+        <motion.div
+          key={i}
+          className="pointer-events-none absolute rounded-full"
+          style={{
+            width: orb.size,
+            height: orb.size,
+            background: `radial-gradient(circle, ${orb.color} 0%, transparent 70%)`,
+            left: `${orb.x}%`,
+            top: `${orb.y}%`,
+            transform: "translate(-50%, -50%)",
+          }}
+          animate={{
+            x: progress * orb.speed * 60,
+            y: progress * orb.speed * -40,
+          }}
+          transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+        />
+      ))}
+
       {showProgressBar && <ProgressBar />}
 
       <main
         id="main"
-        className="flex flex-1 items-center justify-center overflow-hidden p-6"
+        className="flex flex-1 items-center justify-center overflow-hidden p-6 relative z-10"
       >
         <div className="w-full" style={{ maxWidth: 640 }}>
           <AnimatePresence mode="wait" custom={direction}>

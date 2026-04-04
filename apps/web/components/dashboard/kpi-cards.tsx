@@ -1,15 +1,10 @@
 "use client";
 
 import { Activity, Pencil } from "lucide-react";
+import { motion } from "motion/react";
 
+import { NumberTicker } from "@/components/ui/number-ticker";
 import type { KPI } from "@/lib/mock-data";
-import { formatCurrency,formatNumber } from "@/lib/mock-data";
-
-function formatValue(kpi: KPI): string {
-  if (kpi.format === "currency") return `${kpi.prefix ?? ""}${formatCurrency(kpi.value)}`;
-  if (kpi.format === "multiplier") return `${kpi.value}${kpi.suffix ?? ""}`;
-  return `${kpi.prefix ?? ""}${formatNumber(kpi.value)}${kpi.suffix ?? ""}`;
-}
 
 export function KPICards({
   kpis,
@@ -22,15 +17,20 @@ export function KPICards({
 }) {
   return (
     <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0 lg:grid-cols-5">
-      {kpis.map((kpi) => {
+      {kpis.map((kpi, index) => {
         const selected = kpi.id === selectedId;
         return (
-          <button
+          <motion.button
             key={kpi.id}
             onClick={() => onSelect(kpi.id)}
-            className={`group relative min-w-[140px] shrink-0 sm:min-w-0 sm:shrink rounded-[var(--doost-radius-card)] p-4 text-left transition-all focus-visible:ring-2 focus-visible:ring-[var(--doost-bg-active)] focus-visible:outline-none ${
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: index * 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
+            whileHover={{ y: -2, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
+            whileTap={{ scale: 0.98 }}
+            className={`doost-glow-border group relative min-w-[140px] shrink-0 sm:min-w-0 sm:shrink rounded-[var(--doost-radius-card)] p-4 text-left transition-[ring,background] duration-200 focus-visible:ring-2 focus-visible:ring-[var(--doost-bg-active)] focus-visible:outline-none ${
               selected
-                ? "bg-[var(--doost-bg)] ring-2 ring-[var(--doost-bg-active)] shadow-md"
+                ? "active bg-[var(--doost-bg)] ring-2 ring-[var(--doost-bg-active)] shadow-md"
                 : "bg-[var(--doost-bg)] hover:ring-1 hover:ring-[var(--doost-border)]"
             }`}
             style={{ border: selected ? "none" : `1px solid var(--doost-border)` }}
@@ -46,7 +46,14 @@ export function KPICards({
             {/* Value */}
             <div className="mt-2 flex items-baseline gap-2">
               <span className="text-[28px] font-bold leading-none text-[var(--doost-text)]">
-                {formatValue(kpi)}
+                {kpi.prefix ?? ""}
+                <NumberTicker
+                  value={kpi.value}
+                  delay={index * 0.1}
+                  decimalPlaces={kpi.format === "multiplier" ? 1 : 0}
+                  className="text-[28px] font-bold leading-none text-[var(--doost-text)]"
+                />
+                {kpi.suffix ?? ""}
               </span>
               {/* Change badge */}
               <span
@@ -67,7 +74,7 @@ export function KPICards({
             {selected && (
               <Pencil className="absolute right-3 top-3 h-3.5 w-3.5 text-[var(--doost-text-muted)]" />
             )}
-          </button>
+          </motion.button>
         );
       })}
     </div>

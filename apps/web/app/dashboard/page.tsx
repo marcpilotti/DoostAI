@@ -33,7 +33,7 @@ export default function DashboardPage() {
 
     return (
       <div className="flex h-full min-h-[60vh] flex-col items-center justify-center p-6">
-        <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)]">
+        <div className="w-full max-w-sm rounded-2xl bg-[var(--doost-bg)] p-6 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)]">
           <h1 className="mb-1 text-[16px] font-semibold text-[var(--doost-text)]">
             Kom igång med Doost AI
           </h1>

@@ -10,7 +10,7 @@ import { useWizardStore } from "@/lib/stores/wizard-store";
 type PublishState = "choose" | "self-connect" | "managed-confirm" | "publishing" | "done";
 
 export function ReviewPublishSlide() {
-  const { brand, ads, budget, targeting, selectedPlatforms, projections, setPublishMode } =
+  const { brand, ads, budget, targeting, selectedPlatforms, projections, setPublishMode, goToStep } =
     useWizardStore();
   const [publishState, setPublishState] = useState<PublishState>("choose");
   const [publishError, setPublishError] = useState("");
@@ -54,13 +54,37 @@ export function ReviewPublishSlide() {
 
         setPublishState("done");
 
-        // Confetti!
+        // Platform-themed confetti
+        const platformColors: Record<string, string[]> = {
+          meta: ["#1877F2", "#42B72A", "#E4E6EB", "#1877F2"],
+          google: ["#4285F4", "#34A853", "#FBBC05", "#EA4335"],
+          linkedin: ["#0A66C2", "#86C5F2", "#FFFFFF", "#0A66C2"],
+        };
+        const colors = selectedPlatforms.length === 1
+          ? platformColors[selectedPlatforms[0]!] ?? ["#6366F1", "#A5B4FC", "#22C55E", "#F59E0B"]
+          : ["#6366F1", "#A5B4FC", "#22C55E", "#F59E0B"];
+
         confetti({
-          particleCount: 100,
-          spread: 70,
+          particleCount: 120,
+          spread: 80,
           origin: { y: 0.6 },
-          colors: ["#6366F1", "#A5B4FC", "#22C55E", "#F59E0B"],
+          colors,
         });
+        // Second burst for extra celebration
+        setTimeout(() => {
+          confetti({
+            particleCount: 60,
+            spread: 100,
+            origin: { y: 0.5, x: 0.3 },
+            colors,
+          });
+          confetti({
+            particleCount: 60,
+            spread: 100,
+            origin: { y: 0.5, x: 0.7 },
+            colors,
+          });
+        }, 300);
       } catch (err) {
         setPublishError(err instanceof Error ? err.message : "Något gick fel");
         setPublishState("choose");
@@ -205,7 +229,7 @@ export function ReviewPublishSlide() {
             {brand?.name?.charAt(0) || "D"}
           </div>
         )}
-        <div>
+        <div className="flex-1">
           <h3 className="text-text-h3" style={{ color: "var(--color-text-primary)" }}>
             {brand?.name}
           </h3>
@@ -217,6 +241,34 @@ export function ReviewPublishSlide() {
           </p>
         </div>
       </motion.div>
+
+      {/* Quick-edit row */}
+      <div className="flex flex-wrap gap-2">
+        {([
+          { label: "Varumärke", step: "brand" as const },
+          { label: "Annonser", step: "ads" as const },
+          { label: "Budget", step: "budget" as const },
+          { label: "Målgrupp", step: "targeting" as const },
+        ] as const).map((item) => (
+          <motion.button
+            key={item.step}
+            onClick={() => goToStep(item.step)}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            transition={{ type: "spring", damping: 20, stiffness: 300 }}
+            className="text-text-caption font-medium"
+            style={{
+              padding: "6px 14px",
+              borderRadius: "var(--radius-full)",
+              border: "1px solid var(--color-border-default)",
+              color: "var(--color-text-secondary)",
+              background: "transparent",
+            }}
+          >
+            Ändra {item.label.toLowerCase()}
+          </motion.button>
+        ))}
+      </div>
 
       {publishError && (
         <motion.div

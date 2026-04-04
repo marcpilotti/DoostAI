@@ -8,6 +8,7 @@ import { useAIPanelStore } from "@/lib/stores/ai-panel";
 
 import { AIPanel } from "./ai-panel";
 import { Breadcrumbs } from "./breadcrumbs";
+import { PageTransition } from "./page-transition";
 import { Sidebar } from "./sidebar";
 import { TopBar } from "./top-bar";
 
@@ -55,7 +56,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         <div className="flex flex-1 overflow-hidden">
           <main id="main" className="flex-1 overflow-y-auto">
             <Breadcrumbs />
-            {children}
+            <PageTransition>{children}</PageTransition>
           </main>
           <AIPanel open={aiPanelOpen} onClose={() => setAIPanelOpen(false)} />
         </div>
