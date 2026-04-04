@@ -7,9 +7,6 @@ import { transitions } from "@/lib/motion";
 import type { AdCreative } from "@/lib/stores/wizard-store";
 import { useWizardStore } from "@/lib/stores/wizard-store";
 
-import { AdPreviewBrand } from "./AdPreviewBrand";
-import { AdPreviewHero } from "./AdPreviewHero";
-
 type AdEditModalProps = {
   adId: string | null;
   onClose: () => void;
@@ -56,31 +53,7 @@ export function AdEditModal({ adId, onClose }: AdEditModalProps) {
   }, []);
 
   const previewImageUrl = customImageUrl ?? ad?.imageUrl ?? undefined;
-
-  const renderPreview = (data: { headline: string; bodyCopy: string; cta: string }, template: AdCreative["template"]) =>
-    template === "brand" ? (
-      <AdPreviewBrand
-        headline={data.headline || "Headline"}
-        bodyCopy={data.bodyCopy || "Body"}
-        cta={data.cta || "CTA"}
-        brandName={brand?.name || ""}
-        logoUrl={brand?.logoUrl}
-        primaryColor={brand?.colors.primary || "#6366F1"}
-        secondaryColor={brand?.colors.secondary}
-        accentColor={brand?.colors.accent}
-      />
-    ) : (
-      <AdPreviewHero
-        headline={data.headline || "Headline"}
-        bodyCopy={data.bodyCopy || "Body"}
-        cta={data.cta || "CTA"}
-        brandName={brand?.name || ""}
-        logoUrl={brand?.logoUrl}
-        imageUrl={previewImageUrl}
-        primaryColor={brand?.colors.primary || "#6366F1"}
-        secondaryColor={brand?.colors.secondary}
-      />
-    );
+  const primaryColor = brand?.colors.primary || "#6366F1";
 
   return (
     <AnimatePresence>
@@ -127,9 +100,33 @@ export function AdEditModal({ adId, onClose }: AdEditModalProps) {
                 ✕
               </motion.button>
 
-              {/* Live preview */}
-              <div className="flex-1 overflow-hidden" style={{ borderRadius: 14, minHeight: 260, aspectRatio: "4/5" }}>
-                {renderPreview(form, ad.template)}
+              {/* Live preview — same reel style as AdViewSlide */}
+              <div className="flex-1 overflow-hidden" style={{ borderRadius: 14, aspectRatio: "4/5", position: "relative" }}>
+                {previewImageUrl ? (
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={previewImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                    <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${primaryColor}E0 0%, ${primaryColor}60 35%, transparent 70%)` }} />
+                  </>
+                ) : (
+                  <div className="absolute inset-0" style={{ background: `linear-gradient(145deg, ${primaryColor} 0%, ${primaryColor}CC 100%)` }}>
+                    <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }} />
+                  </div>
+                )}
+                <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-1.5 p-5">
+                  <span className="text-[8px] font-semibold uppercase tracking-[0.12em]" style={{ color: "rgba(255,255,255,0.5)" }}>
+                    {brand?.name}
+                  </span>
+                  <h3 className="text-[16px] font-extrabold leading-tight" style={{ color: "#fff" }}>
+                    {form.headline || "Headline"}
+                  </h3>
+                  <p className="text-[11px] leading-relaxed line-clamp-2" style={{ color: "rgba(255,255,255,0.75)" }}>
+                    {form.bodyCopy || "Body"}
+                  </p>
+                  <span className="mt-1 inline-flex self-start items-center gap-1 rounded-lg px-3 py-1.5 text-[11px] font-bold" style={{ background: "rgba(255,255,255,0.9)", color: primaryColor }}>
+                    {form.cta || "CTA"} →
+                  </span>
+                </div>
               </div>
 
               {/* Form */}
@@ -138,7 +135,6 @@ export function AdEditModal({ adId, onClose }: AdEditModalProps) {
                   Redigera annons
                 </h3>
 
-                {/* Headline */}
                 <div>
                   <label className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Headline</label>
                   <input
@@ -150,7 +146,6 @@ export function AdEditModal({ adId, onClose }: AdEditModalProps) {
                   />
                 </div>
 
-                {/* Body */}
                 <div>
                   <label className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Brödtext</label>
                   <textarea
@@ -162,7 +157,6 @@ export function AdEditModal({ adId, onClose }: AdEditModalProps) {
                   />
                 </div>
 
-                {/* CTA */}
                 <div>
                   <label className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>CTA</label>
                   <input
@@ -173,7 +167,6 @@ export function AdEditModal({ adId, onClose }: AdEditModalProps) {
                   />
                 </div>
 
-                {/* Background image upload */}
                 <div>
                   <label className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Bakgrundsbild</label>
                   <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
@@ -194,7 +187,6 @@ export function AdEditModal({ adId, onClose }: AdEditModalProps) {
                   </motion.button>
                 </div>
 
-                {/* Actions */}
                 <div className="mt-auto flex justify-end gap-2 pt-1">
                   <motion.button onClick={onClose} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="ghost-back" style={{ padding: "7px 16px", fontSize: 12 }}>
                     Avbryt
