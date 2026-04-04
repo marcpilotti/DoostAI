@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
 import { cardVariants, listItemVariants,transitions } from "@/lib/motion";
@@ -11,16 +11,39 @@ export function BrandCardSlide() {
   const { brand, setBrand, setFooterAction } = useWizardStore();
   const { handleNext } = useWizardNavigation();
   const [isEditing, setIsEditing] = useState(false);
+  const [logoUploading, setLogoUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setFooterAction(() => handleNext());
     return () => setFooterAction(null);
   }, [handleNext, setFooterAction]);
 
+  const handleLogoUpload = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file || !brand) return;
+
+      setLogoUploading(true);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setBrand({ ...brand, logoUrl: reader.result as string });
+        setLogoUploading(false);
+      };
+      reader.onerror = () => setLogoUploading(false);
+      reader.readAsDataURL(file);
+    },
+    [brand, setBrand],
+  );
+
   if (!brand) return null;
 
   const handleFieldChange = (field: string, value: string) => {
     setBrand({ ...brand, [field]: value });
+  };
+
+  const handleFontChange = (type: "heading" | "body", value: string) => {
+    setBrand({ ...brand, fonts: { heading: brand.fonts?.heading || "", body: brand.fonts?.body || "", [type]: value } });
   };
 
   return (
@@ -67,24 +90,49 @@ export function BrandCardSlide() {
       >
         {/* Header: logo + name + industry */}
         <motion.div variants={listItemVariants} className="flex items-start gap-4">
-          {brand.logoUrl ? (
-            <img
-              src={brand.logoUrl}
-              alt={brand.name}
-              className="h-14 w-14 rounded-lg object-contain"
-              style={{ background: "var(--color-bg-raised)" }}
-            />
-          ) : (
-            <div
-              className="flex h-14 w-14 items-center justify-center rounded-lg text-xl font-bold"
-              style={{
-                background: "var(--color-bg-raised)",
-                color: "var(--color-text-primary)",
-              }}
-            >
-              {brand.name.charAt(0)}
-            </div>
-          )}
+          {/* Logo — clickable to upload */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleLogoUpload}
+          />
+          <motion.button
+            onClick={() => fileInputRef.current?.click()}
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ type: "spring", damping: 20, stiffness: 300 }}
+            className="group relative h-14 w-14 shrink-0 overflow-hidden rounded-lg"
+            style={{ background: "var(--color-bg-raised)" }}
+            title="Klicka för att ladda upp logotyp"
+          >
+            {logoUploading ? (
+              <div className="flex h-full w-full items-center justify-center">
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" style={{ color: "var(--color-primary)" }} />
+              </div>
+            ) : brand.logoUrl ? (
+              <>
+                <img
+                  src={brand.logoUrl}
+                  alt={brand.name}
+                  className="h-full w-full object-contain"
+                />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+                  <span className="text-[10px] font-medium text-white">Byt</span>
+                </div>
+              </>
+            ) : (
+              <div className="flex h-full w-full flex-col items-center justify-center gap-0.5">
+                <span className="text-xl font-bold" style={{ color: "var(--color-text-primary)" }}>
+                  {brand.name.charAt(0)}
+                </span>
+                <span className="text-[7px] font-medium opacity-0 transition-opacity group-hover:opacity-100" style={{ color: "var(--color-text-muted)" }}>
+                  Ladda upp
+                </span>
+              </div>
+            )}
+          </motion.button>
           <div className="flex-1">
             {isEditing ? (
               <input
@@ -149,6 +197,85 @@ export function BrandCardSlide() {
                 }}
               />
             ) : null
+          )}
+        </motion.div>
+
+        {/* Fonts */}
+        <motion.div variants={listItemVariants} className="mt-4">
+          <span className="text-text-caption uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
+            Typsnitt
+          </span>
+          {isEditing ? (
+            <div className="mt-1.5 flex gap-2">
+              <div className="flex-1">
+                <label className="mb-0.5 block text-[9px] font-medium" style={{ color: "var(--color-text-muted)" }}>Rubrik</label>
+                <input
+                  value={brand.fonts?.heading || ""}
+                  onChange={(e) => handleFontChange("heading", e.target.value)}
+                  placeholder="t.ex. Inter"
+                  className="w-full bg-transparent text-text-body-sm outline-none"
+                  style={{
+                    color: "var(--color-text-primary)",
+                    borderBottom: "1px solid var(--color-border-focus)",
+                    padding: "4px 0",
+                  }}
+                />
+              </div>
+              <div className="flex-1">
+                <label className="mb-0.5 block text-[9px] font-medium" style={{ color: "var(--color-text-muted)" }}>Brödtext</label>
+                <input
+                  value={brand.fonts?.body || ""}
+                  onChange={(e) => handleFontChange("body", e.target.value)}
+                  placeholder="t.ex. Inter"
+                  className="w-full bg-transparent text-text-body-sm outline-none"
+                  style={{
+                    color: "var(--color-text-primary)",
+                    borderBottom: "1px solid var(--color-border-focus)",
+                    padding: "4px 0",
+                  }}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="mt-1.5 flex gap-3">
+              {brand.fonts?.heading && (
+                <div className="flex items-center gap-2">
+                  <span
+                    className="text-[18px] font-bold leading-none"
+                    style={{ color: "var(--color-text-primary)" }}
+                  >
+                    Aa
+                  </span>
+                  <div>
+                    <p className="text-[11px] font-medium" style={{ color: "var(--color-text-primary)" }}>
+                      {brand.fonts.heading}
+                    </p>
+                    <p className="text-[9px]" style={{ color: "var(--color-text-muted)" }}>Rubrik</p>
+                  </div>
+                </div>
+              )}
+              {brand.fonts?.body && brand.fonts.body !== brand.fonts?.heading && (
+                <div className="flex items-center gap-2">
+                  <span
+                    className="text-[18px] leading-none"
+                    style={{ color: "var(--color-text-secondary)" }}
+                  >
+                    Aa
+                  </span>
+                  <div>
+                    <p className="text-[11px] font-medium" style={{ color: "var(--color-text-primary)" }}>
+                      {brand.fonts.body}
+                    </p>
+                    <p className="text-[9px]" style={{ color: "var(--color-text-muted)" }}>Brödtext</p>
+                  </div>
+                </div>
+              )}
+              {!brand.fonts?.heading && !brand.fonts?.body && (
+                <p className="text-[11px] italic" style={{ color: "var(--color-text-muted)" }}>
+                  Inga typsnitt hittades — klicka Redigera för att lägga till
+                </p>
+              )}
+            </div>
           )}
         </motion.div>
 
