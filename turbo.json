@@ -33,7 +33,10 @@
         "GOOGLE_ADS_DEVELOPER_TOKEN",
         "BRANDFETCH_API_KEY",
         "LOGO_DEV_TOKEN",
-        "LINKEDIN_MOCK"
+        "LINKEDIN_MOCK",
+        "FAL_KEY",
+        "UPSTASH_REDIS_REST_URL",
+        "UPSTASH_REDIS_REST_TOKEN"
       ]
     },
     "dev": {
