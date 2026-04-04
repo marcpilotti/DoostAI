@@ -46,7 +46,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             <Menu className="h-5 w-5" />
           </button>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.svg" alt="Doost AI" className="h-5" />
+          <img src="/logo.png" alt="Doost AI" className="h-5" />
         </div>
 
         <div className="hidden md:block">
