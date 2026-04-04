@@ -7,10 +7,10 @@ import { transitions } from "@/lib/motion";
 import { useWizardStore } from "@/lib/stores/wizard-store";
 
 const PHASES = [
-  { label: "Hämtar din webbplats...", detail: "Läser innehåll och struktur" },
-  { label: "Analyserar varumärke...", detail: "Färger, typsnitt och logotyp" },
-  { label: "Identifierar målgrupp...", detail: "Bransch och konkurrenter" },
-  { label: "Bygger din profil...", detail: "Skapar din varumärkesprofil" },
+  "Hämtar din webbplats...",
+  "Analyserar varumärke...",
+  "Identifierar målgrupp...",
+  "Bygger din profil...",
 ];
 
 const PARTICLE_COUNT = 6;
@@ -39,7 +39,6 @@ export function LoadingSlide() {
     return () => clearInterval(interval);
   }, []);
 
-  // Brand colors extracted so far (show as they come in)
   const colors = brand?.colors
     ? Object.values(brand.colors).filter(Boolean)
     : [];
@@ -138,64 +137,18 @@ export function LoadingSlide() {
         </motion.div>
       )}
 
-      {/* Phase steps */}
-      <div className="flex flex-col items-start gap-2 w-56">
-        {PHASES.map((phase, i) => {
-          const isDone = i < phaseIndex;
-          const isCurrent = i === phaseIndex;
-          return (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, x: -12 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.15, ...transitions.spring }}
-              className="flex items-center gap-3 w-full"
-            >
-              {/* Step indicator */}
-              <motion.div
-                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold"
-                style={{
-                  background: isDone
-                    ? "var(--color-success)"
-                    : isCurrent
-                      ? "var(--color-primary)"
-                      : "var(--color-bg-raised)",
-                  color: isDone || isCurrent ? "#fff" : "var(--color-text-muted)",
-                }}
-                animate={isCurrent ? { scale: [1, 1.15, 1] } : {}}
-                transition={isCurrent ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" } : {}}
-              >
-                {isDone ? "\u2713" : i + 1}
-              </motion.div>
-
-              <div className="flex-1 min-w-0">
-                <p
-                  className="text-[13px] font-medium truncate"
-                  style={{
-                    color: isCurrent
-                      ? "var(--color-text-primary)"
-                      : isDone
-                        ? "var(--color-text-secondary)"
-                        : "var(--color-text-muted)",
-                  }}
-                >
-                  {phase.label}
-                </p>
-                {isCurrent && (
-                  <motion.p
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    className="text-[11px] truncate"
-                    style={{ color: "var(--color-text-muted)" }}
-                  >
-                    {phase.detail}
-                  </motion.p>
-                )}
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
+      {/* Phase text */}
+      <motion.p
+        key={phaseIndex}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -8 }}
+        transition={transitions.spring}
+        className="text-text-body"
+        style={{ color: "var(--color-text-secondary)" }}
+      >
+        {PHASES[phaseIndex]}
+      </motion.p>
     </div>
   );
 }
