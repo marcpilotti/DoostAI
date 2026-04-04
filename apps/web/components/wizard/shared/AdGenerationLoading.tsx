@@ -1,21 +1,18 @@
 "use client";
 
 /**
- * AdGenerationLoading — engaging loading state during ad generation.
+ * AdGenerationLoading — loading state during ad generation.
  *
- * Shows a progress bar, step checklist with animated checkmarks,
- * rotating sub-messages, and brand identity elements.
- * Never feels "stuck" — always something moving.
+ * Progress bar is driven by step completion, not elapsed time.
+ * No rotating sub-text — just the checklist and bar.
  */
 
 import { Check } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 
 import { transitions } from "@/lib/motion";
 import type { BrandProfile } from "@/lib/stores/wizard-store";
-
-// ── Steps shown as a checklist ──────────────────────────────────
 
 const STEPS = [
   { label: "Analyserar din målgrupp", duration: 2500 },
@@ -25,15 +22,6 @@ const STEPS = [
   { label: "Slutjusterar", duration: 2500 },
 ];
 
-// Sub-messages that rotate while on each step — keeps it alive
-const SUB_MESSAGES: Record<number, string[]> = {
-  0: ["Kollar din bransch...", "Kartlägger konkurrenter...", "Identifierar nyckelord..."],
-  1: ["Testar olika hooks...", "Optimerar rubrik...", "Skapar CTA..."],
-  2: ["Bygger bakgrund med AI...", "Verifierar bildkvalitet...", "Renderar i rätt format..."],
-  3: ["Instagram — klar", "Facebook — klar", "Google — klar"],
-  4: ["Polerar detaljerna...", "Allt ser bra ut!", "Snart redo..."],
-};
-
 const PARTICLE_COUNT = 6;
 
 type Props = {
@@ -42,10 +30,6 @@ type Props = {
 
 export function AdGenerationLoading({ brand }: Props) {
   const [stepIndex, setStepIndex] = useState(0);
-  const [subIndex, setSubIndex] = useState(0);
-  const [elapsed, setElapsed] = useState(0);
-
-  const totalDuration = STEPS.reduce((sum, s) => sum + s.duration, 0);
 
   const particles = useMemo(
     () =>
@@ -60,36 +44,21 @@ export function AdGenerationLoading({ brand }: Props) {
     [],
   );
 
-  // Advance steps
+  // Advance steps based on their individual durations
   useEffect(() => {
     if (stepIndex >= STEPS.length) return;
     const step = STEPS[stepIndex];
     if (!step) return;
     const timer = setTimeout(() => {
       setStepIndex((i) => Math.min(i + 1, STEPS.length));
-      setSubIndex(0);
     }, step.duration);
     return () => clearTimeout(timer);
   }, [stepIndex]);
 
-  // Rotate sub-messages within current step
-  useEffect(() => {
-    if (stepIndex >= STEPS.length) return;
-    const interval = setInterval(() => {
-      const msgs = SUB_MESSAGES[stepIndex] ?? [];
-      setSubIndex((i) => (i + 1) % Math.max(msgs.length, 1));
-    }, 1200);
-    return () => clearInterval(interval);
-  }, [stepIndex]);
-
-  // Track elapsed for progress bar
-  useEffect(() => {
-    const interval = setInterval(() => setElapsed((e) => e + 100), 100);
-    return () => clearInterval(interval);
-  }, []);
-
-  const progress = Math.min((elapsed / totalDuration) * 100, stepIndex >= STEPS.length ? 100 : 95);
-  const currentSub = (SUB_MESSAGES[stepIndex] ?? SUB_MESSAGES[4]!)[subIndex % (SUB_MESSAGES[stepIndex]?.length ?? 1)] ?? "";
+  // Progress bar tied to completed steps (not elapsed time)
+  const progress = stepIndex >= STEPS.length
+    ? 100
+    : (stepIndex / STEPS.length) * 100;
 
   const colors = brand?.colors
     ? Object.values(brand.colors).filter(Boolean)
@@ -164,14 +133,14 @@ export function AdGenerationLoading({ brand }: Props) {
         </motion.div>
       )}
 
-      {/* Progress bar */}
+      {/* Progress bar — driven by step completion */}
       <div className="w-56">
         <div className="h-1 overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
           <motion.div
             className="h-full rounded-full"
             style={{ background: brand?.colors.primary || "var(--color-primary)" }}
             animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
           />
         </div>
       </div>
@@ -219,21 +188,6 @@ export function AdGenerationLoading({ brand }: Props) {
           );
         })}
       </div>
-
-      {/* Rotating sub-message — always moving */}
-      <AnimatePresence mode="wait">
-        <motion.p
-          key={`${stepIndex}-${subIndex}`}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 0.6, y: 0 }}
-          exit={{ opacity: 0, y: -6 }}
-          transition={{ duration: 0.2 }}
-          className="text-[13px]"
-          style={{ color: "var(--color-text-muted)" }}
-        >
-          {currentSub}
-        </motion.p>
-      </AnimatePresence>
     </div>
   );
 }
