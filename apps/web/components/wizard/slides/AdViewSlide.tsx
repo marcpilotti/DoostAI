@@ -622,12 +622,7 @@ export function AdViewSlide() {
       <div>
         <div className="flex items-center justify-between">
           <h2 className="text-text-h1" style={{ color: "var(--color-text-primary)" }}>Dina annonser</h2>
-          <motion.button onClick={handleRegenerate} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-            className="flex items-center gap-1 text-[11px] font-medium" style={{ color: "var(--color-text-secondary)" }}>
-            <RefreshCw className="h-3 w-3" />Generera om
-          </motion.button>
         </div>
-{/* subtitle removed */}
       </div>
 
       {/* Platform tab switcher */}
