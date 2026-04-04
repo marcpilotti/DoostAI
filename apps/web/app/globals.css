@@ -170,75 +170,76 @@
    WIZARD — AI presence effects (DESIGN_REFERENCE.md)
    ═══════════════════════════════════════════════════════════ */
 
-/* CTA primary button — premium glassmorphism style */
+/* CTA primary button — motion-inspired magnetic button */
 .cta-primary {
   position: relative;
-  background: linear-gradient(135deg, var(--color-primary) 0%, #818cf8 100%);
-  color: #fff;
+  background: #fff;
+  color: #0a0a0f;
   font-family: var(--font-display, inherit);
   font-size: 14px;
   font-weight: 600;
-  letter-spacing: 0.01em;
-  padding: 11px 28px;
-  border-radius: 12px;
+  letter-spacing: -0.01em;
+  padding: 12px 32px;
+  border-radius: 50px;
   border: none;
   cursor: pointer;
-  box-shadow:
-    0 0 20px rgba(99, 102, 241, 0.25),
-    0 1px 2px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  transition: all 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.1), 0 2px 8px rgba(0,0,0,0.2);
+  transition: all 350ms cubic-bezier(0.2, 0.8, 0.2, 1);
   overflow: hidden;
+  isolation: isolate;
 }
 .cta-primary::before {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: -1px;
   border-radius: inherit;
-  background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 50%);
-  pointer-events: none;
+  background: linear-gradient(135deg, rgba(99,102,241,0.5), rgba(168,85,247,0.5), rgba(236,72,153,0.3));
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 350ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .cta-primary:hover {
-  box-shadow:
-    0 0 32px rgba(99, 102, 241, 0.4),
-    0 4px 12px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  transform: translateY(-1px);
+  background: #fff;
+  color: #0a0a0f;
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.2), 0 8px 24px rgba(99,102,241,0.25), 0 2px 8px rgba(0,0,0,0.15);
+}
+.cta-primary:hover::before {
+  opacity: 1;
 }
 .cta-primary:active {
-  transform: translateY(0) scale(0.98);
-  box-shadow:
-    0 0 16px rgba(99, 102, 241, 0.2),
-    0 1px 2px rgba(0, 0, 0, 0.2);
+  transform: translateY(0) scale(0.97);
+  transition-duration: 100ms;
 }
 .cta-primary:disabled {
-  opacity: 0.4;
+  opacity: 0.3;
   cursor: not-allowed;
   box-shadow: none;
   transform: none;
 }
 
-/* Ghost back button — subtle, blends with dark bg */
+/* Ghost back button — invisible until hovered */
 .ghost-back {
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--color-text-muted);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.4);
   font-size: 13px;
   font-weight: 500;
-  padding: 10px 20px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 12px 24px;
+  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   cursor: pointer;
-  transition: all 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  backdrop-filter: blur(8px);
+  transition: all 350ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .ghost-back:hover {
-  color: var(--color-text-primary);
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 .ghost-back:active {
-  transform: translateY(0) scale(0.98);
+  transform: translateY(0) scale(0.97);
+  transition-duration: 100ms;
 }
 
 /* URL input — focus ring per DESIGN_REFERENCE */
