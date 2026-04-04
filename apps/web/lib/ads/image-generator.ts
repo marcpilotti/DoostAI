@@ -19,14 +19,10 @@ function ensureConfig() {
 }
 
 function buildPrompt(industry: string, description: string, brandName: string): string {
-  const base = `Professional advertising photography, modern and clean, high quality commercial photo`;
   const context = industry
-    ? `for a ${industry} business called ${brandName}`
+    ? `for a ${industry} business`
     : `for a business called ${brandName}`;
-  const hint = description
-    ? `, showing ${description.slice(0, 100)}`
-    : "";
-  return `${base} ${context}${hint}. Soft natural lighting, shallow depth of field, no text, no logos, no people's faces, editorial style, 4K quality`;
+  return `Clean advertising background image ${context}. ${description ? description.slice(0, 80) + "." : ""} Abstract, atmospheric, premium feel. Soft gradients, bokeh lights, subtle textures. ABSOLUTELY NO TEXT, NO WORDS, NO LETTERS, NO LOGOS, NO WATERMARKS. No people. Just a beautiful abstract background suitable for overlaying text on top. 4K quality, shallow depth of field.`;
 }
 
 export async function generateAdImage(params: {
@@ -45,11 +41,13 @@ export async function generateAdImage(params: {
   console.log("[fal.ai] Generating image for:", params.brandName, "industry:", params.industry);
 
   try {
-    const result = await fal.subscribe("fal-ai/flux/schnell", {
+    const result = await fal.subscribe("fal-ai/flux/dev", {
       input: {
         prompt,
         image_size: "square_hd",
         num_images: 1,
+        num_inference_steps: 28,
+        guidance_scale: 3.5,
         enable_safety_checker: true,
       },
       pollInterval: 1000,
