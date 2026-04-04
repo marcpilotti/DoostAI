@@ -483,26 +483,22 @@ function AdMockupCard({ ad, brand, label, index, selected, platform, onToggle, o
 function PlatformTabSwitcher({ active, onChange, brandColor }: { active: Platform; onChange: (p: Platform) => void; brandColor: string }) {
   const platforms: Platform[] = ["instagram", "facebook", "google", "linkedin"];
   return (
-    <div className="flex flex-col items-center gap-1">
-      <div className="-mx-2 flex items-center gap-1.5 overflow-x-auto px-2 pb-1 scrollbar-none md:gap-1 md:overflow-visible">
-        {platforms.map((p) => {
-          const Icon = PLATFORM_ICONS[p];
-          const isActive = active === p;
-          return (
-            <motion.button key={p} onClick={() => onChange(p)} whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }}
-              className="relative flex shrink-0 items-center gap-1.5 md:justify-center"
-              style={{ padding: "6px 12px", borderRadius: 10, background: isActive ? "var(--color-bg-raised)" : "transparent", color: isActive ? "var(--color-text-primary)" : "var(--color-text-muted)", border: isActive ? "1px solid var(--color-border-default)" : "1px solid transparent" }}>
-              <Icon size={16} />
-              <span className="hidden text-[11px] font-medium md:inline">{PLATFORM_CONFIG[p].label}</span>
-              {isActive && (
-                <motion.div layoutId="platform-underline" className="absolute -bottom-1 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full"
-                  style={{ background: brandColor }} transition={transitions.snappy} />
-              )}
-            </motion.button>
-          );
-        })}
-      </div>
-      <span className="hidden text-[9px] md:block" style={{ color: "var(--color-text-muted)" }}>{PLATFORM_CONFIG[active].spec}</span>
+    <div className="flex items-center justify-center gap-1">
+      {platforms.map((p) => {
+        const Icon = PLATFORM_ICONS[p];
+        const isActive = active === p;
+        return (
+          <motion.button key={p} onClick={() => onChange(p)} whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }}
+            className="relative flex items-center justify-center"
+            style={{ width: 40, height: 40, borderRadius: 10, background: isActive ? "var(--color-bg-raised)" : "transparent", color: isActive ? "var(--color-text-primary)" : "var(--color-text-muted)", border: isActive ? "1px solid var(--color-border-default)" : "1px solid transparent" }}>
+            <Icon size={18} />
+            {isActive && (
+              <motion.div layoutId="platform-underline" className="absolute -bottom-1 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full"
+                style={{ background: brandColor }} transition={transitions.snappy} />
+            )}
+          </motion.button>
+        );
+      })}
     </div>
   );
 }
