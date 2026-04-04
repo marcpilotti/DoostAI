@@ -458,9 +458,9 @@ function AdMockupCard({ ad, brand, label, index, selected, platform, onToggle, o
   const mockupProps = { ad, brand, isRegenerating, onUpdate: handleUpdate };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: index * 0.15 }}
-      className="flex min-w-[260px] flex-1 snap-center flex-col items-center gap-3">
+    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: index * 0.15 }}
+      className="flex w-full min-w-full flex-shrink-0 snap-center flex-col items-center gap-3 md:min-w-[260px] md:w-auto md:flex-1">
       {/* Select toggle + angle label */}
       <div className="flex items-center gap-2">
         <motion.button onClick={onToggle} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
@@ -502,15 +502,16 @@ function PlatformTabSwitcher({ active, onChange, brandColor }: { active: Platfor
   const platforms: Platform[] = ["instagram", "facebook", "google", "linkedin"];
   return (
     <div className="flex flex-col items-center gap-1">
-      <div className="flex items-center gap-1">
+      <div className="-mx-2 flex items-center gap-1.5 overflow-x-auto px-2 pb-1 scrollbar-none md:gap-1 md:overflow-visible">
         {platforms.map((p) => {
           const Icon = PLATFORM_ICONS[p];
           const isActive = active === p;
           return (
             <motion.button key={p} onClick={() => onChange(p)} whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }}
-              className="relative flex items-center justify-center"
-              style={{ width: 36, height: 36, borderRadius: 10, background: isActive ? "var(--color-bg-raised)" : "transparent", color: isActive ? "var(--color-text-primary)" : "var(--color-text-muted)", border: isActive ? "1px solid var(--color-border-default)" : "1px solid transparent" }}>
+              className="relative flex shrink-0 items-center gap-1.5 md:justify-center"
+              style={{ padding: "6px 12px", borderRadius: 10, background: isActive ? "var(--color-bg-raised)" : "transparent", color: isActive ? "var(--color-text-primary)" : "var(--color-text-muted)", border: isActive ? "1px solid var(--color-border-default)" : "1px solid transparent" }}>
               <Icon size={16} />
+              <span className="text-[11px] font-medium md:hidden">{PLATFORM_CONFIG[p].label}</span>
               {isActive && (
                 <motion.div layoutId="platform-underline" className="absolute -bottom-1 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full"
                   style={{ background: brandColor }} transition={transitions.snappy} />
@@ -614,19 +615,29 @@ export function AdViewSlide() {
       {/* A/B cards — 300ms crossfade on platform switch */}
       <AnimatePresence mode="wait">
         <motion.div key={activePlatform} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }} className="flex gap-6 overflow-x-auto pb-2 snap-x snap-mandatory md:overflow-visible">
-          {adA && (
-            <AdMockupCard ad={adA} brand={brand} label="Välj A" index={0} selected={adA.selected} platform={activePlatform}
-              onToggle={() => toggleAdSelection(adA.id)} onEdit={() => setEditingAdId(adA.id)} />
-          )}
-          {adA && adB && (
-            <div className="hidden flex-col items-center justify-center md:flex" style={{ minWidth: 1 }}>
-              <div className="h-full w-px" style={{ background: "var(--color-border-default)" }} />
-            </div>
-          )}
+          transition={{ duration: 0.3 }}>
+          {/* Mobile: horizontal snap-scroll, one card at a time */}
+          <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 scrollbar-none md:gap-6 md:overflow-visible">
+            {adA && (
+              <AdMockupCard ad={adA} brand={brand} label="Välj A" index={0} selected={adA.selected} platform={activePlatform}
+                onToggle={() => toggleAdSelection(adA.id)} onEdit={() => setEditingAdId(adA.id)} />
+            )}
+            {adA && adB && (
+              <div className="hidden flex-col items-center justify-center md:flex" style={{ minWidth: 1 }}>
+                <div className="h-full w-px" style={{ background: "var(--color-border-default)" }} />
+              </div>
+            )}
+            {adB && (
+              <AdMockupCard ad={adB} brand={brand} label="Välj B" index={1} selected={adB.selected} platform={activePlatform}
+                onToggle={() => toggleAdSelection(adB.id)} onEdit={() => setEditingAdId(adB.id)} />
+            )}
+          </div>
+          {/* Swipe dots — mobile only */}
           {adB && (
-            <AdMockupCard ad={adB} brand={brand} label="Välj B" index={1} selected={adB.selected} platform={activePlatform}
-              onToggle={() => toggleAdSelection(adB.id)} onEdit={() => setEditingAdId(adB.id)} />
+            <div className="mt-2 flex justify-center gap-1.5 md:hidden">
+              <div className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--color-text-muted)", opacity: 0.8 }} />
+              <div className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--color-text-muted)", opacity: 0.3 }} />
+            </div>
           )}
         </motion.div>
       </AnimatePresence>
