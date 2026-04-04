@@ -121,12 +121,6 @@ export function UrlInputSlide() {
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden">
-      {/* Logo top-left */}
-      <header className="absolute left-4 top-4 z-10">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png" alt="Doost AI" className="h-7" />
-      </header>
-
       {/* Centered content */}
       <motion.div
         variants={cardVariants}

@@ -58,7 +58,9 @@ export function WizardShell() {
   const { canGoBack, handleBack } = useWizardNavigation();
   const ctaRef = useRef<HTMLButtonElement>(null);
 
+  const { isGeneratingAds } = useWizardStore();
   const isTransient = step === "loading" || step === "done";
+  const isLoading = isTransient || isGeneratingAds;
   const ctaLabel = CTA_LABELS[step] || "";
   const showFooter = !isTransient && step !== "url";
 
@@ -77,6 +79,18 @@ export function WizardShell() {
 
   return (
     <div className="wizard-bg wizard-grain flex h-dvh flex-col overflow-hidden relative">
+      {/* Doost logo — top-left, hidden during loaders */}
+      {!isLoading && (
+        <motion.header
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="absolute left-4 top-4 z-20"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="Doost AI" className="h-7" />
+        </motion.header>
+      )}
+
       {/* Parallax background orbs */}
       {orbs.map((orb, i) => (
         <motion.div
