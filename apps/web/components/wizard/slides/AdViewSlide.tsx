@@ -12,8 +12,8 @@
  * - Per-variant image regeneration
  */
 
-import { AnimatePresence, motion } from "motion/react";
 import { Check, Pencil, RefreshCw } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 
 import { generateAdImage } from "@/app/actions/generate-ad-image";

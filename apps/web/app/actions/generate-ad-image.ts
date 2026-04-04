@@ -12,7 +12,7 @@
  */
 
 import type { AdData, AdFormat } from "@/components/ads/ad-preview/types";
-import { generateCompleteAdImage, type AdImageInput } from "@/lib/ads/ad-image-pipeline";
+import { type AdImageInput, generateCompleteAdImage } from "@/lib/ads/ad-image-pipeline";
 
 // ── Types ────────────────────────────────────────────────────────
 

@@ -5,7 +5,7 @@ import {
 } from "@doost/ai";
 import { z } from "zod";
 
-import { generateAdImagePair, type AdImageInput } from "@/lib/ads/ad-image-pipeline";
+import { type AdImageInput, generateAdImagePair } from "@/lib/ads/ad-image-pipeline";
 
 export const maxDuration = 90;
 

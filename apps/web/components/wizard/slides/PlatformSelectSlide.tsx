@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import { useCallback, useEffect } from "react";
 
 import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
-import { cardVariants, checkmarkVariants, listItemVariants, transitions } from "@/lib/motion";
+import { cardVariants, listItemVariants, transitions } from "@/lib/motion";
 import { type Platform, useWizardStore } from "@/lib/stores/wizard-store";
 
 type PlatformDef = {

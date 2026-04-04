@@ -6,10 +6,9 @@
  * rendering of Swedish characters (å, ä, ö) without CDN dependency.
  */
 
+import { Resvg } from "@resvg/resvg-js";
 import { readFile } from "fs/promises";
 import path from "path";
-
-import { Resvg } from "@resvg/resvg-js";
 import { type ReactElement } from "react";
 import satori from "satori";
 
