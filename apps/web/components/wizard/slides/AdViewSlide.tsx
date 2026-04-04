@@ -7,6 +7,7 @@ import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
 import { cardVariants, checkmarkVariants, transitions } from "@/lib/motion";
 import { useWizardStore } from "@/lib/stores/wizard-store";
 
+import { AdGenerationLoading } from "../shared/AdGenerationLoading";
 import { AdPreviewBrand } from "../shared/AdPreviewBrand";
 import { AdPreviewHero } from "../shared/AdPreviewHero";
 import { AnimatedReel } from "../shared/AnimatedReel";
@@ -104,20 +105,9 @@ export function AdViewSlide() {
     } catch (e) { console.error(e); } finally { useWizardStore.getState().setIsGeneratingAds(false); }
   };
 
-  // ─── LOADING ───
+  // ─── LOADING — same style as brand analysis loading ───
   if (isGeneratingAds) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-4 py-12">
-        <motion.div animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ duration: 2, repeat: Infinity }} className="text-[14px]" style={{ color: "var(--color-text-secondary)" }}>
-          Skapar dina annonser...
-        </motion.div>
-        <div className="grid grid-cols-2 gap-3" style={{ width: "100%", maxWidth: 400 }}>
-          {[0, 1].map((i) => (
-            <motion.div key={i} style={{ borderRadius: 14, aspectRatio: "1/1", background: "var(--color-bg-raised)" }} animate={{ opacity: [0.3, 0.6, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }} />
-          ))}
-        </div>
-      </div>
-    );
+    return <AdGenerationLoading brand={brand} />;
   }
 
   // ─── REVEAL ───
