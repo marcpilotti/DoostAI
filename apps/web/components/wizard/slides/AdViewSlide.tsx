@@ -28,13 +28,6 @@ import { AdGenerationLoading } from "../shared/AdGenerationLoading";
 type Platform = "instagram" | "facebook" | "google" | "linkedin";
 type BrandState = NonNullable<ReturnType<typeof useWizardStore.getState>["brand"]>;
 
-const PLATFORM_CONFIG: Record<Platform, { label: string; spec: string }> = {
-  instagram: { label: "Instagram", spec: "1080 x 1080 px" },
-  facebook: { label: "Facebook", spec: "1080 x 1350 px" },
-  google: { label: "Google Display", spec: "1200 x 628 px" },
-  linkedin: { label: "LinkedIn", spec: "1200 x 627 px" },
-};
-
 const ACTION_VERBS = ["ge", "boka", "upptäck", "välj", "starta", "få", "skapa", "hitta", "testa", "prova", "köp", "läs", "se", "hör", "ring"];
 
 function getAngleLabel(headline: string): string {
@@ -422,6 +415,35 @@ function AdMockupCard({ ad, brand, label, index, selected, platform, onToggle, o
   const { updateAd } = useWizardStore();
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [, startTransition] = useTransition();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mockupRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  // Scale mockup to fit container — never clip
+  useEffect(() => {
+    const container = containerRef.current;
+    const mockup = mockupRef.current;
+    if (!container || !mockup) return;
+    const observer = new ResizeObserver(() => {
+      const available = container.clientHeight;
+      const natural = mockup.scrollHeight;
+      if (natural > available && available > 0) {
+        setScale(Math.max(0.4, available / natural));
+      } else {
+        setScale(1);
+      }
+    });
+    observer.observe(container);
+    // Re-measure when platform changes
+    requestAnimationFrame(() => {
+      const available = container.clientHeight;
+      const natural = mockup.scrollHeight;
+      if (natural > available && available > 0) {
+        setScale(Math.max(0.4, available / natural));
+      }
+    });
+    return () => observer.disconnect();
+  }, [platform]);
 
   function handleUpdate(field: "headline" | "bodyCopy" | "cta", value: string) { updateAd(ad.id, { [field]: value }); }
 
@@ -444,7 +466,7 @@ function AdMockupCard({ ad, brand, label, index, selected, platform, onToggle, o
   return (
     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: index * 0.15 }}
-      className="flex w-full min-w-full max-w-[200px] flex-shrink-0 snap-center flex-col items-center gap-2 mx-auto md:min-w-0 md:w-auto md:max-w-[200px] md:flex-1">
+      className="flex w-full min-w-full flex-shrink-0 snap-center flex-col items-center gap-2 mx-auto md:min-w-0 md:w-auto md:flex-1">
       {/* Select toggle + angle label */}
       <div className="flex items-center gap-2">
         <motion.button onClick={onToggle} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
@@ -455,19 +477,21 @@ function AdMockupCard({ ad, brand, label, index, selected, platform, onToggle, o
         <span className="text-[10px] font-medium" style={{ color: "var(--color-text-muted)" }}>{getAngleLabel(ad.headline)}</span>
       </div>
 
-      {/* Device mockup with tilt */}
-      <motion.div initial={{ rotate: -1.5 }} whileHover={{ rotate: 0, scale: 1.02 }} transition={transitions.spring}
-        className="relative w-full cursor-pointer overflow-hidden" style={{ maxHeight: "min(calc(100dvh - 260px), 360px)" }} onClick={onEdit}>
+      {/* Device mockup — scales down to fit, never clips */}
+      <div ref={containerRef} className="relative w-full cursor-pointer" style={{ height: "calc(100dvh - 300px)", maxHeight: 420 }} onClick={onEdit}>
         {selected && (
           <div className="absolute -right-1 -top-1 z-40 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 shadow-lg">
             <Check className="h-3.5 w-3.5 text-white" />
           </div>
         )}
-        {platform === "instagram" && <InstagramMockup {...mockupProps} />}
-        {platform === "facebook" && <FacebookMockup {...mockupProps} />}
-        {platform === "google" && <GoogleMockup {...mockupProps} />}
-        {platform === "linkedin" && <LinkedInMockup {...mockupProps} />}
-      </motion.div>
+        <motion.div ref={mockupRef} initial={{ rotate: -1.5 }} whileHover={{ rotate: 0 }} transition={transitions.spring}
+          style={{ transformOrigin: "top center", transform: scale < 1 ? `scale(${scale})` : undefined, width: scale < 1 ? `${100 / scale}%` : undefined, marginLeft: scale < 1 ? `${((1 - scale) / 2) * -100 / scale}%` : undefined }}>
+          {platform === "instagram" && <InstagramMockup {...mockupProps} />}
+          {platform === "facebook" && <FacebookMockup {...mockupProps} />}
+          {platform === "google" && <GoogleMockup {...mockupProps} />}
+          {platform === "linkedin" && <LinkedInMockup {...mockupProps} />}
+        </motion.div>
+      </div>
 
       <motion.button onClick={handleRegenerate} disabled={isRegenerating} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
         className="flex items-center gap-1.5 text-[11px] font-medium disabled:opacity-40"
