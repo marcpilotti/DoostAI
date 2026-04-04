@@ -457,7 +457,7 @@ function AdMockupCard({ ad, brand, label, index, selected, platform, onToggle, o
 
       {/* Device mockup with tilt */}
       <motion.div initial={{ rotate: -1.5 }} whileHover={{ rotate: 0, scale: 1.02 }} transition={transitions.spring}
-        className="relative w-full cursor-pointer overflow-hidden" style={{ maxHeight: "min(45vh, 360px)" }} onClick={onEdit}>
+        className="relative w-full cursor-pointer overflow-hidden" style={{ maxHeight: "min(calc(100dvh - 260px), 360px)" }} onClick={onEdit}>
         {selected && (
           <div className="absolute -right-1 -top-1 z-40 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 shadow-lg">
             <Check className="h-3.5 w-3.5 text-white" />
@@ -493,7 +493,7 @@ function PlatformTabSwitcher({ active, onChange, brandColor }: { active: Platfor
               className="relative flex shrink-0 items-center gap-1.5 md:justify-center"
               style={{ padding: "6px 12px", borderRadius: 10, background: isActive ? "var(--color-bg-raised)" : "transparent", color: isActive ? "var(--color-text-primary)" : "var(--color-text-muted)", border: isActive ? "1px solid var(--color-border-default)" : "1px solid transparent" }}>
               <Icon size={16} />
-              <span className="text-[11px] font-medium md:hidden">{PLATFORM_CONFIG[p].label}</span>
+              <span className="hidden text-[11px] font-medium md:inline">{PLATFORM_CONFIG[p].label}</span>
               {isActive && (
                 <motion.div layoutId="platform-underline" className="absolute -bottom-1 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full"
                   style={{ background: brandColor }} transition={transitions.snappy} />
@@ -502,7 +502,7 @@ function PlatformTabSwitcher({ active, onChange, brandColor }: { active: Platfor
           );
         })}
       </div>
-      <span className="text-[9px]" style={{ color: "var(--color-text-muted)" }}>{PLATFORM_CONFIG[active].spec}</span>
+      <span className="hidden text-[9px] md:block" style={{ color: "var(--color-text-muted)" }}>{PLATFORM_CONFIG[active].spec}</span>
     </div>
   );
 }
