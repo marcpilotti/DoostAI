@@ -414,22 +414,6 @@ function LinkedInMockup({ ad, brand, isRegenerating, onUpdate }: {
   );
 }
 
-// ── Trust Tags ───────────────────────────────────────────────────
-
-function TrustTags({ industry }: { industry?: string }) {
-  const tags = ["Rätt format", "Svensk copy", industry ? `Anpassad till ${industry}` : null].filter(Boolean) as string[];
-  return (
-    <div className="flex flex-wrap justify-center gap-1.5">
-      {tags.map((tag) => (
-        <span key={tag} className="inline-flex items-center gap-1 rounded-full text-[11px]"
-          style={{ background: "rgba(255,255,255,0.06)", padding: "4px 10px", color: "var(--color-text-muted)" }}>
-          <span style={{ color: "#22c55e" }}>✓</span> {tag}
-        </span>
-      ))}
-    </div>
-  );
-}
-
 // ── Ad Mockup Card ───────────────────────────────────────────────
 
 function AdMockupCard({ ad, brand, label, index, selected, platform, onToggle, onEdit }: {
@@ -460,7 +444,7 @@ function AdMockupCard({ ad, brand, label, index, selected, platform, onToggle, o
   return (
     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: index * 0.15 }}
-      className="flex w-full min-w-full max-w-[280px] flex-shrink-0 snap-center flex-col items-center gap-2 mx-auto md:min-w-0 md:w-auto md:max-w-[320px] md:flex-1">
+      className="flex w-full min-w-full max-w-[240px] flex-shrink-0 snap-center flex-col items-center gap-2 mx-auto md:min-w-0 md:w-auto md:max-w-[240px] md:flex-1">
       {/* Select toggle + angle label */}
       <div className="flex items-center gap-2">
         <motion.button onClick={onToggle} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
@@ -473,7 +457,7 @@ function AdMockupCard({ ad, brand, label, index, selected, platform, onToggle, o
 
       {/* Device mockup with tilt */}
       <motion.div initial={{ rotate: -1.5 }} whileHover={{ rotate: 0, scale: 1.02 }} transition={transitions.spring}
-        className="relative w-full cursor-pointer" style={{ maxHeight: "min(55vh, 480px)" }} onClick={onEdit}>
+        className="relative w-full cursor-pointer" style={{ maxHeight: "min(50vh, 400px)" }} onClick={onEdit}>
         {selected && (
           <div className="absolute -right-1 -top-1 z-40 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 shadow-lg">
             <Check className="h-3.5 w-3.5 text-white" />
@@ -484,8 +468,6 @@ function AdMockupCard({ ad, brand, label, index, selected, platform, onToggle, o
         {platform === "google" && <GoogleMockup {...mockupProps} />}
         {platform === "linkedin" && <LinkedInMockup {...mockupProps} />}
       </motion.div>
-
-      <TrustTags industry={brand.industry} />
 
       <motion.button onClick={handleRegenerate} disabled={isRegenerating} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
         className="flex items-center gap-1.5 text-[11px] font-medium disabled:opacity-40"
@@ -606,7 +588,7 @@ export function AdViewSlide() {
             <RefreshCw className="h-3 w-3" />Generera om
           </motion.button>
         </div>
-        <p className="mt-0.5 text-[12px]" style={{ color: "var(--color-text-muted)" }}>Välj den variant du gillar bäst. Klicka för att redigera text direkt.</p>
+{/* subtitle removed */}
       </div>
 
       {/* Platform tab switcher */}
