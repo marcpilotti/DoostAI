@@ -1,21 +1,21 @@
 /**
- * Ad Image Pipeline — GPT-4o with embedded text + vision verification.
+ * Ad Image Pipeline — GPT-4o background-only image generation.
+ *
+ * Generates clean background images with NO TEXT. All text (headline,
+ * body, CTA) is rendered by the frontend CSS overlay — never baked
+ * into the image.
  *
  * Flow per variant:
- *   1. GPT-4o gpt-image-1 generates full ad image with all text embedded
- *   2. GPT-4o vision verifies brand name renders correctly (Swedish å/ä/ö)
- *   3. If verification fails, retry once
- *   4. If both attempts fail, fall back to Flux background + Satori text overlay
+ *   1. GPT-4o gpt-image-1 generates a background image (no text/logos)
+ *   2. If GPT-4o fails, fall back to Flux
+ *   3. If Flux also fails, return a gradient
  *
  * Variant A and B run in parallel via generateAdImagePair.
  */
 
 import type { AdFormat } from "@/components/ads/ad-preview/types";
-import { generateBrandGradient } from "@/lib/ads/gradients";
 import { generateAdImage as generateFluxBackground, INDUSTRY_SCENES } from "@/lib/ads/image-generator";
-import { renderAdTemplate } from "@/lib/ads/renderer";
-import { HeroTemplate } from "@/lib/ads/templates/hero";
-import { generateEmbeddedAdImage, verifyImageText } from "@/lib/providers/openai-image";
+import { generateEmbeddedAdImage } from "@/lib/providers/openai-image";
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -33,7 +33,7 @@ export type AdImageInput = {
 
 export type AdImageResult = {
   imageUrl: string;
-  method: "gpt-image" | "satori-fallback";
+  method: "gpt-image" | "flux-fallback" | "gradient-fallback";
   prompt: string;
   attempts: number;
 };
@@ -54,9 +54,9 @@ const FORMAT_COMPOSITION: Record<string, string> = {
   "linkedin": "horizontal 16:9 format, professional setting",
 };
 
-// ── Prompt builder ───────────────────────────────────────────────
+// ── Prompt builder (background only — NO TEXT) ───────────────────
 
-function buildEmbeddedTextPrompt(input: AdImageInput): string {
+function buildBackgroundPrompt(input: AdImageInput): string {
   const scene =
     INDUSTRY_SCENES[input.industry] ??
     (input.industry
@@ -64,128 +64,56 @@ function buildEmbeddedTextPrompt(input: AdImageInput): string {
       : "modern business environment");
   const composition = FORMAT_COMPOSITION[input.format] ?? "square format";
 
-  return `Create a professional advertising image for "${input.brandName}".
-
-BACKGROUND: ${scene}. Premium commercial photography, cinematic lighting, vibrant colors. Dominant color: ${input.brandColor}${input.brandAccent ? `, accent: ${input.brandAccent}` : ""}.
-
-TEXT LAYOUT (all text must be perfectly sharp and readable):
-- Top-left: brand name "${input.brandName}" in a small rounded badge
-- Center/lower area: large bold headline reading EXACTLY: "${input.headline}"
-- Below headline: body text reading EXACTLY: "${input.bodyCopy}"
-- Below body: a rounded pill-shaped CTA button in ${input.brandColor} with white text reading EXACTLY: "${input.cta}"
-
-CRITICAL RULES:
-- Render ALL text EXACTLY as specified, character for character
-- Swedish characters å, ä, ö MUST be rendered correctly — do NOT substitute with a, a, o
-- Headline text: large, bold, white with subtle shadow for contrast
-- Body text: medium weight, white semi-transparent
-- CTA button: bold white text on colored pill shape
-- ${composition}
-- No extra text, no watermarks beyond what is specified above`;
+  return `Professional advertising photograph: ${scene}. Premium commercial photography, cinematic lighting, vibrant colors. Dominant color palette: ${input.brandColor}${input.brandAccent ? ` and ${input.brandAccent}` : ""}. ${composition}. Sharp focus throughout, well-lit, 4K resolution. NO TEXT, NO WORDS, NO LETTERS, NO LOGOS, NO WATERMARKS, NO PEOPLE. Clean background suitable for text overlay.`;
 }
 
 // ── Core pipeline ────────────────────────────────────────────────
 
-const MAX_ATTEMPTS = 2;
-
 export async function generateCompleteAdImage(
   input: AdImageInput,
 ): Promise<AdImageResult | null> {
-  // Google Search has no background image
   if (input.format === "google-search") return null;
 
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey || apiKey.startsWith("sk-proj-placeholder")) {
-    console.warn("[ad-pipeline] OPENAI_API_KEY not configured, using fallback");
-    return generateSatoriFallback(input);
-  }
-
-  const prompt = buildEmbeddedTextPrompt(input);
+  const prompt = buildBackgroundPrompt(input);
   const size = FORMAT_SIZES[input.format] ?? "1024x1024";
 
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+  // Try GPT-4o first
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (apiKey && !apiKey.startsWith("sk-proj-placeholder")) {
     try {
-      console.log(`[ad-pipeline] GPT-4o attempt ${attempt}/${MAX_ATTEMPTS} for ${input.brandName}`);
-
-      const generated = await generateEmbeddedAdImage({
+      console.log(`[ad-pipeline] GPT-4o background for ${input.brandName}`);
+      const generated = await generateEmbeddedAdImage({ prompt, size, quality: "medium" });
+      return {
+        imageUrl: `data:image/png;base64,${generated.b64}`,
+        method: "gpt-image",
         prompt,
-        size,
-        quality: "medium",
-      });
-
-      // Vision verification — check brand name renders correctly
-      const verification = await verifyImageText(generated.b64, input.brandName)
-        .catch((err) => {
-          console.warn("[ad-pipeline] Vision check failed:", err instanceof Error ? err.message : err);
-          // If vision check itself errors, accept the image (don't penalize for API issues)
-          return { correct: true } as const;
-        });
-
-      if (verification.correct) {
-        console.log(`[ad-pipeline] Verified on attempt ${attempt}: ${input.brandName}`);
-        return {
-          imageUrl: `data:image/png;base64,${generated.b64}`,
-          method: "gpt-image",
-          prompt,
-          attempts: attempt,
-        };
-      }
-
-      console.warn(
-        `[ad-pipeline] Verification failed attempt ${attempt}: expected "${input.brandName}", found "${verification.foundText ?? "?"}" — ${verification.issues ?? "unknown"}`,
-      );
+        attempts: 1,
+      };
     } catch (err) {
-      console.error(`[ad-pipeline] Generation failed attempt ${attempt}:`, err instanceof Error ? err.message : err);
+      console.warn("[ad-pipeline] GPT-4o failed, trying Flux:", err instanceof Error ? err.message : err);
     }
   }
 
-  // Both GPT-4o attempts failed — fall back to Flux + Satori
-  console.log(`[ad-pipeline] Falling back to Satori for ${input.brandName}`);
-  return generateSatoriFallback(input);
-}
+  // Flux fallback
+  try {
+    const fluxResult = await generateFluxBackground({
+      industry: input.industry,
+      description: input.bodyCopy.slice(0, 80),
+      brandName: input.brandName,
+    });
+    if (fluxResult.url) {
+      return { imageUrl: fluxResult.url, method: "flux-fallback", prompt, attempts: 1 };
+    }
+  } catch {
+    // fall through to gradient
+  }
 
-// ── Satori fallback ──────────────────────────────────────────────
+  // Gradient fallback
+  const p = input.brandColor;
+  const a = input.brandAccent ?? input.brandColor;
+  const svgGradient = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080"><defs><radialGradient id="g1" cx="30%" cy="20%"><stop offset="0%" stop-color="${p}dd"/><stop offset="100%" stop-color="${a}44"/></radialGradient><radialGradient id="g2" cx="70%" cy="80%"><stop offset="0%" stop-color="${a}99"/><stop offset="100%" stop-color="${p}22"/></radialGradient><linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%"><stop offset="0%" stop-color="${p}"/><stop offset="50%" stop-color="${a}"/><stop offset="100%" stop-color="${p}cc"/></linearGradient></defs><rect width="1080" height="1080" fill="url(#bg)"/><circle cx="200" cy="200" r="350" fill="url(#g1)" opacity="0.6"/><circle cx="880" cy="880" r="300" fill="url(#g2)" opacity="0.5"/></svg>`)}`;
 
-async function generateSatoriFallback(
-  input: AdImageInput,
-): Promise<AdImageResult> {
-  // Step 1: Generate background-only image via Flux (or use gradient)
-  const fluxResult = await generateFluxBackground({
-    industry: input.industry,
-    description: input.bodyCopy.slice(0, 80),
-    brandName: input.brandName,
-  }).catch(() => ({ url: null }));
-
-  const gradient = generateBrandGradient({
-    primary: input.brandColor,
-    secondary: input.brandAccent,
-  });
-
-  // Step 2: Render full ad via Satori with HeroTemplate
-  const element = HeroTemplate({
-    headline: input.headline,
-    bodyCopy: input.bodyCopy,
-    cta: input.cta,
-    brandName: input.brandName,
-    logoUrl: input.logoUrl ?? undefined,
-    imageUrl: fluxResult.url ?? undefined,
-    gradient,
-    primaryColor: input.brandColor,
-  });
-
-  const png = await renderAdTemplate(element as React.ReactElement, {
-    width: 1080,
-    height: 1080,
-  });
-
-  const imageUrl = `data:image/png;base64,${png.toString("base64")}`;
-
-  return {
-    imageUrl,
-    method: "satori-fallback",
-    prompt: "Satori fallback with Flux background",
-    attempts: MAX_ATTEMPTS,
-  };
+  return { imageUrl: svgGradient, method: "gradient-fallback", prompt, attempts: 0 };
 }
 
 // ── Parallel variant generation ──────────────────────────────────
