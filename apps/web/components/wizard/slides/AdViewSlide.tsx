@@ -12,7 +12,7 @@
 
 import { Check, Globe, Heart, MessageCircle, MoreHorizontal, Pencil, RefreshCw, Send, Share2, ThumbsUp } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useTransition } from "react";
 
 import { generateAdImage } from "@/app/actions/generate-ad-image";
 import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
@@ -409,6 +409,41 @@ function LinkedInMockup({ ad, brand, isRegenerating, onUpdate }: {
 
 // ── Ad Mockup Card ───────────────────────────────────────────────
 
+function useMockupScale(
+  containerRef: React.RefObject<HTMLDivElement | null>,
+  mockupRef: React.RefObject<HTMLDivElement | null>,
+  deps: unknown[],
+) {
+  const [scale, setScale] = useState(1);
+
+  // Measure after DOM paint and recalculate
+  useLayoutEffect(() => {
+    function measure() {
+      const container = containerRef.current;
+      const mockup = mockupRef.current;
+      if (!container || !mockup) return;
+      // scrollHeight is NOT affected by CSS transform — gives us the natural content height
+      const natural = mockup.scrollHeight;
+      const available = container.clientHeight;
+      if (natural > 0 && available > 0 && natural > available) {
+        setScale(Math.max(0.3, available / natural));
+      } else {
+        setScale(1);
+      }
+    }
+    // Measure immediately (sync, before paint)
+    measure();
+    // Measure again after a frame (images/fonts may have loaded)
+    const raf1 = requestAnimationFrame(measure);
+    // And once more after a short delay for any async content
+    const timer = setTimeout(measure, 200);
+    return () => { cancelAnimationFrame(raf1); clearTimeout(timer); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+
+  return scale;
+}
+
 function AdMockupCard({ ad, brand, label, index, selected, platform, onToggle, onEdit }: {
   ad: AdCreative; brand: BrandState; label: string; index: number; selected: boolean; platform: Platform; onToggle: () => void; onEdit: () => void;
 }) {
@@ -417,33 +452,7 @@ function AdMockupCard({ ad, brand, label, index, selected, platform, onToggle, o
   const [, startTransition] = useTransition();
   const containerRef = useRef<HTMLDivElement>(null);
   const mockupRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-
-  // Scale mockup to fit container — never clip
-  useEffect(() => {
-    const container = containerRef.current;
-    const mockup = mockupRef.current;
-    if (!container || !mockup) return;
-    const observer = new ResizeObserver(() => {
-      const available = container.clientHeight;
-      const natural = mockup.scrollHeight;
-      if (natural > available && available > 0) {
-        setScale(Math.max(0.4, available / natural));
-      } else {
-        setScale(1);
-      }
-    });
-    observer.observe(container);
-    // Re-measure when platform changes
-    requestAnimationFrame(() => {
-      const available = container.clientHeight;
-      const natural = mockup.scrollHeight;
-      if (natural > available && available > 0) {
-        setScale(Math.max(0.4, available / natural));
-      }
-    });
-    return () => observer.disconnect();
-  }, [platform]);
+  const scale = useMockupScale(containerRef, mockupRef, [platform, ad.imageUrl]);
 
   function handleUpdate(field: "headline" | "bodyCopy" | "cta", value: string) { updateAd(ad.id, { [field]: value }); }
 
@@ -477,20 +486,30 @@ function AdMockupCard({ ad, brand, label, index, selected, platform, onToggle, o
         <span className="text-[10px] font-medium" style={{ color: "var(--color-text-muted)" }}>{getAngleLabel(ad.headline)}</span>
       </div>
 
-      {/* Device mockup — scales down to fit, never clips */}
-      <div ref={containerRef} className="relative w-full cursor-pointer" style={{ height: "calc(100dvh - 300px)", maxHeight: 420 }} onClick={onEdit}>
+      {/* Device mockup — auto-scales to fit available height */}
+      <div
+        ref={containerRef}
+        className="relative w-full cursor-pointer overflow-hidden"
+        style={{ height: "calc(100dvh - 280px)", maxHeight: 480 }}
+        onClick={onEdit}
+      >
         {selected && (
           <div className="absolute -right-1 -top-1 z-40 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 shadow-lg">
             <Check className="h-3.5 w-3.5 text-white" />
           </div>
         )}
-        <motion.div ref={mockupRef} initial={{ rotate: -1.5 }} whileHover={{ rotate: 0 }} transition={transitions.spring}
-          style={{ transformOrigin: "top center", transform: scale < 1 ? `scale(${scale})` : undefined, width: scale < 1 ? `${100 / scale}%` : undefined, marginLeft: scale < 1 ? `${((1 - scale) / 2) * -100 / scale}%` : undefined }}>
+        <div
+          ref={mockupRef}
+          style={{
+            transformOrigin: "top center",
+            transform: `scale(${scale})`,
+          }}
+        >
           {platform === "instagram" && <InstagramMockup {...mockupProps} />}
           {platform === "facebook" && <FacebookMockup {...mockupProps} />}
           {platform === "google" && <GoogleMockup {...mockupProps} />}
           {platform === "linkedin" && <LinkedInMockup {...mockupProps} />}
-        </motion.div>
+        </div>
       </div>
 
       <motion.button onClick={handleRegenerate} disabled={isRegenerating} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
