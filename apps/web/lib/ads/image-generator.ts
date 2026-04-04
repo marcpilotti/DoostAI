@@ -40,7 +40,7 @@ const INDUSTRY_SCENES: Record<string, string> = {
   "Bilverkstad & Motor": "premium car detail, automotive workshop, polished vehicles",
 };
 
-function buildPrompt(industry: string, description: string, brandName: string): string {
+function buildPrompt(industry: string, description: string, _brandName: string): string {
   const scene = INDUSTRY_SCENES[industry] || (industry ? `${industry} business environment, relevant products and setting` : "modern business environment");
   return `Professional advertising photograph: ${scene}. ${description ? description.slice(0, 80) + "." : ""} Sharp focus throughout, well-lit, vibrant colors, premium commercial photography. NO TEXT, NO WORDS, NO LETTERS, NO LOGOS, NO WATERMARKS, NO PEOPLE. Clean background suitable for text overlay. 4K resolution.`;
 }
