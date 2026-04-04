@@ -98,37 +98,36 @@ export function BrandCardSlide() {
             className="hidden"
             onChange={handleLogoUpload}
           />
+          {/* Logo — dynamic width, clickable to upload */}
           <motion.button
             onClick={() => fileInputRef.current?.click()}
-            whileHover={{ scale: 1.08 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            className="group relative h-14 w-14 shrink-0 overflow-hidden rounded-lg"
-            style={{ background: "var(--color-bg-raised)" }}
-            title="Klicka för att ladda upp logotyp"
+            className="group relative h-12 shrink-0 overflow-hidden rounded-lg"
+            style={{ background: "var(--color-bg-raised)", border: "1px solid var(--color-border-default)" }}
+            title="Klicka för att byta logotyp"
           >
             {logoUploading ? (
-              <div className="flex h-full w-full items-center justify-center">
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" style={{ color: "var(--color-primary)" }} />
+              <div className="flex h-full w-16 items-center justify-center">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" style={{ color: "var(--color-primary)" }} />
               </div>
             ) : brand.logoUrl ? (
               <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={brand.logoUrl}
                   alt={brand.name}
-                  className="h-full w-full object-contain"
+                  className="h-full w-auto object-contain px-3"
                 />
                 <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
-                  <span className="text-[10px] font-medium text-white">Byt</span>
+                  <span className="text-[9px] font-medium text-white">Byt logotyp</span>
                 </div>
               </>
             ) : (
-              <div className="flex h-full w-full flex-col items-center justify-center gap-0.5">
-                <span className="text-xl font-bold" style={{ color: "var(--color-text-primary)" }}>
+              <div className="flex h-full w-16 items-center justify-center">
+                <span className="text-lg font-bold" style={{ color: "var(--color-text-primary)" }}>
                   {brand.name.charAt(0)}
-                </span>
-                <span className="text-[7px] font-medium opacity-0 transition-opacity group-hover:opacity-100" style={{ color: "var(--color-text-muted)" }}>
-                  Ladda upp
                 </span>
               </div>
             )}
@@ -200,10 +199,9 @@ export function BrandCardSlide() {
           )}
         </motion.div>
 
-        {/* Fonts + Logo side by side */}
-        <motion.div variants={listItemVariants} className="mt-4 flex gap-4">
-          {/* Fonts */}
-          <div className="flex-shrink-0">
+        {/* Fonts */}
+        <motion.div variants={listItemVariants} className="mt-4">
+          <div>
           <span className="text-text-caption uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
             Typsnitt
           </span>
@@ -280,17 +278,6 @@ export function BrandCardSlide() {
             </div>
           )}
           </div>
-
-          {/* Logo — right side, no title, matches font box height */}
-          {brand.logoUrl && (
-            <div
-              className="flex flex-1 items-center justify-center overflow-hidden rounded-lg"
-              style={{ background: "var(--color-bg-raised)", border: "1px solid var(--color-border-default)", minHeight: 48 }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={brand.logoUrl} alt={brand.name} className="h-full max-h-12 w-auto object-contain px-3" />
-            </div>
-          )}
         </motion.div>
 
         {/* Products — only if data exists */}
