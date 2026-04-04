@@ -138,16 +138,6 @@ function ReelAdCard({
           </div>
         )}
 
-        {brand.logoUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={brand.logoUrl}
-            alt=""
-            className="absolute left-3 top-3 z-10 h-6 w-6 rounded-md object-contain"
-            style={{ backgroundColor: "rgba(255,255,255,0.15)", padding: 2 }}
-          />
-        )}
-
         <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-1 p-3">
           <span className="text-[7px] font-semibold uppercase tracking-[0.12em]" style={{ color: "rgba(255,255,255,0.5)" }}>
             {brand.name}
@@ -216,7 +206,8 @@ export function AdViewSlide() {
           try {
             const d = JSON.parse(raw);
             if (d.event === "complete" && d.result?.copies) {
-              const bgUrl = d.result.backgroundUrl || preGeneratedImageUrl;
+              const bgUrlA = d.result.backgroundUrl || preGeneratedImageUrl;
+              const bgUrlB = d.result.backgroundUrlB || bgUrlA;
               setAds(d.result.copies.map((c: Record<string, string>, i: number) => ({
                 id: `ad-${Date.now()}-${i}`,
                 platform: selectedPlatforms[0],
@@ -224,7 +215,7 @@ export function AdViewSlide() {
                 headline: c.headline || "",
                 bodyCopy: c.bodyCopy || "",
                 cta: c.cta || "Läs mer",
-                imageUrl: bgUrl,
+                imageUrl: i === 0 ? bgUrlA : bgUrlB,
                 selected: i === 0,
               })));
             }
