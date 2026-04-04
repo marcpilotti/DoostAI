@@ -294,48 +294,57 @@ export function PlatformSelectSlide() {
       });
 
       if (!response.ok) {
-        const text = await response.text().catch(() => "");
-        console.error("[AdGen] Response not ok:", response.status, text.slice(0, 200));
+        console.error("[AdGen] Response not ok:", response.status);
         throw new Error(`Generation failed: ${response.status}`);
       }
 
-      // Use text() fallback for browsers that don't support ReadableStream well
-      const text = await response.text();
-      const lines = text.split("\n");
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("No stream reader");
 
-      for (const line of lines) {
-        if (!line.startsWith("data: ")) continue;
-        const raw = line.slice(6).trim();
-        if (raw === "[DONE]" || !raw) continue;
+      const decoder = new TextDecoder();
+      let buffer = "";
 
-        try {
-          const data = JSON.parse(raw);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-          if (data.event === "complete" && data.result) {
-            const { copies } = data.result;
-            const bgUrlA = data.result.backgroundUrl || useWizardStore.getState().preGeneratedImageUrl;
-            const bgUrlB = data.result.backgroundUrlB || bgUrlA;
-            const ads = (copies || []).map(
-              (c: Record<string, string>, i: number) => ({
-                id: `ad-${Date.now()}-${i}`,
-                platform: c.platform || selectedPlatforms[0],
-                template: i === 0 ? "hero" : "brand",
-                headline: c.headline || c.headlines?.[0] || "",
-                bodyCopy: c.bodyCopy || c.descriptions?.[0] || "",
-                cta: c.cta || "Läs mer",
-                imageUrl: i === 0 ? bgUrlA : bgUrlB,
-                selected: i === 0,
-              })
-            );
-            console.log("[AdGen] Setting", ads.length, "ads, images:", bgUrlA?.slice(0, 50), bgUrlB?.slice(0, 50));
-            useWizardStore.getState().setAds(ads);
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const raw = line.slice(6).trim();
+          if (raw === "[DONE]" || !raw) continue;
+
+          try {
+            const data = JSON.parse(raw);
+
+            if (data.event === "complete" && data.result) {
+              const { copies } = data.result;
+              const bgUrlA = data.result.backgroundUrl || useWizardStore.getState().preGeneratedImageUrl;
+              const bgUrlB = data.result.backgroundUrlB || bgUrlA;
+              const ads = (copies || []).map(
+                (c: Record<string, string>, i: number) => ({
+                  id: `ad-${Date.now()}-${i}`,
+                  platform: c.platform || selectedPlatforms[0],
+                  template: i === 0 ? "hero" : "brand",
+                  headline: c.headline || c.headlines?.[0] || "",
+                  bodyCopy: c.bodyCopy || c.descriptions?.[0] || "",
+                  cta: c.cta || "Läs mer",
+                  imageUrl: i === 0 ? bgUrlA : bgUrlB,
+                  selected: i === 0,
+                })
+              );
+              useWizardStore.getState().setAds(ads);
+            }
+
+            if (data.event === "error") {
+              console.error("[AdGen] Server error:", data.message);
+            }
+          } catch {
+            // ignore partial JSON
           }
-
-          if (data.event === "error") {
-            console.error("[AdGen] Server error:", data.message);
-          }
-        } catch {
-          // ignore partial JSON
         }
       }
     } catch (err) {
