@@ -273,20 +273,6 @@ export function PlatformSelectSlide() {
     setIsGeneratingAds(true);
     handleNext();
 
-    // Generate AI background image in parallel with ad copy
-    const imagePromise = fetch("/api/ads/generate-image", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        industry: brand?.industry || "",
-        description: brand?.description || "",
-        brandName: brand?.name || "",
-      }),
-    })
-      .then((r) => r.json())
-      .then((data: { success: boolean; imageUrl?: string }) => data.success ? data.imageUrl : null)
-      .catch(() => null);
-
     try {
       const response = await fetch("/api/ad/generate", {
         method: "POST",
@@ -333,17 +319,17 @@ export function PlatformSelectSlide() {
 
             if (data.event === "complete" && data.result) {
               const { copies } = data.result;
-              // Wait for AI image (may already be done)
-              const aiImageUrl = await imagePromise;
+              const bgUrlA = data.result.backgroundUrl || useWizardStore.getState().preGeneratedImageUrl;
+              const bgUrlB = data.result.backgroundUrlB || bgUrlA;
               const ads = (copies || []).map(
                 (c: Record<string, string>, i: number) => ({
-                  id: `ad-${i}`,
+                  id: `ad-${Date.now()}-${i}`,
                   platform: c.platform || selectedPlatforms[0],
                   template: i === 0 ? "hero" : "brand",
                   headline: c.headline || c.headlines?.[0] || "",
                   bodyCopy: c.bodyCopy || c.descriptions?.[0] || "",
                   cta: c.cta || "Läs mer",
-                  imageUrl: i === 0 ? (aiImageUrl || null) : null, // Hero gets AI image, Brand gets gradient
+                  imageUrl: i === 0 ? bgUrlA : bgUrlB,
                   selected: i === 0,
                 })
               );

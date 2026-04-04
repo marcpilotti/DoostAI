@@ -71,9 +71,10 @@ export function AudienceSlide() {
   const { audience, setAudience, brand, setBrand, setFooterAction } = useWizardStore();
   const { handleNext } = useWizardNavigation();
 
-  const isCustomIndustry = brand?.industry && !INDUSTRIES.includes(brand.industry);
-  const [industry, setIndustry] = useState(isCustomIndustry ? "Övrigt" : (brand?.industry || ""));
-  const [customIndustry, setCustomIndustry] = useState(isCustomIndustry ? (brand?.industry || "") : "");
+  const detectedIndustry = brand?.industry || "";
+  const isInList = INDUSTRIES.includes(detectedIndustry);
+  const [industry, setIndustry] = useState(detectedIndustry);
+  const [customIndustry, setCustomIndustry] = useState("");
   const [targets, setTargets] = useState<string[]>(() => {
     if (audience?.interests && audience.interests.length > 0) return audience.interests;
     return getSuggestedAudiences(brand?.industry || "");
@@ -153,7 +154,7 @@ export function AudienceSlide() {
           Bransch
         </span>
         <select
-          value={industry}
+          value={industry === "Övrigt" ? "Övrigt" : industry}
           onChange={(e) => handleIndustryChange(e.target.value)}
           className="mt-1 w-full outline-none"
           style={{
@@ -166,6 +167,10 @@ export function AudienceSlide() {
           }}
         >
           <option value="">Välj bransch...</option>
+          {/* Show detected industry first if not in standard list */}
+          {detectedIndustry && !isInList && detectedIndustry !== "Övrigt" && (
+            <option value={detectedIndustry}>{detectedIndustry} (identifierad)</option>
+          )}
           {INDUSTRIES.map((ind) => (
             <option key={ind} value={ind}>{ind}</option>
           ))}
