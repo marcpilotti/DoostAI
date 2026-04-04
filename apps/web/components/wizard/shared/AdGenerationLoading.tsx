@@ -15,11 +15,11 @@ import { transitions } from "@/lib/motion";
 import type { BrandProfile } from "@/lib/stores/wizard-store";
 
 const STEPS = [
-  { label: "Analyserar din målgrupp", duration: 2500 },
-  { label: "Skriver annonstext med AI", duration: 3000 },
-  { label: "Genererar annonsbilder", duration: 4000 },
-  { label: "Anpassar till plattformar", duration: 2000 },
-  { label: "Slutjusterar", duration: 2500 },
+  { label: "Analyserar din målgrupp", duration: 3000 },
+  { label: "Skriver annonstext med AI", duration: 5000 },
+  { label: "Genererar annonsbilder", duration: 10000 },
+  { label: "Anpassar till plattformar", duration: 5000 },
+  { label: "Slutjusterar", duration: 7000 },
 ];
 
 const PARTICLE_COUNT = 6;

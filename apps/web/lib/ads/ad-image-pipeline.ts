@@ -82,9 +82,9 @@ export async function generateCompleteAdImage(
   if (apiKey && !apiKey.startsWith("sk-proj-placeholder")) {
     try {
       console.log(`[ad-pipeline] GPT-4o background for ${input.brandName}`);
-      const generated = await generateEmbeddedAdImage({ prompt, size, quality: "medium" });
+      const generated = await generateEmbeddedAdImage({ prompt, size, quality: "low" });
       return {
-        imageUrl: `data:image/png;base64,${generated.b64}`,
+        imageUrl: `data:image/jpeg;base64,${generated.b64}`,
         method: "gpt-image",
         prompt,
         attempts: 1,

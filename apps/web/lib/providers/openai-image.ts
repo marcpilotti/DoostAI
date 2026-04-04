@@ -61,8 +61,8 @@ export async function generateEmbeddedAdImage(params: {
     prompt: params.prompt,
     n: 1,
     size: params.size ?? "1024x1024",
-    quality: params.quality ?? "medium",
-    output_format: "png",
+    quality: params.quality ?? "low",
+    output_format: "jpeg",
   });
 
   const b64 = response.data?.[0]?.b64_json;
