@@ -200,8 +200,26 @@ export function BrandCardSlide() {
           )}
         </motion.div>
 
-        {/* Fonts */}
-        <motion.div variants={listItemVariants} className="mt-4">
+        {/* Fonts + Logo */}
+        <motion.div variants={listItemVariants} className="mt-4 flex gap-6">
+          {/* Logo display */}
+          {brand.logoUrl && (
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-text-caption uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
+                Logotyp
+              </span>
+              <div
+                className="mt-1.5 flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg"
+                style={{ background: "var(--color-bg-raised)", border: "1px solid var(--color-border-default)" }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={brand.logoUrl} alt={brand.name} className="h-full w-full object-contain p-1.5" />
+              </div>
+            </div>
+          )}
+
+          {/* Fonts */}
+          <div className="flex-1">
           <span className="text-text-caption uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
             Typsnitt
           </span>
@@ -277,6 +295,7 @@ export function BrandCardSlide() {
               )}
             </div>
           )}
+          </div>
         </motion.div>
 
         {/* Products — only if data exists */}

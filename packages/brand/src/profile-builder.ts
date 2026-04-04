@@ -43,7 +43,8 @@ export async function buildBrandProfile(
   scrapeResult: BrandScrapeResult,
   enrichment?: CompanyEnrichment,
 ): Promise<BrandProfile> {
-  // A.4: Filter generic Roaring industries that mislead the AI
+  // Keep ALL industries from registry — even generic ones are better than nothing.
+  // Mark generic ones so AI knows to refine but not ignore.
   const GENERIC_INDUSTRIES = new Set([
     "Dataprogrammering",
     "Annan IT-verksamhet",
@@ -51,14 +52,13 @@ export async function buildBrandProfile(
     "Konsultverksamhet avseende informationsteknik",
     "Utgivning av programvara",
   ]);
-  const enrichedIndustry = enrichment?.industry && !GENERIC_INDUSTRIES.has(enrichment.industry)
-    ? enrichment.industry
-    : undefined;
+  const enrichedIndustry = enrichment?.industry || undefined;
+  const isGenericIndustry = enrichment?.industry ? GENERIC_INDUSTRIES.has(enrichment.industry) : false;
 
   const context = [
     `== HARD FACTS (use these directly) ==`,
     enrichment?.name && `Company name: ${enrichment.name}`,
-    enrichedIndustry && `Industry (from registry): ${enrichedIndustry}`,
+    enrichedIndustry && `Industry (from registry): ${enrichedIndustry}${isGenericIndustry ? " (generic — refine based on website content)" : ""}`,
     enrichment?.location && `Location: ${enrichment.location}`,
     scrapeResult.colors.length > 0 &&
       `Colors found in CSS (hints — may include text/border colors, identify BRAND colors only): ${scrapeResult.colors.join(", ")}`,

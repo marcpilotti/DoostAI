@@ -127,21 +127,14 @@ export async function scrapeBrand(url: string): Promise<BrandScrapeResult> {
     fonts = extractFontsFromHtml(html);
   }
 
-  // Extract logos: prefer Firecrawl branding, then og:image (skip tiny favicons)
+  // Extract logos: prefer Firecrawl branding, then og:image
+  // Strictly filter out favicons — they are NOT logos
   const logoUrls: string[] = [];
   if (branding?.logo) logoUrls.push(branding.logo);
-  if (metadata.favicon) {
-    const fav = metadata.favicon.toLowerCase();
-    // Only include favicon if it's not a tiny .ico file
-    if (!fav.endsWith(".ico") && !fav.includes("/favicon")) {
-      try {
-        logoUrls.push(new URL(metadata.favicon, normalizedUrl).href);
-      } catch {
-        // skip invalid
-      }
-    }
-  }
   if (metadata.ogImage) logoUrls.push(metadata.ogImage);
+  // Favicon is stored separately — never treated as a logo candidate
+  // It may still be shown as the icon/avatar in the UI, but the real logo
+  // comes from Logo APIs (Brandfetch, Logo.dev) in the intelligence pipeline
 
   return {
     url: normalizedUrl,
@@ -165,28 +158,53 @@ const FONT_RE = /font-family\s*:\s*([^;}"]+)/gi;
 
 function extractColorsFromHtml(html: string): string[] {
   const matches = html.match(HEX_RE) ?? [];
-  const counts = new Map<string, number>();
+  const unique = new Set<string>();
+
+  // Common text/UI colors that are NEVER brand colors
+  const BLACKLIST = new Set([
+    "#fff", "#ffffff", "#fafafa", "#f5f5f5", "#f0f0f0", "#eee", "#eeeeee",
+    "#e5e5e5", "#e0e0e0", "#ddd", "#dddddd", "#d5d5d5", "#ccc", "#cccccc",
+    "#bbb", "#bbbbbb", "#aaa", "#aaaaaa", "#999", "#999999", "#888", "#888888",
+    "#777", "#777777", "#666", "#666666", "#555", "#555555", "#444", "#444444",
+    "#333", "#333333", "#222", "#222222", "#111", "#111111",
+    "#000", "#000000", "#1a1a1a", "#231f20", "#2c2c2c", "#212121",
+    "#f8f9fa", "#e9ecef", "#dee2e6", "#ced4da", "#adb5bd", "#6c757d",
+    "#495057", "#343a40", "#212529", // Bootstrap grays
+  ]);
+
   for (const c of matches) {
     const n = c.toLowerCase();
-    // Filter out near-white, near-black, and gray colors
-    if (["#fff", "#ffffff", "#000", "#000000", "#333", "#333333"].includes(n))
-      continue;
-    // Filter 6-digit hex that are near-black (all components < 0x30) or near-white (all > 0xE0)
+    if (BLACKLIST.has(n)) continue;
+
     if (n.length === 7) {
       const r = parseInt(n.slice(1, 3), 16);
       const g = parseInt(n.slice(3, 5), 16);
       const b = parseInt(n.slice(5, 7), 16);
-      if (r < 0x30 && g < 0x30 && b < 0x30) continue; // near-black
-      if (r > 0xe0 && g > 0xe0 && b > 0xe0) continue; // near-white
-      // Filter grays (low saturation: max-min < 30)
-      if (Math.max(r, g, b) - Math.min(r, g, b) < 30 && r > 0x40 && r < 0xc0) continue;
+      if (r < 0x35 && g < 0x35 && b < 0x35) continue; // near-black
+      if (r > 0xd8 && g > 0xd8 && b > 0xd8) continue; // near-white
+      // Filter grays (low saturation)
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      if (max - min < 25) continue; // gray — no saturation
     }
-    counts.set(n, (counts.get(n) ?? 0) + 1);
+
+    unique.add(n);
   }
-  return [...counts.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10)
-    .map(([color]) => color);
+
+  // Return unique colors sorted by saturation (most saturated first = most likely brand)
+  return [...unique]
+    .map((hex) => {
+      const r = parseInt(hex.slice(1, 3), 16) / 255;
+      const g = parseInt(hex.slice(3, 5), 16) / 255;
+      const b = parseInt(hex.slice(5, 7), 16) / 255;
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const sat = max === 0 ? 0 : (max - min) / max;
+      return { hex, sat };
+    })
+    .sort((a, b) => b.sat - a.sat)
+    .slice(0, 8)
+    .map(({ hex }) => hex);
 }
 
 function extractFontsFromHtml(html: string): string[] {

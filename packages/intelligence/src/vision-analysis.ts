@@ -75,15 +75,25 @@ export async function analyzeWithVision(
             imagePart,
             {
               type: "text",
-              text: `Analyze this website image. Extract the visual brand identity:
-- What colors dominate? List the top 3-5 as hex codes with their role (primary, accent, nav, background, text).
-- What font category is used? (sans-serif, serif, monospace, display)
-- What specific fonts are used? If you can identify them by name (e.g., Montserrat, Roboto, Playfair Display), list them with role (heading/body) and confidence. Only name fonts you're fairly sure about.
-- What visual style? (modern, classic, playful, premium, neutral)
-- What industry does this company appear to be in? Answer in Swedish.
-- Is there a visible tagline?
-- Describe the logo.
-Be precise with hex color codes.`,
+              text: `Analyze this website image. Extract the BRAND identity (not product colors or background images).
+
+IMPORTANT: Focus on the LOGO, NAVIGATION BAR, and BUTTONS — these contain the real brand colors. Ignore:
+- Product photos and their colors
+- Hero image backgrounds
+- Stock photography
+- Gray/white page backgrounds
+- Black text colors
+
+Extract:
+- What are the BRAND colors? (logo color, button color, link color, nav accent). List top 3-5 as hex codes with role (primary, accent, nav, background, text).
+- What font category? (sans-serif, serif, monospace, display)
+- Specific font names if identifiable (e.g., Montserrat, Roboto). List with role (heading/body) and confidence.
+- Visual style? (modern, classic, playful, premium, neutral)
+- Industry? Answer in Swedish. Be specific (e.g., "Bygghandel" not just "E-handel").
+- Visible tagline?
+- Describe the logo (shape, color, text).
+
+Be precise with hex color codes. The PRIMARY color is the one in the logo or main CTA buttons.`,
             },
           ],
         },
