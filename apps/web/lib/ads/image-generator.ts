@@ -22,7 +22,7 @@ function buildPrompt(industry: string, description: string, brandName: string): 
   const context = industry
     ? `for a ${industry} business`
     : `for a business called ${brandName}`;
-  return `Clean advertising background image ${context}. ${description ? description.slice(0, 80) + "." : ""} Abstract, atmospheric, premium feel. Soft gradients, bokeh lights, subtle textures. ABSOLUTELY NO TEXT, NO WORDS, NO LETTERS, NO LOGOS, NO WATERMARKS. No people. Just a beautiful abstract background suitable for overlaying text on top. 4K quality, shallow depth of field.`;
+  return `High resolution sharp advertising photo ${context}. ${description ? description.slice(0, 80) + "." : ""} Professional commercial photography, crisp and in focus, well-lit, vibrant colors, modern and premium. Everything in sharp focus. ABSOLUTELY NO TEXT, NO WORDS, NO LETTERS, NO LOGOS, NO WATERMARKS. No people. Suitable as ad background with text overlay. 4K, sharp details throughout.`;
 }
 
 export async function generateAdImage(params: {
