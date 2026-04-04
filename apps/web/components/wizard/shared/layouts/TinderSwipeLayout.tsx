@@ -3,8 +3,6 @@
 import { animate, motion, useMotionValue, useTransform } from "motion/react";
 import { useCallback, useState } from "react";
 
-import { transitions } from "@/lib/motion";
-
 import type { AdLayoutProps } from "./types";
 
 export function TinderSwipeLayout({ ads, onToggleSelection, onEdit, onRegenerate, renderAdContent }: AdLayoutProps) {

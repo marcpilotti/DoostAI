@@ -4,8 +4,8 @@ import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
 
 import { transitions } from "@/lib/motion";
-import { useWizardStore } from "@/lib/stores/wizard-store";
 import type { AdCreative } from "@/lib/stores/wizard-store";
+import { useWizardStore } from "@/lib/stores/wizard-store";
 
 import { AdPreviewBrand } from "./AdPreviewBrand";
 import { AdPreviewHero } from "./AdPreviewHero";

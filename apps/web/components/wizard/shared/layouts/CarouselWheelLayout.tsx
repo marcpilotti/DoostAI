@@ -3,8 +3,6 @@
 import { motion } from "motion/react";
 import { useState } from "react";
 
-import { transitions } from "@/lib/motion";
-
 import type { AdLayoutProps } from "./types";
 
 export function CarouselWheelLayout({ ads, onToggleSelection, onEdit, onRegenerate, renderAdContent }: AdLayoutProps) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useMotionValue, useTransform, animate } from "motion/react";
+import { animate, motion, useMotionValue } from "motion/react";
 import { useCallback, useRef, useState } from "react";
 
 import { transitions } from "@/lib/motion";
