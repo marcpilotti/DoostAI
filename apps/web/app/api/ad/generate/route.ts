@@ -123,28 +123,28 @@ export async function POST(req: Request) {
           format: platform === "linkedin" ? "linkedin" : "meta-feed",
         };
 
-        const promises: [
-          Promise<unknown>,
-          Promise<unknown>,
-          Promise<unknown>,
-        ] = [
-          withTimeout(generateAdStrategy({
-            brand: brandContext,
-            platform,
-            goal: objective ?? "lead generation",
-            audience: audience ?? brand.targetAudience ?? "Swedish consumers 25-55",
-            language: detectedLanguage,
-          }), "strategy"),
-          withTimeout(generateAdCopy(brandContext, platform as Platform, objective ?? "lead generation", {
-            language: detectedLanguage,
-            variants: 2,
-          }), "copy"),
-          needsImage
-            ? withTimeout(generateCompleteAdImage(imageInput), "images", 15_000)
-            : Promise.resolve({ imageUrl: preGeneratedImageUrl, method: "pre-generated", prompt: "", attempts: 0 }),
-        ];
+        const strategyPromise = withTimeout(generateAdStrategy({
+          brand: brandContext,
+          platform,
+          goal: objective ?? "lead generation",
+          audience: audience ?? brand.targetAudience ?? "Swedish consumers 25-55",
+          language: detectedLanguage,
+        }), "strategy");
 
-        const [strategySettled, copySettled, imageSettled] = await Promise.allSettled(promises);
+        const copyPromise = withTimeout(generateAdCopy(brandContext, platform as Platform, objective ?? "lead generation", {
+          language: detectedLanguage,
+          variants: 2,
+        }), "copy");
+
+        const imagePromise = needsImage
+          ? withTimeout(generateCompleteAdImage(imageInput), "images", 15_000)
+          : Promise.resolve({ imageUrl: preGeneratedImageUrl, method: "pre-generated" as const, prompt: "", attempts: 0 });
+
+        const [strategySettled, copySettled, imageSettled] = await Promise.allSettled([
+          strategyPromise,
+          copyPromise,
+          imagePromise,
+        ]);
 
         // Extract strategy (non-critical — UI-only metadata)
         const strategy = strategySettled.status === "fulfilled" ? strategySettled.value : null;
@@ -214,11 +214,8 @@ export async function POST(req: Request) {
 </svg>`)}`;
         }
 
-        if (imgA?.imageUrl) {
-          send({ event: "image_a", imageUrl: imgA.imageUrl, progress: 85 });
-        }
-        if (imgB?.imageUrl && imgB.imageUrl !== imgA?.imageUrl) {
-          send({ event: "image_b", imageUrl: imgB.imageUrl, progress: 90 });
+        if (bgUrl) {
+          send({ event: "image_a", imageUrl: bgUrl, progress: 90 });
         }
 
         // ── Complete ─────────────────────────────────────────────
