@@ -29,7 +29,7 @@ const inputSchema = z.object({
   objective: z.string().max(200).optional(),
   audience: z.string().max(500).optional(),
   language: z.string().max(10).optional(),
-  preGeneratedImageUrl: z.string().max(50000).optional(),
+  preGeneratedImageUrl: z.string().max(500000).optional(),
 });
 
 /**
