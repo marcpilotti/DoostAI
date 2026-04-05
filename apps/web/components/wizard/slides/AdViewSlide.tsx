@@ -505,15 +505,29 @@ function DetailPanel({ ad, platform, onRegenerate, onRegenerateAll, isRegenerati
   const limits = DISPLAY_PLATFORM_LIMITS[platform];
   const [headline, setHeadline] = useState(ad.headline);
   const [bodyCopy, setBodyCopy] = useState(ad.bodyCopy);
+  const [justSaved, setJustSaved] = useState(false);
 
   useEffect(() => { setHeadline(ad.headline); }, [ad.headline]);
   useEffect(() => { setBodyCopy(ad.bodyCopy); }, [ad.bodyCopy]);
 
-  function commitHeadline() { if (headline.trim() !== ad.headline) updateAd(ad.id, { headline: headline.trim() }); }
-  function commitBody() { if (bodyCopy.trim() !== ad.bodyCopy) updateAd(ad.id, { bodyCopy: bodyCopy.trim() }); }
+  function commitHeadline() { if (headline.trim() !== ad.headline) { updateAd(ad.id, { headline: headline.trim() }); setJustSaved(true); setTimeout(() => setJustSaved(false), 1200); } }
+  function commitBody() { if (bodyCopy.trim() !== ad.bodyCopy) { updateAd(ad.id, { bodyCopy: bodyCopy.trim() }); setJustSaved(true); setTimeout(() => setJustSaved(false), 1200); } }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 py-4 md:py-0">
+    <div className="relative flex flex-1 flex-col gap-6 py-4 md:py-0">
+      <AnimatePresence>
+        {justSaved && (
+          <motion.span
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="text-[11px]"
+            style={{ color: "var(--color-success)", position: "absolute", top: 8, right: 12 }}
+          >
+            ✓ Sparat
+          </motion.span>
+        )}
+      </AnimatePresence>
       {/* Headline */}
       <div>
         <div className="mb-1.5 flex items-center justify-between">

@@ -105,7 +105,7 @@ export function BudgetSlide() {
         </div>
 
         {/* Stats row */}
-        <div className="flex gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <div className="flex-1" style={{ padding: "10px 12px", borderRadius: 10, background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.12)" }}>
             <div className="text-[9px] uppercase tracking-wider mb-0.5" style={{ color: "var(--color-text-muted)" }}>Per dag</div>
             <div className="text-[14px] font-semibold" style={{ color: "var(--color-text-primary)" }}>

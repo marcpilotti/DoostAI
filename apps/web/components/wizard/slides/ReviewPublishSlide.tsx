@@ -87,27 +87,33 @@ export function ReviewPublishSlide() {
           ? platformColors[selectedPlatforms[0]] ?? ["#6366F1", "#A5B4FC", "#22C55E", "#F59E0B"]
           : ["#6366F1", "#A5B4FC", "#22C55E", "#F59E0B"];
 
-        confetti({
-          particleCount: 120,
-          spread: 80,
-          origin: { y: 0.6 },
-          colors,
-        });
-        // Second burst for extra celebration
-        setTimeout(() => {
+        const brandColor = brand?.colors?.primary || "#6366F1";
+        const finalColors = [...colors.slice(0, 3), brandColor];
+
+        const prefersReduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+        if (!prefersReduced) {
           confetti({
-            particleCount: 60,
-            spread: 100,
-            origin: { y: 0.5, x: 0.3 },
-            colors,
+            particleCount: 120,
+            spread: 80,
+            origin: { y: 0.6 },
+            colors: finalColors,
           });
-          confetti({
-            particleCount: 60,
-            spread: 100,
-            origin: { y: 0.5, x: 0.7 },
-            colors,
-          });
-        }, 300);
+          // Second burst for extra celebration
+          setTimeout(() => {
+            confetti({
+              particleCount: 60,
+              spread: 100,
+              origin: { y: 0.5, x: 0.3 },
+              colors: finalColors,
+            });
+            confetti({
+              particleCount: 60,
+              spread: 100,
+              origin: { y: 0.5, x: 0.7 },
+              colors: finalColors,
+            });
+          }, 300);
+        }
       } catch (err) {
         setPublishError(err instanceof Error ? err.message : "Något gick fel");
         setPublishState("choose");

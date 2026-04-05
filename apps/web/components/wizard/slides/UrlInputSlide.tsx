@@ -23,6 +23,7 @@ export function UrlInputSlide() {
   const [input, setInput] = useState(url || "");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const isValidUrl = input.trim().includes(".") && !input.trim().includes(" ");
 
   const handleSubmit = useCallback(async () => {
     const cleanUrl = input.startsWith("http") ? input : `https://${input}`;
@@ -132,7 +133,16 @@ export function UrlInputSlide() {
       }
     } catch (err) {
       reader?.cancel().catch(() => {});
-      setError(err instanceof Error ? err.message : "Något gick fel");
+      const msg = err instanceof Error ? err.message : "";
+      if (msg.includes("Failed to fetch") || msg.includes("NetworkError")) {
+        setError("Kontrollera din internetanslutning och försök igen.");
+      } else if (msg.includes("404") || msg.includes("not found")) {
+        setError("Webbplatsen kunde inte hittas. Kontrollera URL:en.");
+      } else if (msg.includes("timeout") || msg.includes("Timeout")) {
+        setError("Analysen tog för lång tid. Försök igen.");
+      } else {
+        setError(msg || "Något gick fel. Försök igen.");
+      }
       setStep("url");
     } finally {
       setIsLoading(false);
@@ -236,6 +246,18 @@ export function UrlInputSlide() {
             )}
           </motion.button>
         </motion.div>
+
+        {/* URL validation hint */}
+        {input.trim() && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mt-2 text-center text-[12px]"
+            style={{ color: isValidUrl ? "var(--color-success)" : "var(--color-text-muted)" }}
+          >
+            {isValidUrl ? "\u2713 Giltig webbadress" : "Ange en adress med dom\u00e4n (t.ex. f\u00f6retag.se)"}
+          </motion.div>
+        )}
 
         {/* Error */}
         {error && (

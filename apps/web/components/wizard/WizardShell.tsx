@@ -71,9 +71,9 @@ export function WizardShell() {
 
   const orbs = useMemo(
     () => [
-      { x: 15, y: 25, size: 280, color: "rgba(99, 102, 241, 0.04)", speed: 1.2 },
-      { x: 80, y: 60, size: 200, color: "rgba(168, 85, 247, 0.03)", speed: -0.8 },
-      { x: 50, y: 80, size: 320, color: "rgba(99, 102, 241, 0.025)", speed: 0.6 },
+      { x: 15, y: 25, size: 280, color: "rgba(99, 102, 241, 0.07)", speed: 1.2 },
+      { x: 80, y: 60, size: 200, color: "rgba(168, 85, 247, 0.05)", speed: -0.8 },
+      { x: 50, y: 80, size: 320, color: "rgba(99, 102, 241, 0.05)", speed: 0.6 },
     ],
     []
   );

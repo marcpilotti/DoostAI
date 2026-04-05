@@ -267,6 +267,24 @@
   padding: var(--space-4);
 }
 
+/* Card glow — hover highlight for card surfaces */
+.card-glow {
+  position: relative;
+}
+.card-glow::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(168, 85, 247, 0.06) 50%, transparent 100%);
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+.card-glow:hover::before {
+  opacity: 1;
+}
+
 /* Pill tag — inline tag/chip element */
 .pill-tag {
   display: inline-flex;
@@ -527,6 +545,7 @@
     outline: none;
     box-shadow: 0 0 0 3px var(--color-primary-glow);
     border-radius: var(--radius-sm);
+    transition: box-shadow 150ms ease;
   }
 }
 

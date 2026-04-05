@@ -114,12 +114,13 @@ export function TargetingSlide() {
             <label className="text-[10px] uppercase tracking-wider mb-1.5 block" style={{ color: "var(--color-text-muted)" }}>Ålder</label>
             <div className="flex items-center gap-2">
               <input type="number" min={18} max={65} value={ageMin} onChange={(e) => setAgeMin(Number(e.target.value))}
-                className="w-16 text-center text-[15px] font-semibold outline-none"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "10px 8px", color: "var(--color-text-primary)" }} />
+                className="w-16 text-center text-[15px] font-semibold outline-none focus:border-[var(--color-border-focus)] focus:ring-2 focus:ring-[rgba(99,102,241,0.15)]"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "10px 8px", color: "var(--color-text-primary)", transition: "border-color 200ms, box-shadow 200ms" }} />
               <span className="text-[13px]" style={{ color: "var(--color-text-muted)" }}>–</span>
               <input type="number" min={18} max={65} value={ageMax} onChange={(e) => setAgeMax(Number(e.target.value))}
-                className="w-16 text-center text-[15px] font-semibold outline-none"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "10px 8px", color: "var(--color-text-primary)" }} />
+                onBlur={() => { if (ageMin > ageMax) { const tmp = ageMin; setAgeMin(ageMax); setAgeMax(tmp); } }}
+                className="w-16 text-center text-[15px] font-semibold outline-none focus:border-[var(--color-border-focus)] focus:ring-2 focus:ring-[rgba(99,102,241,0.15)]"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "10px 8px", color: "var(--color-text-primary)", transition: "border-color 200ms, box-shadow 200ms" }} />
             </div>
           </div>
 
