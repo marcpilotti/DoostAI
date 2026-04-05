@@ -48,46 +48,47 @@ const FORMAT_SIZES: Record<string, "1024x1024" | "1024x1536" | "1536x1024"> = {
 // ── Prompt builder — uses real profile data ──────────────────────
 
 function buildPrompt(input: AdImageInput): string {
-  const parts: string[] = [
-    "Professional advertising photograph.",
-  ];
+  const parts: string[] = [];
 
-  // What the company does (most important context)
+  // Hero context — what the ad is about
+  parts.push(
+    `Create a stunning, scroll-stopping advertisement image for "${input.brandName}".`,
+  );
+
+  // Company context — the most important signal for image relevance
   if (input.description) {
-    parts.push(`Company: ${input.description}.`);
-  } else if (input.industry) {
+    parts.push(`About the brand: ${input.description}.`);
+  }
+  if (input.industry) {
     parts.push(`Industry: ${input.industry}.`);
   }
 
-  // Mood from brand voice
+  // Mood & audience for emotional resonance
   if (input.brandVoice) {
-    parts.push(`Mood: ${input.brandVoice}.`);
+    parts.push(`Brand personality: ${input.brandVoice}.`);
   }
-
-  // Style hint from target audience
   if (input.targetAudience) {
-    parts.push(`Appeal to: ${input.targetAudience}.`);
+    parts.push(`Target audience: ${input.targetAudience}.`);
   }
 
   // Visual keywords from classification
   if (input.visualKeywords?.length) {
-    parts.push(`Visual elements: ${input.visualKeywords.join(", ")}.`);
+    parts.push(`Include visual elements: ${input.visualKeywords.join(", ")}.`);
   }
 
-  // Color direction
-  parts.push(`Dominant color: ${input.brandColor}.`);
-  if (input.brandAccent && input.brandAccent !== input.brandColor) {
-    parts.push(`Secondary color accent: ${input.brandAccent}.`);
-  }
+  // Color palette — guide the mood
+  parts.push(`Brand colors: primary ${input.brandColor}${input.brandAccent && input.brandAccent !== input.brandColor ? `, accent ${input.brandAccent}` : ""}. Use these colors as inspiration for the overall color grading and mood.`);
 
-  // Technical requirements
+  // Creative direction — the WOW factor
   parts.push(
-    "Premium commercial photography, cinematic lighting, sharp focus.",
-    "Clean background suitable for text overlay.",
-    "No text, no words, no logos, no watermarks, no people.",
+    "Style: Award-winning advertising campaign photography. Think Apple, Nike, or Glossier level visual quality.",
+    "Composition: Use dramatic lighting, rich textures, and cinematic depth of field. The image should feel premium and aspirational.",
+    "Show the product, environment, or lifestyle that represents this brand — make the viewer FEEL the brand's world.",
+    "Leave the bottom 30% slightly darker or with negative space for text overlay.",
+    "Absolutely NO text, words, letters, numbers, logos, or watermarks in the image.",
   );
 
-  return parts.join(" ");
+  return parts.join("\n");
 }
 
 // ── Core pipeline ────────────────────────────────────────────────
@@ -105,9 +106,9 @@ export async function generateCompleteAdImage(
     try {
       console.log(`[ad-pipeline] GPT-4o for ${input.brandName} (${input.industry})`);
       const generated = await Promise.race([
-        generateEmbeddedAdImage({ prompt, size, quality: "medium" }),
+        generateEmbeddedAdImage({ prompt, size, quality: "high" }),
         new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("GPT-4o timed out")), 15_000),
+          setTimeout(() => reject(new Error("GPT-4o timed out")), 25_000),
         ),
       ]);
       console.log(`[ad-pipeline] Done for ${input.brandName}`);

@@ -211,15 +211,15 @@ function buildPrompt(params: {
   const moodDesc = styleMood[style] ?? "professional, polished, commercial appeal";
 
   return [
-    `Cinematic composition, rule-of-thirds, professional advertisement background for a ${industry} company.`,
-    `Color palette: ${primaryColor}${accentColor ? ` and ${accentColor}` : ""}.`,
-    `Style: ${style} — ${moodDesc}. Premium and sophisticated.`,
-    `Visual approach: abstract geometric patterns or clean product-focused environment.`,
-    `Glossy, studio-quality lighting with soft shadows and depth of field.`,
-    `Requirements: Atmospheric and layered, suitable as background for white text overlay. Leave breathing room in center and bottom third.`,
-    `DO NOT include any text, words, letters, numbers, logos, or watermarks.`,
-    `The image should evoke ${mood}.`,
-    `High quality, photorealistic, glossy studio-quality lighting, 8K render.`,
+    `Award-winning advertisement image for a ${industry} brand.`,
+    `Brand colors: ${primaryColor}${accentColor ? ` and ${accentColor}` : ""} — use as color grading inspiration.`,
+    `Style: ${style} — ${moodDesc}.`,
+    `Show the product, environment, or lifestyle world of a ${industry} company.`,
+    `The image should evoke: ${mood}.`,
+    `Cinematic lighting, rich textures, dramatic depth of field. Think Apple or Nike campaign quality.`,
+    `Leave the bottom 30% slightly darker or with breathing room for text overlay.`,
+    `Absolutely NO text, words, letters, numbers, logos, or watermarks.`,
+    `Photorealistic, 8K render quality.`,
   ].join("\n");
 }
 
@@ -319,7 +319,7 @@ export async function generateAdBackground(
             prompt,
             n: 1,
             size: "1024x1024",
-            quality: "low",           // Fast + cheap (~$0.02/image)
+            quality: "medium",         // Good quality, reasonable cost
             output_format: "jpeg",    // 64KB vs 1MB PNG — small enough to cache in memory
           }),
           signal: AbortSignal.timeout(GENERATION_TIMEOUT_MS),
