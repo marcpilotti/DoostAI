@@ -569,15 +569,22 @@ function DetailPanel({ ad, platform, onRegenerate, onRegenerateAll, isRegenerati
         <span className="mb-2 block text-[10px] font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.25)" }}>
           Call to action
         </span>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-2">
           {CTA_OPTIONS.map((opt) => (
-            <motion.button key={opt} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+            <motion.button key={opt} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
               onClick={() => updateAd(ad.id, { cta: opt })}
-              className="rounded-md px-3 py-1.5 text-[11px] font-semibold transition-all duration-150"
               style={{
-                background: ad.cta === opt ? "var(--color-primary, #6366F1)" : "rgba(255,255,255,0.04)",
-                color: ad.cta === opt ? "#fff" : "rgba(255,255,255,0.4)",
-                border: ad.cta === opt ? "1px solid var(--color-primary, #6366F1)" : "1px solid rgba(255,255,255,0.06)",
+                display: "inline-flex",
+                alignItems: "center",
+                padding: "5px 12px",
+                borderRadius: "9999px",
+                fontSize: 13,
+                fontWeight: 500,
+                whiteSpace: "nowrap" as const,
+                transition: "all 150ms ease",
+                background: ad.cta === opt ? "rgba(99,102,241,0.2)" : "rgba(99,102,241,0.08)",
+                color: ad.cta === opt ? "var(--color-primary-light, #A5B4FC)" : "var(--color-text-secondary)",
+                border: ad.cta === opt ? "1px solid rgba(99,102,241,0.4)" : "1px solid rgba(99,102,241,0.15)",
               }}
             >
               {opt}
