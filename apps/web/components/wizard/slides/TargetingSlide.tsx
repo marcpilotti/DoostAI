@@ -1,36 +1,29 @@
 "use client";
 
+import { MapPin, Users, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
-import { cardVariants,transitions } from "@/lib/motion";
+import { cardVariants, transitions } from "@/lib/motion";
 import { useWizardStore } from "@/lib/stores/wizard-store";
 
 import { NumberTicker } from "../shared/NumberTicker";
 
-const QUICK_LOCATIONS = ["Stockholm", "Göteborg", "Hela Sverige"];
+const QUICK_LOCATIONS = ["Stockholm", "Göteborg", "Malmö", "Hela Sverige"];
 
-function estimateProjections(
-  budget: number,
-  days: number,
-  locationCount: number
-): { reachMin: number; reachMax: number; clicksMin: number; clicksMax: number; ctrMin: number; ctrMax: number } {
+function estimateProjections(budget: number, days: number, locationCount: number) {
   const dailyBudget = budget / days;
   const cpm = 45;
   const base = (dailyBudget / cpm) * 1000 * days;
   const locationMultiplier = Math.max(1, locationCount * 0.8);
   const reachMin = Math.round(base * 0.6 * locationMultiplier);
   const reachMax = Math.round(base * 1.4 * locationMultiplier);
-  const clicksMin = Math.round(reachMin * 0.025);
-  const clicksMax = Math.round(reachMax * 0.035);
   return {
-    reachMin,
-    reachMax,
-    clicksMin,
-    clicksMax,
-    ctrMin: 2.1,
-    ctrMax: 3.2,
+    reachMin, reachMax,
+    clicksMin: Math.round(reachMin * 0.025),
+    clicksMax: Math.round(reachMax * 0.035),
+    ctrMin: 2.1, ctrMax: 3.2,
   };
 }
 
@@ -39,46 +32,25 @@ export function TargetingSlide() {
   const { handleNext } = useWizardNavigation();
 
   const detectedLocation = brand?.detectedLocation || "Hela Sverige";
-  const [locations, setLocations] = useState<string[]>(
-    targeting?.locations || [detectedLocation]
-  );
+  const [locations, setLocations] = useState<string[]>(targeting?.locations || [detectedLocation]);
   const [ageMin, setAgeMin] = useState(targeting?.ageMin || 25);
   const [ageMax, setAgeMax] = useState(targeting?.ageMax || 55);
   const [gender, setGender] = useState<"all" | "male" | "female">(targeting?.gender || "all");
   const [showLinkedIn, setShowLinkedIn] = useState(false);
   const [linkedinRoles, setLinkedInRoles] = useState<string[]>(targeting?.linkedinRoles || []);
-
   const hasLinkedIn = selectedPlatforms.includes("linkedin");
 
   const projections = useMemo(
     () => estimateProjections(budget?.totalBudget || 5000, budget?.durationDays || 30, locations.length),
-    [budget, locations.length]
+    [budget, locations.length],
   );
 
-  const addLocation = (loc: string) => {
-    if (!locations.includes(loc)) setLocations([...locations, loc]);
-  };
-
-  const removeLocation = (loc: string) => {
-    setLocations(locations.filter((l) => l !== loc));
-  };
+  const addLocation = (loc: string) => { if (!locations.includes(loc)) setLocations([...locations, loc]); };
+  const removeLocation = (loc: string) => { setLocations(locations.filter((l) => l !== loc)); };
 
   const handleContinue = useCallback(() => {
-    setTargeting({
-      locations,
-      ageMin,
-      ageMax,
-      gender,
-      linkedinRoles: hasLinkedIn ? linkedinRoles : undefined,
-    });
-    setProjections({
-      reachMin: projections.reachMin,
-      reachMax: projections.reachMax,
-      clicksMin: projections.clicksMin,
-      clicksMax: projections.clicksMax,
-      ctrMin: projections.ctrMin,
-      ctrMax: projections.ctrMax,
-    });
+    setTargeting({ locations, ageMin, ageMax, gender, linkedinRoles: hasLinkedIn ? linkedinRoles : undefined });
+    setProjections({ reachMin: projections.reachMin, reachMax: projections.reachMax, clicksMin: projections.clicksMin, clicksMax: projections.clicksMax, ctrMin: projections.ctrMin, ctrMax: projections.ctrMax });
     handleNext();
   }, [locations, ageMin, ageMax, gender, linkedinRoles, hasLinkedIn, projections, setTargeting, setProjections, handleNext]);
 
@@ -88,196 +60,121 @@ export function TargetingSlide() {
   }, [handleContinue, setFooterAction]);
 
   return (
-    <motion.div
-      variants={cardVariants}
-      initial="hidden"
-      animate="visible"
-      transition={transitions.spring}
-      className="flex flex-col gap-4"
-    >
-      <div>
-        <h2 className="text-text-h1" style={{ color: "var(--color-text-primary)" }}>
-          Vem ska se dina annonser?
-        </h2>
-        <p className="mt-1 text-text-body-sm" style={{ color: "var(--color-text-muted)" }}>
-          Ju mer specifik, desto bättre resultat.
-        </p>
-      </div>
+    <motion.div variants={cardVariants} initial="hidden" animate="visible" transition={transitions.spring}
+      className="flex flex-col gap-4">
 
-      {/* Location */}
-      <div>
-        <label className="text-text-caption mb-1.5 block" style={{ color: "var(--color-text-muted)" }}>
-          Plats
-        </label>
-        <div className="flex flex-wrap gap-1.5">
+      {/* ── Location card ───────────────────────────────────── */}
+      <div style={{ padding: "16px", borderRadius: 14, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+        <div className="flex items-center gap-2 mb-3">
+          <MapPin className="h-3.5 w-3.5" style={{ color: "var(--color-primary-light)" }} />
+          <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Plats</span>
+        </div>
+
+        {/* Selected locations */}
+        <div className="flex flex-wrap gap-1.5 mb-3">
           <AnimatePresence>
             {locations.map((loc) => (
-              <motion.span
-                key={loc}
-                layout
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0, opacity: 0 }}
-                transition={{ type: "spring", damping: 20, stiffness: 300 }}
-                className="flex items-center gap-1.5 text-text-body-sm font-medium"
-                style={{
-                  padding: "6px 12px",
-                  borderRadius: "var(--radius-sm)",
-                  background: "var(--color-bg-raised)",
-                  border: "1px solid var(--color-border-default)",
-                  color: "var(--color-text-secondary)",
-                }}
-              >
+              <motion.span key={loc} layout
+                initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }}
+                transition={transitions.snappy}
+                className="flex items-center gap-1.5 text-[12px] font-medium"
+                style={{ padding: "6px 10px", borderRadius: 8, background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)", color: "var(--color-primary-light)" }}>
                 {loc}
-                <button onClick={() => removeLocation(loc)} className="text-[14px]" style={{ color: "var(--color-text-muted)" }}>
-                  ×
+                <button onClick={() => removeLocation(loc)}>
+                  <X className="h-3 w-3" style={{ color: "var(--color-text-muted)" }} />
                 </button>
               </motion.span>
             ))}
           </AnimatePresence>
         </div>
-        <div className="mt-2 flex gap-2">
+
+        {/* Quick add */}
+        <div className="flex flex-wrap gap-1.5">
           {QUICK_LOCATIONS.filter((l) => !locations.includes(l)).map((loc) => (
-            <motion.button
-              key={loc}
-              onClick={() => addLocation(loc)}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ type: "spring", damping: 20, stiffness: 300 }}
-              className="text-text-body-sm"
-              style={{ color: "var(--color-text-muted)" }}
-            >
+            <motion.button key={loc} onClick={() => addLocation(loc)}
+              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} transition={transitions.snappy}
+              className="text-[12px] font-medium"
+              style={{ padding: "6px 10px", borderRadius: 8, border: "1px dashed rgba(255,255,255,0.1)", color: "var(--color-text-muted)", background: "transparent" }}>
               + {loc}
             </motion.button>
           ))}
         </div>
       </div>
 
-      {/* Age + Gender */}
-      <div className="flex items-end gap-6">
-        <div className="flex-1">
-          <label className="text-text-caption mb-1.5 block" style={{ color: "var(--color-text-muted)" }}>
-            Ålder
-          </label>
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              min={18}
-              max={65}
-              value={ageMin}
-              onChange={(e) => setAgeMin(Number(e.target.value))}
-              className="w-16 text-center outline-none"
-              style={{
-                background: "var(--color-bg-input)",
-                border: "1px solid var(--color-border-default)",
-                borderRadius: "var(--radius-sm)",
-                padding: "8px",
-                color: "var(--color-text-primary)",
-              }}
-            />
-            <span style={{ color: "var(--color-text-muted)" }}>–</span>
-            <input
-              type="number"
-              min={18}
-              max={65}
-              value={ageMax}
-              onChange={(e) => setAgeMax(Number(e.target.value))}
-              className="w-16 text-center outline-none"
-              style={{
-                background: "var(--color-bg-input)",
-                border: "1px solid var(--color-border-default)",
-                borderRadius: "var(--radius-sm)",
-                padding: "8px",
-                color: "var(--color-text-primary)",
-              }}
-            />
-          </div>
+      {/* ── Demographics card ───────────────────────────────── */}
+      <div style={{ padding: "16px", borderRadius: 14, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+        <div className="flex items-center gap-2 mb-3">
+          <Users className="h-3.5 w-3.5" style={{ color: "var(--color-primary-light)" }} />
+          <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Demografi</span>
         </div>
-        <div>
-          <label className="text-text-caption mb-1.5 block" style={{ color: "var(--color-text-muted)" }}>
-            Kön
-          </label>
-          <select
-            value={gender}
-            onChange={(e) => setGender(e.target.value as "all" | "male" | "female")}
-            className="outline-none"
-            style={{
-              background: "var(--color-bg-input)",
-              border: "1px solid var(--color-border-default)",
-              borderRadius: "var(--radius-sm)",
-              padding: "8px 12px",
-              color: "var(--color-text-primary)",
-            }}
-          >
-            <option value="all">Alla</option>
-            <option value="male">Män</option>
-            <option value="female">Kvinnor</option>
-          </select>
+
+        <div className="flex items-end gap-4">
+          {/* Age */}
+          <div className="flex-1">
+            <label className="text-[10px] uppercase tracking-wider mb-1.5 block" style={{ color: "var(--color-text-muted)" }}>Ålder</label>
+            <div className="flex items-center gap-2">
+              <input type="number" min={18} max={65} value={ageMin} onChange={(e) => setAgeMin(Number(e.target.value))}
+                className="w-16 text-center text-[15px] font-semibold outline-none"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "10px 8px", color: "var(--color-text-primary)" }} />
+              <span className="text-[13px]" style={{ color: "var(--color-text-muted)" }}>–</span>
+              <input type="number" min={18} max={65} value={ageMax} onChange={(e) => setAgeMax(Number(e.target.value))}
+                className="w-16 text-center text-[15px] font-semibold outline-none"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "10px 8px", color: "var(--color-text-primary)" }} />
+            </div>
+          </div>
+
+          {/* Gender */}
+          <div>
+            <label className="text-[10px] uppercase tracking-wider mb-1.5 block" style={{ color: "var(--color-text-muted)" }}>Kön</label>
+            <div className="flex gap-1">
+              {([["all", "Alla"], ["male", "Män"], ["female", "Kvinnor"]] as const).map(([val, label]) => (
+                <motion.button key={val} onClick={() => setGender(val)}
+                  whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} transition={transitions.snappy}
+                  className="text-[12px] font-medium"
+                  style={{
+                    padding: "10px 12px", borderRadius: 10,
+                    background: gender === val ? "rgba(99,102,241,0.08)" : "rgba(255,255,255,0.04)",
+                    border: gender === val ? "1px solid var(--color-primary)" : "1px solid rgba(255,255,255,0.08)",
+                    color: gender === val ? "var(--color-primary-light)" : "var(--color-text-muted)",
+                  }}>
+                  {label}
+                </motion.button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* LinkedIn targeting (collapsible) */}
+      {/* ── LinkedIn targeting (collapsible) ─────────────────── */}
       {hasLinkedIn && (
-        <div>
-          <button
-            onClick={() => setShowLinkedIn(!showLinkedIn)}
-            className="text-text-body-sm font-medium"
-            style={{ color: "var(--color-text-secondary)" }}
-          >
-            {showLinkedIn ? "▾" : "▸"} LinkedIn-targeting (valfritt)
+        <div style={{ padding: "16px", borderRadius: 14, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+          <button onClick={() => setShowLinkedIn(!showLinkedIn)}
+            className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider w-full"
+            style={{ color: "var(--color-text-muted)" }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#0A66C2"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg>
+            LinkedIn-roller
+            <span className="ml-auto text-[10px]">{showLinkedIn ? "▾" : "▸"}</span>
           </button>
           {showLinkedIn && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              transition={transitions.spring}
-              className="mt-2 flex flex-wrap gap-1.5"
-            >
+            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} transition={transitions.spring}
+              className="mt-3 flex flex-wrap gap-1.5">
               <AnimatePresence>
                 {linkedinRoles.map((role) => (
-                  <motion.span
-                    key={role}
-                    layout
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0, opacity: 0 }}
-                    transition={{ type: "spring", damping: 20, stiffness: 300 }}
-                    className="flex items-center gap-1.5 text-text-body-sm"
-                    style={{
-                      padding: "6px 12px",
-                      borderRadius: "var(--radius-sm)",
-                      background: "var(--color-bg-raised)",
-                      border: "1px solid var(--color-border-default)",
-                      color: "var(--color-text-secondary)",
-                    }}
-                  >
+                  <motion.span key={role} layout initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={transitions.snappy}
+                    className="flex items-center gap-1.5 text-[12px] font-medium"
+                    style={{ padding: "6px 10px", borderRadius: 8, background: "rgba(10,102,194,0.08)", border: "1px solid rgba(10,102,194,0.2)", color: "#0A66C2" }}>
                     {role}
-                    <button
-                      onClick={() => setLinkedInRoles(linkedinRoles.filter((r) => r !== role))}
-                      className="text-[14px]"
-                      style={{ color: "var(--color-text-muted)" }}
-                    >
-                      ×
+                    <button onClick={() => setLinkedInRoles(linkedinRoles.filter((r) => r !== role))}>
+                      <X className="h-3 w-3" style={{ color: "var(--color-text-muted)" }} />
                     </button>
                   </motion.span>
                 ))}
               </AnimatePresence>
-              {["VD", "Marknadschef", "CTO"].filter((r) => !linkedinRoles.includes(r)).map((role) => (
-                <motion.button
-                  key={role}
-                  onClick={() => setLinkedInRoles([...linkedinRoles, role])}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  transition={{ type: "spring", damping: 20, stiffness: 300 }}
-                  className="text-text-body-sm"
-                  style={{
-                    padding: "6px 12px",
-                    borderRadius: "var(--radius-sm)",
-                    border: "1px dashed var(--color-border-default)",
-                    color: "var(--color-text-muted)",
-                    background: "transparent",
-                  }}
-                >
+              {["VD", "Marknadschef", "CTO", "CFO"].filter((r) => !linkedinRoles.includes(r)).map((role) => (
+                <motion.button key={role} onClick={() => setLinkedInRoles([...linkedinRoles, role])}
+                  whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} transition={transitions.snappy}
+                  className="text-[12px]"
+                  style={{ padding: "6px 10px", borderRadius: 8, border: "1px dashed rgba(10,102,194,0.2)", color: "var(--color-text-muted)", background: "transparent" }}>
                   + {role}
                 </motion.button>
               ))}
@@ -286,46 +183,50 @@ export function TargetingSlide() {
         </div>
       )}
 
-      {/* Projections */}
+      {/* ── Projections card with glow ───────────────────────── */}
       <motion.div
-        className="mt-1 rounded-lg p-4"
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ type: "spring", damping: 25, stiffness: 200, delay: 0.2 }}
-        style={{
-          background: "var(--color-bg-elevated)",
-          border: "1px solid var(--color-border-subtle)",
-        }}
-      >
-        <p className="text-text-caption mb-3 text-center uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
-          Beräknad räckvidd (±40%)
+        transition={{ delay: 0.2, ...transitions.spring }}
+        className="relative overflow-hidden"
+        style={{ padding: "20px", borderRadius: 14, background: "rgba(99,102,241,0.04)", border: "1px solid rgba(99,102,241,0.15)" }}>
+        {/* Glow effect */}
+        <div className="pointer-events-none absolute -top-20 left-1/2 h-40 w-80 -translate-x-1/2"
+          style={{ background: "radial-gradient(ellipse, rgba(99,102,241,0.12) 0%, transparent 70%)" }} />
+
+        <p className="relative text-[10px] font-semibold uppercase tracking-widest text-center mb-4" style={{ color: "rgba(165,165,195,0.6)" }}>
+          Beräknad räckvidd
         </p>
-        <div className="grid grid-cols-3 gap-4 text-center">
+
+        <div className="relative grid grid-cols-3 gap-3 text-center">
           <div>
-            <div className="text-text-h2 font-bold" style={{ color: "var(--color-text-primary)" }}>
+            <div className="text-[20px] font-bold tracking-tight" style={{ color: "var(--color-text-primary)" }}>
               <NumberTicker value={projections.reachMin} format={(n) => `${Math.round(n / 1000)}K`} />
-              {" – "}
+              <span className="text-[14px] font-normal" style={{ color: "var(--color-text-muted)" }}> – </span>
               <NumberTicker value={projections.reachMax} format={(n) => `${Math.round(n / 1000)}K`} />
             </div>
-            <span className="text-text-caption" style={{ color: "var(--color-text-muted)" }}>visningar</span>
+            <span className="text-[10px] uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>visningar</span>
           </div>
           <div>
-            <div className="text-text-h2 font-bold" style={{ color: "var(--color-text-primary)" }}>
-              <NumberTicker value={projections.clicksMin} />
-              {" – "}
-              <NumberTicker value={projections.clicksMax} />
+            <div className="text-[20px] font-bold tracking-tight" style={{ color: "var(--color-text-primary)" }}>
+              <NumberTicker value={projections.clicksMin} format={(n) => n.toLocaleString("sv-SE")} />
+              <span className="text-[14px] font-normal" style={{ color: "var(--color-text-muted)" }}> – </span>
+              <NumberTicker value={projections.clicksMax} format={(n) => n.toLocaleString("sv-SE")} />
             </div>
-            <span className="text-text-caption" style={{ color: "var(--color-text-muted)" }}>klick</span>
+            <span className="text-[10px] uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>klick</span>
           </div>
           <div>
-            <div className="text-text-h2 font-bold" style={{ color: "var(--color-text-primary)" }}>
-              {projections.ctrMin}% – {projections.ctrMax}%
+            <div className="text-[20px] font-bold tracking-tight" style={{ color: "var(--color-text-primary)" }}>
+              {projections.ctrMin}%
+              <span className="text-[14px] font-normal" style={{ color: "var(--color-text-muted)" }}> – </span>
+              {projections.ctrMax}%
             </div>
-            <span className="text-text-caption" style={{ color: "var(--color-text-muted)" }}>CTR</span>
+            <span className="text-[10px] uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>CTR</span>
           </div>
         </div>
-        <p className="mt-2 text-center text-text-caption" style={{ color: "var(--color-text-muted)" }}>
-          ⓘ Uppskattning baserad på branschdata
+
+        <p className="relative mt-3 text-center text-[10px]" style={{ color: "var(--color-text-muted)" }}>
+          Uppskattning baserad på branschdata
         </p>
       </motion.div>
     </motion.div>
