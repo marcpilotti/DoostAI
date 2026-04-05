@@ -139,6 +139,7 @@ export async function generateAdImage(
     bodyCopy: adData.primaryText,
     cta: "Läs mer",
     format,
+    visualKeywords: classification.keywords,
   };
 
   const result = await generateCompleteAdImage(input);

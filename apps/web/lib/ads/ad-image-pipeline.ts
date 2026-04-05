@@ -26,6 +26,7 @@ export type AdImageInput = {
   bodyCopy: string;
   cta: string;
   format: AdFormat;
+  visualKeywords?: string[];
 };
 
 export type AdImageResult = {
@@ -68,8 +69,16 @@ function buildPrompt(input: AdImageInput): string {
     parts.push(`Appeal to: ${input.targetAudience}.`);
   }
 
+  // Visual keywords from classification
+  if (input.visualKeywords?.length) {
+    parts.push(`Visual elements: ${input.visualKeywords.join(", ")}.`);
+  }
+
   // Color direction
   parts.push(`Dominant color: ${input.brandColor}.`);
+  if (input.brandAccent && input.brandAccent !== input.brandColor) {
+    parts.push(`Secondary color accent: ${input.brandAccent}.`);
+  }
 
   // Technical requirements
   parts.push(
@@ -96,7 +105,7 @@ export async function generateCompleteAdImage(
     try {
       console.log(`[ad-pipeline] GPT-4o for ${input.brandName} (${input.industry})`);
       const generated = await Promise.race([
-        generateEmbeddedAdImage({ prompt, size, quality: "low" }),
+        generateEmbeddedAdImage({ prompt, size, quality: "medium" }),
         new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error("GPT-4o timed out")), 15_000),
         ),

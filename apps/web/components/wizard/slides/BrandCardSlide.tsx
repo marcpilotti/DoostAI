@@ -161,11 +161,12 @@ export function BrandCardSlide() {
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            className="group/logo relative h-14 shrink-0 overflow-hidden rounded-lg"
+            className="group/logo relative h-16 shrink-0 overflow-hidden rounded-lg"
             style={{
               background: "var(--color-bg-raised)",
               border: "1px solid var(--color-border-default)",
-              minWidth: 56,
+              minWidth: 64,
+              maxWidth: 160,
             }}
             title="Klicka för att byta logotyp"
           >
@@ -182,7 +183,7 @@ export function BrandCardSlide() {
                 <img
                   src={brand.logoUrl}
                   alt={brand.name}
-                  className="h-full w-auto object-contain px-3"
+                  className="h-full max-h-14 w-auto max-w-[140px] object-contain px-2"
                 />
                 <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover/logo:opacity-100">
                   <span className="text-[9px] font-medium text-white">
@@ -321,7 +322,15 @@ export function BrandCardSlide() {
                     style={{
                       backgroundColor: hex as string,
                       borderRadius: "var(--radius-sm)",
-                      border: "1px solid rgba(255,255,255,0.15)",
+                      border: (() => {
+                        const h = (hex as string).replace("#", "");
+                        const r = parseInt(h.slice(0, 2), 16) / 255;
+                        const g = parseInt(h.slice(2, 4), 16) / 255;
+                        const b = parseInt(h.slice(4, 6), 16) / 255;
+                        return (0.2126 * r + 0.7152 * g + 0.0722 * b) > 0.7
+                          ? "1px solid rgba(0,0,0,0.2)"
+                          : "1px solid rgba(255,255,255,0.15)";
+                      })(),
                       boxShadow: `0 0 12px ${hex}30`,
                     }}
                   />

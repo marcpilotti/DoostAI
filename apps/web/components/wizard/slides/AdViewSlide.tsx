@@ -30,6 +30,15 @@ type BrandState = NonNullable<ReturnType<typeof useWizardStore.getState>["brand"
 
 const ACTION_VERBS = ["ge", "boka", "upptäck", "välj", "starta", "få", "skapa", "hitta", "testa", "prova", "köp", "läs", "se", "hör", "ring"];
 
+function colorIsLight(hex: string): boolean {
+  const h = hex.replace("#", "");
+  if (h.length < 6) return false;
+  const r = parseInt(h.slice(0, 2), 16) / 255;
+  const g = parseInt(h.slice(2, 4), 16) / 255;
+  const b = parseInt(h.slice(4, 6), 16) / 255;
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.55;
+}
+
 function getAngleLabel(headline: string): { label: string; description: string } {
   const lower = headline.trim().toLowerCase();
   const firstWord = lower.split(/\s+/)[0] ?? "";
@@ -114,10 +123,15 @@ function InlineEditableText({ value, onSave, as: Tag = "h3", className, style }:
 
 // ── Ad Image Layer (shared across platforms) ─────────────────────
 
-function AdImageLayer({ ad, primaryColor, aspectRatio, isRegenerating }: {
-  ad: AdCreative; primaryColor: string; aspectRatio: string; isRegenerating: boolean;
+function AdImageLayer({ ad, primaryColor, aspectRatio, isRegenerating, isLightBrand }: {
+  ad: AdCreative; primaryColor: string; aspectRatio: string; isRegenerating: boolean; isLightBrand?: boolean;
 }) {
-  const gradientBg = `linear-gradient(145deg, ${primaryColor} 0%, ${primaryColor}CC 100%)`;
+  const gradientBg = isLightBrand
+    ? "linear-gradient(145deg, #1a1a2e 0%, #16213e 100%)"
+    : `linear-gradient(145deg, ${primaryColor} 0%, ${primaryColor}CC 100%)`;
+  const overlayGradient = isLightBrand
+    ? "linear-gradient(to top, rgba(20,20,30,0.85) 0%, rgba(20,20,30,0.5) 35%, transparent 70%)"
+    : `linear-gradient(to top, ${primaryColor}E0 0%, ${primaryColor}60 35%, transparent 70%)`;
   return (
     <div className="relative w-full overflow-hidden" style={{ aspectRatio }}>
       {ad.imageUrl ? (
@@ -125,7 +139,7 @@ function AdImageLayer({ ad, primaryColor, aspectRatio, isRegenerating }: {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={ad.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" style={{ transform: "scale(1.05)" }}
             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-          <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${primaryColor}E0 0%, ${primaryColor}60 35%, transparent 70%)` }} />
+          <div className="absolute inset-0" style={{ background: overlayGradient }} />
         </>
       ) : (
         <div className="absolute inset-0" style={{ background: gradientBg }}>
@@ -182,8 +196,8 @@ function MonitorFrame({ children }: { children: React.ReactNode }) {
 
 // ── Platform-Specific Mockups ────────────────────────────────────
 
-function InstagramMockup({ ad, brand, isRegenerating, onUpdate }: {
-  ad: AdCreative; brand: BrandState; isRegenerating: boolean; onUpdate: (f: "headline" | "bodyCopy" | "cta", v: string) => void;
+function InstagramMockup({ ad, brand, isRegenerating, onUpdate, isLightBrand }: {
+  ad: AdCreative; brand: BrandState; isRegenerating: boolean; onUpdate: (f: "headline" | "bodyCopy" | "cta", v: string) => void; isLightBrand?: boolean;
 }) {
   const c = brand.colors.primary || "#6366F1";
   const slug = brandSlug(brand.name);
@@ -207,7 +221,7 @@ function InstagramMockup({ ad, brand, isRegenerating, onUpdate }: {
       </div>
       {/* Ad image */}
       <div className="relative">
-        <AdImageLayer ad={ad} primaryColor={c} aspectRatio="1/1" isRegenerating={isRegenerating} />
+        <AdImageLayer ad={ad} primaryColor={c} aspectRatio="1/1" isRegenerating={isRegenerating} isLightBrand={isLightBrand} />
         {/* Text overlay */}
         <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-0.5 p-3">
           <InlineEditableText value={ad.headline} onSave={(v) => onUpdate("headline", v)} as="h3"
@@ -235,8 +249,8 @@ function InstagramMockup({ ad, brand, isRegenerating, onUpdate }: {
   );
 }
 
-function FacebookMockup({ ad, brand, isRegenerating, onUpdate }: {
-  ad: AdCreative; brand: BrandState; isRegenerating: boolean; onUpdate: (f: "headline" | "bodyCopy" | "cta", v: string) => void;
+function FacebookMockup({ ad, brand, isRegenerating, onUpdate, isLightBrand }: {
+  ad: AdCreative; brand: BrandState; isRegenerating: boolean; onUpdate: (f: "headline" | "bodyCopy" | "cta", v: string) => void; isLightBrand?: boolean;
 }) {
   const c = brand.colors.primary || "#6366F1";
   const domain = brand.url?.replace(/^https?:\/\//, "").replace(/\/$/, "") || "example.com";
@@ -267,7 +281,7 @@ function FacebookMockup({ ad, brand, isRegenerating, onUpdate }: {
         </div>
       </div>
       {/* Ad image */}
-      <AdImageLayer ad={ad} primaryColor={c} aspectRatio="4/5" isRegenerating={isRegenerating} />
+      <AdImageLayer ad={ad} primaryColor={c} aspectRatio="4/5" isRegenerating={isRegenerating} isLightBrand={isLightBrand} />
       {/* Link preview bar */}
       <div className="flex items-center justify-between bg-gray-50 px-3 py-1.5">
         <div className="min-w-0 flex-1">
@@ -295,8 +309,8 @@ function FacebookMockup({ ad, brand, isRegenerating, onUpdate }: {
   );
 }
 
-function GoogleMockup({ ad, brand, isRegenerating, onUpdate }: {
-  ad: AdCreative; brand: BrandState; isRegenerating: boolean; onUpdate: (f: "headline" | "bodyCopy" | "cta", v: string) => void;
+function GoogleMockup({ ad, brand, isRegenerating, onUpdate, isLightBrand }: {
+  ad: AdCreative; brand: BrandState; isRegenerating: boolean; onUpdate: (f: "headline" | "bodyCopy" | "cta", v: string) => void; isLightBrand?: boolean;
 }) {
   const c = brand.colors.primary || "#6366F1";
   return (
@@ -328,14 +342,14 @@ function GoogleMockup({ ad, brand, isRegenerating, onUpdate }: {
         <div className="w-2/5 shrink-0">
           <div className="text-[6px] uppercase tracking-wider text-gray-400">Annons</div>
           <div className="mt-0.5 overflow-hidden rounded" style={{ border: "1px solid rgba(0,0,0,0.06)" }}>
-            <AdImageLayer ad={ad} primaryColor={c} aspectRatio="1.91/1" isRegenerating={isRegenerating} />
+            <AdImageLayer ad={ad} primaryColor={c} aspectRatio="1.91/1" isRegenerating={isRegenerating} isLightBrand={isLightBrand} />
           </div>
           <div className="mt-1 space-y-0.5">
             <InlineEditableText value={ad.headline} onSave={(v) => onUpdate("headline", v)} as="h3"
-              className="text-[9px] font-bold leading-tight" style={{ color: "#1a0dab" }} />
+              className="text-[11px] font-bold leading-tight" style={{ color: c }} />
             <InlineEditableText value={ad.bodyCopy} onSave={(v) => onUpdate("bodyCopy", v)} as="p"
-              className="text-[7px] leading-snug line-clamp-2" style={{ color: "#545454" }} />
-            <span className="inline-block rounded px-1.5 py-0.5 text-[7px] font-bold text-white" style={{ background: c }}>
+              className="text-[9px] leading-snug line-clamp-2" style={{ color: "#545454" }} />
+            <span className="inline-block rounded px-1.5 py-0.5 text-[9px] font-bold text-white" style={{ background: c }}>
               {ad.cta}
             </span>
           </div>
@@ -351,8 +365,8 @@ function GoogleMockup({ ad, brand, isRegenerating, onUpdate }: {
   );
 }
 
-function LinkedInMockup({ ad, brand, isRegenerating, onUpdate }: {
-  ad: AdCreative; brand: BrandState; isRegenerating: boolean; onUpdate: (f: "headline" | "bodyCopy" | "cta", v: string) => void;
+function LinkedInMockup({ ad, brand, isRegenerating, onUpdate, isLightBrand }: {
+  ad: AdCreative; brand: BrandState; isRegenerating: boolean; onUpdate: (f: "headline" | "bodyCopy" | "cta", v: string) => void; isLightBrand?: boolean;
 }) {
   const c = brand.colors.primary || "#6366F1";
   return (
@@ -385,7 +399,7 @@ function LinkedInMockup({ ad, brand, isRegenerating, onUpdate }: {
               className="text-[10px] leading-relaxed line-clamp-3" style={{ color: "#000" }} />
           </div>
           {/* Ad image */}
-          <AdImageLayer ad={ad} primaryColor={c} aspectRatio="1.91/1" isRegenerating={isRegenerating} />
+          <AdImageLayer ad={ad} primaryColor={c} aspectRatio="1.91/1" isRegenerating={isRegenerating} isLightBrand={isLightBrand} />
           {/* Link preview */}
           <div className="flex items-center justify-between bg-[#EEF3F8] px-3 py-2">
             <InlineEditableText value={ad.headline} onSave={(v) => onUpdate("headline", v)} as="h3"
@@ -429,7 +443,7 @@ function useMockupScale(
       const natural = mockup.scrollHeight;
       const available = container.clientHeight;
       if (natural > 0 && available > 0 && natural > available) {
-        setScale(Math.max(0.3, available / natural));
+        setScale(Math.max(0.5, available / natural));
       } else {
         setScale(1);
       }
@@ -473,7 +487,8 @@ function AdMockupCard({ ad, brand, label, index, selected, platform, onToggle, o
     });
   }
 
-  const mockupProps = { ad, brand, isRegenerating, onUpdate: handleUpdate };
+  const light = colorIsLight(brand.colors.primary || "#6366F1");
+  const mockupProps = { ad, brand, isRegenerating, onUpdate: handleUpdate, isLightBrand: light };
 
   return (
     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
