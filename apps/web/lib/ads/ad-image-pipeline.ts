@@ -93,22 +93,25 @@ function getVisualDirection(industry: string): string {
 // ── Prompt builder — uses real profile data ──────────────────────
 
 function buildPrompt(input: AdImageInput): string {
-  const visual = getVisualDirection(input.industry);
+  const industryVisual = getVisualDirection(input.industry);
 
   const parts: string[] = [
     `Create a stunning, scroll-stopping advertisement background image for "${input.brandName}".`,
   ];
 
-  // Company context
+  // Company context — this is the MOST important signal
   if (input.description) {
     parts.push(`About the brand: ${input.description}.`);
+    // Use the description to guide the visual — it's more specific than the industry category
+    parts.push(`VISUAL SUBJECT: Based on what this company does, show the tools, products, materials, or environment directly related to their work. For example, if they are painters — show paint brushes, paint cans, a freshly painted wall. If they sell coffee — show coffee beans, a latte, a cozy café. The image MUST visually represent what this specific company does, not just a generic industry photo.`);
+    parts.push(`Additional industry reference: ${industryVisual}`);
+  } else {
+    // Fallback to industry-only visual direction
+    if (input.industry) {
+      parts.push(`Industry: ${input.industry}.`);
+    }
+    parts.push(`VISUAL SUBJECT: ${industryVisual}`);
   }
-  if (input.industry) {
-    parts.push(`Industry: ${input.industry}.`);
-  }
-
-  // Industry-specific visual direction (most important for relevance)
-  parts.push(`VISUAL SUBJECT: ${visual}`);
 
   // Color palette
   parts.push(`Brand colors: primary ${input.brandColor}${input.brandAccent && input.brandAccent !== input.brandColor ? `, accent ${input.brandAccent}` : ""}. Use these colors as inspiration for the overall color grading and mood.`);
