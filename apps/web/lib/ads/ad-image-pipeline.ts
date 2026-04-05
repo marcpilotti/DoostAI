@@ -1,11 +1,11 @@
 /**
  * Ad Image Pipeline — GPT-4o background generation via gpt-image-1.
  *
- * Generates clean background images with NO TEXT. All text is rendered
- * by the frontend CSS overlay.
+ * Uses the full brand profile (description, industry, voice, audience)
+ * to generate relevant background images. No hardcoded scene rules —
+ * GPT-4o understands context natively.
  *
- * Flow: GPT-4o (8-12s, quality "low") → SVG gradient fallback (instant)
- * Both variants run in parallel via generateAdImagePair.
+ * Flow: GPT-4o (8-12s) → SVG gradient fallback (instant)
  */
 
 import type { AdFormat } from "@/components/ads/ad-preview/types";
@@ -19,6 +19,9 @@ export type AdImageInput = {
   brandAccent?: string;
   logoUrl?: string | null;
   industry: string;
+  description?: string;
+  brandVoice?: string;
+  targetAudience?: string;
   headline: string;
   bodyCopy: string;
   cta: string;
@@ -41,81 +44,41 @@ const FORMAT_SIZES: Record<string, "1024x1024" | "1024x1536" | "1536x1024"> = {
   "linkedin": "1536x1024",
 };
 
-// ── Industry → scene matching (fuzzy keyword-based) ──────────────
-
-const SCENE_RULES: Array<{ keywords: string[]; scene: string }> = [
-  { keywords: ["måleri", "målare", "måla", "painter", "painting company"],
-    scene: "freshly painted bright room, paint rollers and brushes, color swatches on wall, professional painting work" },
-  { keywords: ["bygg", "renovering", "construction", "snickare", "carpentry", "entreprenad"],
-    scene: "freshly renovated room, modern construction craftsmanship, quality materials" },
-  { keywords: ["restaurang", "café", "cafe", "restaurant", "mat", "food", "kök", "kitchen", "bageri", "bakery"],
-    scene: "beautifully plated food on wooden table, warm restaurant ambiance, inviting dining" },
-  { keywords: ["frisör", "salong", "salon", "hår", "hair", "barber"],
-    scene: "modern hair salon interior, styling tools and mirrors, warm ambient lighting" },
-  { keywords: ["skönhet", "kosmetik", "beauty", "hudvård", "skincare", "spa"],
-    scene: "luxury skincare products on marble surface, serums and creams, soft golden lighting" },
-  { keywords: ["hälsa", "wellness", "terapi", "therapy", "massage"],
-    scene: "spa environment, natural ingredients, calm zen atmosphere, warm tones" },
-  { keywords: ["e-handel", "webshop", "ecommerce", "butik", "shop", "retail"],
-    scene: "premium product packaging, minimalist display, clean studio lighting" },
-  { keywords: ["saas", "tech", "it", "software", "digital", "app", "startup"],
-    scene: "sleek modern workspace, laptop and coffee on clean desk, natural light" },
-  { keywords: ["fastighet", "mäklare", "real estate", "bostad", "hem", "house"],
-    scene: "modern home interior, sunlit living space, beautiful architectural detail" },
-  { keywords: ["träning", "gym", "fitness", "sport", "idrott"],
-    scene: "modern gym equipment, energetic atmosphere, dynamic lighting" },
-  { keywords: ["mode", "kläder", "fashion", "clothing", "textil"],
-    scene: "fashion items on display, fabric textures, editorial studio lighting" },
-  { keywords: ["foto", "photograph", "video", "media", "film"],
-    scene: "professional camera equipment, studio lighting setup, creative workspace" },
-  { keywords: ["tand", "dental", "tandläkare"],
-    scene: "modern dental clinic, clean bright medical environment" },
-  { keywords: ["juridik", "advokat", "lawyer", "legal", "redovisning", "accounting", "revision"],
-    scene: "elegant professional office, leather-bound books, warm desk lighting" },
-  { keywords: ["marknadsfö", "reklam", "marketing", "advertising", "kommunikation", "pr"],
-    scene: "creative workspace with large screens showing data, modern agency office" },
-  { keywords: ["resa", "resor", "turism", "travel", "tourism", "hotell", "hotel"],
-    scene: "stunning travel destination, scenic landscape, golden hour lighting" },
-  { keywords: ["inredning", "design", "interior", "möbel", "furniture"],
-    scene: "beautifully designed interior space, designer furniture, styled room" },
-  { keywords: ["livsmedel", "dagligvaror", "grocery", "food production"],
-    scene: "fresh produce display, artisan food arrangement, warm natural tones" },
-  { keywords: ["finans", "försäkring", "bank", "insurance", "finance", "invest"],
-    scene: "modern financial office, glass and steel, professional corporate setting" },
-  { keywords: ["bil", "motor", "fordon", "vehicle", "auto", "verkstad", "garage"],
-    scene: "premium car detail shot, clean automotive workshop, polished surfaces" },
-  { keywords: ["el", "elektriker", "electrician", "installation"],
-    scene: "modern electrical installation, clean wiring, professional tools on workbench" },
-  { keywords: ["vvs", "plumber", "rör", "vatten", "heating"],
-    scene: "modern bathroom renovation, sleek plumbing fixtures, clean tile work" },
-  { keywords: ["trädgård", "garden", "landscap", "grön", "plantering"],
-    scene: "beautiful landscaped garden, lush green plants, professional garden design" },
-  { keywords: ["städ", "cleaning", "rengöring", "facility"],
-    scene: "spotlessly clean modern office space, gleaming surfaces, bright lighting" },
-  { keywords: ["transport", "logistik", "logistics", "frakt", "shipping", "flytt", "moving"],
-    scene: "organized warehouse, delivery fleet, professional logistics operation" },
-  { keywords: ["konsult", "consult", "rådgivning", "advisory"],
-    scene: "modern meeting room, glass walls, collaborative professional environment" },
-  { keywords: ["utbildning", "education", "skola", "school", "kurs", "course"],
-    scene: "bright modern learning space, books and laptops, inspiring educational environment" },
-  { keywords: ["veterinär", "djur", "animal", "pet"],
-    scene: "modern veterinary clinic, caring professional environment, warm lighting" },
-];
-
-function findScene(industry: string): string {
-  if (!industry) return "modern business environment, professional commercial setting";
-  const lower = industry.toLowerCase();
-  for (const rule of SCENE_RULES) {
-    if (rule.keywords.some((kw) => lower.includes(kw))) return rule.scene;
-  }
-  return `${industry} business environment, professional commercial setting, premium workspace`;
-}
-
-// ── Prompt builder ───────────────────────────────────────────────
+// ── Prompt builder — uses real profile data ──────────────────────
 
 function buildPrompt(input: AdImageInput): string {
-  const scene = findScene(input.industry);
-  return `Professional advertising photograph. ${scene}. Dominant color: ${input.brandColor}. Sharp focus, premium commercial photography, cinematic lighting. Clean background for text overlay. No text, no logos, no people.`;
+  const parts: string[] = [
+    "Professional advertising photograph.",
+  ];
+
+  // What the company does (most important context)
+  if (input.description) {
+    parts.push(`Company: ${input.description}.`);
+  } else if (input.industry) {
+    parts.push(`Industry: ${input.industry}.`);
+  }
+
+  // Mood from brand voice
+  if (input.brandVoice) {
+    parts.push(`Mood: ${input.brandVoice}.`);
+  }
+
+  // Style hint from target audience
+  if (input.targetAudience) {
+    parts.push(`Appeal to: ${input.targetAudience}.`);
+  }
+
+  // Color direction
+  parts.push(`Dominant color: ${input.brandColor}.`);
+
+  // Technical requirements
+  parts.push(
+    "Premium commercial photography, cinematic lighting, sharp focus.",
+    "Clean background suitable for text overlay.",
+    "No text, no words, no logos, no watermarks, no people.",
+  );
+
+  return parts.join(" ");
 }
 
 // ── Core pipeline ────────────────────────────────────────────────
@@ -128,7 +91,6 @@ export async function generateCompleteAdImage(
   const prompt = buildPrompt(input);
   const size = FORMAT_SIZES[input.format] ?? "1024x1024";
 
-  // GPT-4o via gpt-image-1 (quality "low" for speed, ~8-12s)
   const apiKey = process.env.OPENAI_API_KEY;
   if (apiKey && !apiKey.startsWith("sk-proj-placeholder")) {
     try {
@@ -139,7 +101,7 @@ export async function generateCompleteAdImage(
           setTimeout(() => reject(new Error("GPT-4o timed out")), 15_000),
         ),
       ]);
-      console.log(`[ad-pipeline] GPT-4o done for ${input.brandName}`);
+      console.log(`[ad-pipeline] Done for ${input.brandName}`);
       return {
         imageUrl: `data:image/jpeg;base64,${generated.b64}`,
         method: "gpt-image",
@@ -159,7 +121,7 @@ export async function generateCompleteAdImage(
   return { imageUrl: svg, method: "gradient-fallback", prompt, attempts: 0 };
 }
 
-// ── Parallel variant generation ──────────────────────────────────
+// ── Parallel variant generation (kept for backwards compat) ──────
 
 export async function generateAdImagePair(
   inputA: AdImageInput,

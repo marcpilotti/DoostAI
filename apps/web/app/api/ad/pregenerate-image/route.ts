@@ -9,15 +9,17 @@ const inputSchema = z.object({
   brandColor: z.string(),
   brandAccent: z.string().optional(),
   industry: z.string(),
+  description: z.string().optional(),
+  brandVoice: z.string().optional(),
+  targetAudience: z.string().optional(),
 });
 
 /**
  * POST /api/ad/pregenerate-image
  *
  * Fires early (after brand analysis) to pre-generate the ad background
- * image with GPT-4o while the user browses brand card → audience →
- * platform steps. By the time they click "Skapa annonser", the image
- * is cached on the client and ad generation only needs copy (~3-4s).
+ * with GPT-4o using full brand profile context. Runs while user browses
+ * brand card → audience → platform steps (~15-30s).
  */
 export async function POST(req: Request) {
   const body = await req.json();
@@ -26,13 +28,8 @@ export async function POST(req: Request) {
     return Response.json({ error: "Invalid input" }, { status: 400 });
   }
 
-  const { brandName, brandColor, brandAccent, industry } = parsed.data;
-
   const result = await generateCompleteAdImage({
-    brandName,
-    brandColor,
-    brandAccent,
-    industry,
+    ...parsed.data,
     headline: "",
     bodyCopy: "",
     cta: "",

@@ -103,6 +103,9 @@ export function UrlInputSlide() {
                     brandColor: p.colors.primary,
                     brandAccent: p.colors.accent ?? p.colors.secondary,
                     industry: p.industry,
+                    description: p.description,
+                    brandVoice: p.brandVoice,
+                    targetAudience: p.targetAudience,
                   }),
                 }).then(async (res) => {
                   if (res.ok) {
