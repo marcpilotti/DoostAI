@@ -85,7 +85,7 @@ export function WizardShell() {
         <motion.header
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-6 py-4"
+          className={`absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-6 py-4 ${step === "url" ? "" : "hidden md:flex"}`}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="Doost AI" className="h-7" />
@@ -149,7 +149,7 @@ export function WizardShell() {
 
       <main
         id="main"
-        className="flex flex-1 items-center justify-center overflow-hidden p-6 relative z-10"
+        className="flex flex-1 items-center justify-center overflow-hidden px-4 pt-16 pb-20 md:p-6 md:pt-6 relative z-10"
       >
         <motion.div
           className="w-full"
@@ -183,7 +183,7 @@ export function WizardShell() {
           whileTap={{ scale: 0.9 }}
           transition={{ type: "spring", damping: 20, stiffness: 300 }}
           aria-label="Tillbaka"
-          className="floating-back absolute bottom-6 left-6 z-30"
+          className="floating-back absolute bottom-4 left-4 md:bottom-6 md:left-6 z-30"
         >
           ←
         </motion.button>
@@ -199,7 +199,7 @@ export function WizardShell() {
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
           transition={{ type: "spring", damping: 20, stiffness: 300 }}
-          className="cta-primary absolute bottom-6 right-6 z-30"
+          className="cta-primary absolute bottom-4 right-4 md:bottom-6 md:right-6 z-30"
         >
           <AnimatePresence mode="wait">
             <motion.span

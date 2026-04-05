@@ -632,6 +632,7 @@ export function AdViewSlide() {
   const { handleNext } = useWizardNavigation();
   const [activeVariant, setActiveVariant] = useState<"A" | "B">("A");
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [mobileEditOpen, setMobileEditOpen] = useState(false);
   const [, startTransition] = useTransition();
   const containerRef = useRef<HTMLDivElement>(null);
   const mockupRef = useRef<HTMLDivElement>(null);
@@ -763,27 +764,37 @@ export function AdViewSlide() {
       <div className="flex flex-col gap-6 md:flex-row md:gap-8">
 
         {/* Left column: device mockup + A/B toggle + upload */}
-        <div className="flex flex-col items-center gap-3" style={{ width: "100%", maxWidth: 300, flexShrink: 0, margin: "0 auto" }}>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`${activePlatform}-${activeVariant}`}
-              initial={{ opacity: 0, scale: 0.97 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.97 }}
-              transition={{ duration: 0.25 }}
-              className="w-full"
-            >
-              <div
-                ref={containerRef}
-                className="relative w-full overflow-hidden"
-                style={{ height: "calc(100dvh - 320px)", maxHeight: 460 }}
+        <div className="flex flex-col items-center gap-3 max-w-full md:max-w-[300px] md:mx-0" style={{ width: "100%", flexShrink: 0 }}>
+          <div
+            className="w-full cursor-pointer md:cursor-default"
+            onClick={() => {
+              if (window.innerWidth < 768) setMobileEditOpen(true);
+            }}
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${activePlatform}-${activeVariant}`}
+                initial={{ opacity: 0, scale: 0.97 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.97 }}
+                transition={{ duration: 0.25 }}
+                className="w-full"
               >
-                <div ref={mockupRef} style={{ transformOrigin: "top center", transform: `scale(${scale})` }}>
-                  {activeAd && <MockupRenderer ad={activeAd} brand={brand} platform={activePlatform} isRegenerating={isRegenerating} />}
+                <div
+                  ref={containerRef}
+                  className="relative w-full overflow-hidden"
+                  style={{ height: "calc(100dvh - 300px)", maxHeight: 520 }}
+                >
+                  <div ref={mockupRef} style={{ transformOrigin: "top center", transform: `scale(${scale})` }}>
+                    {activeAd && <MockupRenderer ad={activeAd} brand={brand} platform={activePlatform} isRegenerating={isRegenerating} />}
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          </AnimatePresence>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+          <p className="text-center text-[11px] md:hidden" style={{ color: "var(--color-text-muted)" }}>
+            Tryck för att redigera
+          </p>
 
           {adB && <ABTogglePill activeVariant={activeVariant} onSwitch={handleVariantSwitch} />}
           {activeAd && <UploadBackgroundButton adId={activeAd.id} />}
@@ -792,17 +803,64 @@ export function AdViewSlide() {
         {/* Divider */}
         <div className="hidden md:block" style={{ width: 1, background: "rgba(255,255,255,0.06)", alignSelf: "stretch" }} />
 
-        {/* Right column: detail panel */}
-        {activeAd && (
-          <DetailPanel
-            ad={activeAd}
-            platform={activePlatform}
-            onRegenerate={handleRegenerateImage}
-            onRegenerateAll={handleRegenerateAll}
-            isRegenerating={isRegenerating}
-          />
-        )}
+        {/* Right column: detail panel — desktop only */}
+        <div className="hidden md:flex flex-1">
+          {activeAd && (
+            <DetailPanel
+              ad={activeAd}
+              platform={activePlatform}
+              onRegenerate={handleRegenerateImage}
+              onRegenerateAll={handleRegenerateAll}
+              isRegenerating={isRegenerating}
+            />
+          )}
+        </div>
       </div>
+
+      {/* Mobile edit modal */}
+      <AnimatePresence>
+        {mobileEditOpen && activeAd && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 md:hidden"
+            onClick={() => setMobileEditOpen(false)}
+          >
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+
+            {/* Bottom sheet */}
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              className="absolute bottom-0 left-0 right-0 max-h-[85dvh] overflow-y-auto rounded-t-2xl"
+              style={{
+                background: "var(--color-bg-elevated)",
+                borderTop: "1px solid rgba(255,255,255,0.1)",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Handle bar */}
+              <div className="sticky top-0 z-10 flex justify-center py-3" style={{ background: "var(--color-bg-elevated)" }}>
+                <div className="h-1 w-10 rounded-full" style={{ background: "rgba(255,255,255,0.2)" }} />
+              </div>
+
+              <div className="px-5 pb-8">
+                <DetailPanel
+                  ad={activeAd}
+                  platform={activePlatform}
+                  onRegenerate={handleRegenerateImage}
+                  onRegenerateAll={handleRegenerateAll}
+                  isRegenerating={isRegenerating}
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
