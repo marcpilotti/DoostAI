@@ -79,15 +79,37 @@ export function WizardShell() {
 
   return (
     <div className="wizard-bg wizard-grain flex h-dvh flex-col overflow-hidden relative">
-      {/* Doost logo — top-left, hidden during loaders */}
+      {/* Navbar — logo left, nav items right on landing */}
       {!isLoading && (
         <motion.header
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="absolute left-4 top-4 z-20"
+          className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-6 py-4"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="Doost AI" className="h-7" />
+          {step === "url" && (
+            <nav className="hidden sm:flex items-center gap-6">
+              <a
+                href="#"
+                className="text-[13px] text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text-primary)]"
+              >
+                Så funkar det
+              </a>
+              <a
+                href="#"
+                className="text-[13px] text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text-primary)]"
+              >
+                Priser
+              </a>
+              <a
+                href="/sign-in"
+                className="text-[13px] font-medium text-[var(--color-text-primary)] transition-colors hover:text-[var(--color-primary-light)]"
+              >
+                Logga in
+              </a>
+            </nav>
+          )}
         </motion.header>
       )}
 
@@ -169,6 +191,27 @@ export function WizardShell() {
             </motion.button>
           )}
         </footer>
+      )}
+
+      {/* Landing footer — minimal legal line */}
+      {step === "url" && (
+        <motion.footer
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, ease: "easeOut", delay: 0.4 }}
+          className="flex-shrink-0 py-4 px-6 text-center"
+        >
+          <p className="text-[12px]" style={{ color: "var(--color-text-muted)" }}>
+            © 2026 Doost AI ·{" "}
+            <a href="#" className="transition-colors hover:text-[var(--color-text-secondary)]">
+              Integritetspolicy
+            </a>{" "}
+            ·{" "}
+            <a href="#" className="transition-colors hover:text-[var(--color-text-secondary)]">
+              Kontakt
+            </a>
+          </p>
+        </motion.footer>
       )}
     </div>
   );

@@ -1,10 +1,9 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useCallback,useState } from "react";
+import { useCallback, useState } from "react";
 import { z } from "zod";
 
-import { cardVariants,transitions } from "@/lib/motion";
 import { useWizardStore } from "@/lib/stores/wizard-store";
 
 const urlSchema = z.string().min(3).refine(
@@ -141,11 +140,7 @@ export function UrlInputSlide() {
   return (
     <div className="flex h-dvh flex-col overflow-hidden">
       {/* Centered content */}
-      <motion.div
-        variants={cardVariants}
-        initial="hidden"
-        animate="visible"
-        transition={transitions.spring}
+      <div
         className="flex flex-1 flex-col items-center justify-center text-center"
         style={{ padding: "0 24px 72px" }}
       >
@@ -157,9 +152,9 @@ export function UrlInputSlide() {
             fontSize: "clamp(40px, 7vw, 64px)",
             lineHeight: 1.1,
           }}
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ type: "spring", damping: 25, stiffness: 200 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
         >
           Skippa byrån.
         </motion.h1>
@@ -167,27 +162,29 @@ export function UrlInputSlide() {
         {/* Subtitle */}
         <motion.p
           className="mb-8 text-[16px]"
-          style={{ color: "var(--color-text-muted)" }}
-          initial={{ opacity: 0, y: 20 }}
+          style={{ color: "var(--color-text-muted)", maxWidth: 480 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ type: "spring", damping: 25, stiffness: 200, delay: 0.1 }}
+          transition={{ duration: 0.4, ease: "easeOut", delay: 0.1 }}
         >
-          Klistra in din hemsida — vi skapar din annons med AI.
+          Klistra in din URL. Få färdiga annonser för Meta, Google och LinkedIn
+          på 60 sekunder.
         </motion.p>
 
-        {/* Input + button inline */}
+        {/* Input + button — unified search bar */}
         <motion.div
-          className="flex w-full items-center gap-0 overflow-hidden"
+          className="url-input-container flex w-full items-stretch gap-0 overflow-hidden"
           style={{
             maxWidth: 520,
+            minHeight: 56,
             borderRadius: 14,
             background: "var(--color-bg-elevated)",
             border: "1px solid rgba(255,255,255,0.08)",
             boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
           }}
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ type: "spring", damping: 25, stiffness: 200, delay: 0.2 }}
+          transition={{ duration: 0.4, ease: "easeOut", delay: 0.2 }}
         >
           <input
             type="url"
@@ -211,12 +208,12 @@ export function UrlInputSlide() {
           <motion.button
             onClick={handleSubmit}
             disabled={!input.trim() || isLoading}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
+            whileHover={{ scale: 1.02, filter: "brightness(1.15)" }}
+            whileTap={{ scale: 0.98 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            className="flex flex-shrink-0 items-center gap-2 font-semibold transition-all disabled:opacity-40"
+            className="flex flex-shrink-0 items-center justify-center gap-2 font-semibold transition-all disabled:opacity-40"
             style={{
-              background: "var(--color-primary)",
+              background: "linear-gradient(135deg, #818CF8, #6366F1)",
               color: "#fff",
               padding: "12px 24px",
               margin: "6px",
@@ -224,15 +221,16 @@ export function UrlInputSlide() {
               fontSize: 14,
               border: "none",
               cursor: !input.trim() || isLoading ? "not-allowed" : "pointer",
+              boxShadow: "0 2px 16px rgba(99, 102, 241, 0.35)",
             }}
           >
             {isLoading ? (
               <>
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                Analyserar...
+                Skapar...
               </>
             ) : (
-              "Analysera"
+              "Skapa min annons"
             )}
           </motion.button>
         </motion.div>
@@ -249,14 +247,34 @@ export function UrlInputSlide() {
           </motion.p>
         )}
 
-        {/* Social proof */}
-        <p
+        {/* Example URL — clickable to auto-fill */}
+        <motion.p
           className="mt-6 text-[13px]"
           style={{ color: "var(--color-text-muted)" }}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: "easeOut", delay: 0.3 }}
         >
-          Testa med idewerksbeauty.se eller eraase.se
-        </p>
-      </motion.div>
+          Testa med en riktig sajt:{" "}
+          <button
+            type="button"
+            onClick={() => {
+              setInput("idewerksbeauty.se");
+              setError("");
+            }}
+            className="cursor-pointer underline underline-offset-2 transition-colors hover:text-[var(--color-text-secondary)]"
+            style={{
+              color: "inherit",
+              background: "none",
+              border: "none",
+              font: "inherit",
+              padding: 0,
+            }}
+          >
+            idewerksbeauty.se
+          </button>
+        </motion.p>
+      </div>
     </div>
   );
 }
