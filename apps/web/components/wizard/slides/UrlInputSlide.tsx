@@ -110,8 +110,9 @@ export function UrlInputSlide() {
                   }),
                 }).then(async (res) => {
                   if (res.ok) {
-                    const { imageUrl } = await res.json();
-                    if (imageUrl) setPreGeneratedImageUrl(imageUrl);
+                    const { imageUrl, method } = await res.json();
+                    // Only store real AI-generated images, not gradient fallbacks
+                    if (imageUrl && method === "gpt-image") setPreGeneratedImageUrl(imageUrl);
                   }
                 }).catch(() => { /* non-critical */ });
               }

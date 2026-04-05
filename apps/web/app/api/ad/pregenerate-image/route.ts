@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { generateCompleteAdImage } from "@/lib/ads/ad-image-pipeline";
 
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 const inputSchema = z.object({
   brandName: z.string(),

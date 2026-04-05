@@ -108,7 +108,8 @@ export async function POST(req: Request) {
         // ── Strategy + copy + images ALL in parallel ────────────
         // If pre-generated image exists (from background prefetch during
         // brand card → audience → platform steps), skip GPT-4o entirely.
-        const needsImage = !preGeneratedImageUrl;
+        // Only skip image generation if we have a REAL pre-generated image (not SVG gradient fallback)
+        const needsImage = !preGeneratedImageUrl || preGeneratedImageUrl.startsWith("data:image/svg");
         const imageInput: AdImageInput = {
           brandName: brand.name,
           brandColor: brand.colors.primary,
@@ -130,7 +131,7 @@ export async function POST(req: Request) {
         }), "copy");
 
         const imagePromise = needsImage
-          ? withTimeout(generateCompleteAdImage(imageInput), "images", 15_000)
+          ? withTimeout(generateCompleteAdImage(imageInput), "images", 50_000)
           : Promise.resolve({ imageUrl: preGeneratedImageUrl, method: "pre-generated" as const, prompt: "", attempts: 0 });
 
         const [copySettled, imageSettled] = await Promise.allSettled([

@@ -106,9 +106,9 @@ export async function generateCompleteAdImage(
     try {
       console.log(`[ad-pipeline] GPT-4o for ${input.brandName} (${input.industry})`);
       const generated = await Promise.race([
-        generateEmbeddedAdImage({ prompt, size, quality: "high" }),
+        generateEmbeddedAdImage({ prompt, size, quality: "medium" }),
         new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("GPT-4o timed out")), 25_000),
+          setTimeout(() => reject(new Error("GPT-4o timed out")), 45_000),
         ),
       ]);
       console.log(`[ad-pipeline] Done for ${input.brandName}`);
