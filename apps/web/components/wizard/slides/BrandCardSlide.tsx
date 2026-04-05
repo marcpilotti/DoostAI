@@ -4,8 +4,48 @@ import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
-import { cardVariants, listItemVariants,transitions } from "@/lib/motion";
+import { cardVariants, listItemVariants, transitions } from "@/lib/motion";
 import { useWizardStore } from "@/lib/stores/wizard-store";
+
+function SectionHeader({
+  children,
+  onEdit,
+}: {
+  children: React.ReactNode;
+  onEdit?: () => void;
+}) {
+  return (
+    <div className="group/header flex items-center gap-2">
+      <span
+        className="text-[11px] font-medium uppercase tracking-wider"
+        style={{ color: "var(--color-text-muted)" }}
+      >
+        {children}
+      </span>
+      {onEdit && (
+        <button
+          onClick={onEdit}
+          className="opacity-0 transition-opacity group-hover/header:opacity-60 hover:!opacity-100"
+          style={{ color: "var(--color-text-muted)" }}
+          title="Redigera"
+        >
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+          </svg>
+        </button>
+      )}
+    </div>
+  );
+}
 
 export function BrandCardSlide() {
   const { brand, setBrand, setFooterAction } = useWizardStore();
@@ -43,8 +83,21 @@ export function BrandCardSlide() {
   };
 
   const handleFontChange = (type: "heading" | "body", value: string) => {
-    setBrand({ ...brand, fonts: { heading: brand.fonts?.heading || "", body: brand.fonts?.body || "", [type]: value } });
+    setBrand({
+      ...brand,
+      fonts: {
+        heading: brand.fonts?.heading || "",
+        body: brand.fonts?.body || "",
+        [type]: value,
+      },
+    });
   };
+
+  const colorEntries = Object.entries(brand.colors).filter(
+    ([, hex]) => !!hex,
+  );
+  const hasColors = colorEntries.length > 0;
+  const hasFonts = !!(brand.fonts?.heading || brand.fonts?.body);
 
   return (
     <motion.div
@@ -54,25 +107,21 @@ export function BrandCardSlide() {
       transition={transitions.spring}
       className="flex w-full flex-col gap-4"
     >
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-text-h1" style={{ color: "var(--color-text-primary)" }}>
-            Ditt varumärke
-          </h2>
-          <p className="mt-1 text-text-body-sm" style={{ color: "var(--color-text-muted)" }}>
-            Så ser ditt varumärke ut för AI:n. Redigera om något stämmer dåligt.
-          </p>
-        </div>
-        <motion.button
-          onClick={() => setIsEditing(!isEditing)}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          transition={{ type: "spring", damping: 20, stiffness: 300 }}
-          className="text-text-body-sm font-medium"
-          style={{ color: "var(--color-primary)" }}
+      {/* Header */}
+      <div>
+        <h2
+          className="text-text-h1"
+          style={{ color: "var(--color-text-primary)" }}
         >
-          {isEditing ? "Klar" : "✎ Redigera"}
-        </motion.button>
+          Vi hittade ditt varumärke ✓
+        </h2>
+        <p
+          className="mt-1 text-text-body-sm"
+          style={{ color: "var(--color-text-muted)" }}
+        >
+          Det här hittade vi på din sajt. Kontrollera att allt ser rätt ut — du
+          kan redigera vad som helst.
+        </p>
       </div>
 
       {/* Brand card */}
@@ -80,17 +129,26 @@ export function BrandCardSlide() {
         className="ai-border"
         style={{
           borderRadius: "var(--radius-xl)",
-          background: "linear-gradient(135deg, var(--color-bg-elevated) 0%, rgba(99, 102, 241, 0.03) 100%)",
+          background:
+            "linear-gradient(135deg, var(--color-bg-elevated) 0%, rgba(99, 102, 241, 0.03) 100%)",
           boxShadow: "var(--shadow-lg), var(--shadow-glow-sm)",
-          padding: "var(--space-6)",
+          padding: 0,
+          overflow: "hidden",
         }}
-        variants={{ visible: { transition: { staggerChildren: 0.1, delayChildren: 0.1 } } }}
+        variants={{
+          visible: {
+            transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+          },
+        }}
         initial="hidden"
         animate="visible"
       >
-        {/* Header: logo + name + industry */}
-        <motion.div variants={listItemVariants} className="flex items-start gap-4">
-          {/* Logo — clickable to upload */}
+        {/* ── Brand Identity ─────────────────────────── */}
+        <motion.div
+          variants={listItemVariants}
+          className="flex items-start gap-4 p-6"
+        >
+          {/* Logo */}
           <input
             ref={fileInputRef}
             type="file"
@@ -98,19 +156,25 @@ export function BrandCardSlide() {
             className="hidden"
             onChange={handleLogoUpload}
           />
-          {/* Logo — dynamic width, clickable to upload */}
           <motion.button
             onClick={() => fileInputRef.current?.click()}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            className="group relative h-12 shrink-0 overflow-hidden rounded-lg"
-            style={{ background: "var(--color-bg-raised)", border: "1px solid var(--color-border-default)" }}
+            className="group/logo relative h-14 shrink-0 overflow-hidden rounded-lg"
+            style={{
+              background: "var(--color-bg-raised)",
+              border: "1px solid var(--color-border-default)",
+              minWidth: 56,
+            }}
             title="Klicka för att byta logotyp"
           >
             {logoUploading ? (
               <div className="flex h-full w-16 items-center justify-center">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" style={{ color: "var(--color-primary)" }} />
+                <div
+                  className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+                  style={{ color: "var(--color-primary)" }}
+                />
               </div>
             ) : brand.logoUrl ? (
               <>
@@ -120,18 +184,30 @@ export function BrandCardSlide() {
                   alt={brand.name}
                   className="h-full w-auto object-contain px-3"
                 />
-                <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
-                  <span className="text-[9px] font-medium text-white">Byt logotyp</span>
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover/logo:opacity-100">
+                  <span className="text-[9px] font-medium text-white">
+                    Byt logotyp
+                  </span>
                 </div>
               </>
             ) : (
-              <div className="flex h-full w-16 items-center justify-center">
-                <span className="text-lg font-bold" style={{ color: "var(--color-text-primary)" }}>
+              <div className="flex h-full w-16 flex-col items-center justify-center gap-0.5 px-2">
+                <span
+                  className="text-xl font-bold"
+                  style={{ color: "var(--color-text-primary)" }}
+                >
                   {brand.name.charAt(0)}
+                </span>
+                <span
+                  className="text-[8px] leading-tight"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
+                  Ladda upp
                 </span>
               </div>
             )}
           </motion.button>
+
           <div className="flex-1">
             {isEditing ? (
               <input
@@ -144,22 +220,53 @@ export function BrandCardSlide() {
                 }}
               />
             ) : (
-              <h3 className="text-text-h2" style={{ color: "var(--color-text-primary)" }}>
+              <h3
+                className="editable-hint text-text-h2"
+                style={{ color: "var(--color-text-primary)" }}
+                onClick={() => setIsEditing(true)}
+              >
                 {brand.name}
               </h3>
             )}
-            <p className="text-text-body-sm" style={{ color: "var(--color-text-muted)" }}>
+            {/* Industry pill */}
+            <span
+              className="mt-1.5 inline-block text-[12px] font-medium"
+              style={{
+                padding: "2px 10px",
+                borderRadius: "var(--radius-full)",
+                background: "rgba(99, 102, 241, 0.08)",
+                color: "var(--color-text-secondary)",
+                border: "1px solid rgba(99, 102, 241, 0.15)",
+              }}
+            >
               {brand.industry}
               {brand.subIndustry && ` · ${brand.subIndustry}`}
-            </p>
+            </span>
           </div>
+
+          {/* Edit toggle */}
+          <motion.button
+            onClick={() => setIsEditing(!isEditing)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="shrink-0 text-[12px] font-medium opacity-60 transition-opacity hover:opacity-100"
+            style={{ color: "var(--color-primary)" }}
+          >
+            {isEditing ? "Klar ✓" : "✎ Redigera"}
+          </motion.button>
         </motion.div>
 
-        {/* Description */}
-        <motion.div
-          variants={listItemVariants}
-          className="mt-4"
-        >
+        {/* Divider */}
+        <div
+          style={{
+            height: 1,
+            background: "var(--color-border-subtle)",
+            margin: "0 24px",
+          }}
+        />
+
+        {/* ── Description ─────────────────────────── */}
+        <motion.div variants={listItemVariants} className="p-6 py-5">
           {isEditing ? (
             <textarea
               value={brand.description}
@@ -172,43 +279,111 @@ export function BrandCardSlide() {
               rows={3}
             />
           ) : (
-            <p className="text-text-body italic" style={{ color: "var(--color-text-secondary)" }}>
+            <p
+              className="editable-hint text-text-body italic"
+              style={{ color: "var(--color-text-secondary)" }}
+              onClick={() => setIsEditing(true)}
+            >
               &ldquo;{brand.description}&rdquo;
             </p>
           )}
         </motion.div>
 
-        {/* Colors */}
-        <motion.div variants={listItemVariants} className="mt-4 flex items-center gap-2">
-          {Object.entries(brand.colors).map(([name, hex]) =>
-            hex ? (
-              <motion.div
-                key={name}
-                className="h-8 w-8 cursor-pointer"
-                title={name}
-                whileHover={{ scale: 1.2, boxShadow: `0 0 20px ${hex}80` }}
-                transition={{ type: "spring", damping: 20, stiffness: 300 }}
-                style={{
-                  backgroundColor: hex,
-                  borderRadius: "var(--radius-sm)",
-                  border: "2px solid var(--color-border-default)",
-                  boxShadow: `0 0 12px ${hex}40`,
-                }}
-              />
-            ) : null
+        {/* Divider */}
+        <div
+          style={{
+            height: 1,
+            background: "var(--color-border-subtle)",
+            margin: "0 24px",
+          }}
+        />
+
+        {/* ── Colors ─────────────────────────── */}
+        <motion.div variants={listItemVariants} className="p-6 py-5">
+          <SectionHeader onEdit={() => setIsEditing(true)}>
+            Varumärkesfärger
+          </SectionHeader>
+          {hasColors ? (
+            <div className="mt-3 flex flex-wrap gap-3">
+              {colorEntries.map(([name, hex]) => (
+                <div key={name} className="flex flex-col items-center gap-1.5">
+                  <motion.div
+                    className="h-11 w-11 cursor-pointer"
+                    whileHover={{
+                      scale: 1.1,
+                      boxShadow: `0 0 20px ${hex}80`,
+                    }}
+                    transition={{
+                      type: "spring",
+                      damping: 20,
+                      stiffness: 300,
+                    }}
+                    style={{
+                      backgroundColor: hex as string,
+                      borderRadius: "var(--radius-sm)",
+                      border: "1px solid rgba(255,255,255,0.15)",
+                      boxShadow: `0 0 12px ${hex}30`,
+                    }}
+                  />
+                  <div className="flex flex-col items-center">
+                    <span
+                      className="text-[10px] font-mono"
+                      style={{ color: "var(--color-text-muted)" }}
+                    >
+                      {(hex as string).toUpperCase()}
+                    </span>
+                    <span
+                      className="text-[9px] capitalize"
+                      style={{
+                        color: "var(--color-text-muted)",
+                        opacity: 0.6,
+                      }}
+                    >
+                      {name}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p
+              className="mt-2 text-[12px] italic"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              Föreslagna färger —{" "}
+              <button
+                className="underline"
+                onClick={() => setIsEditing(true)}
+              >
+                anpassa
+              </button>
+            </p>
           )}
         </motion.div>
 
-        {/* Fonts */}
-        <motion.div variants={listItemVariants} className="mt-4">
-          <div>
-          <span className="text-text-caption uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
+        {/* Divider */}
+        <div
+          style={{
+            height: 1,
+            background: "var(--color-border-subtle)",
+            margin: "0 24px",
+          }}
+        />
+
+        {/* ── Typography ─────────────────────────── */}
+        <motion.div variants={listItemVariants} className="p-6 py-5">
+          <SectionHeader onEdit={() => setIsEditing(true)}>
             Typsnitt
-          </span>
+          </SectionHeader>
           {isEditing ? (
-            <div className="mt-1.5 flex gap-2">
+            <div className="mt-3 flex gap-3">
               <div className="flex-1">
-                <label className="mb-0.5 block text-[9px] font-medium" style={{ color: "var(--color-text-muted)" }}>Rubrik</label>
+                <label
+                  className="mb-1 block text-[10px] font-medium"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
+                  Rubrik
+                </label>
                 <input
                   value={brand.fonts?.heading || ""}
                   onChange={(e) => handleFontChange("heading", e.target.value)}
@@ -222,7 +397,12 @@ export function BrandCardSlide() {
                 />
               </div>
               <div className="flex-1">
-                <label className="mb-0.5 block text-[9px] font-medium" style={{ color: "var(--color-text-muted)" }}>Brödtext</label>
+                <label
+                  className="mb-1 block text-[10px] font-medium"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
+                  Brödtext
+                </label>
                 <input
                   value={brand.fonts?.body || ""}
                   onChange={(e) => handleFontChange("body", e.target.value)}
@@ -236,94 +416,132 @@ export function BrandCardSlide() {
                 />
               </div>
             </div>
-          ) : (
-            <div className="mt-1.5 flex gap-3">
+          ) : hasFonts ? (
+            <div className="mt-3 flex flex-col gap-3">
               {brand.fonts?.heading && (
-                <div className="flex items-center gap-2">
-                  <span
-                    className="text-[18px] font-bold leading-none"
+                <div>
+                  <p
+                    className="text-[24px] font-bold leading-tight"
                     style={{ color: "var(--color-text-primary)" }}
                   >
-                    Aa
-                  </span>
-                  <div>
-                    <p className="text-[11px] font-medium" style={{ color: "var(--color-text-primary)" }}>
-                      {brand.fonts.heading}
-                    </p>
-                    <p className="text-[9px]" style={{ color: "var(--color-text-muted)" }}>Rubrik</p>
-                  </div>
-                </div>
-              )}
-              {brand.fonts?.body && brand.fonts.body !== brand.fonts?.heading && (
-                <div className="flex items-center gap-2">
-                  <span
-                    className="text-[18px] leading-none"
-                    style={{ color: "var(--color-text-secondary)" }}
+                    AaBbCc 123
+                  </p>
+                  <p
+                    className="mt-0.5 text-[11px]"
+                    style={{ color: "var(--color-text-muted)" }}
                   >
-                    Aa
-                  </span>
-                  <div>
-                    <p className="text-[11px] font-medium" style={{ color: "var(--color-text-primary)" }}>
-                      {brand.fonts.body}
-                    </p>
-                    <p className="text-[9px]" style={{ color: "var(--color-text-muted)" }}>Brödtext</p>
-                  </div>
+                    {brand.fonts.heading} · Rubrik · Bold
+                  </p>
                 </div>
               )}
-              {!brand.fonts?.heading && !brand.fonts?.body && (
-                <p className="text-[11px] italic" style={{ color: "var(--color-text-muted)" }}>
-                  Inga typsnitt hittades — klicka Redigera för att lägga till
-                </p>
-              )}
+              {brand.fonts?.body &&
+                brand.fonts.body !== brand.fonts?.heading && (
+                  <div>
+                    <p
+                      className="text-[16px] leading-snug"
+                      style={{ color: "var(--color-text-secondary)" }}
+                    >
+                      AaBbCc 123 — {brand.fonts.body}
+                    </p>
+                    <p
+                      className="mt-0.5 text-[11px]"
+                      style={{ color: "var(--color-text-muted)" }}
+                    >
+                      {brand.fonts.body} · Brödtext · Regular
+                    </p>
+                  </div>
+                )}
             </div>
+          ) : (
+            <p
+              className="mt-2 text-[12px] italic"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              Standardtypsnitt —{" "}
+              <button
+                className="underline"
+                onClick={() => setIsEditing(true)}
+              >
+                välj annat
+              </button>
+            </p>
           )}
-          </div>
         </motion.div>
 
-        {/* Products — only if data exists */}
+        {/* ── Products ─────────────────────────── */}
         {brand.products.length > 0 && (
-          <motion.div variants={listItemVariants} className="mt-4">
-            <span className="text-text-caption uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
-              Produkter
-            </span>
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
-              <AnimatePresence>
-                {brand.products.map((p, i) => (
-                  <motion.span
-                    key={p}
-                    className="text-text-body-sm"
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0, opacity: 0 }}
-                    transition={{ type: "spring", damping: 20, stiffness: 300, delay: i * 0.05 }}
-                    style={{
-                      padding: "4px 10px",
-                      borderRadius: "var(--radius-sm)",
-                      background: "var(--color-bg-raised)",
-                      border: "1px solid var(--color-border-default)",
-                      color: "var(--color-text-secondary)",
-                    }}
-                  >
-                    {p}
-                  </motion.span>
-                ))}
-              </AnimatePresence>
-            </div>
-          </motion.div>
+          <>
+            <div
+              style={{
+                height: 1,
+                background: "var(--color-border-subtle)",
+                margin: "0 24px",
+              }}
+            />
+            <motion.div variants={listItemVariants} className="p-6 py-5">
+              <SectionHeader>Produkter</SectionHeader>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                <AnimatePresence>
+                  {brand.products.map((p, i) => (
+                    <motion.span
+                      key={p}
+                      className="text-text-body-sm"
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      transition={{
+                        type: "spring",
+                        damping: 20,
+                        stiffness: 300,
+                        delay: i * 0.05,
+                      }}
+                      style={{
+                        padding: "4px 10px",
+                        borderRadius: "var(--radius-sm)",
+                        background: "var(--color-bg-raised)",
+                        border: "1px solid var(--color-border-default)",
+                        color: "var(--color-text-secondary)",
+                      }}
+                    >
+                      {p}
+                    </motion.span>
+                  ))}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          </>
         )}
 
-        {/* Offers — only if data exists */}
+        {/* ── Offers ─────────────────────────── */}
         {brand.offers.length > 0 && (
-          <motion.div variants={listItemVariants} className="mt-4">
-            <span className="text-text-caption uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
-              Erbjudande
-            </span>
-            <p className="mt-1 text-text-body-sm" style={{ color: "var(--color-text-secondary)" }}>
-              {brand.offers.join(", ")}
-            </p>
-          </motion.div>
+          <>
+            <div
+              style={{
+                height: 1,
+                background: "var(--color-border-subtle)",
+                margin: "0 24px",
+              }}
+            />
+            <motion.div variants={listItemVariants} className="p-6 py-5">
+              <SectionHeader>Erbjudande</SectionHeader>
+              <p
+                className="mt-1 text-text-body-sm"
+                style={{ color: "var(--color-text-secondary)" }}
+              >
+                {brand.offers.join(", ")}
+              </p>
+            </motion.div>
+          </>
         )}
       </motion.div>
+
+      {/* Context line — connects data to outcome */}
+      <p
+        className="text-center text-[13px]"
+        style={{ color: "var(--color-text-muted)" }}
+      >
+        Vi använder detta för att skapa annonser som ser ut som ditt varumärke.
+      </p>
     </motion.div>
   );
 }

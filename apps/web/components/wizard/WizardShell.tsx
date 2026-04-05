@@ -19,7 +19,7 @@ import { UrlInputSlide } from "./slides/UrlInputSlide";
 
 const CTA_LABELS: Record<string, string> = {
   url: "",
-  brand: "Fortsätt →",
+  brand: "Välj plattformar →",
   audience: "Fortsätt →",
   platforms: "Skapa annonser →",
   ads: "Ställ in budget →",
@@ -158,9 +158,10 @@ export function WizardShell() {
       {/* Footer — back left, CTA right */}
       {showFooter && (
         <footer
-          className="flex h-[72px] flex-shrink-0 items-center justify-between px-6"
+          className="flex h-[72px] flex-shrink-0 items-center justify-center px-6"
           style={{ borderTop: "1px solid var(--color-border-subtle)" }}
         >
+          <div className="flex w-full items-center justify-between" style={{ maxWidth: 640 }}>
           {canGoBack ? (
             <motion.button
               onClick={handleBack}
@@ -190,6 +191,7 @@ export function WizardShell() {
               {ctaLabel}
             </motion.button>
           )}
+          </div>
         </footer>
       )}
 
