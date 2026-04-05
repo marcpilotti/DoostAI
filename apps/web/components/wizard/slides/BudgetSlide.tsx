@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
-import { cardVariants,transitions } from "@/lib/motion";
+import { cardVariants, transitions } from "@/lib/motion";
 import { useWizardStore } from "@/lib/stores/wizard-store";
 
 import { NumberTicker } from "../shared/NumberTicker";
@@ -25,19 +25,19 @@ function getSmartStartDate(): string {
 
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
-  return date.toLocaleDateString("sv-SE", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-  });
+  return date.toLocaleDateString("sv-SE", { weekday: "short", day: "numeric", month: "short" });
 }
 
 function estimateReach(budget: number, days: number): { min: number; max: number } {
   const dailyBudget = budget / days;
-  const cpm = 45; // avg SEK CPM
+  const cpm = 45;
   const min = Math.round((dailyBudget / cpm) * 1000 * days * 0.6);
   const max = Math.round((dailyBudget / cpm) * 1000 * days * 1.4);
   return { min, max };
+}
+
+function formatKr(n: number): string {
+  return `${Math.round(n).toLocaleString("sv-SE")} kr`;
 }
 
 export function BudgetSlide() {
@@ -56,15 +56,10 @@ export function BudgetSlide() {
   }, [startDate, durationDays]);
 
   const reach = useMemo(() => estimateReach(totalBudget, durationDays), [totalBudget, durationDays]);
+  const dailyBudget = Math.round(totalBudget / durationDays);
 
   const handleContinue = useCallback(() => {
-    setBudget({
-      landingUrl,
-      totalBudget,
-      currency: "SEK",
-      durationDays,
-      startDate,
-    });
+    setBudget({ landingUrl, totalBudget, currency: "SEK", durationDays, startDate });
     handleNext();
   }, [landingUrl, totalBudget, durationDays, startDate, setBudget, handleNext]);
 
@@ -74,133 +69,129 @@ export function BudgetSlide() {
   }, [handleContinue, setFooterAction]);
 
   return (
-    <motion.div
-      variants={cardVariants}
-      initial="hidden"
-      animate="visible"
-      transition={transitions.spring}
-      className="flex flex-col gap-5"
-    >
-      <div>
-        <h2 className="text-text-h1" style={{ color: "var(--color-text-primary)" }}>
-          Budget & schema
-        </h2>
-        <p className="mt-1 text-text-body-sm" style={{ color: "var(--color-text-muted)" }}>
-          Du betalar aldrig mer. Ingen bindningstid.
-        </p>
-      </div>
+    <motion.div variants={cardVariants} initial="hidden" animate="visible" transition={transitions.spring}
+      className="flex flex-col gap-4">
 
-      {/* Landing URL */}
-      <div>
-        <label className="text-text-caption mb-1.5 block" style={{ color: "var(--color-text-muted)" }}>
-          Vart ska annonsen länka?
-        </label>
-        <input
-          value={landingUrl}
-          onChange={(e) => setLandingUrl(e.target.value)}
-          className="w-full outline-none"
-          style={{
-            background: "var(--color-bg-input)",
-            border: "1px solid var(--color-border-default)",
-            borderRadius: "var(--radius-md)",
-            padding: "12px 16px",
-            color: "var(--color-text-primary)",
-            fontSize: 16,
-          }}
-        />
-      </div>
-
-      {/* Budget slider */}
-      <div>
-        <label className="text-text-caption mb-1.5 block" style={{ color: "var(--color-text-muted)" }}>
-          Total budget
-        </label>
-        <input
-          type="range"
-          min={500}
-          max={50000}
-          step={500}
-          value={totalBudget}
-          onChange={(e) => setTotalBudget(Number(e.target.value))}
-          className="w-full"
-          style={{
-            accentColor: "var(--color-primary)",
-          }}
-        />
-        <div className="mt-1 flex items-center justify-between">
-          <span className="text-text-h2 font-bold" style={{ color: "var(--color-text-primary)" }}>
-            <NumberTicker value={totalBudget} format={(n) => `${Math.round(n).toLocaleString("sv-SE")} kr`} />
+      {/* ── Budget card ─────────────────────────────────────── */}
+      <div style={{ padding: "16px", borderRadius: 14, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
+            Total budget
           </span>
-          <span className="text-text-body-sm" style={{ color: "var(--color-text-muted)" }}>
-            SEK
+          <span className="text-[11px] font-medium" style={{ color: "var(--color-text-muted)" }}>SEK</span>
+        </div>
+
+        {/* Big number */}
+        <div className="text-center mb-4">
+          <span className="text-[36px] font-bold tracking-tight" style={{ color: "var(--color-text-primary)" }}>
+            <NumberTicker value={totalBudget} format={formatKr} />
           </span>
         </div>
-        <p className="mt-1 text-text-body-sm" style={{ color: "var(--color-text-secondary)" }}>
-          → Beräknad räckvidd:{" "}
-          <span style={{ color: "var(--color-text-primary)" }}>
-            <NumberTicker value={reach.min} format={(n) => `${Math.round(n / 1000)}K`} />
-            {" – "}
-            <NumberTicker value={reach.max} format={(n) => `${Math.round(n / 1000)}K`} />
-          </span>
-          {" "}visningar
-        </p>
+
+        {/* Slider */}
+        <div className="relative mb-3">
+          <input
+            type="range" min={500} max={50000} step={500}
+            value={totalBudget}
+            onChange={(e) => setTotalBudget(Number(e.target.value))}
+            className="w-full"
+            style={{ accentColor: "var(--color-primary)" }}
+          />
+          <div className="flex justify-between mt-1">
+            <span className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>500 kr</span>
+            <span className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>50 000 kr</span>
+          </div>
+        </div>
+
+        {/* Stats row */}
+        <div className="flex gap-2">
+          <div className="flex-1" style={{ padding: "10px 12px", borderRadius: 10, background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.12)" }}>
+            <div className="text-[9px] uppercase tracking-wider mb-0.5" style={{ color: "var(--color-text-muted)" }}>Per dag</div>
+            <div className="text-[14px] font-semibold" style={{ color: "var(--color-text-primary)" }}>
+              <NumberTicker value={dailyBudget} format={formatKr} />
+            </div>
+          </div>
+          <div className="flex-1" style={{ padding: "10px 12px", borderRadius: 10, background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.12)" }}>
+            <div className="text-[9px] uppercase tracking-wider mb-0.5" style={{ color: "var(--color-text-muted)" }}>Räckvidd</div>
+            <div className="text-[14px] font-semibold" style={{ color: "var(--color-text-primary)" }}>
+              <NumberTicker value={reach.min} format={(n) => `${Math.round(n / 1000)}K`} />
+              {" – "}
+              <NumberTicker value={reach.max} format={(n) => `${Math.round(n / 1000)}K`} />
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Duration picker */}
-      <div>
-        <label className="text-text-caption mb-1.5 block" style={{ color: "var(--color-text-muted)" }}>
+      {/* ── Duration card ───────────────────────────────────── */}
+      <div style={{ padding: "16px", borderRadius: 14, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+        <span className="text-[11px] font-semibold uppercase tracking-wider block mb-3" style={{ color: "var(--color-text-muted)" }}>
           Kampanjperiod
-        </label>
-        <div className="relative flex gap-2">
+        </span>
+
+        <div className="flex gap-2 mb-3">
           {DURATION_OPTIONS.map((opt) => (
             <motion.button
               key={opt.days}
               onClick={() => setDurationDays(opt.days)}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
-              transition={{ type: "spring", damping: 20, stiffness: 300 }}
-              className="relative text-text-body-sm font-medium"
+              transition={transitions.snappy}
+              className="relative flex-1 text-[13px] font-medium"
               style={{
-                padding: "8px 16px",
-                borderRadius: "var(--radius-full)",
-                background: "transparent",
+                padding: "10px 0",
+                borderRadius: 10,
+                background: durationDays === opt.days ? "rgba(99,102,241,0.08)" : "transparent",
                 color: durationDays === opt.days ? "var(--color-primary-light)" : "var(--color-text-muted)",
-                border: durationDays === opt.days ? "none" : "1px solid var(--color-border-default)",
+                border: durationDays === opt.days ? "1px solid var(--color-primary)" : "1px solid rgba(255,255,255,0.06)",
+                textAlign: "center",
               }}
             >
-              {durationDays === opt.days && (
-                <motion.div
-                  layoutId="budget-duration-bg"
-                  className="absolute inset-0"
-                  style={{
-                    borderRadius: "var(--radius-full)",
-                    background: "var(--color-primary-glow)",
-                  }}
-                  transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                />
-              )}
-              <span className="relative z-10">
-                {durationDays === opt.days ? "● " : ""}
-                {opt.label}
-              </span>
+              {opt.label}
             </motion.button>
           ))}
         </div>
-        <p className="mt-2 text-text-body-sm" style={{ color: "var(--color-text-muted)" }}>
+
+        <div className="flex items-center gap-2 text-[12px]" style={{ color: "var(--color-text-muted)" }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" />
+          </svg>
           {formatDate(startDate)} → {formatDate(endDate)}
-        </p>
+        </div>
       </div>
 
-      {/* AI note */}
-      <motion.p
-        className="text-text-body-sm"
-        style={{ color: "var(--color-primary-light)" }}
-        initial={{ opacity: 0, y: 8 }}
+      {/* ── Landing URL card ────────────────────────────────── */}
+      <div style={{ padding: "16px", borderRadius: 14, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+        <span className="text-[11px] font-semibold uppercase tracking-wider block mb-2" style={{ color: "var(--color-text-muted)" }}>
+          Landningssida
+        </span>
+        <div className="flex items-center gap-2" style={{ padding: "10px 14px", borderRadius: 10, background: "var(--color-bg-input)", border: "1px solid var(--color-border-default)" }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ color: "var(--color-text-muted)", flexShrink: 0 }}>
+            <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+            <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
+          </svg>
+          <input
+            value={landingUrl}
+            onChange={(e) => setLandingUrl(e.target.value)}
+            placeholder="https://..."
+            className="w-full bg-transparent text-[14px] outline-none"
+            style={{ color: "var(--color-text-primary)" }}
+          />
+        </div>
+      </div>
+
+      {/* AI optimization note */}
+      <motion.div
+        initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ type: "spring", damping: 25, stiffness: 200, delay: 0.4 }}
+        transition={{ delay: 0.3, ...transitions.spring }}
+        className="flex items-center justify-center gap-2 text-[12px]"
+        style={{ color: "var(--color-primary-light)" }}
       >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+        </svg>
         Vi optimerar budgetfördelningen automatiskt
-      </motion.p>
+      </motion.div>
     </motion.div>
   );
 }
