@@ -45,17 +45,61 @@ const FORMAT_SIZES: Record<string, "1024x1024" | "1024x1536" | "1536x1024"> = {
   "linkedin": "1536x1024",
 };
 
+// ── Industry visual direction ────────────────────────────────────
+// Maps industry to specific visual subjects — prevents GPT from
+// defaulting to generic portrait photography for every brand.
+
+const INDUSTRY_VISUALS: Record<string, string> = {
+  "Skönhet & Kosmetik": "Show luxury skincare products, bottles, serums, creams arranged beautifully on a marble or glass surface. Close-up product photography with soft reflections. NO people, NO faces, NO models.",
+  "Mode & Skönhet": "Show luxury skincare products, bottles, serums arranged on an elegant surface. Close-up product photography. NO people, NO faces, NO models.",
+  "IT & Tech": "Show a sleek workspace with modern devices, clean desk setup, subtle code on a screen, or abstract tech visualization. NO people.",
+  "SaaS": "Show a clean modern workspace with laptop displaying a beautiful dashboard UI, or abstract data visualization with glowing nodes. NO people.",
+  "SaaS & Molntjänster": "Show a clean modern workspace with laptop displaying a beautiful dashboard, or abstract cloud/data visualization. NO people.",
+  "E-handel": "Show beautifully arranged product packaging, unboxing experience, or curated product flat-lay. NO people.",
+  "Hotell & Restaurang": "Show a beautifully plated dish with steam, warm restaurant interior with candles, or an inviting hotel lobby. NO people.",
+  "Bygg & Fastigheter": "Show stunning modern architecture, a sleek building facade at golden hour, or a premium interior design space. NO people.",
+  "Hälsa & Sjukvård": "Show a clean, bright wellness environment — fresh herbs, medical devices in a modern setting, or a serene spa-like clinical space. NO people.",
+  "Finans & Försäkring": "Show a premium office environment, abstract growth charts rendered in 3D, or a city skyline at golden hour. NO people.",
+  "Träning & Fritid": "Show premium gym equipment, running shoes on a track, or an outdoor trail at sunrise. NO people.",
+  "Utbildning": "Show an inspiring library, open books with warm lighting, or a modern classroom/campus. NO people.",
+  "Fordon & Transport": "Show a sleek car on an open road, or a vehicle detail shot with dramatic lighting. NO people.",
+  "Konsult & Rådgivning": "Show a premium conference room, whiteboard with strategy diagrams, or a modern glass office. NO people.",
+  "Tillverkning & Industri": "Show precision machinery, a clean factory floor, or raw materials being crafted. NO people.",
+  "Juridik & Redovisning": "Show law books, a gavel, or a prestigious office with dark wood and leather. NO people.",
+  "Livsmedel & Dagligvaror": "Show fresh produce, beautifully arranged groceries, or artisan food products. NO people.",
+  "Marknadsföring & Media": "Show a creative workspace with mood boards, color palettes, and design tools. NO people.",
+  "Rekrytering & Bemanning": "Show a modern open-plan office space, or abstract connected nodes representing a network. NO people.",
+  "Energi & Miljö": "Show wind turbines at sunset, solar panels in a green field, or a pristine natural landscape. NO people.",
+  "Kultur & Nöje": "Show a dramatic stage with spotlights, a concert venue, or vibrant abstract art. NO people.",
+  "Detaljhandel": "Show a beautiful storefront window display, or curated products on shelves with warm lighting. NO people.",
+  "Flyg & Resebolag": "Show an airplane wing above clouds at sunset, or a stunning travel destination landscape. NO people.",
+  "Elektronik & Imaging": "Show premium camera equipment, lenses on a dark surface with dramatic lighting, or tech product flat-lay. NO people.",
+};
+
+function getVisualDirection(industry: string): string {
+  // Try exact match first, then partial match
+  if (INDUSTRY_VISUALS[industry]) return INDUSTRY_VISUALS[industry];
+  const lower = industry.toLowerCase();
+  for (const [key, value] of Object.entries(INDUSTRY_VISUALS)) {
+    const keyWord = key.toLowerCase().split(" ")[0] ?? "";
+    const lowerWord = lower.split(" ")[0] ?? "";
+    if (keyWord && lower.includes(keyWord) || lowerWord && key.toLowerCase().includes(lowerWord)) {
+      return value;
+    }
+  }
+  return "Show the products, workspace, or environment that represents this industry. Focus on objects and settings, NOT people. NO faces, NO models.";
+}
+
 // ── Prompt builder — uses real profile data ──────────────────────
 
 function buildPrompt(input: AdImageInput): string {
-  const parts: string[] = [];
+  const visual = getVisualDirection(input.industry);
 
-  // Hero context — what the ad is about
-  parts.push(
-    `Create a stunning, scroll-stopping advertisement image for "${input.brandName}".`,
-  );
+  const parts: string[] = [
+    `Create a stunning, scroll-stopping advertisement background image for "${input.brandName}".`,
+  ];
 
-  // Company context — the most important signal for image relevance
+  // Company context
   if (input.description) {
     parts.push(`About the brand: ${input.description}.`);
   }
@@ -63,29 +107,19 @@ function buildPrompt(input: AdImageInput): string {
     parts.push(`Industry: ${input.industry}.`);
   }
 
-  // Mood & audience for emotional resonance
-  if (input.brandVoice) {
-    parts.push(`Brand personality: ${input.brandVoice}.`);
-  }
-  if (input.targetAudience) {
-    parts.push(`Target audience: ${input.targetAudience}.`);
-  }
+  // Industry-specific visual direction (most important for relevance)
+  parts.push(`VISUAL SUBJECT: ${visual}`);
 
-  // Visual keywords from classification
-  if (input.visualKeywords?.length) {
-    parts.push(`Include visual elements: ${input.visualKeywords.join(", ")}.`);
-  }
-
-  // Color palette — guide the mood
+  // Color palette
   parts.push(`Brand colors: primary ${input.brandColor}${input.brandAccent && input.brandAccent !== input.brandColor ? `, accent ${input.brandAccent}` : ""}. Use these colors as inspiration for the overall color grading and mood.`);
 
-  // Creative direction — the WOW factor
+  // Creative direction
   parts.push(
-    "Style: Award-winning advertising campaign photography. Think Apple, Nike, or Glossier level visual quality.",
-    "Composition: Use dramatic lighting, rich textures, and cinematic depth of field. The image should feel premium and aspirational.",
-    "Show the product, environment, or lifestyle that represents this brand — make the viewer FEEL the brand's world.",
+    "Style: Award-winning advertising campaign photography. Cinematic lighting, rich textures, dramatic depth of field.",
+    "The image must feel premium and aspirational — like an Apple or Aesop ad.",
     "Leave the bottom 30% slightly darker or with negative space for text overlay.",
-    "Absolutely NO text, words, letters, numbers, logos, or watermarks in the image.",
+    "CRITICAL: Do NOT include any people, faces, hands, or human body parts in the image.",
+    "Do NOT include any text, words, letters, numbers, logos, or watermarks.",
   );
 
   return parts.join("\n");

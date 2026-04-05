@@ -211,14 +211,15 @@ function buildPrompt(params: {
   const moodDesc = styleMood[style] ?? "professional, polished, commercial appeal";
 
   return [
-    `Award-winning advertisement image for a ${industry} brand.`,
+    `Award-winning advertisement background image for a ${industry} brand.`,
     `Brand colors: ${primaryColor}${accentColor ? ` and ${accentColor}` : ""} — use as color grading inspiration.`,
     `Style: ${style} — ${moodDesc}.`,
-    `Show the product, environment, or lifestyle world of a ${industry} company.`,
     `The image should evoke: ${mood}.`,
-    `Cinematic lighting, rich textures, dramatic depth of field. Think Apple or Nike campaign quality.`,
+    `Show products, environments, or objects related to the ${industry} industry. Focus on things, not people.`,
+    `Cinematic lighting, rich textures, dramatic depth of field. Think Apple or Aesop campaign quality.`,
     `Leave the bottom 30% slightly darker or with breathing room for text overlay.`,
-    `Absolutely NO text, words, letters, numbers, logos, or watermarks.`,
+    `CRITICAL: Do NOT include any people, faces, hands, or human body parts.`,
+    `Do NOT include any text, words, letters, numbers, logos, or watermarks.`,
     `Photorealistic, 8K render quality.`,
   ].join("\n");
 }
