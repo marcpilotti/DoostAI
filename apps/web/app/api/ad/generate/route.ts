@@ -104,8 +104,21 @@ export async function POST(req: Request) {
             ),
           ]);
 
-        // ── Step 1: Strategy + Copy in parallel ──────────────────
-        const [strategySettled, copySettled] = await Promise.allSettled([
+        // ── ALL in parallel: strategy + copy + images ─────────────
+        // Images are background-only (no text) — they only need industry
+        // + brand color, NOT the copy. So we run everything at once.
+        const imageInput: AdImageInput = {
+          brandName: brand.name,
+          brandColor: brand.colors.primary,
+          brandAccent: brand.colors.accent ?? brand.colors.secondary,
+          industry: brand.industry ?? "",
+          headline: "",
+          bodyCopy: "",
+          cta: "",
+          format: platform === "linkedin" ? "linkedin" : "meta-feed",
+        };
+
+        const [strategySettled, copySettled, imageSettled] = await Promise.allSettled([
           withTimeout(generateAdStrategy({
             brand: brandContext,
             platform,
@@ -117,6 +130,7 @@ export async function POST(req: Request) {
             language: detectedLanguage,
             variants: 2,
           }), "copy"),
+          withTimeout(generateAdImagePair(imageInput, imageInput), "images", 15_000),
         ]);
 
         // Extract strategy (non-critical — UI-only metadata)
@@ -162,43 +176,11 @@ export async function POST(req: Request) {
           ];
         }
 
-        send({ event: "copy", copies, progress: 50 });
+        send({ event: "copy", copies, progress: 60 });
 
-        // ── Step 2: Generate images with embedded text ───────────
-        // Images depend on copy (need headline/body/CTA for text in image)
-        send({ event: "progress", message: "Skapar annonsbilder med AI...", progress: 60 });
-
-        const copyA = copies[0];
-        const copyB = copies[1] ?? copies[0];
-
-        const imageInputA: AdImageInput = {
-          brandName: brand.name,
-          brandColor: brand.colors.primary,
-          brandAccent: brand.colors.accent ?? brand.colors.secondary,
-          industry: brand.industry ?? "",
-          headline: copyA!.headline,
-          bodyCopy: copyA!.bodyCopy,
-          cta: copyA!.cta,
-          format: platform === "linkedin" ? "linkedin" : "meta-feed",
-        };
-
-        const imageInputB: AdImageInput = {
-          brandName: brand.name,
-          brandColor: brand.colors.primary,
-          brandAccent: brand.colors.accent ?? brand.colors.secondary,
-          industry: brand.industry ?? "",
-          headline: copyB!.headline,
-          bodyCopy: copyB!.bodyCopy,
-          cta: copyB!.cta,
-          format: platform === "linkedin" ? "linkedin" : "meta-feed",
-        };
-
-        // Both variants in parallel
-        const [imgA, imgB] = await withTimeout(
-          generateAdImagePair(imageInputA, imageInputB),
-          "images",
-          60_000,
-        );
+        // Extract images
+        const imgPair = imageSettled.status === "fulfilled" ? imageSettled.value : null;
+        const [imgA, imgB] = imgPair ?? [null, null];
 
         let bgUrl = imgA?.imageUrl ?? null;
         const bgUrlB = imgB?.imageUrl ?? bgUrl;

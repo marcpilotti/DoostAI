@@ -51,38 +51,87 @@ const FORMAT_SIZES: Record<string, string> = {
   "linkedin": "landscape_16_9",
 };
 
-// ── Industry scenes (short, direct — Schnell follows these best) ─
+// ── Industry → scene mapping with fuzzy keyword matching ─────────
+// Each entry has keywords (lowercase) that match against the industry string,
+// plus the English scene description for Flux Schnell.
 
-const INDUSTRY_SCENES: Record<string, string> = {
-  "Skönhet & Kosmetik": "luxury skincare products on marble surface, soft golden lighting",
-  "Frisör & Salong": "modern salon interior, styling tools, warm ambient lighting",
-  "Restaurang & Café": "beautifully plated food on wooden table, warm restaurant light",
-  "E-handel": "premium product packaging, minimalist display, clean studio lighting",
-  "SaaS & Tech": "sleek modern workspace, laptop and coffee, natural light",
-  "Hälsa & Wellness": "spa environment, natural ingredients, zen atmosphere",
-  "Fastigheter": "modern home interior, sunlit living space, architectural detail",
-  "Bygg & Renovering": "freshly renovated room, craftsmanship, modern materials",
-  "Träning & Gym": "modern gym equipment, energetic atmosphere, dynamic lighting",
-  "Mode & Kläder": "fashion items on display, fabric textures, editorial lighting",
-  "Fotografi": "professional camera gear, studio lighting setup, creative workspace",
-  "Tandvård": "modern dental clinic, clean bright environment",
-  "Juridik & Redovisning": "elegant office, professional desk, warm ambient light",
-  "Marknadsföring & Reklam": "creative workspace, screens with data, modern office",
-  "Resor & Turism": "stunning travel destination, scenic landscape, golden hour",
-  "Inredning & Design": "designer interior, beautiful furniture, styled space",
-  "Livsmedel & Dagligvaror": "fresh produce, artisan food arrangement, warm tones",
-  "Finans & Försäkring": "modern office, glass buildings, professional setting",
-  "Bilverkstad & Motor": "premium car detail, clean workshop, polished surfaces",
-};
+const SCENE_RULES: Array<{ keywords: string[]; scene: string }> = [
+  { keywords: ["måleri", "målare", "måla", "painter", "painting company"],
+    scene: "freshly painted bright room, paint rollers and brushes, color swatches on wall, professional painting work" },
+  { keywords: ["bygg", "renovering", "construction", "snickare", "carpentry", "entreprenad"],
+    scene: "freshly renovated room, modern construction craftsmanship, quality materials" },
+  { keywords: ["restaurang", "café", "cafe", "restaurant", "mat", "food", "kök", "kitchen", "bageri", "bakery"],
+    scene: "beautifully plated food on wooden table, warm restaurant ambiance, inviting dining" },
+  { keywords: ["frisör", "salong", "salon", "hår", "hair", "barber"],
+    scene: "modern hair salon interior, styling tools and mirrors, warm ambient lighting" },
+  { keywords: ["skönhet", "kosmetik", "beauty", "hudvård", "skincare", "spa"],
+    scene: "luxury skincare products on marble surface, serums and creams, soft golden lighting" },
+  { keywords: ["hälsa", "wellness", "terapi", "therapy", "massage"],
+    scene: "spa environment, natural ingredients, calm zen atmosphere, warm tones" },
+  { keywords: ["e-handel", "webshop", "ecommerce", "butik", "shop", "retail"],
+    scene: "premium product packaging, minimalist display, clean studio lighting" },
+  { keywords: ["saas", "tech", "it", "software", "digital", "app", "startup"],
+    scene: "sleek modern workspace, laptop and coffee on clean desk, natural light" },
+  { keywords: ["fastighet", "mäklare", "real estate", "bostad", "hem", "house"],
+    scene: "modern home interior, sunlit living space, beautiful architectural detail" },
+  { keywords: ["träning", "gym", "fitness", "sport", "idrott"],
+    scene: "modern gym equipment, energetic atmosphere, dynamic lighting" },
+  { keywords: ["mode", "kläder", "fashion", "clothing", "textil"],
+    scene: "fashion items on display, fabric textures, editorial studio lighting" },
+  { keywords: ["foto", "photograph", "video", "media", "film"],
+    scene: "professional camera equipment, studio lighting setup, creative workspace" },
+  { keywords: ["tand", "dental", "tandläkare"],
+    scene: "modern dental clinic, clean bright medical environment" },
+  { keywords: ["juridik", "advokat", "lawyer", "legal", "redovisning", "accounting", "revision"],
+    scene: "elegant professional office, leather-bound books, warm desk lighting" },
+  { keywords: ["marknadsfö", "reklam", "marketing", "advertising", "kommunikation", "pr"],
+    scene: "creative workspace with large screens showing data, modern agency office" },
+  { keywords: ["resa", "resor", "turism", "travel", "tourism", "hotell", "hotel"],
+    scene: "stunning travel destination, scenic landscape, golden hour lighting" },
+  { keywords: ["inredning", "design", "interior", "möbel", "furniture"],
+    scene: "beautifully designed interior space, designer furniture, styled room" },
+  { keywords: ["livsmedel", "dagligvaror", "grocery", "food production"],
+    scene: "fresh produce display, artisan food arrangement, warm natural tones" },
+  { keywords: ["finans", "försäkring", "bank", "insurance", "finance", "invest"],
+    scene: "modern financial office, glass and steel, professional corporate setting" },
+  { keywords: ["bil", "motor", "fordon", "vehicle", "auto", "verkstad", "garage"],
+    scene: "premium car detail shot, clean automotive workshop, polished surfaces" },
+  { keywords: ["el", "elektriker", "electrician", "installation"],
+    scene: "modern electrical installation, clean wiring, professional tools on workbench" },
+  { keywords: ["vvs", "plumber", "rör", "vatten", "heating"],
+    scene: "modern bathroom renovation, sleek plumbing fixtures, clean tile work" },
+  { keywords: ["trädgård", "garden", "landscap", "grön", "plantering"],
+    scene: "beautiful landscaped garden, lush green plants, professional garden design" },
+  { keywords: ["städ", "cleaning", "rengöring", "facility"],
+    scene: "spotlessly clean modern office space, gleaming surfaces, bright lighting" },
+  { keywords: ["transport", "logistik", "logistics", "frakt", "shipping", "flytt", "moving"],
+    scene: "organized warehouse, delivery fleet, professional logistics operation" },
+  { keywords: ["konsult", "consult", "rådgivning", "advisory"],
+    scene: "modern meeting room, glass walls, collaborative professional environment" },
+  { keywords: ["utbildning", "education", "skola", "school", "kurs", "course"],
+    scene: "bright modern learning space, books and laptops, inspiring educational environment" },
+  { keywords: ["veterinär", "djur", "animal", "pet"],
+    scene: "modern veterinary clinic, caring professional environment, warm lighting" },
+];
+
+function findScene(industry: string): string {
+  if (!industry) return "modern business environment, professional commercial setting";
+  const lower = industry.toLowerCase();
+
+  for (const rule of SCENE_RULES) {
+    if (rule.keywords.some((kw) => lower.includes(kw))) {
+      return rule.scene;
+    }
+  }
+
+  // No match — use the industry name in English context for Flux
+  return `${industry} business environment, professional commercial setting, premium workspace`;
+}
 
 // ── Prompt builder ───────────────────────────────────────────────
 
 function buildPrompt(input: AdImageInput): string {
-  const scene =
-    INDUSTRY_SCENES[input.industry] ??
-    (input.industry
-      ? `${input.industry} business, professional setting`
-      : "modern business environment, professional setting");
+  const scene = findScene(input.industry);
 
   return `Professional advertising photograph. ${scene}. Dominant color: ${input.brandColor}. Sharp focus, premium commercial photography, cinematic lighting. Clean background for text overlay. No text, no logos, no people.`;
 }
@@ -101,7 +150,7 @@ export async function generateCompleteAdImage(
   if (process.env.FAL_KEY) {
     try {
       ensureFal();
-      console.log(`[ad-pipeline] Flux Schnell for ${input.brandName} (${input.industry})`);
+      console.log(`[ad-pipeline] Flux Schnell for ${input.brandName} (${input.industry}) → scene matched`);
 
       const result = await Promise.race([
         fal.subscribe("fal-ai/flux/schnell", {
@@ -121,7 +170,7 @@ export async function generateCompleteAdImage(
 
       const url = result?.images?.[0]?.url;
       if (url) {
-        console.log(`[ad-pipeline] Flux Schnell done: ${url.slice(0, 60)}`);
+        console.log(`[ad-pipeline] Done: ${url.slice(0, 60)}`);
         return { imageUrl: url, method: "flux-schnell", prompt, attempts: 1 };
       }
     } catch (err) {
