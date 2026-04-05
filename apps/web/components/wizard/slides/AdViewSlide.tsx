@@ -269,50 +269,84 @@ function FacebookMockup({ ad, brand, isRegenerating, isLightBrand }: {
   );
 }
 
-function GoogleMockup({ ad, brand, isRegenerating, isLightBrand }: {
+function GoogleMockup({ ad, brand }: {
   ad: AdCreative; brand: BrandState; isRegenerating: boolean; isLightBrand?: boolean;
 }) {
-  const c = brand.colors.primary || "#6366F1";
+  const url = brand.url?.replace(/^https?:\/\//, "") || "example.com";
   return (
     <LaptopFrame>
+      {/* Chrome-style browser bar */}
       <div className="flex items-center gap-2 border-b border-gray-200 bg-[#DEE1E6] px-3 py-1.5">
         <div className="flex gap-1"><div className="h-2 w-2 rounded-full bg-[#FF5F57]" /><div className="h-2 w-2 rounded-full bg-[#FEBC2E]" /><div className="h-2 w-2 rounded-full bg-[#28C840]" /></div>
         <div className="flex flex-1 items-center gap-1.5 rounded-md bg-white px-2 py-0.5" style={{ border: "1px solid rgba(0,0,0,0.08)" }}>
-          <svg width="8" height="8" viewBox="0 0 24 24" fill="#28C840"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" /></svg>
-          <span className="truncate text-[8px] text-gray-500">nyheter.se/ekonomi/senaste</span>
+          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+          <span className="truncate text-[8px] text-gray-500">{brand.name?.toLowerCase().replace(/\s+/g, "+")}</span>
         </div>
       </div>
-      <div className="flex gap-3 bg-[#f9f9f9] p-3">
-        <div className="flex-1 space-y-2">
-          <div className="h-2 w-3/4 rounded bg-gray-300" />
-          <div className="space-y-1">
-            <div className="h-1.5 w-full rounded bg-gray-200" />
-            <div className="h-1.5 w-full rounded bg-gray-200" />
-            <div className="h-1.5 w-5/6 rounded bg-gray-200" />
-          </div>
-          <div className="space-y-1">
-            <div className="h-1.5 w-full rounded bg-gray-200" />
-            <div className="h-1.5 w-4/5 rounded bg-gray-200" />
-          </div>
-        </div>
-        <div className="w-2/5 shrink-0">
-          <div className="text-[6px] uppercase tracking-wider text-gray-400">Annons</div>
-          <div className="mt-0.5 overflow-hidden rounded" style={{ border: "1px solid rgba(0,0,0,0.06)" }}>
-            <AdImageLayer ad={ad} primaryColor={c} aspectRatio="1.91/1" isRegenerating={isRegenerating} isLightBrand={isLightBrand} />
-          </div>
-          <div className="mt-1 space-y-0.5">
-            <h3 className="text-[11px] font-bold leading-tight" style={{ color: c }}>{ad.headline}</h3>
-            <p className="text-[9px] leading-snug line-clamp-2" style={{ color: "#545454" }}>{ad.bodyCopy}</p>
-            <span className="inline-block rounded px-1.5 py-0.5 text-[9px] font-bold text-white" style={{ background: c }}>
-              {ad.cta}
-            </span>
+
+      {/* Google Search results page */}
+      <div className="bg-white px-4 py-3">
+        {/* Google logo + search bar */}
+        <div className="mb-3 flex items-center gap-2">
+          <svg width="44" height="16" viewBox="0 0 272 92" fill="none">
+            <text x="0" y="72" fontSize="72" fontWeight="bold" fontFamily="arial">
+              <tspan fill="#4285F4">G</tspan><tspan fill="#EA4335">o</tspan><tspan fill="#FBBC05">o</tspan><tspan fill="#4285F4">g</tspan><tspan fill="#34A853">l</tspan><tspan fill="#EA4335">e</tspan>
+            </text>
+          </svg>
+          <div className="flex flex-1 items-center rounded-full bg-white px-3 py-1" style={{ border: "1px solid #dfe1e5", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+            <span className="truncate text-[9px] text-gray-700">{brand.name?.toLowerCase()}</span>
           </div>
         </div>
-      </div>
-      <div className="space-y-1 bg-[#f9f9f9] px-3 pb-3">
-        <div className="h-1.5 w-full rounded bg-gray-200" />
-        <div className="h-1.5 w-full rounded bg-gray-200" />
-        <div className="h-1.5 w-3/4 rounded bg-gray-200" />
+
+        {/* Tabs */}
+        <div className="mb-3 flex gap-3 border-b border-gray-200 pb-1.5">
+          <span className="border-b-2 border-[#1A73E8] pb-1 text-[8px] font-medium text-[#1A73E8]">Alla</span>
+          <span className="text-[8px] text-gray-500">Bilder</span>
+          <span className="text-[8px] text-gray-500">Kartor</span>
+          <span className="text-[8px] text-gray-500">Nyheter</span>
+        </div>
+
+        {/* Sponsored result (THE AD) */}
+        <div className="mb-3">
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <span className="rounded text-[7px] font-bold text-[#202124] px-1 py-0.5" style={{ border: "1px solid #dadce0" }}>Sponsrad</span>
+            <div className="flex items-center gap-1">
+              <div className="flex h-4 w-4 items-center justify-center rounded-full text-[6px] font-bold text-white" style={{ background: brand.colors.primary || "#6366F1" }}>
+                {brand.name?.charAt(0)}
+              </div>
+              <span className="text-[9px] text-[#202124]">{brand.name}</span>
+            </div>
+          </div>
+          <div className="text-[8px] text-[#4D5156] mb-0.5">{url}</div>
+          <h3 className="text-[13px] font-normal leading-tight text-[#1A0DAB] mb-0.5">{ad.headline}</h3>
+          <p className="text-[9px] leading-snug text-[#4D5156] line-clamp-2">{ad.bodyCopy}</p>
+        </div>
+
+        {/* Organic results (grey placeholders) */}
+        <div className="space-y-3 opacity-50">
+          <div>
+            <div className="mb-0.5 flex items-center gap-1">
+              <div className="h-3 w-3 rounded-full bg-gray-200" />
+              <div className="h-1.5 w-24 rounded bg-gray-200" />
+            </div>
+            <div className="h-2 w-3/4 rounded bg-gray-200 mb-0.5" />
+            <div className="space-y-0.5">
+              <div className="h-1.5 w-full rounded bg-gray-100" />
+              <div className="h-1.5 w-5/6 rounded bg-gray-100" />
+            </div>
+          </div>
+          <div>
+            <div className="mb-0.5 flex items-center gap-1">
+              <div className="h-3 w-3 rounded-full bg-gray-200" />
+              <div className="h-1.5 w-20 rounded bg-gray-200" />
+            </div>
+            <div className="h-2 w-2/3 rounded bg-gray-200 mb-0.5" />
+            <div className="space-y-0.5">
+              <div className="h-1.5 w-full rounded bg-gray-100" />
+              <div className="h-1.5 w-4/5 rounded bg-gray-100" />
+            </div>
+          </div>
+        </div>
       </div>
     </LaptopFrame>
   );
