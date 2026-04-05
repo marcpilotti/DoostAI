@@ -80,8 +80,8 @@ export function ReviewPublishSlide() {
           google: ["#4285F4", "#34A853", "#FBBC05", "#EA4335"],
           linkedin: ["#0A66C2", "#86C5F2", "#FFFFFF", "#0A66C2"],
         };
-        const colors = selectedPlatforms.length === 1
-          ? platformColors[selectedPlatforms[0]!] ?? ["#6366F1", "#A5B4FC", "#22C55E", "#F59E0B"]
+        const colors = selectedPlatforms.length === 1 && selectedPlatforms[0]
+          ? platformColors[selectedPlatforms[0]] ?? ["#6366F1", "#A5B4FC", "#22C55E", "#F59E0B"]
           : ["#6366F1", "#A5B4FC", "#22C55E", "#F59E0B"];
 
         confetti({
@@ -254,7 +254,7 @@ export function ReviewPublishSlide() {
             {brand?.name}
           </h3>
           <p className="text-text-body-sm" style={{ color: "var(--color-text-muted)" }}>
-            {selectedAds.length} annonser · {selectedPlatforms.join(" + ")} · {budget?.totalBudget?.toLocaleString("sv-SE")} kr · {budget?.durationDays} dagar
+            {selectedAds.length} annonser · {selectedPlatforms.join(" + ")} · {budget?.totalBudget?.toLocaleString("sv-SE") ?? "0"} kr · {budget?.durationDays ?? 0} dagar
           </p>
           <p className="text-text-body-sm" style={{ color: "var(--color-text-muted)" }}>
             {projections ? `${Math.round(projections.reachMin / 1000)}K–${Math.round(projections.reachMax / 1000)}K visn.` : ""} · {locationStr} · {ageStr}

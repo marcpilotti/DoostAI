@@ -677,7 +677,7 @@ export function AdViewSlide() {
     try {
       const res = await fetch("/api/ad/generate", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ brand: { name: brand.name, description: brand.description, industry: brand.industry, targetAudience: brand.targetAudience, valuePropositions: brand.valuePropositions, url: brand.url, colors: brand.colors, fonts: brand.fonts }, platform: selectedPlatforms[0], language: "sv" }),
+        body: JSON.stringify({ brand: { name: brand.name, description: brand.description, industry: brand.industry, targetAudience: brand.targetAudience, valuePropositions: brand.valuePropositions, url: brand.url, colors: brand.colors, fonts: brand.fonts }, platform: selectedPlatforms[0] ?? "meta", language: "sv" }),
       });
       if (!res.ok) throw new Error("fail");
       const reader = res.body?.getReader();
@@ -700,7 +700,7 @@ export function AdViewSlide() {
               const bgUrlA = d.result.backgroundUrl || preGeneratedImageUrl;
               const bgUrlB = d.result.backgroundUrlB || bgUrlA;
               setAds(d.result.copies.map((c: Record<string, string>, i: number) => ({
-                id: `ad-${Date.now()}-${i}`, platform: selectedPlatforms[0], template: i === 0 ? ("hero" as const) : ("brand" as const),
+                id: `ad-${Date.now()}-${i}`, platform: selectedPlatforms[0] ?? "meta", template: i === 0 ? ("hero" as const) : ("brand" as const),
                 headline: c.headline || "", bodyCopy: c.bodyCopy || "", cta: c.cta || "Läs mer", imageUrl: i === 0 ? bgUrlA : bgUrlB, selected: i === 0,
               })));
             }

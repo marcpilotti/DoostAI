@@ -9,12 +9,17 @@ export async function POST(req: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const { plan, orgId } = (await req.json()) as {
-    plan: "starter" | "pro" | "agency";
-    orgId: string;
-  };
+  let body: unknown;
+  try { body = await req.json(); } catch {
+    return Response.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+  const plan = (body as Record<string, unknown>)?.plan;
+  const orgId = (body as Record<string, unknown>)?.orgId;
+  if (typeof plan !== "string" || typeof orgId !== "string" || !["starter", "pro", "agency"].includes(plan)) {
+    return Response.json({ error: "Invalid plan or orgId" }, { status: 400 });
+  }
 
-  const priceId = PRICE_IDS[plan];
+  const priceId = PRICE_IDS[plan as "starter" | "pro" | "agency"];
   if (!priceId) {
     return Response.json(
       { error: `No Stripe price configured for plan: ${plan}` },

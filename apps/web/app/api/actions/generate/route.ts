@@ -63,7 +63,7 @@ Return ONLY the JSON array, no markdown, no explanation.`,
       return NextResponse.json({ actions: [], error: "Could not parse AI response" });
     }
 
-    const actions = JSON.parse(jsonMatch[0]) as Array<{
+    let actions: Array<{
       title: string;
       description: string;
       priority: string;
@@ -71,6 +71,11 @@ Return ONLY the JSON array, no markdown, no explanation.`,
       target: string;
       params: Record<string, unknown>;
     }>;
+    try {
+      actions = JSON.parse(jsonMatch[0]);
+    } catch {
+      return NextResponse.json({ actions: [], error: "Invalid JSON from AI response" });
+    }
 
     return NextResponse.json({
       actions: actions.map((a, i) => ({

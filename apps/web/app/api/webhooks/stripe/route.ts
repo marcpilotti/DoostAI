@@ -38,9 +38,12 @@ export async function POST(req: Request) {
           const subscription = await getStripe().subscriptions.retrieve(
             session.subscription as string,
           );
-          const plan = mapPriceIdToPlan(
-            subscription.items.data[0]?.price.id ?? "",
-          );
+          const priceId = subscription.items.data[0]?.price?.id;
+          if (!priceId) {
+            console.warn("[stripe-webhook] No price ID found in subscription items");
+            break;
+          }
+          const plan = mapPriceIdToPlan(priceId);
           const customerId =
             typeof session.customer === "string"
               ? session.customer
@@ -63,9 +66,12 @@ export async function POST(req: Request) {
 
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
-        const plan = mapPriceIdToPlan(
-          subscription.items.data[0]?.price.id ?? "",
-        );
+        const priceId = subscription.items.data[0]?.price?.id;
+        if (!priceId) {
+          console.warn("[stripe-webhook] No price ID found in subscription update");
+          break;
+        }
+        const plan = mapPriceIdToPlan(priceId);
         const customerId =
           typeof subscription.customer === "string"
             ? subscription.customer

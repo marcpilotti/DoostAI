@@ -42,8 +42,7 @@ export async function rateLimit(
 
       return { allowed: count <= maxRequests, remaining: Math.max(0, maxRequests - count) };
     } catch (err) {
-      console.warn("[rate-limit] Redis failed, allowing request:", err instanceof Error ? err.message : err);
-      // If Redis fails, allow the request (fail open)
+      console.warn("[rate-limit] Redis failed, falling back to memory:", err instanceof Error ? err.message : err);
     }
   }
 

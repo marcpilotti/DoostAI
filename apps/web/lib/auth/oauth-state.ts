@@ -5,7 +5,12 @@
 
 import { createHmac } from "crypto";
 
-const SECRET = process.env.OAUTH_STATE_SECRET || process.env.CLERK_SECRET_KEY || "fallback-dev-secret";
+function getSecret(): string {
+  const s = process.env.OAUTH_STATE_SECRET || process.env.CLERK_SECRET_KEY;
+  if (!s) throw new Error("OAUTH_STATE_SECRET or CLERK_SECRET_KEY must be set");
+  return s;
+}
+const SECRET = getSecret();
 
 export function createOAuthState(payload: { orgId: string }): string {
   const data = Buffer.from(JSON.stringify(payload)).toString("base64");

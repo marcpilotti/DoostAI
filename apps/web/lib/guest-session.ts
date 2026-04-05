@@ -36,13 +36,15 @@ export function saveGuestSession(data: Partial<Omit<GuestSession, "id" | "create
   try {
     const existing = getGuestSession();
     const session: GuestSession = {
-      id: existing?.id ?? `guest_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+      id: existing?.id ?? `guest_${crypto.randomUUID()}`,
       createdAt: existing?.createdAt ?? Date.now(),
       ...existing,
       ...data,
     };
     localStorage.setItem(GUEST_KEY, JSON.stringify(session));
-  } catch { /* quota exceeded */ }
+  } catch (e) {
+    console.warn("[guest-session] localStorage write failed:", e instanceof Error ? e.message : e);
+  }
 }
 
 export function clearGuestSession() {

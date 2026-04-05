@@ -40,7 +40,7 @@ export async function GET(req: Request) {
     headers: {
       "Content-Type": contentType,
       "Cache-Control": "public, max-age=86400, s-maxage=604800",
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin": process.env.NEXT_PUBLIC_APP_URL ?? "https://doost.tech",
     },
   });
 }

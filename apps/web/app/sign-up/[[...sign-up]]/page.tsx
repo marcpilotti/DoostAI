@@ -6,7 +6,8 @@ export default async function SignUpPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const redirectUrl = typeof params.redirect_url === "string" ? params.redirect_url : "/dashboard";
+  const raw = typeof params.redirect_url === "string" ? params.redirect_url : "/dashboard";
+  const redirectUrl = raw.startsWith("/") && !raw.includes("://") ? raw : "/dashboard";
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--doost-bg-secondary)]">

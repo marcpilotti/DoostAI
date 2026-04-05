@@ -120,7 +120,8 @@ export async function POST(req: Request) {
 
         // Schedule background retry if enrichment failed (non-blocking)
         if (!enrichment) {
-          fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/inngest`, {
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+          if (appUrl) fetch(`${appUrl}/api/inngest`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -244,8 +245,10 @@ export async function POST(req: Request) {
         };
         send(completeEvent);
 
-        // Cache the complete event for 6 hours (domain-keyed)
-        setCachedAnalysis(domain, completeEvent).catch(() => {});
+        // Cache the complete event for 6 hours (domain-keyed) — strip raw data to save memory
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { rawScrapeData: _r, rawEnrichmentData: _e, ...cacheSafeProfile } = result as Record<string, unknown>;
+        setCachedAnalysis(domain, { ...completeEvent, profile: cacheSafeProfile }).catch(() => {});
       } catch (err) {
         send({
           event: "error",

@@ -260,6 +260,7 @@ export const useWizardStore = create<WizardState & WizardActions>()(
         brand: state.brand,
         audience: state.audience,
         selectedPlatforms: state.selectedPlatforms,
+        ads: state.ads,
         budget: state.budget,
         targeting: state.targeting,
         publishMode: state.publishMode,

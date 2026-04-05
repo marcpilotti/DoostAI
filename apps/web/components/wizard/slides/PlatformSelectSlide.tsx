@@ -143,7 +143,7 @@ const COMING_SOON: PlatformDef[] = [
     comingSoon: true,
   },
   {
-    id: "snapchat" as Platform,
+    id: "pinterest" as Platform,
     name: "Pinterest",
     subtitle: "Inspirerande shopping-annonser",
     icon: <PinterestIcon />,
@@ -322,7 +322,7 @@ export function PlatformSelectSlide() {
             colors: brand?.colors,
             fonts: brand?.fonts,
           },
-          platform: selectedPlatforms[0],
+          platform: selectedPlatforms[0] ?? "meta",
           language: "sv",
           preGeneratedImageUrl:
             useWizardStore.getState().preGeneratedImageUrl ?? undefined,
@@ -365,7 +365,7 @@ export function PlatformSelectSlide() {
               const ads = (copies || []).map(
                 (c: Record<string, string>, i: number) => ({
                   id: `ad-${Date.now()}-${i}`,
-                  platform: c.platform || selectedPlatforms[0],
+                  platform: c.platform || selectedPlatforms[0] || "meta",
                   template: i === 0 ? "hero" : "brand",
                   headline: c.headline || c.headlines?.[0] || "",
                   bodyCopy: c.bodyCopy || c.descriptions?.[0] || "",

@@ -31,7 +31,7 @@ export async function GET(req: Request) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const redirectUri = `${appUrl}/api/platforms/google/callback`;
 
-  const { accessToken, refreshToken } = await googleExchangeCode(
+  const { accessToken, refreshToken, expiresIn } = await googleExchangeCode(
     code,
     redirectUri,
   );
@@ -53,7 +53,7 @@ export async function GET(req: Request) {
       accessTokenEncrypted: accessEncrypted,
       tokenIv: accessIv,
       refreshTokenEncrypted: refreshEncrypted,
-      tokenExpiresAt: new Date(Date.now() + 3600 * 1000),
+      tokenExpiresAt: new Date(Date.now() + expiresIn * 1000),
       scopes: ["https://www.googleapis.com/auth/adwords"],
       metadata: {
         mccCustomerId: process.env.GOOGLE_ADS_MCC_ID,
@@ -70,7 +70,7 @@ export async function GET(req: Request) {
         accessTokenEncrypted: accessEncrypted,
         tokenIv: accessIv,
         refreshTokenEncrypted: refreshEncrypted,
-        tokenExpiresAt: new Date(Date.now() + 3600 * 1000),
+        tokenExpiresAt: new Date(Date.now() + expiresIn * 1000),
         status: "active",
         updatedAt: new Date(),
       },

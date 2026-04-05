@@ -9,7 +9,14 @@ export async function POST(req: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const { orgId } = (await req.json()) as { orgId: string };
+  let body: unknown;
+  try { body = await req.json(); } catch {
+    return Response.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+  const orgId = (body as Record<string, unknown>)?.orgId;
+  if (typeof orgId !== "string") {
+    return Response.json({ error: "Invalid orgId" }, { status: 400 });
+  }
 
   const [org] = await db
     .select()
