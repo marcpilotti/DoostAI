@@ -19,8 +19,8 @@ import { UrlInputSlide } from "./slides/UrlInputSlide";
 
 const CTA_LABELS: Record<string, string> = {
   url: "",
-  brand: "Välj plattformar →",
-  audience: "Fortsätt →",
+  brand: "Definiera målgrupp →",
+  audience: "Välj plattformar →",
   platforms: "Skapa annonser →",
   ads: "Ställ in budget →",
   budget: "Fortsätt →",
