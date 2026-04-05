@@ -63,7 +63,7 @@ export function WizardShell() {
   const isTransient = step === "loading" || step === "done";
   const isLoading = isTransient || isGeneratingAds;
   const ctaLabel = CTA_LABELS[step] || "";
-  const showFooter = !isTransient && step !== "url";
+  const showFooter = !isTransient && !isGeneratingAds && step !== "url";
 
   // Parallax offset based on step progress (0 to 1)
   const stepIndex = WIZARD_STEPS.indexOf(step as typeof WIZARD_STEPS[number]);
@@ -139,7 +139,11 @@ export function WizardShell() {
         id="main"
         className="flex flex-1 items-center justify-center overflow-hidden p-6 relative z-10"
       >
-        <div className="w-full" style={{ maxWidth: 640 }}>
+        <motion.div
+          className="w-full"
+          animate={{ maxWidth: step === "ads" ? 1080 : 640 }}
+          transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={step}
@@ -153,47 +157,39 @@ export function WizardShell() {
               <SlideContent step={step} />
             </motion.div>
           </AnimatePresence>
-        </div>
+        </motion.div>
       </main>
 
-      {/* Footer — back left, CTA right */}
-      {showFooter && (
-        <footer
-          className="flex h-[72px] flex-shrink-0 items-center justify-center px-6"
-          style={{ borderTop: "1px solid var(--color-border-subtle)" }}
+      {/* Floating navigation pills */}
+      {showFooter && canGoBack && (
+        <motion.button
+          onClick={handleBack}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 10 }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          transition={{ type: "spring", damping: 20, stiffness: 300 }}
+          className="floating-back absolute bottom-6 left-6 z-30"
         >
-          <div className="flex w-full items-center justify-between" style={{ maxWidth: 640 }}>
-          {canGoBack ? (
-            <motion.button
-              onClick={handleBack}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ type: "spring", damping: 20, stiffness: 300 }}
-              className="ghost-back"
-            >
-              ← Tillbaka
-            </motion.button>
-          ) : (
-            <div />
-          )}
-
-          {ctaLabel && (
-            <motion.button
-              ref={ctaRef}
-              onClick={() => footerAction?.()}
-              disabled={footerDisabled}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              transition={{
-                scale: { type: "spring", damping: 20, stiffness: 300 },
-              }}
-              className="cta-primary"
-            >
-              {ctaLabel}
-            </motion.button>
-          )}
-          </div>
-        </footer>
+          ←
+        </motion.button>
+      )}
+      {showFooter && ctaLabel && (
+        <motion.button
+          ref={ctaRef}
+          onClick={() => footerAction?.()}
+          disabled={footerDisabled}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 10 }}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          transition={{ type: "spring", damping: 20, stiffness: 300 }}
+          className="cta-primary absolute bottom-6 right-6 z-30"
+        >
+          {ctaLabel}
+        </motion.button>
       )}
 
       {/* Landing footer — minimal legal line */}

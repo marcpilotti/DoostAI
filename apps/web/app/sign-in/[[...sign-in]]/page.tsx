@@ -1,6 +1,13 @@
 import { SignIn } from "@clerk/nextjs";
 
-export default function SignInPage() {
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const redirectUrl = typeof params.redirect_url === "string" ? params.redirect_url : "/dashboard";
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--doost-bg-secondary)]">
       <SignIn
@@ -11,7 +18,7 @@ export default function SignInPage() {
           },
         }}
         signUpUrl="/sign-up"
-        forceRedirectUrl="/dashboard"
+        forceRedirectUrl={redirectUrl}
       />
     </div>
   );

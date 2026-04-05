@@ -12,12 +12,18 @@
     "db:push": "turbo db:push",
     "db:studio": "turbo db:studio",
     "test": "turbo test",
-    "test:e2e": "turbo test:e2e"
+    "test:e2e": "turbo test:e2e",
+    "prepare": "husky"
   },
   "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "next": "^15",
     "tsx": "^4.21.0",
     "turbo": "^2"
+  },
+  "lint-staged": {
+    "apps/web/**/*.{ts,tsx,js,jsx}": "pnpm --filter @doost/web exec eslint"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

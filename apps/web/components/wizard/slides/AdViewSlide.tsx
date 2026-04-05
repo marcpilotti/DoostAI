@@ -1,18 +1,16 @@
 "use client";
 
 /**
- * AdViewSlide — presents generated ad variants in platform-specific device mockups.
+ * AdViewSlide — Focus + Detail Panel layout.
  *
- * Each platform gets its own device + UI chrome:
- * - Instagram: iPhone + Stories UI (profile, timestamp, reactions)
- * - Facebook: iPhone + Feed post (Sponsored, like/comment/share)
- * - Google: Laptop + browser chrome + fake news site with display banner
- * - LinkedIn: Monitor + LinkedIn feed with Promoted tag
+ * Left: single device mockup (read-only) + A/B toggle + upload background.
+ * Right: large editable text panel (headline 32px, body 16px, CTA preview).
+ * Platform tabs at top filter to only selected platforms.
  */
 
-import { Check, Globe, Heart, MessageCircle, MoreHorizontal, Pencil, RefreshCw, Send, Share2, ThumbsUp } from "lucide-react";
+import { Globe, Heart, MessageCircle, MoreHorizontal, RefreshCw, Send, Share2, ThumbsUp, Upload } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from "react";
 
 import { generateAdImage } from "@/app/actions/generate-ad-image";
 import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
@@ -20,15 +18,30 @@ import { transitions } from "@/lib/motion";
 import type { AdCreative } from "@/lib/stores/wizard-store";
 import { useWizardStore } from "@/lib/stores/wizard-store";
 
-import { AdEditModal } from "../shared/AdEditModal";
 import { AdGenerationLoading } from "../shared/AdGenerationLoading";
 
-// ── Types ────────────────────────────────────────────────────────
+// ── Types & Constants ───────────────────────────────────────────
 
-type Platform = "instagram" | "facebook" | "google" | "linkedin";
+type DisplayPlatform = "instagram" | "facebook" | "google" | "linkedin";
 type BrandState = NonNullable<ReturnType<typeof useWizardStore.getState>["brand"]>;
 
-const ACTION_VERBS = ["ge", "boka", "upptäck", "välj", "starta", "få", "skapa", "hitta", "testa", "prova", "köp", "läs", "se", "hör", "ring"];
+const STORE_TO_DISPLAY: Record<string, DisplayPlatform[]> = {
+  meta: ["instagram", "facebook"],
+  google: ["google"],
+  linkedin: ["linkedin"],
+};
+
+const DISPLAY_PLATFORM_LIMITS: Record<DisplayPlatform, { headline: number; bodyCopy: number; label: string }> = {
+  instagram: { headline: 40, bodyCopy: 125, label: "Meta" },
+  facebook: { headline: 40, bodyCopy: 125, label: "Meta" },
+  google: { headline: 30, bodyCopy: 90, label: "Google" },
+  linkedin: { headline: 70, bodyCopy: 150, label: "LinkedIn" },
+};
+
+const CTA_OPTIONS = [
+  "Läs mer", "Kontakta oss", "Handla nu", "Boka nu", "Registrera dig",
+  "Få offert", "Testa gratis", "Kom igång", "Se mer", "Ring oss",
+];
 
 function colorIsLight(hex: string): boolean {
   const h = hex.replace("#", "");
@@ -39,19 +52,11 @@ function colorIsLight(hex: string): boolean {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.55;
 }
 
-function getAngleLabel(headline: string): { label: string; description: string } {
-  const lower = headline.trim().toLowerCase();
-  const firstWord = lower.split(/\s+/)[0] ?? "";
-  if (lower.includes("?")) return { label: "Frågebaserad", description: "Väcker nyfikenhet" };
-  if (ACTION_VERBS.some((v) => firstWord.startsWith(v))) return { label: "Direkt uppmaning", description: "Uppmanar till handling" };
-  return { label: "Påstående", description: "Bygger trovärdighet" };
-}
-
 function brandSlug(name: string): string {
   return name.toLowerCase().replace(/\s+/g, "").replace(/[^a-zåäö0-9]/g, "");
 }
 
-// ── Platform Icons ───────────────────────────────────────────────
+// ── Platform Icons ──────────────────────────────────────────────
 
 function InstagramIcon({ size = 18 }: { size?: number }) {
   return (
@@ -88,40 +93,15 @@ function LinkedInIcon({ size = 18 }: { size?: number }) {
   );
 }
 
-const PLATFORM_ICONS: Record<Platform, React.ComponentType<{ size?: number }>> = {
+const PLATFORM_ICONS: Record<DisplayPlatform, React.ComponentType<{ size?: number }>> = {
   instagram: InstagramIcon, facebook: FacebookIcon, google: GoogleIcon, linkedin: LinkedInIcon,
 };
 
-// ── Inline Editable Text ─────────────────────────────────────────
+const PLATFORM_LABELS: Record<DisplayPlatform, string> = {
+  instagram: "Instagram", facebook: "Facebook", google: "Google", linkedin: "LinkedIn",
+};
 
-function InlineEditableText({ value, onSave, as: Tag = "h3", className, style }: {
-  value: string; onSave: (v: string) => void; as?: "h3" | "p"; className?: string; style?: React.CSSProperties;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(value);
-  const ref = useRef<HTMLTextAreaElement>(null);
-  useEffect(() => { setDraft(value); }, [value]);
-  useEffect(() => { if (editing && ref.current) { ref.current.focus(); ref.current.select(); ref.current.style.height = "auto"; ref.current.style.height = ref.current.scrollHeight + "px"; } }, [editing]);
-  function commit() { setEditing(false); if (draft.trim() !== value.trim()) onSave(draft.trim()); }
-  if (editing) {
-    return (
-      <textarea ref={ref} value={draft}
-        onChange={(e) => { setDraft(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }}
-        onBlur={commit} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); commit(); } }}
-        className={className} rows={1}
-        style={{ ...style, resize: "none", background: "transparent", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 4, outline: "none", width: "100%", padding: "2px 4px", margin: "-2px -4px" }}
-      />
-    );
-  }
-  return (
-    <div className="group/edit relative cursor-pointer" onClick={(e) => { e.stopPropagation(); setEditing(true); }}>
-      <Tag className={className} style={style}>{value}</Tag>
-      <span className="absolute -right-5 top-0 hidden text-white/50 group-hover/edit:inline"><Pencil className="h-3 w-3" /></span>
-    </div>
-  );
-}
-
-// ── Ad Image Layer (shared across platforms) ─────────────────────
+// ── Ad Image Layer ──────────────────────────────────────────────
 
 function AdImageLayer({ ad, primaryColor, aspectRatio, isRegenerating, isLightBrand }: {
   ad: AdCreative; primaryColor: string; aspectRatio: string; isRegenerating: boolean; isLightBrand?: boolean;
@@ -155,7 +135,7 @@ function AdImageLayer({ ad, primaryColor, aspectRatio, isRegenerating, isLightBr
   );
 }
 
-// ── Device Frames ────────────────────────────────────────────────
+// ── Device Frames ───────────────────────────────────────────────
 
 function IPhoneFrame({ children }: { children: React.ReactNode }) {
   return (
@@ -169,11 +149,9 @@ function IPhoneFrame({ children }: { children: React.ReactNode }) {
 function LaptopFrame({ children }: { children: React.ReactNode }) {
   return (
     <div>
-      {/* Screen */}
       <div className="overflow-hidden" style={{ borderRadius: "8px 8px 0 0", background: "#2D2D2D", padding: "3px 3px 0", boxShadow: "0 24px 60px rgba(0,0,0,0.4)" }}>
         <div className="overflow-hidden" style={{ borderRadius: "6px 6px 0 0", background: "#fff" }}>{children}</div>
       </div>
-      {/* Base/hinge */}
       <div className="mx-auto" style={{ width: "110%", maxWidth: "100%", height: 10, background: "linear-gradient(to bottom, #C0C0C0, #A0A0A0)", borderRadius: "0 0 4px 4px" }} />
       <div className="mx-auto" style={{ width: "40%", height: 3, background: "#B0B0B0", borderRadius: "0 0 2px 2px" }} />
     </div>
@@ -183,32 +161,28 @@ function LaptopFrame({ children }: { children: React.ReactNode }) {
 function MonitorFrame({ children }: { children: React.ReactNode }) {
   return (
     <div>
-      {/* Screen */}
       <div className="overflow-hidden" style={{ borderRadius: 8, background: "#1C1C1E", padding: 3, boxShadow: "0 24px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06)" }}>
         <div className="overflow-hidden" style={{ borderRadius: 5, background: "#fff" }}>{children}</div>
       </div>
-      {/* Stand */}
       <div className="mx-auto" style={{ width: 40, height: 18, background: "linear-gradient(to bottom, #C0C0C0, #A0A0A0)" }} />
       <div className="mx-auto" style={{ width: 70, height: 4, background: "#A0A0A0", borderRadius: 2 }} />
     </div>
   );
 }
 
-// ── Platform-Specific Mockups ────────────────────────────────────
+// ── Read-Only Platform Mockups ──────────────────────────────────
 
-function InstagramMockup({ ad, brand, isRegenerating, onUpdate, isLightBrand }: {
-  ad: AdCreative; brand: BrandState; isRegenerating: boolean; onUpdate: (f: "headline" | "bodyCopy" | "cta", v: string) => void; isLightBrand?: boolean;
+function InstagramMockup({ ad, brand, isRegenerating, isLightBrand }: {
+  ad: AdCreative; brand: BrandState; isRegenerating: boolean; isLightBrand?: boolean;
 }) {
   const c = brand.colors.primary || "#6366F1";
   const slug = brandSlug(brand.name);
   return (
     <IPhoneFrame>
-      {/* Status bar */}
       <div className="flex items-center justify-between bg-black px-4 py-1">
         <span className="text-[9px] font-semibold text-white">9:41</span>
         <div className="flex gap-1"><div className="h-1.5 w-3 rounded-sm bg-white/50" /><div className="h-2 w-3.5 rounded-sm bg-white/50" /></div>
       </div>
-      {/* Stories header */}
       <div className="flex items-center gap-2 bg-black px-3 py-1.5">
         <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white" style={{ background: c, border: "2px solid #E1306C" }}>
           {brand.name.charAt(0)}
@@ -219,21 +193,16 @@ function InstagramMockup({ ad, brand, isRegenerating, onUpdate, isLightBrand }: 
         </div>
         <MoreHorizontal className="h-3.5 w-3.5 text-white/50" />
       </div>
-      {/* Ad image */}
       <div className="relative">
         <AdImageLayer ad={ad} primaryColor={c} aspectRatio="1/1" isRegenerating={isRegenerating} isLightBrand={isLightBrand} />
-        {/* Text overlay */}
         <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-0.5 p-3">
-          <InlineEditableText value={ad.headline} onSave={(v) => onUpdate("headline", v)} as="h3"
-            className="text-[13px] font-extrabold leading-tight" style={{ color: "#fff", textShadow: "0 1px 8px rgba(0,0,0,0.4)" }} />
-          <InlineEditableText value={ad.bodyCopy} onSave={(v) => onUpdate("bodyCopy", v)} as="p"
-            className="text-[9px] leading-relaxed line-clamp-2" style={{ color: "rgba(255,255,255,0.75)" }} />
+          <h3 className="text-[13px] font-extrabold leading-tight text-white" style={{ textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}>{ad.headline}</h3>
+          <p className="text-[9px] leading-relaxed line-clamp-2" style={{ color: "rgba(255,255,255,0.75)" }}>{ad.bodyCopy}</p>
           <span className="mt-1 inline-flex self-start rounded-md px-2.5 py-1 text-[9px] font-bold" style={{ background: "rgba(255,255,255,0.9)", color: c }}>
             {ad.cta} →
           </span>
         </div>
       </div>
-      {/* Reactions */}
       <div className="flex items-center justify-between bg-black px-3 py-2">
         <div className="flex gap-3.5">
           <Heart className="h-4 w-4 text-white" />
@@ -249,21 +218,18 @@ function InstagramMockup({ ad, brand, isRegenerating, onUpdate, isLightBrand }: 
   );
 }
 
-function FacebookMockup({ ad, brand, isRegenerating, onUpdate, isLightBrand }: {
-  ad: AdCreative; brand: BrandState; isRegenerating: boolean; onUpdate: (f: "headline" | "bodyCopy" | "cta", v: string) => void; isLightBrand?: boolean;
+function FacebookMockup({ ad, brand, isRegenerating, isLightBrand }: {
+  ad: AdCreative; brand: BrandState; isRegenerating: boolean; isLightBrand?: boolean;
 }) {
   const c = brand.colors.primary || "#6366F1";
   const domain = brand.url?.replace(/^https?:\/\//, "").replace(/\/$/, "") || "example.com";
   return (
     <IPhoneFrame>
-      {/* Status bar */}
       <div className="flex items-center justify-between bg-white px-4 py-1">
         <span className="text-[9px] font-semibold text-gray-800">9:41</span>
         <div className="flex gap-1"><div className="h-1.5 w-3 rounded-sm bg-gray-400" /><div className="h-2 w-3.5 rounded-sm bg-gray-400" /></div>
       </div>
-      {/* Facebook chrome */}
       <div className="bg-white">
-        {/* Post header */}
         <div className="flex items-center gap-2 px-3 py-2">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white" style={{ background: c }}>
             {brand.name.charAt(0)}
@@ -274,26 +240,20 @@ function FacebookMockup({ ad, brand, isRegenerating, onUpdate, isLightBrand }: {
           </div>
           <MoreHorizontal className="h-4 w-4 text-gray-300" />
         </div>
-        {/* Primary text */}
         <div className="px-3 pb-2">
-          <InlineEditableText value={ad.bodyCopy} onSave={(v) => onUpdate("bodyCopy", v)} as="p"
-            className="text-[10px] leading-relaxed line-clamp-2" style={{ color: "#1c1e21" }} />
+          <p className="text-[10px] leading-relaxed line-clamp-2" style={{ color: "#1c1e21" }}>{ad.bodyCopy}</p>
         </div>
       </div>
-      {/* Ad image */}
       <AdImageLayer ad={ad} primaryColor={c} aspectRatio="4/5" isRegenerating={isRegenerating} isLightBrand={isLightBrand} />
-      {/* Link preview bar */}
       <div className="flex items-center justify-between bg-gray-50 px-3 py-1.5">
         <div className="min-w-0 flex-1">
           <div className="text-[8px] uppercase text-gray-400">{domain}</div>
-          <InlineEditableText value={ad.headline} onSave={(v) => onUpdate("headline", v)} as="h3"
-            className="truncate text-[10px] font-semibold" style={{ color: "#1c1e21" }} />
+          <h3 className="truncate text-[10px] font-semibold" style={{ color: "#1c1e21" }}>{ad.headline}</h3>
         </div>
         <div className="shrink-0 rounded px-2.5 py-1 text-[9px] font-bold text-white" style={{ background: c }}>
           {ad.cta}
         </div>
       </div>
-      {/* Reactions bar */}
       <div className="bg-white">
         <div className="flex items-center gap-1 border-b border-gray-100 px-3 py-1">
           <span className="text-[10px]">👍❤️</span>
@@ -309,13 +269,12 @@ function FacebookMockup({ ad, brand, isRegenerating, onUpdate, isLightBrand }: {
   );
 }
 
-function GoogleMockup({ ad, brand, isRegenerating, onUpdate, isLightBrand }: {
-  ad: AdCreative; brand: BrandState; isRegenerating: boolean; onUpdate: (f: "headline" | "bodyCopy" | "cta", v: string) => void; isLightBrand?: boolean;
+function GoogleMockup({ ad, brand, isRegenerating, isLightBrand }: {
+  ad: AdCreative; brand: BrandState; isRegenerating: boolean; isLightBrand?: boolean;
 }) {
   const c = brand.colors.primary || "#6366F1";
   return (
     <LaptopFrame>
-      {/* Browser chrome */}
       <div className="flex items-center gap-2 border-b border-gray-200 bg-[#DEE1E6] px-3 py-1.5">
         <div className="flex gap-1"><div className="h-2 w-2 rounded-full bg-[#FF5F57]" /><div className="h-2 w-2 rounded-full bg-[#FEBC2E]" /><div className="h-2 w-2 rounded-full bg-[#28C840]" /></div>
         <div className="flex flex-1 items-center gap-1.5 rounded-md bg-white px-2 py-0.5" style={{ border: "1px solid rgba(0,0,0,0.08)" }}>
@@ -323,9 +282,7 @@ function GoogleMockup({ ad, brand, isRegenerating, onUpdate, isLightBrand }: {
           <span className="truncate text-[8px] text-gray-500">nyheter.se/ekonomi/senaste</span>
         </div>
       </div>
-      {/* Fake news site with ad banner */}
       <div className="flex gap-3 bg-[#f9f9f9] p-3">
-        {/* Article content */}
         <div className="flex-1 space-y-2">
           <div className="h-2 w-3/4 rounded bg-gray-300" />
           <div className="space-y-1">
@@ -338,24 +295,20 @@ function GoogleMockup({ ad, brand, isRegenerating, onUpdate, isLightBrand }: {
             <div className="h-1.5 w-4/5 rounded bg-gray-200" />
           </div>
         </div>
-        {/* Sidebar with ad */}
         <div className="w-2/5 shrink-0">
           <div className="text-[6px] uppercase tracking-wider text-gray-400">Annons</div>
           <div className="mt-0.5 overflow-hidden rounded" style={{ border: "1px solid rgba(0,0,0,0.06)" }}>
             <AdImageLayer ad={ad} primaryColor={c} aspectRatio="1.91/1" isRegenerating={isRegenerating} isLightBrand={isLightBrand} />
           </div>
           <div className="mt-1 space-y-0.5">
-            <InlineEditableText value={ad.headline} onSave={(v) => onUpdate("headline", v)} as="h3"
-              className="text-[11px] font-bold leading-tight" style={{ color: c }} />
-            <InlineEditableText value={ad.bodyCopy} onSave={(v) => onUpdate("bodyCopy", v)} as="p"
-              className="text-[9px] leading-snug line-clamp-2" style={{ color: "#545454" }} />
+            <h3 className="text-[11px] font-bold leading-tight" style={{ color: c }}>{ad.headline}</h3>
+            <p className="text-[9px] leading-snug line-clamp-2" style={{ color: "#545454" }}>{ad.bodyCopy}</p>
             <span className="inline-block rounded px-1.5 py-0.5 text-[9px] font-bold text-white" style={{ background: c }}>
               {ad.cta}
             </span>
           </div>
         </div>
       </div>
-      {/* More article text below */}
       <div className="space-y-1 bg-[#f9f9f9] px-3 pb-3">
         <div className="h-1.5 w-full rounded bg-gray-200" />
         <div className="h-1.5 w-full rounded bg-gray-200" />
@@ -365,13 +318,12 @@ function GoogleMockup({ ad, brand, isRegenerating, onUpdate, isLightBrand }: {
   );
 }
 
-function LinkedInMockup({ ad, brand, isRegenerating, onUpdate, isLightBrand }: {
-  ad: AdCreative; brand: BrandState; isRegenerating: boolean; onUpdate: (f: "headline" | "bodyCopy" | "cta", v: string) => void; isLightBrand?: boolean;
+function LinkedInMockup({ ad, brand, isRegenerating, isLightBrand }: {
+  ad: AdCreative; brand: BrandState; isRegenerating: boolean; isLightBrand?: boolean;
 }) {
   const c = brand.colors.primary || "#6366F1";
   return (
     <MonitorFrame>
-      {/* LinkedIn top bar */}
       <div className="flex items-center gap-3 border-b border-gray-200 bg-white px-3 py-1.5">
         <svg width="16" height="14" viewBox="0 0 24 24" fill="#0A66C2"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg>
         <div className="flex flex-1 items-center gap-1 rounded bg-[#EEF3F8] px-2 py-0.5">
@@ -379,10 +331,8 @@ function LinkedInMockup({ ad, brand, isRegenerating, onUpdate, isLightBrand }: {
           <span className="text-[8px] text-gray-400">Sök</span>
         </div>
       </div>
-      {/* Feed card */}
       <div className="bg-[#F4F2EE] p-3">
         <div className="overflow-hidden rounded-lg bg-white" style={{ border: "1px solid rgba(0,0,0,0.08)" }}>
-          {/* Post header */}
           <div className="flex items-center gap-2 px-3 py-2">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white" style={{ background: c }}>
               {brand.name.charAt(0)}
@@ -393,22 +343,16 @@ function LinkedInMockup({ ad, brand, isRegenerating, onUpdate, isLightBrand }: {
             </div>
             <MoreHorizontal className="h-4 w-4 text-gray-300" />
           </div>
-          {/* Body text */}
           <div className="px-3 pb-2">
-            <InlineEditableText value={ad.bodyCopy} onSave={(v) => onUpdate("bodyCopy", v)} as="p"
-              className="text-[10px] leading-relaxed line-clamp-3" style={{ color: "#000" }} />
+            <p className="text-[10px] leading-relaxed line-clamp-3" style={{ color: "#000" }}>{ad.bodyCopy}</p>
           </div>
-          {/* Ad image */}
           <AdImageLayer ad={ad} primaryColor={c} aspectRatio="1.91/1" isRegenerating={isRegenerating} isLightBrand={isLightBrand} />
-          {/* Link preview */}
           <div className="flex items-center justify-between bg-[#EEF3F8] px-3 py-2">
-            <InlineEditableText value={ad.headline} onSave={(v) => onUpdate("headline", v)} as="h3"
-              className="text-[10px] font-semibold" style={{ color: "#000" }} />
+            <h3 className="text-[10px] font-semibold" style={{ color: "#000" }}>{ad.headline}</h3>
             <span className="shrink-0 rounded-full border border-[#0A66C2] px-2.5 py-0.5 text-[9px] font-bold text-[#0A66C2]">
               {ad.cta}
             </span>
           </div>
-          {/* Reactions */}
           <div className="flex items-center gap-1 border-t border-gray-100 px-3 py-1">
             <span className="text-[10px]">👍💡</span>
             <span className="text-[8px] text-gray-400">23</span>
@@ -424,7 +368,7 @@ function LinkedInMockup({ ad, brand, isRegenerating, onUpdate, isLightBrand }: {
   );
 }
 
-// ── Ad Mockup Card ───────────────────────────────────────────────
+// ── Mockup Scale Hook ───────────────────────────────────────────
 
 function useMockupScale(
   containerRef: React.RefObject<HTMLDivElement | null>,
@@ -432,14 +376,11 @@ function useMockupScale(
   deps: unknown[],
 ) {
   const [scale, setScale] = useState(1);
-
-  // Measure after DOM paint and recalculate
   useLayoutEffect(() => {
     function measure() {
       const container = containerRef.current;
       const mockup = mockupRef.current;
       if (!container || !mockup) return;
-      // scrollHeight is NOT affected by CSS transform — gives us the natural content height
       const natural = mockup.scrollHeight;
       const available = container.clientHeight;
       if (natural > 0 && available > 0 && natural > available) {
@@ -448,159 +389,42 @@ function useMockupScale(
         setScale(1);
       }
     }
-    // Measure immediately (sync, before paint)
     measure();
-    // Measure again after a frame (images/fonts may have loaded)
     const raf1 = requestAnimationFrame(measure);
-    // And once more after a short delay for any async content
     const timer = setTimeout(measure, 200);
     return () => { cancelAnimationFrame(raf1); clearTimeout(timer); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
-
   return scale;
 }
 
-function AdMockupCard({ ad, brand, label, index, selected, platform, onToggle, onEdit }: {
-  ad: AdCreative; brand: BrandState; label: string; index: number; selected: boolean; platform: Platform; onToggle: () => void; onEdit: () => void;
+// ── Platform Tab Switcher ───────────────────────────────────────
+
+function PlatformTabSwitcher({ active, onChange, availablePlatforms }: {
+  active: DisplayPlatform; onChange: (p: DisplayPlatform) => void; availablePlatforms: DisplayPlatform[];
 }) {
-  const { updateAd } = useWizardStore();
-  const [isRegenerating, setIsRegenerating] = useState(false);
-  const [, startTransition] = useTransition();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const mockupRef = useRef<HTMLDivElement>(null);
-  const scale = useMockupScale(containerRef, mockupRef, [platform, ad.imageUrl]);
-
-  function handleUpdate(field: "headline" | "bodyCopy" | "cta", value: string) { updateAd(ad.id, { [field]: value }); }
-
-  function handleRegenerate() {
-    setIsRegenerating(true);
-    startTransition(async () => {
-      try {
-        const result = await generateAdImage(
-          { id: `${ad.id}-regen-${Date.now()}`, headline: ad.headline, primaryText: ad.bodyCopy, brandName: brand.name, brandColor: brand.colors.primary, brandAccent: brand.colors.secondary },
-          platform === "linkedin" ? "linkedin" : "meta-feed",
-        );
-        if (result?.imageUrl) updateAd(ad.id, { imageUrl: result.imageUrl });
-      } catch (err) { console.error("[AdMockupCard] Regenerate failed:", err); }
-      finally { setIsRegenerating(false); }
-    });
-  }
-
-  const light = colorIsLight(brand.colors.primary || "#6366F1");
-  const mockupProps = { ad, brand, isRegenerating, onUpdate: handleUpdate, isLightBrand: light };
-
-  return (
-    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: index * 0.15 }}
-      className="flex w-full min-w-full flex-shrink-0 snap-center flex-col items-center gap-2 mx-auto md:min-w-0 md:w-auto md:flex-1">
-      {/* Select toggle + strategy label + AI badge */}
-      <div className="flex items-center gap-2">
-        <motion.button onClick={onToggle} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-          className="flex items-center gap-1.5 text-[11px] font-semibold"
-          style={{ padding: "5px 14px", borderRadius: 20, background: selected ? "#22c55e" : "transparent", color: selected ? "#fff" : "var(--color-text-muted)", border: selected ? "2px solid #22c55e" : "1px solid rgba(255,255,255,0.1)" }}>
-          {selected && <Check className="h-3 w-3" />}{label}
-        </motion.button>
-        {index === 0 && (
-          <span className="rounded-full text-[9px] font-medium" style={{ padding: "2px 8px", background: "rgba(99,102,241,0.1)", color: "var(--color-primary-light)" }}>
-            ✦ AI-favorit
-          </span>
-        )}
-        <span className="text-[10px] font-medium" style={{ color: "var(--color-text-muted)" }}>
-          {getAngleLabel(ad.headline).label}
-        </span>
-      </div>
-
-      {/* Device mockup — auto-scales to fit available height */}
-      <div
-        ref={containerRef}
-        className="relative w-full cursor-pointer overflow-hidden"
-        style={{
-          height: "calc(100dvh - 280px)",
-          maxHeight: 480,
-          borderRadius: 14,
-          border: selected ? "2px solid var(--color-primary)" : "2px solid transparent",
-          background: selected ? "rgba(99,102,241,0.05)" : "transparent",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-          transition: "border-color 200ms, background-color 200ms",
-        }}
-        onClick={onEdit}
-      >
-        {selected && (
-          <div className="absolute -right-1 -top-1 z-40 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 shadow-lg">
-            <Check className="h-3.5 w-3.5 text-white" />
-          </div>
-        )}
-        <div
-          ref={mockupRef}
-          style={{
-            transformOrigin: "top center",
-            transform: `scale(${scale})`,
-          }}
-        >
-          {platform === "instagram" && <InstagramMockup {...mockupProps} />}
-          {platform === "facebook" && <FacebookMockup {...mockupProps} />}
-          {platform === "google" && <GoogleMockup {...mockupProps} />}
-          {platform === "linkedin" && <LinkedInMockup {...mockupProps} />}
-        </div>
-      </div>
-
-      <motion.button onClick={handleRegenerate} disabled={isRegenerating} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-        className="flex items-center gap-1.5 text-[11px] font-medium disabled:opacity-40"
-        style={{ padding: "6px 14px", borderRadius: 8, background: "transparent", color: "var(--color-text-muted)", border: "1px solid var(--color-border-default)" }}>
-        <RefreshCw className={`h-3 w-3 ${isRegenerating ? "animate-spin" : ""}`} />Generera ny bild
-      </motion.button>
-    </motion.div>
-  );
-}
-
-// ── Platform Tab Switcher ────────────────────────────────────────
-
-const PLATFORM_LABELS: Record<Platform, string> = {
-  instagram: "Instagram", facebook: "Facebook", google: "Google", linkedin: "LinkedIn",
-};
-
-function PlatformTabSwitcher({ active, onChange, brandColor }: { active: Platform; onChange: (p: Platform) => void; brandColor: string }) {
-  const platforms: Platform[] = ["instagram", "facebook", "google", "linkedin"];
   return (
     <div className="flex items-center justify-center gap-1">
-      {platforms.map((p) => {
+      {availablePlatforms.map((p) => {
         const Icon = PLATFORM_ICONS[p];
         const isActive = active === p;
         return (
-          <motion.button
-            key={p}
-            onClick={() => onChange(p)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <motion.button key={p} onClick={() => onChange(p)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
             className="relative flex items-center justify-center gap-1.5"
             style={{
-              padding: isActive ? "6px 14px" : "6px 10px",
-              borderRadius: 10,
+              padding: isActive ? "6px 14px" : "6px 10px", borderRadius: 10,
               background: isActive ? "var(--color-bg-raised)" : "transparent",
               color: isActive ? "var(--color-text-primary)" : "var(--color-text-muted)",
               border: isActive ? "1px solid var(--color-border-default)" : "1px solid transparent",
-              opacity: isActive ? 1 : 0.4,
-              transition: "opacity 200ms, background 200ms",
+              opacity: isActive ? 1 : 0.4, transition: "opacity 200ms, background 200ms",
             }}
           >
             <Icon size={16} />
             {isActive && (
-              <motion.span
-                initial={{ opacity: 0, width: 0 }}
-                animate={{ opacity: 1, width: "auto" }}
-                className="overflow-hidden whitespace-nowrap text-[11px] font-medium"
-              >
+              <motion.span initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: "auto" }}
+                className="overflow-hidden whitespace-nowrap text-[11px] font-medium">
                 {PLATFORM_LABELS[p]}
               </motion.span>
-            )}
-            {isActive && (
-              <motion.div
-                layoutId="platform-underline"
-                className="absolute -bottom-1 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full"
-                style={{ background: brandColor }}
-                transition={transitions.snappy}
-              />
             )}
           </motion.button>
         );
@@ -609,24 +433,245 @@ function PlatformTabSwitcher({ active, onChange, brandColor }: { active: Platfor
   );
 }
 
-// ── Main Component ───────────────────────────────────────────────
+// ── A/B Toggle Pill ─────────────────────────────────────────────
+
+function ABTogglePill({ activeVariant, onSwitch }: {
+  activeVariant: "A" | "B"; onSwitch: (v: "A" | "B") => void;
+}) {
+  return (
+    <div className="flex gap-0.5 rounded-[10px] p-[3px]" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+      {(["A", "B"] as const).map((v) => (
+        <motion.button key={v} onClick={() => onSwitch(v)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+          className="relative px-5 py-1.5 text-[12px] font-semibold transition-all duration-200"
+          style={{
+            borderRadius: 8,
+            background: activeVariant === v ? "rgba(255,255,255,0.08)" : "transparent",
+            color: activeVariant === v ? "#fff" : "rgba(255,255,255,0.35)",
+          }}
+        >
+          {v}
+        </motion.button>
+      ))}
+    </div>
+  );
+}
+
+// ── Upload Background Button ────────────────────────────────────
+
+function UploadBackgroundButton({ adId }: { adId: string }) {
+  const { updateAd } = useWizardStore();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => updateAd(adId, { imageUrl: reader.result as string });
+    reader.readAsDataURL(file);
+  }, [adId, updateAd]);
+
+  return (
+    <>
+      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
+      <motion.button
+        onClick={() => fileInputRef.current?.click()}
+        whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+        className="flex items-center gap-1.5 text-[11px] font-medium"
+        style={{ padding: "6px 14px", borderRadius: 8, color: "var(--color-text-muted)", border: "1px solid var(--color-border-default)" }}
+      >
+        <Upload className="h-3 w-3" /> Byt bakgrund
+      </motion.button>
+    </>
+  );
+}
+
+// ── Character Count ─────────────────────────────────────────────
+
+function CharCount({ current, max }: { current: number; max: number }) {
+  const over = current > max;
+  return (
+    <span className="text-[10px] font-medium" style={{ color: over ? "var(--color-error, #ef4444)" : "rgba(255,255,255,0.2)" }}>
+      {current}/{max}
+    </span>
+  );
+}
+
+// ── Detail Panel ────────────────────────────────────────────────
+
+function DetailPanel({ ad, platform, onRegenerate, onRegenerateAll, isRegenerating }: {
+  ad: AdCreative; platform: DisplayPlatform; onRegenerate: () => void; onRegenerateAll: () => void; isRegenerating: boolean;
+}) {
+  const { updateAd } = useWizardStore();
+  const limits = DISPLAY_PLATFORM_LIMITS[platform];
+  const [headline, setHeadline] = useState(ad.headline);
+  const [bodyCopy, setBodyCopy] = useState(ad.bodyCopy);
+
+  useEffect(() => { setHeadline(ad.headline); }, [ad.headline]);
+  useEffect(() => { setBodyCopy(ad.bodyCopy); }, [ad.bodyCopy]);
+
+  function commitHeadline() { if (headline.trim() !== ad.headline) updateAd(ad.id, { headline: headline.trim() }); }
+  function commitBody() { if (bodyCopy.trim() !== ad.bodyCopy) updateAd(ad.id, { bodyCopy: bodyCopy.trim() }); }
+
+  return (
+    <div className="flex flex-1 flex-col gap-6 py-4 md:py-0">
+      {/* Headline */}
+      <div>
+        <div className="mb-1.5 flex items-center justify-between">
+          <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.25)" }}>Rubrik</span>
+          <CharCount current={headline.length} max={limits.headline} />
+        </div>
+        <textarea
+          value={headline}
+          onChange={(e) => setHeadline(e.target.value)}
+          onBlur={commitHeadline}
+          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); commitHeadline(); (e.target as HTMLTextAreaElement).blur(); } }}
+          rows={1}
+          className="w-full resize-none rounded-lg border border-transparent bg-transparent px-2 py-1 text-[28px] font-extrabold leading-tight tracking-tight text-white transition-colors focus:border-white/10 focus:bg-white/[0.02] focus:outline-none hover:border-white/10 hover:bg-white/[0.02] md:text-[32px]"
+          style={{ letterSpacing: "-0.03em" }}
+        />
+        <p className="mt-1 pl-2 text-[10px]" style={{ color: "rgba(255,255,255,0.2)" }}>
+          Klicka för att redigera · {limits.label}: max {limits.headline} tecken
+        </p>
+      </div>
+
+      {/* Body */}
+      <div>
+        <div className="mb-1.5 flex items-center justify-between">
+          <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.25)" }}>Brödtext</span>
+          <CharCount current={bodyCopy.length} max={limits.bodyCopy} />
+        </div>
+        <textarea
+          value={bodyCopy}
+          onChange={(e) => setBodyCopy(e.target.value)}
+          onBlur={commitBody}
+          rows={2}
+          className="w-full resize-none rounded-lg border border-transparent bg-transparent px-2 py-1 text-[15px] leading-relaxed transition-colors focus:border-white/10 focus:bg-white/[0.02] focus:outline-none hover:border-white/10 hover:bg-white/[0.02] md:text-[16px]"
+          style={{ color: "rgba(255,255,255,0.6)" }}
+        />
+      </div>
+
+      {/* CTA */}
+      <div>
+        <span className="mb-2 block text-[10px] font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.25)" }}>
+          Call to action
+        </span>
+        <div className="flex flex-wrap gap-1.5">
+          {CTA_OPTIONS.map((opt) => (
+            <motion.button key={opt} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+              onClick={() => updateAd(ad.id, { cta: opt })}
+              className="rounded-md px-3 py-1.5 text-[11px] font-semibold transition-all duration-150"
+              style={{
+                background: ad.cta === opt ? "var(--color-primary, #6366F1)" : "rgba(255,255,255,0.04)",
+                color: ad.cta === opt ? "#fff" : "rgba(255,255,255,0.4)",
+                border: ad.cta === opt ? "1px solid var(--color-primary, #6366F1)" : "1px solid rgba(255,255,255,0.06)",
+              }}
+            >
+              {opt}
+            </motion.button>
+          ))}
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex gap-2">
+        <motion.button onClick={onRegenerate} disabled={isRegenerating} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+          className="flex items-center gap-1.5 text-[11px] font-medium disabled:opacity-40"
+          style={{ padding: "6px 14px", borderRadius: 8, color: "var(--color-text-muted)", border: "1px solid var(--color-border-default)" }}>
+          <RefreshCw className={`h-3 w-3 ${isRegenerating ? "animate-spin" : ""}`} /> Ny bild
+        </motion.button>
+        <motion.button onClick={onRegenerateAll} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+          className="flex items-center gap-1.5 text-[11px] font-medium"
+          style={{ padding: "6px 14px", borderRadius: 8, color: "var(--color-text-muted)", border: "1px solid var(--color-border-default)" }}>
+          <RefreshCw className="h-3 w-3" /> Generera om
+        </motion.button>
+      </div>
+    </div>
+  );
+}
+
+// ── Mockup Renderer ─────────────────────────────────────────────
+
+function MockupRenderer({ ad, brand, platform, isRegenerating }: {
+  ad: AdCreative; brand: BrandState; platform: DisplayPlatform; isRegenerating: boolean;
+}) {
+  const light = colorIsLight(brand.colors.primary || "#6366F1");
+  const props = { ad, brand, isRegenerating, isLightBrand: light };
+  switch (platform) {
+    case "instagram": return <InstagramMockup {...props} />;
+    case "facebook": return <FacebookMockup {...props} />;
+    case "google": return <GoogleMockup {...props} />;
+    case "linkedin": return <LinkedInMockup {...props} />;
+  }
+}
+
+// ── Main Component ──────────────────────────────────────────────
 
 export function AdViewSlide() {
   const { ads, selectedPlatforms, brand, isGeneratingAds, toggleAdSelection, setAds, setFooterAction, preGeneratedImageUrl } = useWizardStore();
   const { handleNext } = useWizardNavigation();
-  const [editingAdId, setEditingAdId] = useState<string | null>(null);
-  const [activePlatform, setActivePlatform] = useState<Platform>("instagram");
+  const [activeVariant, setActiveVariant] = useState<"A" | "B">("A");
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [, startTransition] = useTransition();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mockupRef = useRef<HTMLDivElement>(null);
 
-  const selectedCount = ads.filter((a) => a.selected).length;
   const adA = ads[0];
   const adB = ads[1];
+  const activeAd = activeVariant === "A" ? adA : adB;
+  const selectedCount = ads.filter((a) => a.selected).length;
 
+  // Derive available display platforms from store's selectedPlatforms
+  const availableDisplayPlatforms = useMemo(() => {
+    const result: DisplayPlatform[] = [];
+    for (const sp of selectedPlatforms) {
+      const mapped = STORE_TO_DISPLAY[sp];
+      if (mapped) result.push(...mapped);
+    }
+    return result.length > 0 ? result : ["instagram" as DisplayPlatform];
+  }, [selectedPlatforms]);
+
+  const [activePlatform, setActivePlatform] = useState<DisplayPlatform>(availableDisplayPlatforms[0]!);
+
+  // Keep activePlatform in sync if available platforms change
+  useEffect(() => {
+    if (!availableDisplayPlatforms.includes(activePlatform)) {
+      setActivePlatform(availableDisplayPlatforms[0]!);
+    }
+  }, [availableDisplayPlatforms, activePlatform]);
+
+  const scale = useMockupScale(containerRef, mockupRef, [activePlatform, activeAd?.imageUrl]);
+
+  // Footer action
   useEffect(() => {
     setFooterAction(() => handleNext(), selectedCount === 0);
     return () => setFooterAction(null);
   }, [selectedCount, handleNext, setFooterAction]);
 
-  const handleRegenerate = useCallback(async () => {
+  // Switch variant and select it
+  function handleVariantSwitch(v: "A" | "B") {
+    setActiveVariant(v);
+    const ad = v === "A" ? adA : adB;
+    if (ad && !ad.selected) toggleAdSelection(ad.id);
+  }
+
+  // Regenerate single image
+  function handleRegenerateImage() {
+    if (!activeAd || !brand) return;
+    setIsRegenerating(true);
+    startTransition(async () => {
+      try {
+        const result = await generateAdImage(
+          { id: `${activeAd.id}-regen-${Date.now()}`, headline: activeAd.headline, primaryText: activeAd.bodyCopy, brandName: brand.name, brandColor: brand.colors.primary, brandAccent: brand.colors.secondary },
+          activePlatform === "linkedin" ? "linkedin" : "meta-feed",
+        );
+        if (result?.imageUrl) useWizardStore.getState().updateAd(activeAd.id, { imageUrl: result.imageUrl });
+      } catch (err) { console.error("[AdViewSlide] Regenerate failed:", err); }
+      finally { setIsRegenerating(false); }
+    });
+  }
+
+  // Regenerate all
+  const handleRegenerateAll = useCallback(async () => {
     if (!brand) return;
     useWizardStore.getState().setIsGeneratingAds(true);
     try {
@@ -673,78 +718,70 @@ export function AdViewSlide() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={transitions.spring}
         className="flex flex-col items-center justify-center gap-4 py-12 text-center">
         <p style={{ color: "var(--color-text-secondary)" }}>Annonserna kunde inte genereras.</p>
-        <motion.button onClick={handleRegenerate} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+        <motion.button onClick={handleRegenerateAll} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
           className="cta-primary" style={{ padding: "10px 24px", fontSize: 14 }}>Försök igen</motion.button>
       </motion.div>
     );
   }
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="flex flex-col gap-3">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="flex flex-col gap-4">
 
-      {/* Value delivery heading */}
-      <motion.div
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="text-center"
-      >
-        <h2 className="text-text-h1" style={{ color: "var(--color-text-primary)" }}>
-          Dina annonser är klara!
-        </h2>
+      {/* Heading */}
+      <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }} className="text-center">
+        <h2 className="text-text-h1" style={{ color: "var(--color-text-primary)" }}>Dina annonser är klara!</h2>
         <p className="mt-1 text-[13px]" style={{ color: "var(--color-text-muted)" }}>
-          Välj din favorit — vi publicerar den som primär annons. Klicka på en annons för att redigera.
+          Klicka på texten för att redigera direkt.
         </p>
       </motion.div>
 
-      {/* Platform tab switcher */}
-      <PlatformTabSwitcher active={activePlatform} onChange={setActivePlatform} brandColor={brand.colors.primary || "#6366F1"} />
+      {/* Platform tabs */}
+      <PlatformTabSwitcher active={activePlatform} onChange={setActivePlatform} availablePlatforms={availableDisplayPlatforms} />
 
-      {/* A/B cards — 300ms crossfade on platform switch */}
-      <AnimatePresence mode="wait">
-        <motion.div key={activePlatform} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}>
-          {/* Mobile: horizontal snap-scroll, one card at a time */}
-          <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 scrollbar-none md:gap-6 md:overflow-visible">
-            {adA && (
-              <AdMockupCard ad={adA} brand={brand} label="Välj A" index={0} selected={adA.selected} platform={activePlatform}
-                onToggle={() => toggleAdSelection(adA.id)} onEdit={() => setEditingAdId(adA.id)} />
-            )}
-            {adA && adB && (
-              <div className="hidden flex-col items-center justify-center md:flex" style={{ minWidth: 1 }}>
-                <div className="h-full w-px" style={{ background: "var(--color-border-default)" }} />
+      {/* Split layout: mockup left, detail panel right */}
+      <div className="flex flex-col gap-6 md:flex-row md:gap-8">
+
+        {/* Left column: device mockup + A/B toggle + upload */}
+        <div className="flex flex-col items-center gap-3" style={{ width: "100%", maxWidth: 300, flexShrink: 0, margin: "0 auto" }}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`${activePlatform}-${activeVariant}`}
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.97 }}
+              transition={{ duration: 0.25 }}
+              className="w-full"
+            >
+              <div
+                ref={containerRef}
+                className="relative w-full overflow-hidden"
+                style={{ height: "calc(100dvh - 320px)", maxHeight: 460 }}
+              >
+                <div ref={mockupRef} style={{ transformOrigin: "top center", transform: `scale(${scale})` }}>
+                  {activeAd && <MockupRenderer ad={activeAd} brand={brand} platform={activePlatform} isRegenerating={isRegenerating} />}
+                </div>
               </div>
-            )}
-            {adB && (
-              <AdMockupCard ad={adB} brand={brand} label="Välj B" index={1} selected={adB.selected} platform={activePlatform}
-                onToggle={() => toggleAdSelection(adB.id)} onEdit={() => setEditingAdId(adB.id)} />
-            )}
-          </div>
-          {/* Swipe dots — mobile only */}
-          {adB && (
-            <div className="mt-2 flex justify-center gap-1.5 md:hidden">
-              <div className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--color-text-muted)", opacity: 0.8 }} />
-              <div className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--color-text-muted)", opacity: 0.3 }} />
-            </div>
-          )}
-        </motion.div>
-      </AnimatePresence>
+            </motion.div>
+          </AnimatePresence>
 
-      {/* Regenerate all */}
-      <div className="flex justify-center">
-        <motion.button
-          onClick={handleRegenerate}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          className="flex items-center gap-1.5 text-[11px] font-medium"
-          style={{ padding: "6px 14px", borderRadius: 8, color: "var(--color-text-muted)", border: "1px solid var(--color-border-default)" }}
-        >
-          <RefreshCw className="h-3 w-3" />
-          Generera om allt
-        </motion.button>
+          {adB && <ABTogglePill activeVariant={activeVariant} onSwitch={handleVariantSwitch} />}
+          {activeAd && <UploadBackgroundButton adId={activeAd.id} />}
+        </div>
+
+        {/* Divider */}
+        <div className="hidden md:block" style={{ width: 1, background: "rgba(255,255,255,0.06)", alignSelf: "stretch" }} />
+
+        {/* Right column: detail panel */}
+        {activeAd && (
+          <DetailPanel
+            ad={activeAd}
+            platform={activePlatform}
+            onRegenerate={handleRegenerateImage}
+            onRegenerateAll={handleRegenerateAll}
+            isRegenerating={isRegenerating}
+          />
+        )}
       </div>
-
-      <AdEditModal adId={editingAdId} onClose={() => setEditingAdId(null)} />
     </motion.div>
   );
 }

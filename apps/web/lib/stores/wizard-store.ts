@@ -265,9 +265,17 @@ export const useWizardStore = create<WizardState & WizardActions>()(
         publishMode: state.publishMode,
       }),
       onRehydrateStorage: () => (state) => {
+        if (!state) return;
         // If user refreshes during transient steps, reset to safe state
-        if (state && (state.step === "loading" || state.step === "done")) {
+        if (state.step === "loading" || state.step === "done") {
           state.step = state.brand ? "brand" : "url";
+        }
+        // If returning to review/targeting/budget but ads were not persisted, go back to platforms
+        if (
+          (state.step === "review" || state.step === "targeting" || state.step === "budget") &&
+          (!state.ads || state.ads.length === 0)
+        ) {
+          state.step = state.selectedPlatforms?.length ? "platforms" : "brand";
         }
       },
     }

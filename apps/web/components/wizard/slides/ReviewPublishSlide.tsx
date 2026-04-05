@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import confetti from "canvas-confetti";
 import { AnimatePresence,motion } from "motion/react";
 import { useCallback,useState } from "react";
@@ -7,11 +8,14 @@ import { useCallback,useState } from "react";
 import { cardVariants,transitions } from "@/lib/motion";
 import { useWizardStore } from "@/lib/stores/wizard-store";
 
+const SIGN_IN_PATH = "/sign-in";
+
 type PublishState = "choose" | "self-connect" | "managed-confirm" | "publishing" | "done";
 
 export function ReviewPublishSlide() {
   const { brand, ads, budget, targeting, selectedPlatforms, projections, setPublishMode, goToStep } =
     useWizardStore();
+  const { isSignedIn } = useAuth();
   const [publishState, setPublishState] = useState<PublishState>("choose");
   const [publishError, setPublishError] = useState("");
 
@@ -21,6 +25,12 @@ export function ReviewPublishSlide() {
 
   const handlePublish = useCallback(
     async (mode: "self" | "managed") => {
+      if (!isSignedIn) {
+        const returnUrl = encodeURIComponent(window.location.href);
+        window.location.href = `${SIGN_IN_PATH}?redirect_url=${returnUrl}`;
+        return;
+      }
+
       setPublishMode(mode);
       setPublishState("publishing");
       setPublishError("");
@@ -47,12 +57,19 @@ export function ReviewPublishSlide() {
               }),
             });
             if (!response.ok) {
+              if (response.status === 401) {
+                const returnUrl = encodeURIComponent(window.location.href);
+                window.location.href = `${SIGN_IN_PATH}?redirect_url=${returnUrl}`;
+                return null;
+              }
               const data = await response.json().catch(() => ({}));
               throw new Error(data.error || "Publicering misslyckades");
             }
             return response;
           }),
         );
+        // If any request triggered a redirect (401), stop here
+        if (results.some((r) => r === null)) return;
         if (results.length === 0) throw new Error("Inga annonser valda");
 
         setPublishState("done");
@@ -93,7 +110,7 @@ export function ReviewPublishSlide() {
         setPublishState("choose");
       }
     },
-    [selectedAds, brand, budget, targeting, setPublishMode]
+    [isSignedIn, selectedAds, brand, budget, targeting, setPublishMode, selectedPlatforms]
   );
 
   // Done state
