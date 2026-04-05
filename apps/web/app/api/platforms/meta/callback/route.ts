@@ -26,14 +26,12 @@ export async function GET(req: Request) {
     redirect("/chat?meta_error=missing_code");
   }
 
-  let orgId: string;
-  try {
-    const parsed = JSON.parse(atob(state)) as { orgId?: string };
-    if (!parsed.orgId) throw new Error("Missing orgId");
-    orgId = parsed.orgId;
-  } catch {
+  const { verifyOAuthState } = await import("@/lib/auth/oauth-state");
+  const verified = verifyOAuthState(state);
+  if (!verified) {
     redirect("/chat?meta_error=invalid_state");
   }
+  const orgId = verified.orgId;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const redirectUri = `${appUrl}/api/platforms/meta/callback`;
 

@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server";
 import type { BrandContext, Platform } from "@doost/ai";
 import {
   generateAdCopy,
@@ -6,6 +7,7 @@ import {
 import { z } from "zod";
 
 import { type AdImageInput, generateAdImagePair } from "@/lib/ads/ad-image-pipeline";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const maxDuration = 90;
 
@@ -49,6 +51,16 @@ const inputSchema = z.object({
  *   { event: "progress", message: "...", progress: N }
  */
 export async function POST(req: Request) {
+  const { userId } = await auth();
+  if (!userId) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } });
+  }
+
+  const { allowed } = await rateLimit(`adgen:${userId}`, 5, 60_000);
+  if (!allowed) {
+    return new Response(JSON.stringify({ error: "Rate limited" }), { status: 429, headers: { "Content-Type": "application/json" } });
+  }
+
   const body = await req.json();
   const parsed = inputSchema.safeParse(body);
 

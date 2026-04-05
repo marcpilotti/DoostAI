@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 import { MOCK_ACTIVITY } from "@/lib/mock-data";
@@ -8,6 +9,11 @@ import { safeQuery,supabase } from "@/lib/supabase";
  * Returns campaign activity feed.
  */
 export async function GET() {
+  const { userId } = await auth();
+  if (!userId) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } });
+  }
+
   const realData = await safeQuery(() =>
     supabase
       .from("activity_log")

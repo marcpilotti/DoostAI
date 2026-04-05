@@ -1,5 +1,6 @@
 import { anthropic } from "@ai-sdk/anthropic";
 import { openai } from "@ai-sdk/openai";
+import { auth } from "@clerk/nextjs/server";
 import { streamText, tool } from "ai";
 import { generateText } from "ai";
 import { z } from "zod";
@@ -48,6 +49,11 @@ const inputSchema = z.object({
  * as an executable button.
  */
 export async function POST(req: Request) {
+  const { userId } = await auth();
+  if (!userId) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } });
+  }
+
   // Rate limit by IP
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
     ?? req.headers.get("x-real-ip")

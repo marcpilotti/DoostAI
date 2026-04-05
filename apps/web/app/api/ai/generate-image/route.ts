@@ -1,9 +1,11 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getBalance } from "@/lib/credits/check";
 import { deductCredits } from "@/lib/credits/deduct";
 import { generateImage, getCreditCost } from "@/lib/providers/model-router";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const maxDuration = 60;
 
@@ -16,6 +18,16 @@ const inputSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  const { userId } = await auth();
+  if (!userId) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } });
+  }
+
+  const { allowed } = await rateLimit(`img:${userId}`, 10, 60_000);
+  if (!allowed) {
+    return NextResponse.json({ error: "Rate limited" }, { status: 429 });
+  }
+
   const body = await req.json();
   const parsed = inputSchema.safeParse(body);
 

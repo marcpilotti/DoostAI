@@ -26,31 +26,34 @@ export function ReviewPublishSlide() {
       setPublishError("");
 
       try {
-        for (const ad of selectedAds) {
-          const response = await fetch("/api/campaigns/publish", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              brandName: brand?.name,
-              brandUrl: brand?.url,
-              brandColors: brand?.colors,
-              headline: ad.headline,
-              bodyText: ad.bodyCopy,
-              cta: ad.cta,
-              imageUrl: ad.imageUrl || ad.renderedUrl,
-              platform: ad.platform,
-              dailyBudget: Math.round((budget?.totalBudget || 5000) / (budget?.durationDays || 30)),
-              duration: budget?.durationDays || 30,
-              regions: targeting?.locations || ["Hela Sverige"],
-              channel: ad.platform,
-            }),
-          });
-
-          if (!response.ok) {
-            const data = await response.json().catch(() => ({}));
-            throw new Error(data.error || "Publicering misslyckades");
-          }
-        }
+        const results = await Promise.all(
+          selectedAds.map(async (ad) => {
+            const response = await fetch("/api/campaigns/publish", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                brandName: brand?.name,
+                brandUrl: brand?.url,
+                brandColors: brand?.colors,
+                headline: ad.headline,
+                bodyText: ad.bodyCopy,
+                cta: ad.cta,
+                imageUrl: ad.imageUrl || ad.renderedUrl,
+                platform: ad.platform,
+                dailyBudget: Math.round((budget?.totalBudget || 5000) / (budget?.durationDays || 30)),
+                duration: budget?.durationDays || 30,
+                regions: targeting?.locations || ["Hela Sverige"],
+                channel: ad.platform,
+              }),
+            });
+            if (!response.ok) {
+              const data = await response.json().catch(() => ({}));
+              throw new Error(data.error || "Publicering misslyckades");
+            }
+            return response;
+          }),
+        );
+        if (results.length === 0) throw new Error("Inga annonser valda");
 
         setPublishState("done");
 

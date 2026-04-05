@@ -30,88 +30,92 @@ export async function POST(req: Request) {
     });
   }
 
-  switch (event.type) {
-    case "checkout.session.completed": {
-      const session = event.data.object as Stripe.Checkout.Session;
-      if (session.mode === "subscription" && session.subscription) {
-        const subscription = await getStripe().subscriptions.retrieve(
-          session.subscription as string,
-        );
+  try {
+    switch (event.type) {
+      case "checkout.session.completed": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        if (session.mode === "subscription" && session.subscription) {
+          const subscription = await getStripe().subscriptions.retrieve(
+            session.subscription as string,
+          );
+          const plan = mapPriceIdToPlan(
+            subscription.items.data[0]?.price.id ?? "",
+          );
+          const customerId =
+            typeof session.customer === "string"
+              ? session.customer
+              : session.customer?.id;
+
+          if (customerId) {
+            await db
+              .update(organizations)
+              .set({
+                plan,
+                stripeCustomerId: customerId,
+                stripeSubscriptionId: subscription.id,
+                updatedAt: new Date(),
+              })
+              .where(eq(organizations.stripeCustomerId, customerId));
+          }
+        }
+        break;
+      }
+
+      case "customer.subscription.updated": {
+        const subscription = event.data.object as Stripe.Subscription;
         const plan = mapPriceIdToPlan(
           subscription.items.data[0]?.price.id ?? "",
         );
         const customerId =
-          typeof session.customer === "string"
-            ? session.customer
-            : session.customer?.id;
+          typeof subscription.customer === "string"
+            ? subscription.customer
+            : subscription.customer.id;
 
-        if (customerId) {
-          await db
-            .update(organizations)
-            .set({
-              plan,
-              stripeCustomerId: customerId,
-              stripeSubscriptionId: subscription.id,
-              updatedAt: new Date(),
-            })
-            .where(eq(organizations.stripeCustomerId, customerId));
-        }
+        await db
+          .update(organizations)
+          .set({
+            plan,
+            stripeSubscriptionId: subscription.id,
+            updatedAt: new Date(),
+          })
+          .where(eq(organizations.stripeCustomerId, customerId));
+        break;
       }
-      break;
+
+      case "customer.subscription.deleted": {
+        const subscription = event.data.object as Stripe.Subscription;
+        const customerId =
+          typeof subscription.customer === "string"
+            ? subscription.customer
+            : subscription.customer.id;
+
+        await db
+          .update(organizations)
+          .set({
+            plan: "free",
+            stripeSubscriptionId: null,
+            updatedAt: new Date(),
+          })
+          .where(eq(organizations.stripeCustomerId, customerId));
+        break;
+      }
+
+      case "invoice.payment_failed": {
+        const invoice = event.data.object as Stripe.Invoice;
+        const customerId =
+          typeof invoice.customer === "string"
+            ? invoice.customer
+            : invoice.customer?.id;
+
+        console.error(
+          `Payment failed for customer ${customerId}, invoice ${invoice.id}`,
+        );
+        break;
+      }
     }
-
-    case "customer.subscription.updated": {
-      const subscription = event.data.object as Stripe.Subscription;
-      const plan = mapPriceIdToPlan(
-        subscription.items.data[0]?.price.id ?? "",
-      );
-      const customerId =
-        typeof subscription.customer === "string"
-          ? subscription.customer
-          : subscription.customer.id;
-
-      await db
-        .update(organizations)
-        .set({
-          plan,
-          stripeSubscriptionId: subscription.id,
-          updatedAt: new Date(),
-        })
-        .where(eq(organizations.stripeCustomerId, customerId));
-      break;
-    }
-
-    case "customer.subscription.deleted": {
-      const subscription = event.data.object as Stripe.Subscription;
-      const customerId =
-        typeof subscription.customer === "string"
-          ? subscription.customer
-          : subscription.customer.id;
-
-      await db
-        .update(organizations)
-        .set({
-          plan: "free",
-          stripeSubscriptionId: null,
-          updatedAt: new Date(),
-        })
-        .where(eq(organizations.stripeCustomerId, customerId));
-      break;
-    }
-
-    case "invoice.payment_failed": {
-      const invoice = event.data.object as Stripe.Invoice;
-      const customerId =
-        typeof invoice.customer === "string"
-          ? invoice.customer
-          : invoice.customer?.id;
-
-      // TODO: Send warning email via Resend
-      console.error(
-        `Payment failed for customer ${customerId}, invoice ${invoice.id}`,
-      );
-      break;
-    }
+  } catch (err) {
+    console.error("[stripe-webhook] Handler failed:", err instanceof Error ? err.message : err);
+    return new Response("Webhook handler failed", { status: 500 });
   }
 
   return new Response("OK", { status: 200 });
