@@ -61,16 +61,15 @@ export async function generateAdImage(params: {
   console.log("[fal.ai] Generating image for:", params.brandName, "industry:", params.industry);
 
   try {
-    const result = await fal.subscribe("fal-ai/flux/dev", {
+    const result = await fal.subscribe("fal-ai/flux/schnell", {
       input: {
         prompt,
         image_size: "square_hd",
         num_images: 1,
-        num_inference_steps: 28,
-        guidance_scale: 3.5,
+        num_inference_steps: 4,
         enable_safety_checker: true,
       },
-      pollInterval: 1000,
+      pollInterval: 500,
     }) as { images?: Array<{ url: string }> };
 
     const imageUrl = result?.images?.[0]?.url;
