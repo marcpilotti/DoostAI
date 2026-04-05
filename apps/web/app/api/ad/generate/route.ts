@@ -1,8 +1,5 @@
 import type { BrandContext, Platform } from "@doost/ai";
-import {
-  generateAdCopy,
-  generateAdStrategy,
-} from "@doost/ai";
+import { generateAdCopy } from "@doost/ai";
 import { z } from "zod";
 
 import { type AdImageInput, generateCompleteAdImage } from "@/lib/ads/ad-image-pipeline";
@@ -123,14 +120,7 @@ export async function POST(req: Request) {
           format: platform === "linkedin" ? "linkedin" : "meta-feed",
         };
 
-        const strategyPromise = withTimeout(generateAdStrategy({
-          brand: brandContext,
-          platform,
-          goal: objective ?? "lead generation",
-          audience: audience ?? brand.targetAudience ?? "Swedish consumers 25-55",
-          language: detectedLanguage,
-        }), "strategy");
-
+        // Copy + image in parallel (strategy removed — non-critical, saves 2-3s)
         const copyPromise = withTimeout(generateAdCopy(brandContext, platform as Platform, objective ?? "lead generation", {
           language: detectedLanguage,
           variants: 2,
@@ -140,17 +130,10 @@ export async function POST(req: Request) {
           ? withTimeout(generateCompleteAdImage(imageInput), "images", 15_000)
           : Promise.resolve({ imageUrl: preGeneratedImageUrl, method: "pre-generated" as const, prompt: "", attempts: 0 });
 
-        const [strategySettled, copySettled, imageSettled] = await Promise.allSettled([
-          strategyPromise,
+        const [copySettled, imageSettled] = await Promise.allSettled([
           copyPromise,
           imagePromise,
         ]);
-
-        // Extract strategy (non-critical — UI-only metadata)
-        const strategy = strategySettled.status === "fulfilled" ? strategySettled.value : null;
-        if (strategy) {
-          send({ event: "strategy", strategy });
-        }
 
         // Handle copy generation — fallback to simple defaults if AI fails
         let copies: Array<{
@@ -238,23 +221,7 @@ export async function POST(req: Request) {
             backgroundUrl: bgUrl,
             backgroundUrlB: bgUrlB !== bgUrl ? bgUrlB : undefined,
             platform,
-            strategy: strategy
-              ? {
-                  variantA: {
-                    concept: strategy.variantA.concept,
-                    hook: strategy.variantA.hook,
-                    angle: strategy.variantA.angle,
-                    emotionalTrigger: strategy.variantA.emotionalTrigger,
-                  },
-                  variantB: {
-                    concept: strategy.variantB.concept,
-                    hook: strategy.variantB.hook,
-                    angle: strategy.variantB.angle,
-                    emotionalTrigger: strategy.variantB.emotionalTrigger,
-                  },
-                  recommendation: strategy.recommendation,
-                }
-              : null,
+            strategy: null,
           },
         });
       } catch (err) {

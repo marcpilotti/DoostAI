@@ -81,7 +81,7 @@ export async function buildBrandProfile(
   const start = Date.now();
 
   const { object } = await generateObject({
-    model: anthropic("claude-haiku-4-5-20251001"),
+    model: anthropic("claude-sonnet-4-6"),
     schema: brandAnalysisSchema,
     temperature: 0,
     prompt: `Analyze this company's brand identity. Return ONLY facts from the data below — do NOT guess or hallucinate.
@@ -164,7 +164,7 @@ ${context}`,
     url: scrapeResult.url,
     name: object.name, // AI reads actual website branding — more accurate than registry
     description: object.description,
-    industry: enrichedIndustry ?? object.industry,
+    industry: (!enrichedIndustry || isGenericIndustry) ? object.industry : enrichedIndustry,
     industryCodes: enrichment?.industryCodes,
     employeeCount: enrichment?.employeeCount,
     revenue: enrichment?.revenue,

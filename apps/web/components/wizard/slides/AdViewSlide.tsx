@@ -623,6 +623,13 @@ export function AdViewSlide() {
       {/* Platform tab switcher */}
       <PlatformTabSwitcher active={activePlatform} onChange={setActivePlatform} brandColor={brand.colors.primary || "#6366F1"} />
 
+      {/* Guidance text */}
+      {ads.length > 1 && (
+        <p className="text-center text-[11px]" style={{ color: "var(--color-text-muted)" }}>
+          Välj din favorit och fortsätt
+        </p>
+      )}
+
       {/* A/B cards — 300ms crossfade on platform switch */}
       <AnimatePresence mode="wait">
         <motion.div key={activePlatform} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}

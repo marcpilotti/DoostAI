@@ -300,55 +300,55 @@ export function ReviewPublishSlide() {
             exit={{ opacity: 0, y: -8 }}
             className="flex flex-col gap-3"
           >
-            <p className="text-text-body" style={{ color: "var(--color-text-secondary)" }}>
-              Hur vill du publicera?
-            </p>
-
-            {/* Self-serve */}
-            <motion.button
-              onClick={() => setPublishState("self-connect")}
-              whileHover={{ y: -2, boxShadow: "0 0 20px rgba(99,102,241,0.12)" }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ type: "spring", damping: 20, stiffness: 300 }}
-              className="flex items-start gap-3 p-4 text-left"
-              style={{
-                borderRadius: "var(--radius-lg)",
-                background: "var(--color-bg-elevated)",
-                border: "1px solid var(--color-border-default)",
-              }}
-            >
-              <span className="text-xl">🔗</span>
-              <div className="flex-1">
-                <h4 className="text-text-h3" style={{ color: "var(--color-text-primary)" }}>
-                  Anslut dina konton
-                </h4>
-                <p className="text-text-body-sm" style={{ color: "var(--color-text-muted)" }}>
-                  Koppla Meta, Google, etc. och publicera direkt.
-                </p>
-              </div>
-              <span style={{ color: "var(--color-text-muted)" }}>→</span>
-            </motion.button>
-
-            {/* Managed */}
+            {/* Managed — primary option */}
             <motion.button
               onClick={() => setPublishState("managed-confirm")}
-              whileHover={{ y: -2, boxShadow: "0 0 20px rgba(99,102,241,0.12)" }}
+              whileHover={{ y: -2, boxShadow: "0 0 24px rgba(99,102,241,0.15)" }}
               whileTap={{ scale: 0.97 }}
               transition={{ type: "spring", damping: 20, stiffness: 300 }}
-              className="flex items-start gap-3 p-4 text-left"
+              className="relative flex items-start gap-3 p-4 text-left"
               style={{
                 borderRadius: "var(--radius-lg)",
-                background: "var(--color-bg-elevated)",
-                border: "1px solid var(--color-border-default)",
+                background: "rgba(99,102,241,0.06)",
+                border: "1px solid var(--color-primary)",
               }}
             >
+              <span className="absolute -top-2 right-3 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider"
+                style={{ background: "var(--color-primary)", color: "#fff" }}>
+                Enklast
+              </span>
               <span className="text-xl">🚀</span>
               <div className="flex-1">
                 <h4 className="text-text-h3" style={{ color: "var(--color-text-primary)" }}>
                   Vi publicerar åt dig
                 </h4>
                 <p className="text-text-body-sm" style={{ color: "var(--color-text-muted)" }}>
-                  Inga konton? Vi sköter allt. Ingår i din plan.
+                  Vi sköter allt — konton, publicering, optimering. Ingår i din plan.
+                </p>
+              </div>
+              <span style={{ color: "var(--color-text-muted)" }}>→</span>
+            </motion.button>
+
+            {/* Self-serve — secondary option */}
+            <motion.button
+              onClick={() => setPublishState("self-connect")}
+              whileHover={{ y: -1 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
+              className="flex items-start gap-3 p-3 text-left"
+              style={{
+                borderRadius: "var(--radius-lg)",
+                background: "transparent",
+                border: "1px solid rgba(255,255,255,0.06)",
+              }}
+            >
+              <span className="text-lg">🔗</span>
+              <div className="flex-1">
+                <h4 className="text-[13px] font-medium" style={{ color: "var(--color-text-secondary)" }}>
+                  Anslut egna konton
+                </h4>
+                <p className="text-[11px]" style={{ color: "var(--color-text-muted)" }}>
+                  Har du Meta Business Manager? Koppla och publicera direkt.
                 </p>
               </div>
               <span style={{ color: "var(--color-text-muted)" }}>→</span>

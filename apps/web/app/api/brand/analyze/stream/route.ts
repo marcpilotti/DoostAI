@@ -7,6 +7,8 @@ import {
 import { runBrandIntelligencePipeline } from "@doost/intelligence";
 import { z } from "zod";
 
+import { getCachedAnalysis, setCachedAnalysis } from "@/lib/cache/domain-cache";
+
 
 export const maxDuration = 90;
 
@@ -60,6 +62,24 @@ export async function POST(req: Request) {
     });
   }
 
+  const domain = url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+
+  // Check Redis cache — avoid re-analyzing same domain within 6 hours
+  const cached = await getCachedAnalysis(domain);
+  if (cached) {
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ message: "Laddar från cache...", progress: 50 })}\n\n`));
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify(cached)}\n\n`));
+        controller.close();
+      },
+    });
+    return new Response(stream, {
+      headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache, no-transform", Connection: "keep-alive" },
+    });
+  }
+
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
@@ -68,8 +88,6 @@ export async function POST(req: Request) {
       }
 
       try {
-        const domain = url.replace(/^https?:\/\//, "").replace(/\/$/, "");
-
         // ── Step 1: Scrape + Enrich (parallel) ────────────────
         send({ message: `Hämtar ${domain}...`, progress: 10 });
 
@@ -218,12 +236,16 @@ export async function POST(req: Request) {
             : null,
         };
 
-        send({
-          event: "complete",
+        const completeEvent = {
+          event: "complete" as const,
           profile: result,
           preGeneratedImageUrl: null,
           progress: 100,
-        });
+        };
+        send(completeEvent);
+
+        // Cache the complete event for 6 hours (domain-keyed)
+        setCachedAnalysis(domain, completeEvent).catch(() => {});
       } catch (err) {
         send({
           event: "error",
