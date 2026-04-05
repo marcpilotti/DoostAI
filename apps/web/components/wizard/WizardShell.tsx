@@ -160,15 +160,7 @@ export function WizardShell() {
               disabled={footerDisabled}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
-              animate={{
-                boxShadow: [
-                  "0 0 12px rgba(99,102,241,0.15)",
-                  "0 0 20px rgba(99,102,241,0.3)",
-                  "0 0 12px rgba(99,102,241,0.15)",
-                ],
-              }}
               transition={{
-                boxShadow: { duration: 2.5, repeat: Infinity, ease: "easeInOut" },
                 scale: { type: "spring", damping: 20, stiffness: 300 },
               }}
               className="cta-primary"
