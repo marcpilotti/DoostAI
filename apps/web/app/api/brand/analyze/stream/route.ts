@@ -179,10 +179,10 @@ export async function POST(req: Request) {
         const downloadedLogo = intelligence?.downloadedLogo ?? null;
         const logoDataUrl = downloadedLogo?.dataUrl ?? null;
 
-        // Scraped logo from the actual website wins — Logo APIs are fallback
-        // for Nordic companies where Logo.dev/Brandfetch often return wrong results
+        // Prefer downloaded base64 logo (always renders) over raw scraped URLs
+        // which may be blocked by CORS / hotlink protection
         const finalLogo = {
-          primary: clean.logos?.primary ?? logoDataUrl ?? undefined,
+          primary: logoDataUrl ?? clean.logos?.primary ?? undefined,
           icon: clean.logos?.icon,
           dark: clean.logos?.dark,
         };
