@@ -51,10 +51,14 @@ const inputSchema = z.object({
  */
 export async function POST(req: Request) {
   // Public route (wizard runs without login) — rate limit by IP
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  const { allowed } = await rateLimit(`adgen:${ip}`, 5, 60_000);
-  if (!allowed) {
-    return new Response(JSON.stringify({ error: "Rate limited" }), { status: 429, headers: { "Content-Type": "application/json" } });
+  try {
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const { allowed } = await rateLimit(`adgen:${ip}`, 5, 60_000);
+    if (!allowed) {
+      return new Response(JSON.stringify({ error: "Rate limited" }), { status: 429, headers: { "Content-Type": "application/json" } });
+    }
+  } catch {
+    // Rate limiting should never block ad generation
   }
 
   const body = await req.json();
@@ -121,30 +125,42 @@ export async function POST(req: Request) {
           send({ event: "strategy", strategy });
         }
 
-        // Handle copy generation failure
-        if (copySettled.status === "rejected") {
-          console.error("[AdGenerate] Copy generation failed:", copySettled.reason);
-          send({
-            event: "error",
-            message: "Kunde inte generera annonstext. Försök igen.",
-          });
-          controller.close();
-          return;
+        // Handle copy generation — fallback to simple defaults if AI fails
+        let copies: Array<{
+          id: string; platform: string; variant: string; label: string;
+          headline: string; bodyCopy: string; cta: string;
+          headlines?: string[]; descriptions?: string[];
+        }>;
+
+        if (copySettled.status === "fulfilled") {
+          copies = copySettled.value.map((c, i) => ({
+            id: `${c.platform}-${c.variant}-${i}`,
+            platform: c.platform,
+            variant: c.variant,
+            label: c.variant === "hero" ? "Variant A" : "Variant B",
+            headline: c.headline,
+            bodyCopy: c.bodyCopy,
+            cta: c.cta,
+            headlines: c.headlines,
+            descriptions: c.descriptions,
+          }));
+        } else {
+          console.error("[AdGenerate] Copy generation failed, using fallback:", copySettled.reason);
+          copies = [
+            {
+              id: `${platform}-hero-0`, platform, variant: "hero", label: "Variant A",
+              headline: `${brand.name} — ${brand.industry ?? "kvalitet du kan lita på"}`,
+              bodyCopy: brand.description ?? `Upptäck ${brand.name}. Vi hjälper dig att nå dina mål.`,
+              cta: "Läs mer",
+            },
+            {
+              id: `${platform}-brand-1`, platform, variant: "brand", label: "Variant B",
+              headline: `Välkommen till ${brand.name}`,
+              bodyCopy: brand.description ?? `${brand.name} — din partner för framgång.`,
+              cta: "Kontakta oss",
+            },
+          ];
         }
-
-        const copyResults = copySettled.value;
-
-        const copies = copyResults.map((c, i) => ({
-          id: `${c.platform}-${c.variant}-${i}`,
-          platform: c.platform,
-          variant: c.variant,
-          label: c.variant === "hero" ? "Variant A" : "Variant B",
-          headline: c.headline,
-          bodyCopy: c.bodyCopy,
-          cta: c.cta,
-          headlines: c.headlines,
-          descriptions: c.descriptions,
-        }));
 
         send({ event: "copy", copies, progress: 50 });
 

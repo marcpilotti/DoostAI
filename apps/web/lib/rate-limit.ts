@@ -26,21 +26,25 @@ export async function rateLimit(
   const r = getRedis();
 
   if (r) {
-    const redisKey = `rl:${key}`;
-    const now = Date.now();
-    const windowStart = now - windowMs;
+    try {
+      const redisKey = `rl:${key}`;
+      const now = Date.now();
+      const windowStart = now - windowMs;
 
-    // Remove old entries, add new, count
-    const pipe = r.pipeline();
-    pipe.zremrangebyscore(redisKey, 0, windowStart);
-    pipe.zadd(redisKey, { score: now, member: `${now}:${Math.random()}` });
-    pipe.zcard(redisKey);
-    pipe.expire(redisKey, Math.ceil(windowMs / 1000));
+      const pipe = r.pipeline();
+      pipe.zremrangebyscore(redisKey, 0, windowStart);
+      pipe.zadd(redisKey, { score: now, member: `${now}:${Math.random()}` });
+      pipe.zcard(redisKey);
+      pipe.expire(redisKey, Math.ceil(windowMs / 1000));
 
-    const results = await pipe.exec();
-    const count = (results[2] as number) ?? 0;
+      const results = await pipe.exec();
+      const count = (results[2] as number) ?? 0;
 
-    return { allowed: count <= maxRequests, remaining: Math.max(0, maxRequests - count) };
+      return { allowed: count <= maxRequests, remaining: Math.max(0, maxRequests - count) };
+    } catch (err) {
+      console.warn("[rate-limit] Redis failed, allowing request:", err instanceof Error ? err.message : err);
+      // If Redis fails, allow the request (fail open)
+    }
   }
 
   // In-memory fallback
