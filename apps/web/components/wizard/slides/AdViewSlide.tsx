@@ -197,7 +197,7 @@ function InstagramMockup({ ad, brand, isRegenerating, isLightBrand }: {
         <AdImageLayer ad={ad} primaryColor={c} aspectRatio="1/1" isRegenerating={isRegenerating} isLightBrand={isLightBrand} />
         <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-0.5 p-3">
           <h3 className="text-[13px] font-extrabold leading-tight text-white" style={{ textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}>{ad.headline}</h3>
-          <p className="text-[9px] leading-relaxed line-clamp-2" style={{ color: "rgba(255,255,255,0.75)" }}>{ad.bodyCopy}</p>
+          <p className="text-[10px] leading-relaxed line-clamp-2" style={{ color: "rgba(255,255,255,0.85)" }}>{ad.bodyCopy}</p>
           <span className="mt-1 inline-flex self-start rounded-md px-2.5 py-1 text-[9px] font-bold" style={{ background: "rgba(255,255,255,0.9)", color: c }}>
             {ad.cta} →
           </span>

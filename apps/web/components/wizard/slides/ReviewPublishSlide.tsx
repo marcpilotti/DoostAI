@@ -13,7 +13,7 @@ const SIGN_IN_PATH = "/sign-in";
 type PublishState = "choose" | "self-connect" | "managed-confirm" | "publishing" | "done";
 
 export function ReviewPublishSlide() {
-  const { brand, ads, budget, targeting, selectedPlatforms, projections, setPublishMode, goToStep } =
+  const { brand, ads, budget, targeting, selectedPlatforms, projections, setPublishMode, goToStep, reset } =
     useWizardStore();
   const { isSignedIn } = useAuth();
   const [publishState, setPublishState] = useState<PublishState>("choose");
@@ -201,7 +201,7 @@ export function ReviewPublishSlide() {
           </div>
         </motion.div>
 
-        <div className="flex gap-3">
+        <div className="flex flex-col items-center gap-3">
           <motion.button
             onClick={() => (window.location.href = "/dashboard")}
             whileHover={{ scale: 1.03 }}
@@ -210,6 +210,24 @@ export function ReviewPublishSlide() {
             className="cta-primary"
           >
             Gå till dashboard →
+          </motion.button>
+          <motion.button
+            onClick={() => reset()}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            style={{
+              background: "transparent",
+              border: "1px solid rgba(255,255,255,0.15)",
+              color: "var(--color-text-secondary)",
+              padding: "10px 24px",
+              borderRadius: "var(--radius-full)",
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: "pointer",
+              transition: "all 200ms ease",
+            }}
+          >
+            Skapa ny kampanj
           </motion.button>
         </div>
       </motion.div>

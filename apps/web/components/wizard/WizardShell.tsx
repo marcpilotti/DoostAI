@@ -144,6 +144,16 @@ export function WizardShell() {
           animate={{ maxWidth: step === "ads" ? 1080 : 640 }}
           transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
         >
+          {!isTransient && !isGeneratingAds && step !== "url" && (
+            <div className="mb-6 h-[2px] w-full overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
+              <motion.div
+                className="h-full"
+                style={{ background: "var(--color-primary)" }}
+                animate={{ width: `${progress * 100}%` }}
+                transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+              />
+            </div>
+          )}
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={step}
@@ -170,6 +180,7 @@ export function WizardShell() {
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           transition={{ type: "spring", damping: 20, stiffness: 300 }}
+          aria-label="Tillbaka"
           className="floating-back absolute bottom-6 left-6 z-30"
         >
           ←
@@ -188,7 +199,17 @@ export function WizardShell() {
           transition={{ type: "spring", damping: 20, stiffness: 300 }}
           className="cta-primary absolute bottom-6 right-6 z-30"
         >
-          {ctaLabel}
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={ctaLabel}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.15 }}
+            >
+              {ctaLabel}
+            </motion.span>
+          </AnimatePresence>
         </motion.button>
       )}
 

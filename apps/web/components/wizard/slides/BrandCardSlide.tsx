@@ -236,7 +236,7 @@ export function BrandCardSlide() {
                 padding: "2px 10px",
                 borderRadius: "var(--radius-full)",
                 background: "rgba(99, 102, 241, 0.08)",
-                color: "var(--color-text-secondary)",
+                color: "var(--color-primary-light)",
                 border: "1px solid rgba(99, 102, 241, 0.15)",
               }}
             >
@@ -311,7 +311,7 @@ export function BrandCardSlide() {
                   <motion.div
                     className="h-11 w-11 cursor-pointer"
                     whileHover={{
-                      scale: 1.1,
+                      scale: 1.06,
                       boxShadow: `0 0 20px ${hex}80`,
                     }}
                     transition={{
@@ -336,8 +336,8 @@ export function BrandCardSlide() {
                   />
                   <div className="flex flex-col items-center">
                     <span
-                      className="text-[10px] font-mono"
-                      style={{ color: "var(--color-text-muted)" }}
+                      className="text-[11px] font-mono"
+                      style={{ color: "var(--color-text-secondary)" }}
                     >
                       {(hex as string).toUpperCase()}
                     </span>

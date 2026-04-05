@@ -223,7 +223,7 @@ export function AudienceSlide() {
           Vem vill du nå?
         </h2>
         <p
-          className="mt-0.5 text-[13px]"
+          className="mt-1 text-[13px]"
           style={{ color: "var(--color-text-muted)" }}
         >
           Vi anpassar dina annonser utifrån din bransch och målgrupp.
@@ -442,7 +442,7 @@ export function AudienceSlide() {
               </span>
               {targets.length > 0 && <AiBadge />}
             </div>
-            <div className="mt-2 flex flex-wrap gap-1.5">
+            <div className="mt-2 flex flex-wrap gap-2">
               <AnimatePresence>
                 {targets.map((t) => (
                   <PillTag

@@ -71,7 +71,7 @@ export function TargetingSlide() {
         </div>
 
         {/* Selected locations */}
-        <div className="flex flex-wrap gap-1.5 mb-3">
+        <div className="flex flex-wrap gap-2 mb-3">
           <AnimatePresence>
             {locations.map((loc) => (
               <motion.span key={loc} layout

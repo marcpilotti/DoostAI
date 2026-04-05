@@ -43,14 +43,14 @@
     --color-bg-hover: #2D2D33;
 
     /* Borders */
-    --color-border-default: #27272A;
-    --color-border-subtle: #1E1E23;
+    --color-border-default: #3A3A40;
+    --color-border-subtle: #2A2A30;
     --color-border-focus: #6366F1;
 
     /* Text */
     --color-text-primary: #FAFAFA;
     --color-text-secondary: #A1A1AA;
-    --color-text-muted: #71717A;
+    --color-text-muted: #8E8E96;
     --color-text-inverse: #09090B;
 
     /* Semantic */
@@ -196,9 +196,10 @@
   transition-duration: 100ms;
 }
 .cta-primary:disabled {
-  opacity: 0.3;
+  opacity: 0.4;
   cursor: not-allowed;
   transform: none;
+  transition: opacity 200ms ease;
 }
 
 /* Floating back button — small circle */
@@ -254,6 +255,46 @@
 }
 .editable-hint:hover {
   border-bottom-color: var(--color-border-default);
+}
+
+/* ── Reusable surface & component classes ──────────────── */
+
+/* Card surface — standard dark card with subtle border */
+.card-surface {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(99, 102, 241, 0.02) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+/* Pill tag — inline tag/chip element */
+.pill-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  transition: all 150ms ease;
+}
+
+/* Section label — uppercase micro-heading */
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+/* Section divider — subtle horizontal rule */
+.section-divider {
+  border: none;
+  border-top: 1px solid var(--color-border-subtle);
+  margin: 0 var(--space-6);
 }
 
 /* Ambient background glow */

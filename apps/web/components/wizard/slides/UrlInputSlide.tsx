@@ -181,7 +181,7 @@ export function UrlInputSlide() {
             minHeight: 56,
             borderRadius: 14,
             background: "var(--color-bg-elevated)",
-            border: "1px solid rgba(255,255,255,0.08)",
+            border: "1px solid rgba(255,255,255,0.12)",
             boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
           }}
           initial={{ opacity: 0, y: 12 }}
@@ -213,11 +213,11 @@ export function UrlInputSlide() {
             whileHover={{ scale: 1.02, filter: "brightness(1.15)" }}
             whileTap={{ scale: 0.98 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            className="flex flex-shrink-0 items-center justify-center gap-2 font-semibold transition-all disabled:opacity-40"
+            className="flex flex-shrink-0 items-center justify-center gap-2 font-semibold transition-all disabled:opacity-[0.4]"
             style={{
               background: "linear-gradient(135deg, #818CF8, #6366F1)",
               color: "#fff",
-              padding: "12px 24px",
+              padding: "12px 28px",
               margin: "6px",
               borderRadius: 10,
               fontSize: 14,

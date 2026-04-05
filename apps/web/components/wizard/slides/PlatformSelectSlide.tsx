@@ -201,7 +201,7 @@ function PlatformCard({
           : isSoon
             ? "1px solid transparent"
             : "1px solid rgba(255,255,255,0.08)",
-        cursor: isSoon ? "default" : "pointer",
+        cursor: isSoon ? "not-allowed" : "pointer",
         opacity: isSoon ? 0.4 : 1,
         transition: "border-color 200ms, background-color 200ms",
       }}
@@ -446,7 +446,7 @@ export function PlatformSelectSlide() {
       {/* Available platforms */}
       <motion.div
         className="flex flex-col"
-        style={{ gap: 6 }}
+        style={{ gap: 10 }}
         variants={{ visible: { transition: transitions.stagger } }}
         initial="hidden"
         animate="visible"
