@@ -77,12 +77,23 @@ export async function generateCompleteAdImage(
   const prompt = buildBackgroundPrompt(input);
   const size = FORMAT_SIZES[input.format] ?? "1024x1024";
 
-  // Try GPT-4o first
+  // Helper: race a promise against a timeout
+  const withTimeout = <T>(p: Promise<T>, ms: number, label: string): Promise<T> =>
+    Promise.race([
+      p,
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms)),
+    ]);
+
+  // Try GPT-4o first (20s timeout)
   const apiKey = process.env.OPENAI_API_KEY;
   if (apiKey && !apiKey.startsWith("sk-proj-placeholder")) {
     try {
       console.log(`[ad-pipeline] GPT-4o background for ${input.brandName}`);
-      const generated = await generateEmbeddedAdImage({ prompt, size, quality: "low" });
+      const generated = await withTimeout(
+        generateEmbeddedAdImage({ prompt, size, quality: "low" }),
+        20_000,
+        "GPT-4o image",
+      );
       return {
         imageUrl: `data:image/jpeg;base64,${generated.b64}`,
         method: "gpt-image",
@@ -94,13 +105,17 @@ export async function generateCompleteAdImage(
     }
   }
 
-  // Flux fallback
+  // Flux fallback (15s timeout)
   try {
-    const fluxResult = await generateFluxBackground({
-      industry: input.industry,
-      description: input.bodyCopy.slice(0, 80),
-      brandName: input.brandName,
-    });
+    const fluxResult = await withTimeout(
+      generateFluxBackground({
+        industry: input.industry,
+        description: input.bodyCopy.slice(0, 80),
+        brandName: input.brandName,
+      }),
+      15_000,
+      "Flux image",
+    );
     if (fluxResult.url) {
       return { imageUrl: fluxResult.url, method: "flux-fallback", prompt, attempts: 1 };
     }

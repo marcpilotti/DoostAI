@@ -1,4 +1,3 @@
-import { auth } from "@clerk/nextjs/server";
 import {
   buildBrandProfile,
   enrichCompany,
@@ -31,11 +30,6 @@ const inputSchema = z.object({
  *   { event: "error", message: "..." }
  */
 export async function POST(req: Request) {
-  const { userId } = await auth();
-  if (!userId) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } });
-  }
-
   const body = await req.json();
   const parsed = inputSchema.safeParse(body);
 

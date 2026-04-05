@@ -1,4 +1,3 @@
-import { auth } from "@clerk/nextjs/server";
 import type { BrandContext, Platform } from "@doost/ai";
 import {
   generateAdCopy,
@@ -51,12 +50,9 @@ const inputSchema = z.object({
  *   { event: "progress", message: "...", progress: N }
  */
 export async function POST(req: Request) {
-  const { userId } = await auth();
-  if (!userId) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } });
-  }
-
-  const { allowed } = await rateLimit(`adgen:${userId}`, 5, 60_000);
+  // Public route (wizard runs without login) — rate limit by IP
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const { allowed } = await rateLimit(`adgen:${ip}`, 5, 60_000);
   if (!allowed) {
     return new Response(JSON.stringify({ error: "Rate limited" }), { status: 429, headers: { "Content-Type": "application/json" } });
   }
