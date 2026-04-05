@@ -22,7 +22,10 @@ const inputSchema = z.object({
  * brand card → audience → platform steps (~15-30s).
  */
 export async function POST(req: Request) {
-  const body = await req.json();
+  let body: unknown;
+  try { body = await req.json(); } catch {
+    return Response.json({ error: "Invalid JSON" }, { status: 400 });
+  }
   const parsed = inputSchema.safeParse(body);
   if (!parsed.success) {
     return Response.json({ error: "Invalid input" }, { status: 400 });

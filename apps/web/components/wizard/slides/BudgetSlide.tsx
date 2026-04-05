@@ -29,6 +29,7 @@ function formatDate(dateStr: string): string {
 }
 
 function estimateReach(budget: number, days: number): { min: number; max: number } {
+  if (days <= 0) return { min: 0, max: 0 };
   const dailyBudget = budget / days;
   const cpm = 45;
   const min = Math.round((dailyBudget / cpm) * 1000 * days * 0.6);

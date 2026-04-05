@@ -630,12 +630,12 @@ export function AdViewSlide() {
     return result.length > 0 ? result : ["instagram" as DisplayPlatform];
   }, [selectedPlatforms]);
 
-  const [activePlatform, setActivePlatform] = useState<DisplayPlatform>(availableDisplayPlatforms[0]!);
+  const [activePlatform, setActivePlatform] = useState<DisplayPlatform>(availableDisplayPlatforms[0] ?? ("instagram" as DisplayPlatform));
 
   // Keep activePlatform in sync if available platforms change
   useEffect(() => {
     if (!availableDisplayPlatforms.includes(activePlatform)) {
-      setActivePlatform(availableDisplayPlatforms[0]!);
+      setActivePlatform(availableDisplayPlatforms[0] ?? ("instagram" as DisplayPlatform));
     }
   }, [availableDisplayPlatforms, activePlatform]);
 

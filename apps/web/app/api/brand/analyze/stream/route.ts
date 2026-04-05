@@ -31,7 +31,10 @@ const inputSchema = z.object({
  *   { event: "error", message: "..." }
  */
 export async function POST(req: Request) {
-  const body = await req.json();
+  let body: unknown;
+  try { body = await req.json(); } catch {
+    return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400, headers: { "Content-Type": "application/json" } });
+  }
   const parsed = inputSchema.safeParse(body);
 
   if (!parsed.success) {

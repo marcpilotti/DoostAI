@@ -147,7 +147,7 @@ export function AudienceSlide() {
   const handleIndustryChange = useCallback(
     (value: string) => {
       setIndustry(value);
-      if (brand) setBrand({ ...brand, industry: value });
+      if (brand) setBrand({ ...brand, industry: value } as typeof brand);
       const suggestions = getSuggestedAudiences(value);
       setTargets(suggestions);
     },

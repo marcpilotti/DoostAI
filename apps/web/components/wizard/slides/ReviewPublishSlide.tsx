@@ -69,7 +69,10 @@ export function ReviewPublishSlide() {
           }),
         );
         // If any request triggered a redirect (401), stop here
-        if (results.some((r) => r === null)) return;
+        if (results.some((r) => r === null)) {
+          setPublishState("choose");
+          return;
+        }
         if (results.length === 0) throw new Error("Inga annonser valda");
 
         setPublishState("done");

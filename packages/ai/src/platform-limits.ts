@@ -6,7 +6,7 @@
 export const PLATFORM_LIMITS = {
   meta: { headline: 40, bodyCopy: 125, description: 30, cta: 20 },
   google: { headline: 30, description: 90, cta: 20 },
-  linkedin: { headline: 150, bodyCopy: 70, cta: 20 },
+  linkedin: { headline: 70, bodyCopy: 150, cta: 20 },
 } as const;
 
 export type PlatformId = keyof typeof PLATFORM_LIMITS;

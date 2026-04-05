@@ -31,12 +31,17 @@ export async function POST(req: Request) {
     );
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  try {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
-  const session = await getStripe().billingPortal.sessions.create({
-    customer: org.stripeCustomerId,
-    return_url: `${appUrl}/settings/billing`,
-  });
+    const session = await getStripe().billingPortal.sessions.create({
+      customer: org.stripeCustomerId,
+      return_url: `${appUrl}/settings/billing`,
+    });
 
-  return Response.json({ url: session.url });
+    return Response.json({ url: session.url });
+  } catch (err) {
+    console.error("[stripe/portal] Error:", err instanceof Error ? err.message : err);
+    return Response.json({ error: "Failed to create portal session" }, { status: 500 });
+  }
 }

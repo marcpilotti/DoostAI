@@ -340,11 +340,15 @@ export async function generateAdCopy(
 
   // Generate all uncached variants in parallel using GPT-4o (fast)
   if (!cacheHit) {
-    const allVariants = await Promise.all(
+    const allSettled = await Promise.allSettled(
       variants.map((v) =>
         generateSingleVariant(platform, brand, opts, v, true),
       ),
     );
+    const allVariants = allSettled
+      .filter((r): r is PromiseFulfilledResult<typeof results[number]> => r.status === "fulfilled")
+      .map((r) => r.value);
+    if (allVariants.length === 0) throw new Error("All ad copy variants failed to generate");
     results.push(...allVariants);
 
     // Cache hero copy (1 hour TTL)
@@ -355,12 +359,14 @@ export async function generateAdCopy(
     // Hero was cached, generate remaining variants in parallel
     const additional = variants.slice(1);
     if (additional.length > 0) {
-      const parallel = await Promise.all(
+      const settled = await Promise.allSettled(
         additional.map((v) =>
           generateSingleVariant(platform, brand, opts, v, true),
         ),
       );
-      results.push(...parallel);
+      results.push(...settled
+        .filter((r): r is PromiseFulfilledResult<typeof results[number]> => r.status === "fulfilled")
+        .map((r) => r.value));
     }
   }
 

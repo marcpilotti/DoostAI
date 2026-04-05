@@ -37,6 +37,7 @@ export function UrlInputSlide() {
     setIsLoading(true);
     setStep("loading");
 
+    let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
     try {
       const response = await fetch("/api/brand/analyze/stream", {
         method: "POST",
@@ -46,7 +47,7 @@ export function UrlInputSlide() {
 
       if (!response.ok) throw new Error("Analys misslyckades");
 
-      const reader = response.body?.getReader();
+      reader = response.body?.getReader();
       if (!reader) throw new Error("Ingen stream");
 
       const decoder = new TextDecoder();
@@ -86,7 +87,7 @@ export function UrlInputSlide() {
                 prices: p.prices || [],
                 offers: p.offers || [],
                 detectedLocation: p.detectedLocation || p.location,
-                recommendedPlatforms: p.recommendedPlatforms || p.competitors ? ["meta", "google"] : [],
+                recommendedPlatforms: p.recommendedPlatforms || (p.competitors ? ["meta", "google"] : []),
                 socialProfiles: p.socialProfiles,
               });
 
@@ -130,6 +131,7 @@ export function UrlInputSlide() {
         }
       }
     } catch (err) {
+      reader?.cancel().catch(() => {});
       setError(err instanceof Error ? err.message : "Något gick fel");
       setStep("url");
     } finally {
