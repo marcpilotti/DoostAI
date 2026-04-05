@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
+import Link from "next/link";
 import { useMemo, useRef } from "react";
 
 import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
@@ -22,7 +23,7 @@ const CTA_LABELS: Record<string, string> = {
   brand: "Definiera målgrupp →",
   audience: "Välj plattformar →",
   platforms: "Skapa annonser →",
-  ads: "Ställ in budget →",
+  ads: "Nästa: budget & publicering →",
   budget: "Fortsätt →",
   targeting: "Granska kampanj →",
   review: "",
@@ -102,12 +103,12 @@ export function WizardShell() {
               >
                 Priser
               </a>
-              <a
+              <Link
                 href="/sign-in"
                 className="text-[13px] font-medium text-[var(--color-text-primary)] transition-colors hover:text-[var(--color-primary-light)]"
               >
                 Logga in
-              </a>
+              </Link>
             </nav>
           )}
         </motion.header>

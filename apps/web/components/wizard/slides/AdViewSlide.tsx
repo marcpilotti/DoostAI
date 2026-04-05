@@ -30,9 +30,12 @@ type BrandState = NonNullable<ReturnType<typeof useWizardStore.getState>["brand"
 
 const ACTION_VERBS = ["ge", "boka", "upptäck", "välj", "starta", "få", "skapa", "hitta", "testa", "prova", "köp", "läs", "se", "hör", "ring"];
 
-function getAngleLabel(headline: string): string {
-  const firstWord = headline.trim().split(/\s+/)[0]?.toLowerCase() ?? "";
-  return ACTION_VERBS.some((v) => firstWord.startsWith(v)) ? "Handlingsorienterad" : "Nyfikenhetsdriven";
+function getAngleLabel(headline: string): { label: string; description: string } {
+  const lower = headline.trim().toLowerCase();
+  const firstWord = lower.split(/\s+/)[0] ?? "";
+  if (lower.includes("?")) return { label: "Frågebaserad", description: "Väcker nyfikenhet" };
+  if (ACTION_VERBS.some((v) => firstWord.startsWith(v))) return { label: "Direkt uppmaning", description: "Uppmanar till handling" };
+  return { label: "Påstående", description: "Bygger trovärdighet" };
 }
 
 function brandSlug(name: string): string {
@@ -476,21 +479,36 @@ function AdMockupCard({ ad, brand, label, index, selected, platform, onToggle, o
     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: index * 0.15 }}
       className="flex w-full min-w-full flex-shrink-0 snap-center flex-col items-center gap-2 mx-auto md:min-w-0 md:w-auto md:flex-1">
-      {/* Select toggle + angle label */}
+      {/* Select toggle + strategy label + AI badge */}
       <div className="flex items-center gap-2">
         <motion.button onClick={onToggle} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
           className="flex items-center gap-1.5 text-[11px] font-semibold"
           style={{ padding: "5px 14px", borderRadius: 20, background: selected ? "#22c55e" : "transparent", color: selected ? "#fff" : "var(--color-text-muted)", border: selected ? "2px solid #22c55e" : "1px solid rgba(255,255,255,0.1)" }}>
           {selected && <Check className="h-3 w-3" />}{label}
         </motion.button>
-        <span className="text-[10px] font-medium" style={{ color: "var(--color-text-muted)" }}>{getAngleLabel(ad.headline)}</span>
+        {index === 0 && (
+          <span className="rounded-full text-[9px] font-medium" style={{ padding: "2px 8px", background: "rgba(99,102,241,0.1)", color: "var(--color-primary-light)" }}>
+            ✦ AI-favorit
+          </span>
+        )}
+        <span className="text-[10px] font-medium" style={{ color: "var(--color-text-muted)" }}>
+          {getAngleLabel(ad.headline).label}
+        </span>
       </div>
 
       {/* Device mockup — auto-scales to fit available height */}
       <div
         ref={containerRef}
         className="relative w-full cursor-pointer overflow-hidden"
-        style={{ height: "calc(100dvh - 280px)", maxHeight: 480 }}
+        style={{
+          height: "calc(100dvh - 280px)",
+          maxHeight: 480,
+          borderRadius: 14,
+          border: selected ? "2px solid var(--color-primary)" : "2px solid transparent",
+          background: selected ? "rgba(99,102,241,0.05)" : "transparent",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+          transition: "border-color 200ms, background-color 200ms",
+        }}
         onClick={onEdit}
       >
         {selected && (
@@ -523,6 +541,10 @@ function AdMockupCard({ ad, brand, label, index, selected, platform, onToggle, o
 
 // ── Platform Tab Switcher ────────────────────────────────────────
 
+const PLATFORM_LABELS: Record<Platform, string> = {
+  instagram: "Instagram", facebook: "Facebook", google: "Google", linkedin: "LinkedIn",
+};
+
 function PlatformTabSwitcher({ active, onChange, brandColor }: { active: Platform; onChange: (p: Platform) => void; brandColor: string }) {
   const platforms: Platform[] = ["instagram", "facebook", "google", "linkedin"];
   return (
@@ -531,13 +553,39 @@ function PlatformTabSwitcher({ active, onChange, brandColor }: { active: Platfor
         const Icon = PLATFORM_ICONS[p];
         const isActive = active === p;
         return (
-          <motion.button key={p} onClick={() => onChange(p)} whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }}
-            className="relative flex items-center justify-center"
-            style={{ width: 40, height: 40, borderRadius: 10, background: isActive ? "var(--color-bg-raised)" : "transparent", color: isActive ? "var(--color-text-primary)" : "var(--color-text-muted)", border: isActive ? "1px solid var(--color-border-default)" : "1px solid transparent" }}>
-            <Icon size={18} />
+          <motion.button
+            key={p}
+            onClick={() => onChange(p)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="relative flex items-center justify-center gap-1.5"
+            style={{
+              padding: isActive ? "6px 14px" : "6px 10px",
+              borderRadius: 10,
+              background: isActive ? "var(--color-bg-raised)" : "transparent",
+              color: isActive ? "var(--color-text-primary)" : "var(--color-text-muted)",
+              border: isActive ? "1px solid var(--color-border-default)" : "1px solid transparent",
+              opacity: isActive ? 1 : 0.4,
+              transition: "opacity 200ms, background 200ms",
+            }}
+          >
+            <Icon size={16} />
             {isActive && (
-              <motion.div layoutId="platform-underline" className="absolute -bottom-1 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full"
-                style={{ background: brandColor }} transition={transitions.snappy} />
+              <motion.span
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: "auto" }}
+                className="overflow-hidden whitespace-nowrap text-[11px] font-medium"
+              >
+                {PLATFORM_LABELS[p]}
+              </motion.span>
+            )}
+            {isActive && (
+              <motion.div
+                layoutId="platform-underline"
+                className="absolute -bottom-1 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full"
+                style={{ background: brandColor }}
+                transition={transitions.snappy}
+              />
             )}
           </motion.button>
         );
@@ -617,18 +665,25 @@ export function AdViewSlide() {
   }
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="flex flex-col gap-4">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="flex flex-col gap-3">
 
+      {/* Value delivery heading */}
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="text-center"
+      >
+        <h2 className="text-text-h1" style={{ color: "var(--color-text-primary)" }}>
+          Dina annonser är klara!
+        </h2>
+        <p className="mt-1 text-[13px]" style={{ color: "var(--color-text-muted)" }}>
+          Välj din favorit — vi publicerar den som primär annons. Klicka på en annons för att redigera.
+        </p>
+      </motion.div>
 
       {/* Platform tab switcher */}
       <PlatformTabSwitcher active={activePlatform} onChange={setActivePlatform} brandColor={brand.colors.primary || "#6366F1"} />
-
-      {/* Guidance text */}
-      {ads.length > 1 && (
-        <p className="text-center text-[11px]" style={{ color: "var(--color-text-muted)" }}>
-          Välj din favorit och fortsätt
-        </p>
-      )}
 
       {/* A/B cards — 300ms crossfade on platform switch */}
       <AnimatePresence mode="wait">
@@ -659,6 +714,20 @@ export function AdViewSlide() {
           )}
         </motion.div>
       </AnimatePresence>
+
+      {/* Regenerate all */}
+      <div className="flex justify-center">
+        <motion.button
+          onClick={handleRegenerate}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          className="flex items-center gap-1.5 text-[11px] font-medium"
+          style={{ padding: "6px 14px", borderRadius: 8, color: "var(--color-text-muted)", border: "1px solid var(--color-border-default)" }}
+        >
+          <RefreshCw className="h-3 w-3" />
+          Generera om allt
+        </motion.button>
+      </div>
 
       <AdEditModal adId={editingAdId} onClose={() => setEditingAdId(null)} />
     </motion.div>
