@@ -5,7 +5,7 @@ import {
 } from "@doost/ai";
 import { z } from "zod";
 
-import { type AdImageInput, generateAdImagePair } from "@/lib/ads/ad-image-pipeline";
+import { type AdImageInput, generateCompleteAdImage } from "@/lib/ads/ad-image-pipeline";
 import { rateLimit } from "@/lib/rate-limit";
 
 export const maxDuration = 90;
@@ -130,7 +130,7 @@ export async function POST(req: Request) {
             language: detectedLanguage,
             variants: 2,
           }), "copy"),
-          withTimeout(generateAdImagePair(imageInput, imageInput), "images", 15_000),
+          withTimeout(generateCompleteAdImage(imageInput), "images", 15_000),
         ]);
 
         // Extract strategy (non-critical — UI-only metadata)
@@ -178,12 +178,11 @@ export async function POST(req: Request) {
 
         send({ event: "copy", copies, progress: 60 });
 
-        // Extract images
-        const imgPair = imageSettled.status === "fulfilled" ? imageSettled.value : null;
-        const [imgA, imgB] = imgPair ?? [null, null];
+        // Extract image (one image shared by both variants)
+        const imgResult = imageSettled.status === "fulfilled" ? imageSettled.value : null;
 
-        let bgUrl = imgA?.imageUrl ?? null;
-        const bgUrlB = imgB?.imageUrl ?? bgUrl;
+        let bgUrl = imgResult?.imageUrl ?? null;
+        const bgUrlB = bgUrl;
 
         // SVG gradient fallback if both images failed entirely
         if (!bgUrl) {

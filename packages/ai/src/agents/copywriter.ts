@@ -338,24 +338,30 @@ export async function generateAdCopy(
     }
   }
 
-  // Generate hero if not cached
+  // Generate all uncached variants in parallel using GPT-4o (fast)
   if (!cacheHit) {
-    const hero = await generateSingleVariant(platform, brand, opts, "hero", false);
-    results.push(hero);
-
-    // Cache hero copy (1 hour TTL)
-    await setCachedCopy(cacheKey, hero, 3600, brandProfileId);
-  }
-
-  // Additional variants: GPT-4o (speed)
-  const additional = variants.slice(1);
-  if (additional.length > 0) {
-    const parallel = await Promise.all(
-      additional.map((v) =>
+    const allVariants = await Promise.all(
+      variants.map((v) =>
         generateSingleVariant(platform, brand, opts, v, true),
       ),
     );
-    results.push(...parallel);
+    results.push(...allVariants);
+
+    // Cache hero copy (1 hour TTL)
+    if (allVariants[0]) {
+      await setCachedCopy(cacheKey, allVariants[0], 3600, brandProfileId);
+    }
+  } else {
+    // Hero was cached, generate remaining variants in parallel
+    const additional = variants.slice(1);
+    if (additional.length > 0) {
+      const parallel = await Promise.all(
+        additional.map((v) =>
+          generateSingleVariant(platform, brand, opts, v, true),
+        ),
+      );
+      results.push(...parallel);
+    }
   }
 
   // Cache the FULL variant set (hero + variant_a + variant_b) with 24h TTL.
