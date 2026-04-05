@@ -1,16 +1,15 @@
 /**
- * Ad Image Pipeline — Flux Schnell background generation.
+ * Ad Image Pipeline — GPT-4o background generation via gpt-image-1.
  *
- * Generates clean background images with NO TEXT via FAL.ai Flux Schnell.
- * ~2-3 seconds per image at $0.003. All text is rendered by frontend CSS.
+ * Generates clean background images with NO TEXT. All text is rendered
+ * by the frontend CSS overlay.
  *
- * Flow: Flux Schnell (2-3s) → SVG gradient fallback (instant)
+ * Flow: GPT-4o (8-12s, quality "low") → SVG gradient fallback (instant)
  * Both variants run in parallel via generateAdImagePair.
  */
 
-import * as fal from "@fal-ai/serverless-client";
-
 import type { AdFormat } from "@/components/ads/ad-preview/types";
+import { generateEmbeddedAdImage } from "@/lib/providers/openai-image";
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -28,32 +27,21 @@ export type AdImageInput = {
 
 export type AdImageResult = {
   imageUrl: string;
-  method: "flux-schnell" | "gradient-fallback";
+  method: "gpt-image" | "gradient-fallback";
   prompt: string;
   attempts: number;
 };
 
-// ── FAL.ai config ────────────────────────────────────────────────
-
-let _configured = false;
-function ensureFal() {
-  if (_configured) return;
-  _configured = true;
-  fal.config({ credentials: process.env.FAL_KEY || "" });
-}
-
 // ── Format → size mapping ────────────────────────────────────────
 
-const FORMAT_SIZES: Record<string, string> = {
-  "meta-feed": "square_hd",
-  "meta-stories": "portrait_16_9",
-  "google-search": "square_hd",
-  "linkedin": "landscape_16_9",
+const FORMAT_SIZES: Record<string, "1024x1024" | "1024x1536" | "1536x1024"> = {
+  "meta-feed": "1024x1024",
+  "meta-stories": "1024x1536",
+  "google-search": "1024x1024",
+  "linkedin": "1536x1024",
 };
 
-// ── Industry → scene mapping with fuzzy keyword matching ─────────
-// Each entry has keywords (lowercase) that match against the industry string,
-// plus the English scene description for Flux Schnell.
+// ── Industry → scene matching (fuzzy keyword-based) ──────────────
 
 const SCENE_RULES: Array<{ keywords: string[]; scene: string }> = [
   { keywords: ["måleri", "målare", "måla", "painter", "painting company"],
@@ -117,14 +105,9 @@ const SCENE_RULES: Array<{ keywords: string[]; scene: string }> = [
 function findScene(industry: string): string {
   if (!industry) return "modern business environment, professional commercial setting";
   const lower = industry.toLowerCase();
-
   for (const rule of SCENE_RULES) {
-    if (rule.keywords.some((kw) => lower.includes(kw))) {
-      return rule.scene;
-    }
+    if (rule.keywords.some((kw) => lower.includes(kw))) return rule.scene;
   }
-
-  // No match — use the industry name in English context for Flux
   return `${industry} business environment, professional commercial setting, premium workspace`;
 }
 
@@ -132,7 +115,6 @@ function findScene(industry: string): string {
 
 function buildPrompt(input: AdImageInput): string {
   const scene = findScene(input.industry);
-
   return `Professional advertising photograph. ${scene}. Dominant color: ${input.brandColor}. Sharp focus, premium commercial photography, cinematic lighting. Clean background for text overlay. No text, no logos, no people.`;
 }
 
@@ -144,37 +126,28 @@ export async function generateCompleteAdImage(
   if (input.format === "google-search") return null;
 
   const prompt = buildPrompt(input);
-  const imageSize = FORMAT_SIZES[input.format] ?? "square_hd";
+  const size = FORMAT_SIZES[input.format] ?? "1024x1024";
 
-  // Flux Schnell via FAL.ai (~2-3s)
-  if (process.env.FAL_KEY) {
+  // GPT-4o via gpt-image-1 (quality "low" for speed, ~8-12s)
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (apiKey && !apiKey.startsWith("sk-proj-placeholder")) {
     try {
-      ensureFal();
-      console.log(`[ad-pipeline] Flux Schnell for ${input.brandName} (${input.industry}) → scene matched`);
-
-      const result = await Promise.race([
-        fal.subscribe("fal-ai/flux/schnell", {
-          input: {
-            prompt,
-            image_size: imageSize,
-            num_images: 1,
-            num_inference_steps: 4,
-            enable_safety_checker: true,
-          },
-          pollInterval: 500,
-        }) as Promise<{ images?: Array<{ url: string }> }>,
+      console.log(`[ad-pipeline] GPT-4o for ${input.brandName} (${input.industry})`);
+      const generated = await Promise.race([
+        generateEmbeddedAdImage({ prompt, size, quality: "low" }),
         new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("Flux Schnell timed out")), 10_000),
+          setTimeout(() => reject(new Error("GPT-4o timed out")), 15_000),
         ),
       ]);
-
-      const url = result?.images?.[0]?.url;
-      if (url) {
-        console.log(`[ad-pipeline] Done: ${url.slice(0, 60)}`);
-        return { imageUrl: url, method: "flux-schnell", prompt, attempts: 1 };
-      }
+      console.log(`[ad-pipeline] GPT-4o done for ${input.brandName}`);
+      return {
+        imageUrl: `data:image/jpeg;base64,${generated.b64}`,
+        method: "gpt-image",
+        prompt,
+        attempts: 1,
+      };
     } catch (err) {
-      console.warn("[ad-pipeline] Flux Schnell failed:", err instanceof Error ? err.message : err);
+      console.warn("[ad-pipeline] GPT-4o failed:", err instanceof Error ? err.message : err);
     }
   }
 

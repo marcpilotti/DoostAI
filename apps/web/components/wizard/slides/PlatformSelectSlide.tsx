@@ -244,6 +244,7 @@ export function PlatformSelectSlide() {
                 })
               );
               useWizardStore.getState().setAds(ads);
+              useWizardStore.getState().setIsGeneratingAds(false);
             }
 
             if (data.event === "error") {

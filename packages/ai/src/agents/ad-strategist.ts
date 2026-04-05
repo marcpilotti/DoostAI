@@ -142,7 +142,7 @@ Finally, recommend which variant to start with and why (one sentence).`;
     if (cached) return cached;
 
     const { object } = await generateObject({
-      model: anthropic("claude-sonnet-4-6"),
+      model: anthropic("claude-haiku-4-5-20251001"),
       schema: strategySchema,
       prompt,
       temperature: 0.7,
