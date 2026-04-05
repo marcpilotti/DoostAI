@@ -21,6 +21,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/sync/(.*)",
   "/api/brand/analyze/stream",
   "/api/ad/generate",
+  "/api/ad/pregenerate-image",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {

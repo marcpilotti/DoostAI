@@ -91,9 +91,25 @@ export function UrlInputSlide() {
                 socialProfiles: p.socialProfiles,
               });
 
-              // Store pre-generated ad image if available
-              if (data.preGeneratedImageUrl) {
-                setPreGeneratedImageUrl(data.preGeneratedImageUrl);
+              // Pre-generate ad image with GPT-4o in background.
+              // Runs while user browses brand card → audience → platform (~15-30s).
+              // By the time they click "Skapa annonser", the image is ready.
+              if (p.industry && p.colors?.primary) {
+                fetch("/api/ad/pregenerate-image", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    brandName: p.name,
+                    brandColor: p.colors.primary,
+                    brandAccent: p.colors.accent ?? p.colors.secondary,
+                    industry: p.industry,
+                  }),
+                }).then(async (res) => {
+                  if (res.ok) {
+                    const { imageUrl } = await res.json();
+                    if (imageUrl) setPreGeneratedImageUrl(imageUrl);
+                  }
+                }).catch(() => { /* non-critical */ });
               }
 
               if (p.targetAudience || p.valuePropositions?.length) {

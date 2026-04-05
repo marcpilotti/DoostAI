@@ -197,6 +197,7 @@ export function PlatformSelectSlide() {
           },
           platform: selectedPlatforms[0],
           language: "sv",
+          preGeneratedImageUrl: useWizardStore.getState().preGeneratedImageUrl ?? undefined,
         }),
       });
 

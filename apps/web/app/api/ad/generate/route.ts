@@ -32,6 +32,7 @@ const inputSchema = z.object({
   objective: z.string().optional(),
   audience: z.string().optional(),
   language: z.string().optional(),
+  preGeneratedImageUrl: z.string().optional(),
 });
 
 /**
@@ -71,7 +72,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { brand, platform, objective, audience, language } = parsed.data;
+  const { brand, platform, objective, audience, language, preGeneratedImageUrl } = parsed.data;
   const detectedLanguage = language ?? "sv";
 
   const encoder = new TextEncoder();
@@ -104,9 +105,10 @@ export async function POST(req: Request) {
             ),
           ]);
 
-        // ── ALL in parallel: strategy + copy + images ─────────────
-        // Images are background-only (no text) — they only need industry
-        // + brand color, NOT the copy. So we run everything at once.
+        // ── Strategy + copy + images ALL in parallel ────────────
+        // If pre-generated image exists (from background prefetch during
+        // brand card → audience → platform steps), skip GPT-4o entirely.
+        const needsImage = !preGeneratedImageUrl;
         const imageInput: AdImageInput = {
           brandName: brand.name,
           brandColor: brand.colors.primary,
@@ -118,7 +120,11 @@ export async function POST(req: Request) {
           format: platform === "linkedin" ? "linkedin" : "meta-feed",
         };
 
-        const [strategySettled, copySettled, imageSettled] = await Promise.allSettled([
+        const promises: [
+          Promise<unknown>,
+          Promise<unknown>,
+          Promise<unknown>,
+        ] = [
           withTimeout(generateAdStrategy({
             brand: brandContext,
             platform,
@@ -130,8 +136,12 @@ export async function POST(req: Request) {
             language: detectedLanguage,
             variants: 2,
           }), "copy"),
-          withTimeout(generateCompleteAdImage(imageInput), "images", 15_000),
-        ]);
+          needsImage
+            ? withTimeout(generateCompleteAdImage(imageInput), "images", 15_000)
+            : Promise.resolve({ imageUrl: preGeneratedImageUrl, method: "pre-generated", prompt: "", attempts: 0 }),
+        ];
+
+        const [strategySettled, copySettled, imageSettled] = await Promise.allSettled(promises);
 
         // Extract strategy (non-critical — UI-only metadata)
         const strategy = strategySettled.status === "fulfilled" ? strategySettled.value : null;

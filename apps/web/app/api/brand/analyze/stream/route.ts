@@ -7,7 +7,6 @@ import {
 import { runBrandIntelligencePipeline } from "@doost/intelligence";
 import { z } from "zod";
 
-import { generateAdImage } from "@/lib/ads/image-generator";
 
 export const maxDuration = 90;
 
@@ -134,7 +133,7 @@ export async function POST(req: Request) {
         // ── Step 2: AI Analysis + Intelligence + Pre-generate image ──
         send({ message: "Analyserar ert varumärke med AI...", progress: 65 });
 
-        const [profile, intelligence, preImageResult] = await Promise.all([
+        const [profile, intelligence] = await Promise.all([
           buildBrandProfile(scrapeResult, enrichment ?? undefined),
           runBrandIntelligencePipeline({
             url: scrapeResult.url,
@@ -148,14 +147,10 @@ export async function POST(req: Request) {
             companyName: enrichment?.name ?? domain,
             enrichedIndustry: enrichment?.industry,
           }).catch(() => null),
-          generateAdImage({
-            industry: enrichment?.industry ?? "",
-            description: enrichment?.name ?? domain,
-            brandName: enrichment?.name ?? domain,
-          }).catch(() => ({ url: null })),
         ]);
 
         send({ message: "Bygger din varumärkesprofil...", progress: 85 });
+
 
         // ── Step 3: Merge intelligence ──────────────────────────
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -223,11 +218,10 @@ export async function POST(req: Request) {
             : null,
         };
 
-        // ── Complete ────────────────────────────────────────────
         send({
           event: "complete",
           profile: result,
-          preGeneratedImageUrl: preImageResult?.url ?? null,
+          preGeneratedImageUrl: null,
           progress: 100,
         });
       } catch (err) {
