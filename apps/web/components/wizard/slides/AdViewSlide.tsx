@@ -8,7 +8,7 @@
  * Platform tabs at top filter to only selected platforms.
  */
 
-import { Globe, MessageCircle, MoreHorizontal, RefreshCw, Share2, ThumbsUp, Upload } from "lucide-react";
+import { Bookmark, Globe, Heart, MessageCircle, MoreHorizontal, RefreshCw, Send, Share2, ThumbsUp, Upload } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from "react";
 
@@ -187,63 +187,76 @@ function InstagramMockup({ ad, brand, isRegenerating, isLightBrand }: {
   return (
     <IPhoneFrame>
       <div className="flex h-full flex-col bg-white">
-        {/* Notch clearance */}
-        <div className="h-[50px] shrink-0" />
+        {/* Safe area behind notch */}
+        <div className="h-[44px] shrink-0" />
 
-        {/* Header (Figma: 60px) */}
-        <div className="flex h-[60px] shrink-0 items-center px-3">
-          <div className="flex flex-1 items-center gap-2.5 overflow-hidden">
-            <div className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full text-[12px] font-bold text-white" style={{ background: c }}>
-              {brand.name.charAt(0)}
-            </div>
-            <div className="flex min-w-0 flex-col gap-px">
-              <span className="truncate text-[14px] font-semibold leading-normal text-[#262626]">{slug}</span>
-              <span className="text-[12px] leading-[20px] text-[#262626]">Sponsrad</span>
+        {/* Post header — compact */}
+        <div className="flex h-[52px] shrink-0 items-center gap-2.5 px-3">
+          {/* Avatar with gradient story ring */}
+          <div className="shrink-0 rounded-full p-[2px]" style={{ background: "linear-gradient(135deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5)" }}>
+            <div className="rounded-full bg-white p-[1.5px]">
+              <div className="flex h-[28px] w-[28px] items-center justify-center rounded-full text-[10px] font-bold text-white" style={{ background: c }}>
+                {brand.name.charAt(0)}
+              </div>
             </div>
           </div>
-          <svg width="13" height="3" viewBox="0 0 13 3" fill="#000" className="shrink-0">
-            <path fillRule="evenodd" clipRule="evenodd" d="M1.5 0C.67 0 0 .67 0 1.5S.67 3 1.5 3 3 2.33 3 1.5 2.33 0 1.5 0zm5 0C5.67 0 5 .67 5 1.5S5.67 3 6.5 3 8 2.33 8 1.5 7.33 0 6.5 0zm5 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5S13 2.33 13 1.5 12.33 0 11.5 0z" />
-          </svg>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-baseline gap-1">
+              <span className="truncate text-[13px] font-semibold text-[#262626]">{slug}</span>
+            </div>
+            <span className="text-[11px] text-[#8e8e8e]">Sponsrad</span>
+          </div>
+          <MoreHorizontal className="h-4 w-4 shrink-0 text-[#262626]" />
         </div>
 
-        {/* Post image — 1:1, with headline overlay */}
+        {/* Post image — 4:5 portrait, with headline overlay */}
         <div className="relative shrink-0">
-          <AdImageLayer ad={ad} primaryColor={c} aspectRatio="1/1" isRegenerating={isRegenerating} isLightBrand={isLightBrand} />
+          <AdImageLayer ad={ad} primaryColor={c} aspectRatio="4/5" isRegenerating={isRegenerating} isLightBrand={isLightBrand} />
           {ad.headline && (
             <div className="absolute inset-x-0 bottom-0 z-10 p-4">
-              <h3 className="text-[16px] font-bold leading-tight text-white" style={{ textShadow: "0 1px 8px rgba(0,0,0,0.5)" }}>
+              <h3 className="text-[15px] font-bold leading-tight text-white drop-shadow-lg">
                 {ad.headline}
               </h3>
             </div>
           )}
         </div>
 
-        {/* CTA bar (Figma: 41px, dark) */}
-        <div className="flex h-[41px] shrink-0 items-center justify-between bg-[#262626] px-4">
-          <span className="text-[14px] font-medium tracking-[0.57px] text-[#fafafa]">{ad.cta}</span>
-          <svg width="7" height="14" viewBox="0 0 7 14" fill="white"><path fillRule="evenodd" clipRule="evenodd" d="M4.66 7L.08 1.56A.4.4 0 01.09 1.06l.82-.96A.4.4 0 011.33.1L6.92 6.75a.36.36 0 01-.01.5L1.33 13.9a.4.4 0 01-.42 0L.09 12.94a.4.4 0 010-.5L4.66 7z" /></svg>
+        {/* CTA bar */}
+        <div className="flex h-[40px] shrink-0 items-center justify-between bg-[#262626] px-4">
+          <span className="text-[14px] font-medium tracking-wide text-white">{ad.cta}</span>
+          <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1l5 5-5 5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </div>
 
-        {/* Icons row (Figma: 48px) */}
-        <div className="relative flex h-[48px] shrink-0 items-center px-3">
-          <div className="flex items-center gap-[18px]">
-            {/* Heart */}
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M17.3 3.05c2.85 0 5.2 2.6 5.2 5.75 0 3.4-2.95 5.5-5.75 8s-3.25 3.85-4.75 4.15c-.55-.35-2.35-2-4.75-4.15-2.85-2.5-5.75-4.6-5.75-8 0-3.15 2.35-5.75 5.2-5.75 2.1 0 3.25 1 4.05 2.15.95 1.3 1.1 1.95 1.25 1.95s.3-.65 1.25-1.95c.8-1.15 1.95-2.15 4.05-2.15zm0-1.5c-2.25 0-3.95.9-5.3 2.8-1.35-1.85-3.05-2.75-5.3-2.75C3 1.55 0 4.8 0 8.8c0 3.65 2.7 6 5.3 8.25.3.25.65.55.95.85l1.15 1c2.2 1.95 3.3 2.95 3.8 3.25.25.15.55.25.8.25.3 0 .55-.1.8-.25.5-.3 1.4-1.1 3.9-3.4l1-.9c.35-.3.65-.6 1-.85C21.35 14.8 24 12.5 24 8.8c0-4-3-7.25-6.7-7.25z" fill="#262626" /></svg>
-            {/* Comment */}
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path fillRule="evenodd" clipRule="evenodd" d="M23.75 23.05l-1.4-5.5c.9-1.65 1.4-3.55 1.4-5.55 0-6.5-5.25-11.75-11.75-11.75S.25 5.5.25 12 5.5 23.75 12 23.75c2 0 3.9-.5 5.55-1.4l5.5 1.4c.4.1.8-.3.7-.7zM22.25 12c0 2-.5 3.5-1.3 5-.1.2-.15.45-.1.7l1.05 4.2-4.15-1.05c-.25-.05-.5-.05-.7.1-.9.5-2.6 1.3-5 1.3-5.7 0-10.3-4.6-10.3-10.25S6.35 1.75 12 1.75 22.25 6.35 22.25 12z" fill="#262626" /></svg>
-            {/* Share (paper plane) */}
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M23.9 1.9a.74.74 0 00-.65-.4H.75c-.3.05-.6.25-.7.5-.1.25-.05.6.15.85l7.95 7.8 2.75 11.3c.05.3.3.5.6.55h.1c.25 0 .5-.15.65-.35l11.6-19.5c.2-.2.2-.5.05-.75zM2.6 3.05h17.75L9 9.35 2.6 3.05zm9.35 16.8L9.75 10.65 21.2 4.3 11.95 19.85z" fill="#262626" /></svg>
+        {/* Action icons — clean Lucide strokes */}
+        <div className="flex h-[44px] shrink-0 items-center justify-between px-3">
+          <div className="flex items-center gap-4">
+            <Heart className="h-[22px] w-[22px] text-[#262626]" strokeWidth={1.6} />
+            <MessageCircle className="h-[22px] w-[22px] -scale-x-100 text-[#262626]" strokeWidth={1.6} />
+            <Send className="h-[22px] w-[22px] text-[#262626]" strokeWidth={1.6} />
           </div>
-          {/* Bookmark */}
-          <svg className="absolute right-3 top-3" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M21.25 24c-.2 0-.4-.1-.55-.2L11.5 14.5 2.3 23.8c-.2.2-.55.3-.8.15-.3-.1-.5-.4-.5-.7V.75C1 .35 1.35 0 1.75 0h19.5c.4 0 .75.35.75.75v22.5c0 .3-.2.6-.45.7-.1.05-.2.05-.3.05zM11.5 13c.4 0 .8.15 1.1.45l7.9 8V1.5h-18v19.95l7.9-8c.3-.3.7-.45 1.1-.45z" fill="#262626" /></svg>
+          <Bookmark className="h-[22px] w-[22px] text-[#262626]" strokeWidth={1.6} />
         </div>
 
-        {/* Caption */}
-        <div className="shrink-0 px-3 pb-3">
-          <p className="text-[13px] font-medium text-[#262626]">142 gillamarkeringar</p>
-          <p className="mt-1 text-[13px] leading-[18px] text-[#262626]">
+        {/* Social proof + caption */}
+        <div className="shrink-0 px-3">
+          <p className="text-[13px] font-semibold text-[#262626]">1 429 gillamarkeringar</p>
+          <p className="mt-0.5 text-[13px] leading-[18px] text-[#262626] line-clamp-2">
             <span className="font-semibold">{slug}</span>{" "}{ad.bodyCopy}
           </p>
+          <p className="mt-1 text-[13px] text-[#8e8e8e]">Visa alla 23 kommentarer</p>
+          <p className="mt-0.5 text-[10px] uppercase tracking-wider text-[#8e8e8e]">2 timmar sedan</p>
+        </div>
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Bottom nav bar */}
+        <div className="flex h-[50px] shrink-0 items-center justify-around border-t border-[#dbdbdb] px-2">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#262626"><path d="M22 23h-6a1 1 0 01-1-1v-5.5a3 3 0 00-6 0V22a1 1 0 01-1 1H2a1 1 0 01-1-1V11.5a1 1 0 01.3-.7l10-9.6a1 1 0 011.4 0l10 9.6a1 1 0 01.3.7V22a1 1 0 01-1 1z" /></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8e8e8e" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.4-4.4" /></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8e8e8e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" /><path d="M10 8l6 4-6 4z" /></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8e8e8e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18" /><path d="M16 10a4 4 0 01-8 0" /></svg>
+          <div className="h-[22px] w-[22px] rounded-full border-[1.5px] border-[#8e8e8e]" />
         </div>
       </div>
     </IPhoneFrame>
@@ -258,60 +271,80 @@ function FacebookMockup({ ad, brand, isRegenerating, isLightBrand }: {
   return (
     <IPhoneFrame>
       <div className="flex h-full flex-col bg-white">
-        {/* Notch clearance */}
-        <div className="h-[50px] shrink-0" />
+        {/* Safe area behind notch */}
+        <div className="h-[44px] shrink-0" />
 
-        {/* Header */}
-        <div className="shrink-0 px-3 pb-0 pt-3">
+        {/* FB app bar */}
+        <div className="flex h-[42px] shrink-0 items-center justify-between px-3">
+          <svg width="28" height="28" viewBox="0 0 36 36" fill="#1877F2"><path d="M15 35.8C6.5 34.3 0 26.9 0 18 0 8.1 8.1 0 18 0s18 8.1 18 18c0 8.9-6.5 16.3-15 17.8l-1-.8h-4l-1 .8z" /><path d="M25 23l.8-5H21v-3.5c0-1.4.5-2.5 2.7-2.5H26V7.4c-1.3-.2-2.7-.4-4-.4-4.1 0-7 2.5-7 7v4h-4.6v5H15v12.7c1 .2 2 .3 3 .3s2-.1 3-.3V23h4z" fill="white" /></svg>
+          <div className="flex items-center gap-3">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#050505" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.4-4.4" /></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#050505" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" /></svg>
+          </div>
+        </div>
+
+        <div className="h-[6px] shrink-0 bg-[#f0f2f5]" />
+
+        {/* Post header */}
+        <div className="shrink-0 px-3 pt-3">
           <div className="flex items-center gap-2.5">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[12px] font-bold text-white" style={{ background: c, border: "1px solid #e5e5e5" }}>
               {brand.name.charAt(0)}
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-[15px] font-semibold leading-[20px] text-[#050505]">{brand.name}</div>
-              <div className="flex items-center gap-1.5 text-[14px] leading-[18px] text-[#65676b]">
+              <div className="flex items-center gap-1 text-[13px] leading-[16px] text-[#65676b]">
                 Sponsrad · <Globe className="inline h-[11px] w-[11px]" />
               </div>
             </div>
-            <svg width="13" height="3" viewBox="0 0 13 3" fill="#65676b" className="shrink-0">
-              <path fillRule="evenodd" clipRule="evenodd" d="M1.5 0C.67 0 0 .67 0 1.5S.67 3 1.5 3 3 2.33 3 1.5 2.33 0 1.5 0zm5 0C5.67 0 5 .67 5 1.5S5.67 3 6.5 3 8 2.33 8 1.5 7.33 0 6.5 0zm5 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5S13 2.33 13 1.5 12.33 0 11.5 0z" />
-            </svg>
+            <MoreHorizontal className="h-5 w-5 shrink-0 text-[#65676b]" />
           </div>
-          {/* Primary text */}
-          <p className="mt-3 text-[15px] leading-[20px] text-[#050505]">{ad.bodyCopy}</p>
+          <p className="mt-2 text-[15px] leading-[20px] text-[#050505] line-clamp-2">{ad.bodyCopy}</p>
         </div>
 
         {/* Post image — 1:1 */}
-        <div className="mt-3 shrink-0">
+        <div className="mt-2 shrink-0">
           <AdImageLayer ad={ad} primaryColor={c} aspectRatio="1/1" isRegenerating={isRegenerating} isLightBrand={isLightBrand} />
         </div>
 
-        {/* CTA section (Figma: grey bg) */}
-        <div className="flex shrink-0 items-center gap-3 bg-[#f0f2f5] px-3.5 py-1.5">
+        {/* CTA section */}
+        <div className="flex shrink-0 items-center gap-3 bg-[#f0f2f5] px-3 py-2">
           <div className="min-w-0 flex-1">
-            <p className="text-[13px] uppercase leading-[16px] tracking-tight text-[#65676b]">{domain}</p>
-            <p className="truncate text-[17px] font-semibold leading-[20px] text-[#050505]">{ad.headline}</p>
+            <p className="text-[12px] uppercase leading-[16px] text-[#65676b]">{domain}</p>
+            <p className="truncate text-[15px] font-semibold leading-[20px] text-[#050505]">{ad.headline}</p>
           </div>
-          <div className="shrink-0 rounded-md bg-[#e4e6ea] px-3 py-1.5 text-[15px] font-semibold text-[#050505]">
+          <div className="shrink-0 rounded-md bg-[#e4e6ea] px-3 py-1.5 text-[14px] font-semibold text-[#050505]">
             {ad.cta}
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="shrink-0 px-4 pt-2.5">
+        {/* Reactions + actions */}
+        <div className="shrink-0 px-4 pt-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="flex -space-x-0.5 text-[14px]"><span>👍</span><span>❤️</span></span>
-              <span className="text-[15px] leading-[20px] text-[#65676b]">48</span>
+            <div className="flex items-center gap-1.5">
+              <span className="flex -space-x-0.5 text-[13px]"><span>👍</span><span>❤️</span></span>
+              <span className="text-[14px] text-[#65676b]">48</span>
             </div>
-            <span className="text-[15px] leading-[20px] text-[#65676b]">2 kommentarer</span>
+            <span className="text-[14px] text-[#65676b]">2 kommentarer</span>
           </div>
-          <div className="my-2.5 h-px bg-[#ced0d4]" />
-          <div className="flex items-center justify-between pb-2">
-            <span className="flex items-center gap-1.5 text-[15px] font-semibold text-[#65676b]"><ThumbsUp className="h-5 w-5" /> Gilla</span>
-            <span className="flex items-center gap-1.5 text-[15px] font-semibold text-[#65676b]"><MessageCircle className="h-5 w-5" /> Kommentera</span>
-            <span className="flex items-center gap-1.5 text-[15px] font-semibold text-[#65676b]"><Share2 className="h-5 w-5" /> Dela</span>
+          <div className="my-2 h-px bg-[#ced0d4]" />
+          <div className="flex items-center justify-around pb-1">
+            <span className="flex items-center gap-1.5 text-[14px] font-semibold text-[#65676b]"><ThumbsUp className="h-[18px] w-[18px]" strokeWidth={1.8} /> Gilla</span>
+            <span className="flex items-center gap-1.5 text-[14px] font-semibold text-[#65676b]"><MessageCircle className="h-[18px] w-[18px]" strokeWidth={1.8} /> Kommentera</span>
+            <span className="flex items-center gap-1.5 text-[14px] font-semibold text-[#65676b]"><Share2 className="h-[18px] w-[18px]" strokeWidth={1.8} /> Dela</span>
           </div>
+        </div>
+
+        {/* Spacer */}
+        <div className="flex-1 bg-[#f0f2f5]" />
+
+        {/* Bottom nav bar */}
+        <div className="flex h-[50px] shrink-0 items-center justify-around border-t border-[#dddfe2] bg-white px-1">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#1877F2"><path d="M22 23h-6a1 1 0 01-1-1v-5.5a3 3 0 00-6 0V22a1 1 0 01-1 1H2a1 1 0 01-1-1V11.5a1 1 0 01.3-.7l10-9.6a1 1 0 011.4 0l10 9.6a1 1 0 01.3.7V22a1 1 0 01-1 1z" /></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#65676b" strokeWidth="2"><rect x="2" y="6" width="20" height="12" rx="2" /><path d="M10 10l4 2-4 2z" /></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#65676b" strokeWidth="2" strokeLinecap="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18" /><path d="M16 10a4 4 0 01-8 0" /></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#65676b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" /></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#65676b" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
         </div>
       </div>
     </IPhoneFrame>
