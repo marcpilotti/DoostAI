@@ -155,14 +155,29 @@ export async function scrapeBrand(url: string): Promise<BrandScrapeResult> {
     fonts = extractFontsFromHtml(html);
   }
 
-  // Extract logos: prefer Firecrawl branding, then og:image
-  // Strictly filter out favicons — they are NOT logos
+  // Extract logos: prefer scraped from HTML, then Firecrawl branding, then og:image
   const logoUrls: string[] = [];
+
+  // Search raw HTML for <img> elements with "logo" in their attributes — most reliable source
+  if (html) {
+    const imgLogoRe1 = /<img[^>]+src=["']([^"']+)["'][^>]*(?:alt|class|id)=["'][^"']*logo[^"']*["']/gi;
+    const imgLogoRe2 = /<img[^>]*(?:alt|class|id)=["'][^"']*logo[^"']*["'][^>]+src=["']([^"']+)["']/gi;
+    // Also match src containing "logo" in the path/filename
+    const imgSrcLogoRe = /<img[^>]+src=["']([^"']*logo[^"']+)["']/gi;
+    for (const re of [imgLogoRe1, imgLogoRe2, imgSrcLogoRe]) {
+      let m;
+      while ((m = re.exec(html)) !== null) {
+        if (m[1] && !m[1].startsWith("data:")) {
+          logoUrls.push(resolveUrl(normalizedUrl, m[1]));
+        }
+      }
+    }
+  }
+
+  // Firecrawl's pre-extracted branding logo
   if (branding?.logo) logoUrls.push(branding.logo);
+  // OG image as fallback
   if (metadata.ogImage) logoUrls.push(metadata.ogImage);
-  // Favicon is stored separately — never treated as a logo candidate
-  // It may still be shown as the icon/avatar in the UI, but the real logo
-  // comes from Logo APIs (Brandfetch, Logo.dev) in the intelligence pipeline
 
   return {
     url: normalizedUrl,
