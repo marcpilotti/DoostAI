@@ -78,8 +78,9 @@ function guaranteeMinimumProfile(result: Record<string, unknown>): void {
   const fonts = (result.fonts || {}) as Record<string, unknown>;
   const fallbackFonts = findIndustryMatch(INDUSTRY_FONTS, industry) || { heading: "Inter", body: "Inter" };
 
-  if (!fonts.heading || fonts.heading === "undefined") fonts.heading = fallbackFonts.heading;
-  if (!fonts.body || fonts.body === "undefined") fonts.body = fallbackFonts.body;
+  const isBadFont = (f: unknown): boolean => !f || f === "undefined" || (typeof f === "string" && (f.startsWith("var(") || f.startsWith("--")));
+  if (isBadFont(fonts.heading)) fonts.heading = fallbackFonts.heading;
+  if (isBadFont(fonts.body)) fonts.body = fallbackFonts.body;
   result.fonts = fonts;
 }
 

@@ -98,7 +98,7 @@ export async function runBrandIntelligencePipeline(
     // L4: Logo APIs (Brandfetch + Logo.dev + Clearbit + scraped logos + OG image as fallback)
     timed(() => fetchLogoApis(
       domain,
-      [...(input.ogImage ? [input.ogImage] : []), ...(input.scrapedLogos ?? [])],
+      [...(input.scrapedLogos ?? []), ...(input.ogImage ? [input.ogImage] : [])],
       input.companyName,
     )),
 
