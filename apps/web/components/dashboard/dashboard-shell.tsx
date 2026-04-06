@@ -61,11 +61,16 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           <AIPanel open={aiPanelOpen} onClose={() => setAIPanelOpen(false)} />
         </div>
 
-        {/* Mobile FAB for AI panel */}
+        {/* Floating AI button — always visible when panel is closed */}
         {!aiPanelOpen && (
           <button
             onClick={() => setAIPanelOpen(true)}
-            className="fixed bottom-6 right-6 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 active:scale-95 md:hidden"
+            className="fixed bottom-6 right-6 z-30 flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-all hover:scale-110 active:scale-95"
+            style={{
+              background: "linear-gradient(135deg, var(--doost-bg-active), #7C3AED)",
+              boxShadow: "0 4px 20px -4px rgba(99,102,241,0.5)",
+              color: "#fff",
+            }}
             aria-label="Öppna AI-assistent"
           >
             <Sparkles className="h-5 w-5" />

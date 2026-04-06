@@ -59,11 +59,16 @@ export function TopBar({ onToggleAI }: { onToggleAI?: () => void }) {
         {onToggleAI && (
           <button
             onClick={onToggleAI}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--doost-bg-active)] text-white transition-opacity hover:opacity-80"
+            className="relative flex h-9 items-center gap-1.5 rounded-full px-3 text-[12px] font-medium text-white transition-all hover:opacity-90"
+            style={{
+              background: "linear-gradient(135deg, var(--doost-bg-active), #7C3AED)",
+              boxShadow: "0 2px 12px -2px rgba(99,102,241,0.4)",
+            }}
             aria-label="Öppna AI-assistent"
             title="AI-assistent"
           >
-            <Sparkles className="h-4 w-4" />
+            <Sparkles className="h-3.5 w-3.5" />
+            AI
           </button>
         )}
       </div>
