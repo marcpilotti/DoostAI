@@ -164,23 +164,26 @@ ${context}`,
     return true;
   });
   const finalFonts = { ...object.fonts };
-  // Post-process: if AI returned CSS variables as font names, replace with "Inter"
+  // Post-process: reject CSS variables as font names
   if (finalFonts.heading.startsWith("var(") || finalFonts.heading.startsWith("--")) finalFonts.heading = "Inter";
   if (finalFonts.body.startsWith("var(") || finalFonts.body.startsWith("--")) finalFonts.body = "Inter";
+  // Filter CSS variables from extracted fonts too — they're not real font names
+  const validCssFonts = cssFonts.filter(f => !f.startsWith("var(") && !f.startsWith("--"));
   // Only override if CSS found specific named fonts (not system defaults)
-  if (cssFonts.length >= 1 && cssFonts[0]) finalFonts.heading = cssFonts[0];
-  if (cssFonts.length >= 2 && cssFonts[1]) finalFonts.body = cssFonts[1];
-  else if (cssFonts.length === 1 && cssFonts[0]) finalFonts.body = cssFonts[0];
+  if (validCssFonts.length >= 1 && validCssFonts[0]) finalFonts.heading = validCssFonts[0];
+  if (validCssFonts.length >= 2 && validCssFonts[1]) finalFonts.body = validCssFonts[1];
+  else if (validCssFonts.length === 1 && validCssFonts[0]) finalFonts.body = validCssFonts[0];
 
-  // Validate against known fonts — reject hallucinated names
+  // Validate against known fonts — reject hallucinated or invalid names
   if (finalFonts.heading && !KNOWN_FONTS.has(finalFonts.heading)) {
     const industryKey = enrichedIndustry || object?.industry || "";
-    const fallback = INDUSTRY_FONTS[industryKey];
-    if (fallback) {
-      console.log(`[profile-builder] Font "${finalFonts.heading}" not recognized, using industry default: ${fallback.heading}`);
-      finalFonts.heading = fallback.heading;
-      finalFonts.body = fallback.body;
-    }
+    // Try exact match, then partial match on first word
+    const fallback = INDUSTRY_FONTS[industryKey]
+      || Object.entries(INDUSTRY_FONTS).find(([k]) => industryKey.toLowerCase().includes(k.toLowerCase().split(" ")[0] || ""))?.[1]
+      || { heading: "DM Sans", body: "DM Sans" };
+    console.log(`[profile-builder] Font "${finalFonts.heading}" not recognized, using fallback: ${fallback.heading}`);
+    finalFonts.heading = fallback.heading;
+    finalFonts.body = fallback.body;
   }
 
   const primaryLogo =

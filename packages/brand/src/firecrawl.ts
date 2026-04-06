@@ -158,20 +158,34 @@ export async function scrapeBrand(url: string): Promise<BrandScrapeResult> {
   // Extract logos: prefer scraped from HTML, then Firecrawl branding, then og:image
   const logoUrls: string[] = [];
 
-  // Search raw HTML for <img> elements with "logo" in their attributes — most reliable source
+  // Search raw HTML for <img> elements with "logo" in their attributes
   if (html) {
+    const srcLogoUrls: string[] = []; // URLs with "logo" in path — highest confidence
+    const attrLogoUrls: string[] = []; // URLs from elements with "logo" in class/alt — lower confidence
+
+    // Match src containing "logo" in the path/filename — these ARE the logo
+    const imgSrcLogoRe = /<img[^>]+src=["']([^"']*logo[^"']+)["']/gi;
+    let m;
+    while ((m = imgSrcLogoRe.exec(html)) !== null) {
+      if (m[1] && !m[1].startsWith("data:")) {
+        srcLogoUrls.push(resolveUrl(normalizedUrl, m[1]));
+      }
+    }
+
+    // Match elements where alt/class/id contains "logo" but src doesn't
     const imgLogoRe1 = /<img[^>]+src=["']([^"']+)["'][^>]*(?:alt|class|id)=["'][^"']*logo[^"']*["']/gi;
     const imgLogoRe2 = /<img[^>]*(?:alt|class|id)=["'][^"']*logo[^"']*["'][^>]+src=["']([^"']+)["']/gi;
-    // Also match src containing "logo" in the path/filename
-    const imgSrcLogoRe = /<img[^>]+src=["']([^"']*logo[^"']+)["']/gi;
-    for (const re of [imgLogoRe1, imgLogoRe2, imgSrcLogoRe]) {
-      let m;
+    for (const re of [imgLogoRe1, imgLogoRe2]) {
       while ((m = re.exec(html)) !== null) {
         if (m[1] && !m[1].startsWith("data:")) {
-          logoUrls.push(resolveUrl(normalizedUrl, m[1]));
+          const url = resolveUrl(normalizedUrl, m[1]);
+          if (!srcLogoUrls.includes(url)) attrLogoUrls.push(url);
         }
       }
     }
+
+    // Prioritize: URLs with "logo" in path first, then attribute matches
+    logoUrls.push(...srcLogoUrls, ...attrLogoUrls);
   }
 
   // Firecrawl's pre-extracted branding logo
