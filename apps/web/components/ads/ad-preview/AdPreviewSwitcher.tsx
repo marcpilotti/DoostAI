@@ -87,8 +87,8 @@ const FORMAT_TABS: FormatTab[] = [
   { id: "meta-feed", label: "Instagram Post", icon: InstagramIcon },
   { id: "instagram-reels", label: "Instagram Reels", icon: ReelsIcon },
   { id: "meta-stories", label: "Facebook Annons", icon: FacebookIcon },
-  { id: "google-search", label: "Google Search", icon: GoogleIcon },
   { id: "linkedin", label: "LinkedIn", icon: LinkedInIcon },
+  { id: "google-search", label: "Google Search", icon: GoogleIcon },
 ];
 
 // ── Component ────────────────────────────────────────────────────
