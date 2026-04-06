@@ -8,7 +8,7 @@
  * Platform tabs at top filter to only selected platforms.
  */
 
-import { Globe, Heart, MessageCircle, MoreHorizontal, RefreshCw, Send, Share2, ThumbsUp, Upload } from "lucide-react";
+import { Globe, MessageCircle, MoreHorizontal, RefreshCw, Share2, ThumbsUp, Upload } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from "react";
 
@@ -139,9 +139,16 @@ function AdImageLayer({ ad, primaryColor, aspectRatio, isRegenerating, isLightBr
 
 function IPhoneFrame({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative overflow-hidden" style={{ borderRadius: 28, background: "#1C1C1E", padding: "6px 3px", boxShadow: "0 24px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.08)" }}>
-      <div className="absolute left-1/2 top-1 z-30 -translate-x-1/2" style={{ width: 60, height: 16, borderRadius: 10, background: "#1C1C1E" }} />
-      <div className="overflow-hidden" style={{ borderRadius: 24, background: "#000" }}>{children}</div>
+    <div className="relative" style={{ width: 420, height: 849 }}>
+      {/* Screen area – matches Figma iPhone 14 (376×814, 32px corners) */}
+      <div
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden bg-black"
+        style={{ width: 376, height: 814, borderRadius: 32 }}
+      >
+        {children}
+      </div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/mockups/iphone-14-frame.png" alt="" className="pointer-events-none absolute inset-0 h-full w-full" />
     </div>
   );
 }
@@ -179,40 +186,65 @@ function InstagramMockup({ ad, brand, isRegenerating, isLightBrand }: {
   const slug = brandSlug(brand.name);
   return (
     <IPhoneFrame>
-      <div className="flex items-center justify-between bg-black px-4 py-1">
-        <span className="text-[9px] font-semibold text-white">9:41</span>
-        <div className="flex gap-1"><div className="h-1.5 w-3 rounded-sm bg-white/50" /><div className="h-2 w-3.5 rounded-sm bg-white/50" /></div>
-      </div>
-      <div className="flex items-center gap-2 bg-black px-3 py-1.5">
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white" style={{ background: c, border: "2px solid #E1306C" }}>
-          {brand.name.charAt(0)}
+      <div className="flex h-full flex-col bg-white">
+        {/* Notch clearance */}
+        <div className="h-[50px] shrink-0" />
+
+        {/* Header (Figma: 60px) */}
+        <div className="flex h-[60px] shrink-0 items-center px-3">
+          <div className="flex flex-1 items-center gap-2.5 overflow-hidden">
+            <div className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full text-[12px] font-bold text-white" style={{ background: c }}>
+              {brand.name.charAt(0)}
+            </div>
+            <div className="flex min-w-0 flex-col gap-px">
+              <span className="truncate text-[14px] font-semibold leading-normal text-[#262626]">{slug}</span>
+              <span className="text-[12px] leading-[20px] text-[#262626]">Sponsrad</span>
+            </div>
+          </div>
+          <svg width="13" height="3" viewBox="0 0 13 3" fill="#000" className="shrink-0">
+            <path fillRule="evenodd" clipRule="evenodd" d="M1.5 0C.67 0 0 .67 0 1.5S.67 3 1.5 3 3 2.33 3 1.5 2.33 0 1.5 0zm5 0C5.67 0 5 .67 5 1.5S5.67 3 6.5 3 8 2.33 8 1.5 7.33 0 6.5 0zm5 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5S13 2.33 13 1.5 12.33 0 11.5 0z" />
+          </svg>
         </div>
-        <div className="min-w-0 flex-1">
-          <span className="text-[10px] font-semibold text-white">{slug}</span>
-          <span className="ml-1.5 text-[8px] text-white/40">Sponsrad</span>
+
+        {/* Post image — 1:1, with headline overlay */}
+        <div className="relative shrink-0">
+          <AdImageLayer ad={ad} primaryColor={c} aspectRatio="1/1" isRegenerating={isRegenerating} isLightBrand={isLightBrand} />
+          {ad.headline && (
+            <div className="absolute inset-x-0 bottom-0 z-10 p-4">
+              <h3 className="text-[16px] font-bold leading-tight text-white" style={{ textShadow: "0 1px 8px rgba(0,0,0,0.5)" }}>
+                {ad.headline}
+              </h3>
+            </div>
+          )}
         </div>
-        <MoreHorizontal className="h-3.5 w-3.5 text-white/50" />
-      </div>
-      <div className="relative">
-        <AdImageLayer ad={ad} primaryColor={c} aspectRatio="1/1" isRegenerating={isRegenerating} isLightBrand={isLightBrand} />
-        <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-0.5 p-3">
-          <h3 className="text-[13px] font-extrabold leading-tight text-white" style={{ textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}>{ad.headline}</h3>
-          <p className="text-[10px] leading-relaxed line-clamp-2" style={{ color: "rgba(255,255,255,0.85)" }}>{ad.bodyCopy}</p>
-          <span className="mt-1 inline-flex self-start rounded-md px-2.5 py-1 text-[9px] font-bold" style={{ background: "rgba(255,255,255,0.9)", color: c }}>
-            {ad.cta} →
-          </span>
+
+        {/* CTA bar (Figma: 41px, dark) */}
+        <div className="flex h-[41px] shrink-0 items-center justify-between bg-[#262626] px-4">
+          <span className="text-[14px] font-medium tracking-[0.57px] text-[#fafafa]">{ad.cta}</span>
+          <svg width="7" height="14" viewBox="0 0 7 14" fill="white"><path fillRule="evenodd" clipRule="evenodd" d="M4.66 7L.08 1.56A.4.4 0 01.09 1.06l.82-.96A.4.4 0 011.33.1L6.92 6.75a.36.36 0 01-.01.5L1.33 13.9a.4.4 0 01-.42 0L.09 12.94a.4.4 0 010-.5L4.66 7z" /></svg>
         </div>
-      </div>
-      <div className="flex items-center justify-between bg-black px-3 py-2">
-        <div className="flex gap-3.5">
-          <Heart className="h-4 w-4 text-white" />
-          <MessageCircle className="h-4 w-4 text-white" />
-          <Send className="h-4 w-4 text-white" />
+
+        {/* Icons row (Figma: 48px) */}
+        <div className="relative flex h-[48px] shrink-0 items-center px-3">
+          <div className="flex items-center gap-[18px]">
+            {/* Heart */}
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M17.3 3.05c2.85 0 5.2 2.6 5.2 5.75 0 3.4-2.95 5.5-5.75 8s-3.25 3.85-4.75 4.15c-.55-.35-2.35-2-4.75-4.15-2.85-2.5-5.75-4.6-5.75-8 0-3.15 2.35-5.75 5.2-5.75 2.1 0 3.25 1 4.05 2.15.95 1.3 1.1 1.95 1.25 1.95s.3-.65 1.25-1.95c.8-1.15 1.95-2.15 4.05-2.15zm0-1.5c-2.25 0-3.95.9-5.3 2.8-1.35-1.85-3.05-2.75-5.3-2.75C3 1.55 0 4.8 0 8.8c0 3.65 2.7 6 5.3 8.25.3.25.65.55.95.85l1.15 1c2.2 1.95 3.3 2.95 3.8 3.25.25.15.55.25.8.25.3 0 .55-.1.8-.25.5-.3 1.4-1.1 3.9-3.4l1-.9c.35-.3.65-.6 1-.85C21.35 14.8 24 12.5 24 8.8c0-4-3-7.25-6.7-7.25z" fill="#262626" /></svg>
+            {/* Comment */}
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path fillRule="evenodd" clipRule="evenodd" d="M23.75 23.05l-1.4-5.5c.9-1.65 1.4-3.55 1.4-5.55 0-6.5-5.25-11.75-11.75-11.75S.25 5.5.25 12 5.5 23.75 12 23.75c2 0 3.9-.5 5.55-1.4l5.5 1.4c.4.1.8-.3.7-.7zM22.25 12c0 2-.5 3.5-1.3 5-.1.2-.15.45-.1.7l1.05 4.2-4.15-1.05c-.25-.05-.5-.05-.7.1-.9.5-2.6 1.3-5 1.3-5.7 0-10.3-4.6-10.3-10.25S6.35 1.75 12 1.75 22.25 6.35 22.25 12z" fill="#262626" /></svg>
+            {/* Share (paper plane) */}
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M23.9 1.9a.74.74 0 00-.65-.4H.75c-.3.05-.6.25-.7.5-.1.25-.05.6.15.85l7.95 7.8 2.75 11.3c.05.3.3.5.6.55h.1c.25 0 .5-.15.65-.35l11.6-19.5c.2-.2.2-.5.05-.75zM2.6 3.05h17.75L9 9.35 2.6 3.05zm9.35 16.8L9.75 10.65 21.2 4.3 11.95 19.85z" fill="#262626" /></svg>
+          </div>
+          {/* Bookmark */}
+          <svg className="absolute right-3 top-3" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M21.25 24c-.2 0-.4-.1-.55-.2L11.5 14.5 2.3 23.8c-.2.2-.55.3-.8.15-.3-.1-.5-.4-.5-.7V.75C1 .35 1.35 0 1.75 0h19.5c.4 0 .75.35.75.75v22.5c0 .3-.2.6-.45.7-.1.05-.2.05-.3.05zM11.5 13c.4 0 .8.15 1.1.45l7.9 8V1.5h-18v19.95l7.9-8c.3-.3.7-.45 1.1-.45z" fill="#262626" /></svg>
         </div>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" /></svg>
-      </div>
-      <div className="bg-black px-3 pb-2">
-        <span className="text-[9px] font-semibold text-white">142 gillamarkeringar</span>
+
+        {/* Caption */}
+        <div className="shrink-0 px-3 pb-3">
+          <p className="text-[13px] font-medium text-[#262626]">142 gillamarkeringar</p>
+          <p className="mt-1 text-[13px] leading-[18px] text-[#262626]">
+            <span className="font-semibold">{slug}</span>{" "}{ad.bodyCopy}
+          </p>
+        </div>
       </div>
     </IPhoneFrame>
   );
@@ -225,44 +257,61 @@ function FacebookMockup({ ad, brand, isRegenerating, isLightBrand }: {
   const domain = brand.url?.replace(/^https?:\/\//, "").replace(/\/$/, "") || "example.com";
   return (
     <IPhoneFrame>
-      <div className="flex items-center justify-between bg-white px-4 py-1">
-        <span className="text-[9px] font-semibold text-gray-800">9:41</span>
-        <div className="flex gap-1"><div className="h-1.5 w-3 rounded-sm bg-gray-400" /><div className="h-2 w-3.5 rounded-sm bg-gray-400" /></div>
-      </div>
-      <div className="bg-white">
-        <div className="flex items-center gap-2 px-3 py-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white" style={{ background: c }}>
-            {brand.name.charAt(0)}
+      <div className="flex h-full flex-col bg-white">
+        {/* Notch clearance */}
+        <div className="h-[50px] shrink-0" />
+
+        {/* Header */}
+        <div className="shrink-0 px-3 pb-0 pt-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[12px] font-bold text-white" style={{ background: c, border: "1px solid #e5e5e5" }}>
+              {brand.name.charAt(0)}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[15px] font-semibold leading-[20px] text-[#050505]">{brand.name}</div>
+              <div className="flex items-center gap-1.5 text-[14px] leading-[18px] text-[#65676b]">
+                Sponsrad · <Globe className="inline h-[11px] w-[11px]" />
+              </div>
+            </div>
+            <svg width="13" height="3" viewBox="0 0 13 3" fill="#65676b" className="shrink-0">
+              <path fillRule="evenodd" clipRule="evenodd" d="M1.5 0C.67 0 0 .67 0 1.5S.67 3 1.5 3 3 2.33 3 1.5 2.33 0 1.5 0zm5 0C5.67 0 5 .67 5 1.5S5.67 3 6.5 3 8 2.33 8 1.5 7.33 0 6.5 0zm5 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5S13 2.33 13 1.5 12.33 0 11.5 0z" />
+            </svg>
           </div>
+          {/* Primary text */}
+          <p className="mt-3 text-[15px] leading-[20px] text-[#050505]">{ad.bodyCopy}</p>
+        </div>
+
+        {/* Post image — 1:1 */}
+        <div className="mt-3 shrink-0">
+          <AdImageLayer ad={ad} primaryColor={c} aspectRatio="1/1" isRegenerating={isRegenerating} isLightBrand={isLightBrand} />
+        </div>
+
+        {/* CTA section (Figma: grey bg) */}
+        <div className="flex shrink-0 items-center gap-3 bg-[#f0f2f5] px-3.5 py-1.5">
           <div className="min-w-0 flex-1">
-            <div className="text-[11px] font-semibold text-gray-900">{brand.name}</div>
-            <div className="flex items-center gap-1 text-[9px] text-gray-400">Sponsrad · <Globe className="inline h-2.5 w-2.5" /></div>
+            <p className="text-[13px] uppercase leading-[16px] tracking-tight text-[#65676b]">{domain}</p>
+            <p className="truncate text-[17px] font-semibold leading-[20px] text-[#050505]">{ad.headline}</p>
           </div>
-          <MoreHorizontal className="h-4 w-4 text-gray-300" />
+          <div className="shrink-0 rounded-md bg-[#e4e6ea] px-3 py-1.5 text-[15px] font-semibold text-[#050505]">
+            {ad.cta}
+          </div>
         </div>
-        <div className="px-3 pb-2">
-          <p className="text-[10px] leading-relaxed line-clamp-2" style={{ color: "#1c1e21" }}>{ad.bodyCopy}</p>
-        </div>
-      </div>
-      <AdImageLayer ad={ad} primaryColor={c} aspectRatio="4/5" isRegenerating={isRegenerating} isLightBrand={isLightBrand} />
-      <div className="flex items-center justify-between bg-gray-50 px-3 py-1.5">
-        <div className="min-w-0 flex-1">
-          <div className="text-[8px] uppercase text-gray-400">{domain}</div>
-          <h3 className="truncate text-[10px] font-semibold" style={{ color: "#1c1e21" }}>{ad.headline}</h3>
-        </div>
-        <div className="shrink-0 rounded px-2.5 py-1 text-[9px] font-bold text-white" style={{ background: c }}>
-          {ad.cta}
-        </div>
-      </div>
-      <div className="bg-white">
-        <div className="flex items-center gap-1 border-b border-gray-100 px-3 py-1">
-          <span className="text-[10px]">👍❤️</span>
-          <span className="text-[9px] text-gray-400">48</span>
-        </div>
-        <div className="flex justify-around py-1.5 text-[10px] font-medium text-gray-500">
-          <span className="flex items-center gap-1"><ThumbsUp className="h-3.5 w-3.5" /> Gilla</span>
-          <span className="flex items-center gap-1"><MessageCircle className="h-3.5 w-3.5" /> Kommentera</span>
-          <span className="flex items-center gap-1"><Share2 className="h-3.5 w-3.5" /> Dela</span>
+
+        {/* Footer */}
+        <div className="shrink-0 px-4 pt-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="flex -space-x-0.5 text-[14px]"><span>👍</span><span>❤️</span></span>
+              <span className="text-[15px] leading-[20px] text-[#65676b]">48</span>
+            </div>
+            <span className="text-[15px] leading-[20px] text-[#65676b]">2 kommentarer</span>
+          </div>
+          <div className="my-2.5 h-px bg-[#ced0d4]" />
+          <div className="flex items-center justify-between pb-2">
+            <span className="flex items-center gap-1.5 text-[15px] font-semibold text-[#65676b]"><ThumbsUp className="h-5 w-5" /> Gilla</span>
+            <span className="flex items-center gap-1.5 text-[15px] font-semibold text-[#65676b]"><MessageCircle className="h-5 w-5" /> Kommentera</span>
+            <span className="flex items-center gap-1.5 text-[15px] font-semibold text-[#65676b]"><Share2 className="h-5 w-5" /> Dela</span>
+          </div>
         </div>
       </div>
     </IPhoneFrame>
@@ -415,13 +464,14 @@ function useMockupScale(
       const container = containerRef.current;
       const mockup = mockupRef.current;
       if (!container || !mockup) return;
-      const natural = mockup.scrollHeight;
-      const available = container.clientHeight;
-      if (natural > 0 && available > 0 && natural > available) {
-        setScale(Math.max(0.5, available / natural));
-      } else {
-        setScale(1);
-      }
+      const naturalH = mockup.scrollHeight;
+      const naturalW = mockup.scrollWidth;
+      const availH = container.clientHeight;
+      const availW = container.clientWidth;
+      let s = 1;
+      if (naturalH > 0 && availH > 0 && naturalH > availH) s = Math.min(s, availH / naturalH);
+      if (naturalW > 0 && availW > 0 && naturalW > availW) s = Math.min(s, availW / naturalW);
+      setScale(Math.max(0.4, s));
     }
     measure();
     const raf1 = requestAnimationFrame(measure);
@@ -798,7 +848,7 @@ export function AdViewSlide() {
       <div className="flex flex-col gap-6 md:flex-row md:gap-8">
 
         {/* Left column: device mockup + A/B toggle + upload */}
-        <div className="flex flex-col items-center gap-3 max-w-full md:max-w-[300px] md:mx-0" style={{ width: "100%", flexShrink: 0 }}>
+        <div className="flex flex-col items-center gap-3 max-w-full md:max-w-[340px] md:mx-0" style={{ width: "100%", flexShrink: 0 }}>
           <div
             className="w-full cursor-pointer md:cursor-default"
             onClick={() => {
@@ -816,10 +866,10 @@ export function AdViewSlide() {
               >
                 <div
                   ref={containerRef}
-                  className="relative w-full overflow-hidden"
-                  style={{ height: "calc(100dvh - 300px)", maxHeight: 520 }}
+                  className="relative flex w-full justify-center overflow-hidden"
+                  style={{ height: "calc(100dvh - 300px)", maxHeight: 580 }}
                 >
-                  <div ref={mockupRef} style={{ transformOrigin: "top center", transform: `scale(${scale})` }}>
+                  <div ref={mockupRef} className="shrink-0" style={{ transformOrigin: "top center", transform: `scale(${scale})` }}>
                     {activeAd && <MockupRenderer ad={activeAd} brand={brand} platform={activePlatform} isRegenerating={isRegenerating} />}
                   </div>
                 </div>
