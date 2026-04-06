@@ -5,7 +5,7 @@
 
 // ── Format ──────────────────────────────────────────────────────
 
-export type AdFormat = "meta-feed" | "meta-stories" | "google-search" | "linkedin";
+export type AdFormat = "meta-feed" | "meta-stories" | "instagram-reels" | "google-search" | "linkedin";
 
 // ── Ad Data ─────────────────────────────────────────────────────
 

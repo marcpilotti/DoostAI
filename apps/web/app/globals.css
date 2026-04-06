@@ -480,6 +480,11 @@
   100% { transform: scale(1.06); }
 }
 
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
 @keyframes dashmove {
   to { stroke-dashoffset: -10; }
 }

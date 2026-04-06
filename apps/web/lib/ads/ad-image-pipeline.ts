@@ -41,6 +41,7 @@ export type AdImageResult = {
 const FORMAT_SIZES: Record<string, "1024x1024" | "1024x1536" | "1536x1024"> = {
   "meta-feed": "1024x1024",
   "meta-stories": "1024x1536",
+  "instagram-reels": "1024x1536",
   "google-search": "1024x1024",
   "linkedin": "1536x1024",
 };

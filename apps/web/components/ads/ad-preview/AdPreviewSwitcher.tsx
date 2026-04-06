@@ -30,6 +30,24 @@ function InstagramIcon({ className }: { className?: string }) {
   );
 }
 
+function ReelsIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none">
+      <defs>
+        <linearGradient id="ig-reels-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#FFDC80" />
+          <stop offset="25%" stopColor="#F77737" />
+          <stop offset="50%" stopColor="#E1306C" />
+          <stop offset="75%" stopColor="#C13584" />
+          <stop offset="100%" stopColor="#833AB4" />
+        </linearGradient>
+      </defs>
+      <rect x="2" y="2" width="20" height="20" rx="5" stroke="url(#ig-reels-grad)" strokeWidth="2" fill="none" />
+      <path d="M10 8.5l6 3.5-6 3.5z" fill="url(#ig-reels-grad)" />
+    </svg>
+  );
+}
+
 function FacebookIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="#1877F2">
@@ -67,6 +85,7 @@ type FormatTab = {
 
 const FORMAT_TABS: FormatTab[] = [
   { id: "meta-feed", label: "Instagram Post", icon: InstagramIcon },
+  { id: "instagram-reels", label: "Instagram Reels", icon: ReelsIcon },
   { id: "meta-stories", label: "Facebook Annons", icon: FacebookIcon },
   { id: "google-search", label: "Google Search", icon: GoogleIcon },
   { id: "linkedin", label: "LinkedIn", icon: LinkedInIcon },

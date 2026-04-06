@@ -22,6 +22,7 @@ import { useCallback,useEffect, useRef, useState } from "react";
 import { AdPreviewGoogle } from "./AdPreviewGoogle";
 import { AdPreviewLinkedIn } from "./AdPreviewLinkedIn";
 import { AdPreviewMeta } from "./AdPreviewMeta";
+import { AdPreviewReels } from "./AdPreviewReels";
 import { AdPreviewSwitcher } from "./AdPreviewSwitcher";
 import type { AdData, AdFormat, AdPreviewProps } from "./types";
 
@@ -249,6 +250,8 @@ function FormatRenderer({
     case "meta-feed":
     case "meta-stories":
       return <AdPreviewMeta data={dataWithImage} format={format} autoGenerateImage={autoGenerateImage} imageDelay={imageDelay} onImageReady={onImageReady} />;
+    case "instagram-reels":
+      return <AdPreviewReels data={dataWithImage} autoGenerateImage={autoGenerateImage} imageDelay={imageDelay} onImageReady={onImageReady} />;
     case "google-search":
       return <AdPreviewGoogle data={dataWithImage} />;
     case "linkedin":
