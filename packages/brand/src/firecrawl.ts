@@ -155,43 +155,37 @@ export async function scrapeBrand(url: string): Promise<BrandScrapeResult> {
     fonts = extractFontsFromHtml(html);
   }
 
-  // Extract logos: prefer scraped from HTML, then Firecrawl branding, then og:image
+  // Extract logos — ONLY high-confidence sources
+  // Rule: only include URLs where the path/filename contains "logo" or "brand"
+  // This avoids hero photos, product shots, and OG images being mistaken for logos
   const logoUrls: string[] = [];
 
-  // Search raw HTML for <img> elements with "logo" in their attributes
   if (html) {
-    const srcLogoUrls: string[] = []; // URLs with "logo" in path — highest confidence
-    const attrLogoUrls: string[] = []; // URLs from elements with "logo" in class/alt — lower confidence
-
-    // Match src containing "logo" in the path/filename — these ARE the logo
-    const imgSrcLogoRe = /<img[^>]+src=["']([^"']*logo[^"']+)["']/gi;
+    const seen = new Set<string>();
+    // 1. Any <img> src containing "logo" or "brand" in the URL path
+    const imgSrcRe = /<img[^>]+src=["']([^"']+)["']/gi;
     let m;
-    while ((m = imgSrcLogoRe.exec(html)) !== null) {
+    while ((m = imgSrcRe.exec(html)) !== null) {
       if (m[1] && !m[1].startsWith("data:")) {
-        srcLogoUrls.push(resolveUrl(normalizedUrl, m[1]));
-      }
-    }
-
-    // Match elements where alt/class/id contains "logo" but src doesn't
-    const imgLogoRe1 = /<img[^>]+src=["']([^"']+)["'][^>]*(?:alt|class|id)=["'][^"']*logo[^"']*["']/gi;
-    const imgLogoRe2 = /<img[^>]*(?:alt|class|id)=["'][^"']*logo[^"']*["'][^>]+src=["']([^"']+)["']/gi;
-    for (const re of [imgLogoRe1, imgLogoRe2]) {
-      while ((m = re.exec(html)) !== null) {
-        if (m[1] && !m[1].startsWith("data:")) {
-          const url = resolveUrl(normalizedUrl, m[1]);
-          if (!srcLogoUrls.includes(url)) attrLogoUrls.push(url);
+        const lower = m[1].toLowerCase();
+        if (lower.includes("logo") || lower.includes("brand-mark") || lower.includes("brandmark")) {
+          const resolved = resolveUrl(normalizedUrl, m[1]);
+          if (!seen.has(resolved)) { seen.add(resolved); logoUrls.push(resolved); }
         }
       }
     }
-
-    // Prioritize: URLs with "logo" in path first, then attribute matches
-    logoUrls.push(...srcLogoUrls, ...attrLogoUrls);
+    // 2. Favicon and apple-touch-icon links (these are brand icons)
+    const iconRe = /<link[^>]+rel=["'](?:icon|shortcut icon|apple-touch-icon)[^"']*["'][^>]+href=["']([^"']+)["']/gi;
+    while ((m = iconRe.exec(html)) !== null) {
+      if (m[1] && !m[1].startsWith("data:")) {
+        const resolved = resolveUrl(normalizedUrl, m[1]);
+        if (!seen.has(resolved)) { seen.add(resolved); logoUrls.push(resolved); }
+      }
+    }
   }
 
-  // Firecrawl's pre-extracted branding logo
+  // Firecrawl's pre-extracted branding logo (if any)
   if (branding?.logo) logoUrls.push(branding.logo);
-  // OG image as fallback
-  if (metadata.ogImage) logoUrls.push(metadata.ogImage);
 
   return {
     url: normalizedUrl,

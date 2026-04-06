@@ -319,27 +319,22 @@ async function downloadBestLogo(
   let primary: DownloadedLogo | null = null;
 
   // -----------------------------------------------------------------------
-  // Phase 1: SCRAPED LOGOS from the actual website — most trustworthy source
-  // The company's own website knows its own logo better than any third-party API.
+  // Phase 1: SCRAPED LOGOS — only URLs with "logo" in path + favicons
+  // These are pre-filtered by the scraper to be high-confidence.
   // -----------------------------------------------------------------------
   if (scrapedLogoUrls && scrapedLogoUrls.length > 0) {
-    console.log(`[L4 Download] ${domain} → Phase 1: trying ${scrapedLogoUrls.length} scraped logos from website`);
+    console.log(`[L4 Download] ${domain} → Phase 1: trying ${scrapedLogoUrls.length} scraped logo candidates`);
     for (const scrapedUrl of scrapedLogoUrls.slice(0, 5)) {
       if (isTimedOut()) break;
       const scrapedDataUrl = await downloadAsDataUrl(scrapedUrl, 5000);
       if (scrapedDataUrl) {
         const check = validateLogoQuality(scrapedDataUrl);
-        const hasLogoInPath = scrapedUrl.toLowerCase().includes("logo");
-        // Extra size check for non-logo-named images: >50KB is probably a photo, not a logo
-        const base64Size = Math.ceil((scrapedDataUrl.split(",")[1]?.length ?? 0) * 3 / 4);
-        if (!hasLogoInPath && base64Size > 50_000) {
-          console.log(`[L4 Download] ${domain} → Scraped image too large for logo (${Math.round(base64Size/1024)}KB, no "logo" in path), skipping: ${scrapedUrl.substring(0, 80)}`);
-        } else if (check.valid) {
+        if (check.valid) {
           console.log(`[L4 Download] ${domain} → Scraped logo OK (${scrapedDataUrl.length} chars) from ${scrapedUrl.substring(0, 80)}`);
           const logo: DownloadedLogo = { dataUrl: scrapedDataUrl, source: "scraped", theme: "light", width: 200, quality: "high" };
           variants.push(logo);
           if (!primary) primary = logo;
-          break; // First valid scraped logo wins — it's from their own site
+          break;
         } else {
           console.log(`[L4 Download] ${domain} → Scraped logo rejected: ${check.reason}`);
         }
