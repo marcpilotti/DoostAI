@@ -163,8 +163,8 @@ function validateLogoQuality(dataUrl: string): { valid: boolean; reason?: string
   const base64Part = dataUrl.split(",")[1] ?? "";
   const sizeBytes = Math.ceil(base64Part.length * 3 / 4);
 
-  // Reject if < 500 bytes (likely a 1x1 pixel, broken image, or placeholder)
-  if (sizeBytes < 500) return { valid: false, reason: "too_small" };
+  // Reject if < 100 bytes (truly broken — a valid 16x16 favicon is ~318 bytes)
+  if (sizeBytes < 100) return { valid: false, reason: "too_small" };
 
   // Reject if > 200KB (probably not a logo — likely a full photo or banner)
   if (sizeBytes > 200_000) return { valid: false, reason: "too_large" };
@@ -276,6 +276,7 @@ async function downloadBestLogo(
   domain: string,
   brandfetchLogos: { url: string; type: string; theme: string }[],
   scrapedLogoUrls?: string[],
+  companyName?: string,
 ): Promise<LogoLibrary> {
 
   // --- Check Redis cache first ---
@@ -286,7 +287,7 @@ async function downloadBestLogo(
 
   // Total timeout: return whatever we have if we exceed 12 seconds
   const startTime = Date.now();
-  const TOTAL_TIMEOUT = 12000; // 12s max for all logo downloads
+  const TOTAL_TIMEOUT = 20000; // 20s max for all logo downloads
 
   function isTimedOut() {
     return Date.now() - startTime > TOTAL_TIMEOUT;
@@ -475,6 +476,40 @@ async function downloadBestLogo(
     }
   }
 
+  // -----------------------------------------------------------------------
+  // Last resort: Accept Google Favicon WITHOUT quality check
+  // -----------------------------------------------------------------------
+  if (!primary && googleDataUrl) {
+    console.log(`[L4 Download] ${domain} → Google Favicon accepted WITHOUT quality check (last resort)`);
+    primary = { dataUrl: googleDataUrl, source: "google", theme: "light", width: 128, quality: "low" };
+    variants.push(primary);
+  }
+
+  // Retry Google Favicon at 64px if nothing at all
+  if (!primary) {
+    try {
+      const retryUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+      const retryDataUrl = await downloadAsDataUrl(retryUrl, 5000);
+      if (retryDataUrl) {
+        console.log(`[L4 Download] ${domain} → Google Favicon 64px retry OK`);
+        primary = { dataUrl: retryDataUrl, source: "google", theme: "light", width: 64, quality: "low" };
+        variants.push(primary);
+      }
+    } catch { /* last resort */ }
+  }
+
+  // Generate SVG initials — downloadedLogo is NEVER null after this
+  if (!primary) {
+    const initials = companyName
+      ? companyName.split(/\s+/).map(w => w[0]).filter(Boolean).join("").toUpperCase().slice(0, 2)
+      : domain.charAt(0).toUpperCase();
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128"><rect width="128" height="128" rx="28" fill="#6366F1"/><text x="50%" y="54%" font-family="Inter,system-ui,sans-serif" font-size="56" font-weight="700" fill="white" text-anchor="middle" dominant-baseline="middle">${initials}</text></svg>`;
+    const dataUrl = `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+    primary = { dataUrl, source: "scraped", theme: "light", width: 128, quality: "low" };
+    variants.push(primary);
+    console.log(`[L4 Download] ${domain} → Generated SVG initials "${initials}" (absolute fallback)`);
+  }
+
   console.log(`[L4 Download] ${domain} → Collected ${variants.length} valid variants (primary: ${primary?.source ?? "none"}, elapsed: ${Date.now() - startTime}ms)`);
 
   return buildLibrary(variants, primary);
@@ -498,7 +533,7 @@ async function downloadBestLogo(
  *
  * Results are cached in Redis for 30 days to avoid redundant downloads.
  */
-export async function fetchLogoApis(domain: string, scrapedLogoUrls?: string[]): Promise<{
+export async function fetchLogoApis(domain: string, scrapedLogoUrls?: string[], companyName?: string): Promise<{
   brandfetch: BrandfetchResult | null;
   downloadedLogo: DownloadedLogo | null;
   logoLibrary: LogoLibrary;
@@ -508,7 +543,7 @@ export async function fetchLogoApis(domain: string, scrapedLogoUrls?: string[]):
 
   // Download ALL logos from every source (with Redis cache)
   // Pass scraped logos as a fallback source before Google Favicon
-  const logoLibrary = await downloadBestLogo(domain, brandfetch?.logos ?? [], scrapedLogoUrls);
+  const logoLibrary = await downloadBestLogo(domain, brandfetch?.logos ?? [], scrapedLogoUrls, companyName);
 
   return { brandfetch, downloadedLogo: logoLibrary.primary, logoLibrary };
 }

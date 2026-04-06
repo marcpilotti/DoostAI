@@ -95,8 +95,12 @@ export async function runBrandIntelligencePipeline(
     // L3: Social media detection (from HTML)
     timed(() => Promise.resolve(detectSocialPresence(input.html, input.links))),
 
-    // L4: Logo APIs (Brandfetch + Clearbit + scraped logos as fallback)
-    timed(() => fetchLogoApis(domain, input.scrapedLogos)),
+    // L4: Logo APIs (Brandfetch + Logo.dev + Clearbit + scraped logos + OG image as fallback)
+    timed(() => fetchLogoApis(
+      domain,
+      [...(input.ogImage ? [input.ogImage] : []), ...(input.scrapedLogos ?? [])],
+      input.companyName,
+    )),
 
     // L5b: Website audit (from HTML)
     timed(() => Promise.resolve(auditWebsite(input.url, input.html, input.links))),

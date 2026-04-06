@@ -15,3 +15,4 @@ export {
   type ColorPalette,
   type HarmonySet,
 } from "./color-harmony";
+export { INDUSTRY_COLORS, INDUSTRY_FONTS } from "./industry-defaults";

@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { createTrace, traceGeneration, flushTraces } from "@doost/ai";
 import type { BrandProfile, BrandScrapeResult, CompanyEnrichment } from "./types";
+import { INDUSTRY_COLORS, INDUSTRY_FONTS, KNOWN_FONTS } from "./industry-defaults";
 
 const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/, "Must be 6-digit hex like #1B2F5B");
 
@@ -55,7 +56,7 @@ export async function buildBrandProfile(
   const enrichedIndustry = enrichment?.industry || undefined;
   const isGenericIndustry = enrichment?.industry ? GENERIC_INDUSTRIES.has(enrichment.industry) : false;
 
-  const context = [
+  let context = [
     `== HARD FACTS (use these directly) ==`,
     enrichment?.name && `Company name: ${enrichment.name}`,
     enrichedIndustry && `Industry (from registry): ${enrichedIndustry}${isGenericIndustry ? " (generic — refine based on website content)" : ""}`,
@@ -64,6 +65,20 @@ export async function buildBrandProfile(
       `Colors found in CSS (hints — may include text/border colors, identify BRAND colors only): ${scrapeResult.colors.join(", ")}`,
     scrapeResult.fonts.length > 0 &&
       `Fonts found in CSS (hints — may include system fonts): ${scrapeResult.fonts.join(", ")}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  if (scrapeResult.colors.length === 0) {
+    const industryKey = enrichedIndustry || "";
+    const palette = INDUSTRY_COLORS[industryKey];
+    if (palette) {
+      context += `\nNote: No brand colors detected from CSS. For ${industryKey}, typical colors are: ${palette.primary}, ${palette.secondary}, ${palette.accent}. Adjust based on content.`;
+    }
+  }
+
+  context += [
+    ``,
     ``,
     `== WEBSITE METADATA ==`,
     `URL: ${scrapeResult.url}`,
@@ -156,6 +171,17 @@ ${context}`,
   if (cssFonts.length >= 1 && cssFonts[0]) finalFonts.heading = cssFonts[0];
   if (cssFonts.length >= 2 && cssFonts[1]) finalFonts.body = cssFonts[1];
   else if (cssFonts.length === 1 && cssFonts[0]) finalFonts.body = cssFonts[0];
+
+  // Validate against known fonts — reject hallucinated names
+  if (finalFonts.heading && !KNOWN_FONTS.has(finalFonts.heading)) {
+    const industryKey = enrichedIndustry || object?.industry || "";
+    const fallback = INDUSTRY_FONTS[industryKey];
+    if (fallback) {
+      console.log(`[profile-builder] Font "${finalFonts.heading}" not recognized, using industry default: ${fallback.heading}`);
+      finalFonts.heading = fallback.heading;
+      finalFonts.body = fallback.body;
+    }
+  }
 
   const primaryLogo =
     scrapeResult.logoUrls[0] ?? scrapeResult.ogImage ?? undefined;

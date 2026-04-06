@@ -2,6 +2,8 @@ import {
   buildBrandProfile,
   enrichCompany,
   generateHarmonySet,
+  INDUSTRY_COLORS,
+  INDUSTRY_FONTS,
   scrapeWithFallback,
 } from "@doost/brand";
 import { runBrandIntelligencePipeline } from "@doost/intelligence";
@@ -30,6 +32,42 @@ const inputSchema = z.object({
  *   { event: "complete", profile: { ... }, progress: 100 }
  *   { event: "error", message: "..." }
  */
+function isValidHex(c: unknown): c is string {
+  return typeof c === "string" && /^#[0-9a-fA-F]{6}$/.test(c);
+}
+
+function findIndustryMatch<T>(map: Record<string, T>, industry: string): T | undefined {
+  if (map[industry]) return map[industry];
+  const lower = industry.toLowerCase();
+  for (const [key, value] of Object.entries(map)) {
+    const firstWord = key.toLowerCase().split(" ")[0] || "";
+    if (firstWord && lower.includes(firstWord)) return value;
+  }
+  return undefined;
+}
+
+function guaranteeMinimumProfile(result: Record<string, unknown>): void {
+  const industry = (result.industry as string) || "";
+
+  const colors = (result.colors || {}) as Record<string, unknown>;
+  const fallbackPalette = findIndustryMatch(INDUSTRY_COLORS, industry)
+    || { primary: "#6366F1", secondary: "#A5B4FC", accent: "#818CF8" };
+
+  if (!isValidHex(colors.primary)) colors.primary = fallbackPalette.primary;
+  if (!isValidHex(colors.secondary)) colors.secondary = fallbackPalette.secondary;
+  if (!isValidHex(colors.accent)) colors.accent = fallbackPalette.accent;
+  if (!isValidHex(colors.background)) colors.background = "#FFFFFF";
+  if (!isValidHex(colors.text)) colors.text = "#1A1A1A";
+  result.colors = colors;
+
+  const fonts = (result.fonts || {}) as Record<string, unknown>;
+  const fallbackFonts = findIndustryMatch(INDUSTRY_FONTS, industry) || { heading: "Inter", body: "Inter" };
+
+  if (!fonts.heading || fonts.heading === "undefined") fonts.heading = fallbackFonts.heading;
+  if (!fonts.body || fonts.body === "undefined") fonts.body = fallbackFonts.body;
+  result.fonts = fonts;
+}
+
 export async function POST(req: Request) {
   let body: unknown;
   try { body = await req.json(); } catch {
@@ -201,6 +239,19 @@ export async function POST(req: Request) {
             ? { heading: intel.font.value.family, body: intel.font.value.family }
             : clean.fonts;
 
+        const foundParts: string[] = [];
+        if (downloadedLogo?.dataUrl) foundParts.push("logotyp");
+        if (intel?.colors?.confidence && intel.colors.confidence >= 60) foundParts.push("färger");
+        else if (scrapeResult.colors.length > 0) foundParts.push("färger (CSS)");
+        if (intel?.font?.confidence && intel.font.confidence >= 70) foundParts.push("typsnitt");
+        else if (scrapeResult.fonts.length > 0) foundParts.push("typsnitt (CSS)");
+        send({
+          message: foundParts.length > 0
+            ? `Hittade ${foundParts.join(", ")} från webbplatsen`
+            : "Använder smarta standardvärden för din bransch",
+          progress: 88
+        });
+
         // Validate colors before harmony generation
         const isHex = (c: unknown): c is string => typeof c === "string" && /^#[0-9a-fA-F]{6}$/.test(c);
         const _colorHarmony =
@@ -239,6 +290,9 @@ export async function POST(req: Request) {
               }
             : null,
         };
+
+        // Ensure every brand profile has minimum viable assets
+        guaranteeMinimumProfile(result as Record<string, unknown>);
 
         const completeEvent = {
           event: "complete" as const,

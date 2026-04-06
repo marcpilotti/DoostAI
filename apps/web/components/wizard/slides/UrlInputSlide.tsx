@@ -284,7 +284,7 @@ export function UrlInputSlide() {
           <button
             type="button"
             onClick={() => {
-              setInput("idewerksbeauty.se");
+              setInput("danielwellington.com");
               setError("");
             }}
             className="cursor-pointer underline underline-offset-2 transition-colors hover:text-[var(--color-text-secondary)]"
@@ -296,7 +296,7 @@ export function UrlInputSlide() {
               padding: 0,
             }}
           >
-            idewerksbeauty.se
+            danielwellington.com
           </button>
         </motion.p>
       </div>

@@ -32,6 +32,18 @@ export async function scrapeWithFallback(url: string): Promise<BrandScrapeResult
     console.warn("[scrape] Firecrawl attempt 2 failed, falling back to basic fetch:", e instanceof Error ? e.message : e);
   }
 
+  // Try with www. prefix before basic fetch
+  if (!url.includes("www.")) {
+    try {
+      const wwwUrl = url.replace("://", "://www.");
+      console.log(`[scrape] Trying with www prefix: ${wwwUrl}`);
+      const wwwResult = await scrapeBrand(wwwUrl);
+      if (wwwResult) return wwwResult;
+    } catch (err) {
+      console.warn(`[scrape] www prefix also failed:`, err instanceof Error ? err.message : err);
+    }
+  }
+
   // Attempt 3: Basic fetch fallback (no external dependency)
   try {
     return await scrapeFallback(url);
@@ -52,46 +64,62 @@ export async function scrapeWithFallback(url: string): Promise<BrandScrapeResult
   }
 }
 
+function resolveUrl(base: string, relative: string): string {
+  try { return new URL(relative, base).href; } catch { return relative; }
+}
+
 async function scrapeFallback(url: string): Promise<BrandScrapeResult> {
   const normalizedUrl = url.startsWith("http") ? url : `https://${url}`;
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 20_000);
+  const res = await fetch(normalizedUrl, {
+    signal: AbortSignal.timeout(10_000),
+    headers: { "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" },
+  });
+  const html = await res.text();
 
-  try {
-    const res = await fetch(normalizedUrl, {
-      signal: controller.signal,
-      headers: { "User-Agent": "DoostBot/1.0 (brand-analysis)" },
-    });
-    const html = await res.text();
-    clearTimeout(timeout);
+  const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+  const descMatch = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)/i);
+  const ogImageMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)/i);
+  const faviconMatch = html.match(/<link[^>]+rel=["'](?:icon|shortcut icon)["'][^>]+href=["']([^"']+)/i);
 
-    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-    const descMatch = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)/i);
-    const ogImageMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)/i);
-    const faviconMatch = html.match(/<link[^>]+rel=["'](?:icon|shortcut icon)["'][^>]+href=["']([^"']+)/i);
-
-    const colors = extractColorsFromHtml(html);
-    const fonts = extractFontsFromHtml(html);
-    const logoUrls: string[] = [];
-    if (ogImageMatch?.[1]) logoUrls.push(ogImageMatch[1]);
-    if (faviconMatch?.[1]) {
-      const fav = faviconMatch[1].startsWith("http") ? faviconMatch[1] : new URL(faviconMatch[1], normalizedUrl).href;
-      logoUrls.push(fav);
-    }
-
-    return {
-      url: normalizedUrl,
-      title: titleMatch?.[1]?.trim() ?? "",
-      description: descMatch?.[1]?.trim() ?? "",
-      colors,
-      fonts,
-      logoUrls,
-      links: [],
-      rawHtml: html.slice(0, 50_000),
-    };
-  } finally {
-    clearTimeout(timeout);
+  const colors = extractColorsFromHtml(html);
+  const fonts = extractFontsFromHtml(html);
+  const logoUrls: string[] = [];
+  if (ogImageMatch?.[1]) logoUrls.push(ogImageMatch[1]);
+  if (faviconMatch?.[1]) {
+    const fav = faviconMatch[1].startsWith("http") ? faviconMatch[1] : new URL(faviconMatch[1], normalizedUrl).href;
+    logoUrls.push(fav);
   }
+
+  // Extract favicon and apple-touch-icon links
+  const iconRegex = /<link[^>]+rel=["'](?:icon|shortcut icon|apple-touch-icon)[^"']*["'][^>]+href=["']([^"']+)["']/gi;
+  let iconMatch;
+  while ((iconMatch = iconRegex.exec(html)) !== null) {
+    if (iconMatch[1]) logoUrls.push(resolveUrl(url, iconMatch[1]));
+  }
+
+  // Extract img elements with "logo" in attributes
+  const logoImgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*(?:alt|class|id)=["'][^"']*logo[^"']*["']/gi;
+  let logoImgMatch;
+  while ((logoImgMatch = logoImgRegex.exec(html)) !== null) {
+    if (logoImgMatch[1]) logoUrls.push(resolveUrl(url, logoImgMatch[1]));
+  }
+  // Also try reverse order: logo attr first, then src
+  const logoImgRegex2 = /<img[^>]*(?:alt|class|id)=["'][^"']*logo[^"']*["'][^>]+src=["']([^"']+)["']/gi;
+  let logoImgMatch2;
+  while ((logoImgMatch2 = logoImgRegex2.exec(html)) !== null) {
+    if (logoImgMatch2[1]) logoUrls.push(resolveUrl(url, logoImgMatch2[1]));
+  }
+
+  return {
+    url: normalizedUrl,
+    title: titleMatch?.[1]?.trim() ?? "",
+    description: descMatch?.[1]?.trim() ?? "",
+    colors,
+    fonts,
+    logoUrls,
+    links: [],
+    rawHtml: html.slice(0, 50_000),
+  };
 }
 
 export async function scrapeBrand(url: string): Promise<BrandScrapeResult> {
