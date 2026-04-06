@@ -319,8 +319,38 @@ async function downloadBestLogo(
   let primary: DownloadedLogo | null = null;
 
   // -----------------------------------------------------------------------
-  // Phase 1: Logo.dev + Brandfetch (parallel) — high quality
+  // Phase 1: SCRAPED LOGOS from the actual website — most trustworthy source
+  // The company's own website knows its own logo better than any third-party API.
   // -----------------------------------------------------------------------
+  if (scrapedLogoUrls && scrapedLogoUrls.length > 0) {
+    console.log(`[L4 Download] ${domain} → Phase 1: trying ${scrapedLogoUrls.length} scraped logos from website`);
+    for (const scrapedUrl of scrapedLogoUrls.slice(0, 5)) {
+      if (isTimedOut()) break;
+      const scrapedDataUrl = await downloadAsDataUrl(scrapedUrl, 5000);
+      if (scrapedDataUrl) {
+        const check = validateLogoQuality(scrapedDataUrl);
+        if (check.valid) {
+          console.log(`[L4 Download] ${domain} → Scraped logo OK (${scrapedDataUrl.length} chars) from ${scrapedUrl.substring(0, 80)}`);
+          const logo: DownloadedLogo = { dataUrl: scrapedDataUrl, source: "scraped", theme: "light", width: 200, quality: "high" };
+          variants.push(logo);
+          if (!primary) primary = logo;
+          break; // First valid scraped logo wins — it's from their own site
+        } else {
+          console.log(`[L4 Download] ${domain} → Scraped logo rejected: ${check.reason}`);
+        }
+      }
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  // Phase 2: Brandfetch + Logo.dev (parallel) — brand APIs as verification/fallback
+  // Only set as primary if scraped logo wasn't found.
+  // -----------------------------------------------------------------------
+  if (isTimedOut()) {
+    console.log(`[L4 Download] ${domain} → Total timeout (${TOTAL_TIMEOUT}ms) reached after Phase 1, returning ${variants.length} variants`);
+    return buildLibrary(variants, primary);
+  }
+
   const logoDevToken = process.env.LOGO_DEV_TOKEN;
 
   // Try to find multiple Brandfetch variants (light + dark themes)
@@ -331,7 +361,7 @@ async function downloadBestLogo(
   const bfIconFallback = brandfetchLogos.find((l) => l.type === "icon")
     ?? brandfetchLogos[0];
 
-  // Deduplicate Brandfetch URLs — avoid downloading the same file twice
+  // Deduplicate Brandfetch URLs
   const bfUrls = new Set<string>();
   const bfTargets: { url: string; theme: string; type: string }[] = [];
   for (const candidate of [bfIconLight, bfIconDark, bfIconFallback]) {
@@ -354,7 +384,7 @@ async function downloadBestLogo(
 
   const logoDevDataUrl = logoDevResult.status === "fulfilled" ? logoDevResult.value : null;
 
-  // Process Brandfetch FIRST — higher quality, more variants
+  // Brandfetch — add as variants, set as primary only if no scraped logo
   for (let i = 0; i < brandfetchResults.length; i++) {
     const result = brandfetchResults[i]!;
     const bf = bfTargets[i]!;
@@ -370,34 +400,30 @@ async function downloadBestLogo(
       } else {
         console.log(`[L4 Download] ${domain} → Brandfetch ${bf.type}/${bf.theme} rejected: ${check.reason} (${dataUrl.length} chars)`);
       }
-    } else {
-      console.log(`[L4 Download] ${domain} → Brandfetch ${bf.type}/${bf.theme} failed (CDN error)`);
     }
   }
 
-  // Logo.dev as fallback if Brandfetch didn't produce a primary
+  // Logo.dev — only use as primary if nothing better found
   if (logoDevDataUrl) {
     const check = validateLogoQuality(logoDevDataUrl);
     if (check.valid) {
       console.log(`[L4 Download] ${domain} → Logo.dev OK (${logoDevDataUrl.length} chars)`);
-      const logo: DownloadedLogo = { dataUrl: logoDevDataUrl, source: "logo.dev", theme: "light", width: 128, quality: "high" };
+      const logo: DownloadedLogo = { dataUrl: logoDevDataUrl, source: "logo.dev", theme: "light", width: 128, quality: "medium" };
       variants.push(logo);
       if (!primary) primary = logo;
     } else {
       console.log(`[L4 Download] ${domain} → Logo.dev rejected: ${check.reason} (${logoDevDataUrl.length} chars)`);
     }
-  } else {
-    console.log(`[L4 Download] ${domain} → Logo.dev failed (404 or error)`);
   }
 
   // -----------------------------------------------------------------------
-  // Phase 2: DuckDuckGo + Clearbit (parallel) — good fallbacks, no auth
+  // Phase 3: DuckDuckGo + Clearbit (parallel) — no-auth fallbacks
   // -----------------------------------------------------------------------
   if (isTimedOut()) {
-    console.log(`[L4 Download] ${domain} → Total timeout (${TOTAL_TIMEOUT}ms) reached after Phase 1, returning ${variants.length} variants`);
+    console.log(`[L4 Download] ${domain} → Total timeout (${TOTAL_TIMEOUT}ms) reached after Phase 2, returning ${variants.length} variants`);
     return buildLibrary(variants, primary);
   }
-  console.log(`[L4 Download] ${domain} → Phase 2: trying DuckDuckGo + Clearbit`);
+  console.log(`[L4 Download] ${domain} → Phase 3: trying DuckDuckGo + Clearbit`);
 
   const ddgUrl = `https://icons.duckduckgo.com/ip3/${domain}.ico`;
   const clearbitUrl = `https://logo.clearbit.com/${domain}`;
@@ -439,38 +465,13 @@ async function downloadBestLogo(
   }
 
   // -----------------------------------------------------------------------
-  // Phase 3: Google Favicon — universal fallback, always works (128px)
+  // Phase 4: Google Favicon — universal fallback, always works (128px)
   // -----------------------------------------------------------------------
   if (isTimedOut()) {
-    console.log(`[L4 Download] ${domain} → Total timeout (${TOTAL_TIMEOUT}ms) reached after Phase 2, returning ${variants.length} variants`);
+    console.log(`[L4 Download] ${domain} → Total timeout (${TOTAL_TIMEOUT}ms) reached after Phase 3, returning ${variants.length} variants`);
     return buildLibrary(variants, primary);
   }
-  console.log(`[L4 Download] ${domain} → Phase 3: trying scraped logos + Google Favicon fallback`);
-
-  // Try scraped logos from the pipeline input as a fallback before Google Favicon
-  if (scrapedLogoUrls && scrapedLogoUrls.length > 0) {
-    for (const scrapedUrl of scrapedLogoUrls.slice(0, 3)) { // try up to 3 scraped logos
-      if (isTimedOut()) break;
-      const scrapedDataUrl = await downloadAsDataUrl(scrapedUrl, 3000);
-      if (scrapedDataUrl) {
-        const check = validateLogoQuality(scrapedDataUrl);
-        if (check.valid) {
-          console.log(`[L4 Download] ${domain} → Scraped logo OK (${scrapedDataUrl.length} chars)`);
-          const logo: DownloadedLogo = { dataUrl: scrapedDataUrl, source: "scraped", theme: "light", width: 128, quality: "medium" };
-          variants.push(logo);
-          if (!primary) primary = logo;
-          break; // one good scraped logo is enough
-        } else {
-          console.log(`[L4 Download] ${domain} → Scraped logo rejected: ${check.reason}`);
-        }
-      }
-    }
-  }
-
-  if (isTimedOut()) {
-    console.log(`[L4 Download] ${domain} → Total timeout (${TOTAL_TIMEOUT}ms) reached during Phase 3 scraped logos, returning ${variants.length} variants`);
-    return buildLibrary(variants, primary);
-  }
+  console.log(`[L4 Download] ${domain} → Phase 4: Google Favicon fallback`);
 
   const googleUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
   const googleDataUrl = await downloadAsDataUrl(googleUrl);
