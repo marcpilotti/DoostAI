@@ -34,7 +34,9 @@ export function useWizardNavigation() {
   // Browser back/forward
   useEffect(() => {
     const handlePopState = () => {
-      const hash = window.location.hash.replace("#", "") as WizardStep;
+      let hash = window.location.hash.replace("#", "") as WizardStep;
+      // Backward compat: old step names → new
+      if ((hash as string) === "budget" || (hash as string) === "targeting") hash = "configure" as WizardStep;
       if (WIZARD_STEPS.includes(hash)) {
         goToStep(hash);
       }

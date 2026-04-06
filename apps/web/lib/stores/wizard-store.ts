@@ -10,8 +10,7 @@ export type WizardStep =
   | "audience"
   | "platforms"
   | "ads"
-  | "budget"
-  | "targeting"
+  | "configure"
   | "review"
   | "done";
 
@@ -21,8 +20,7 @@ export const WIZARD_STEPS: WizardStep[] = [
   "audience",
   "platforms",
   "ads",
-  "budget",
-  "targeting",
+  "configure",
   "review",
 ];
 
@@ -33,8 +31,7 @@ export const STEP_LABELS: Record<WizardStep, string> = {
   audience: "Målgrupp",
   platforms: "Plattformar",
   ads: "Annonser",
-  budget: "Budget",
-  targeting: "Targeting",
+  configure: "Konfigurera",
   review: "Publicera",
   done: "Klart",
 };
@@ -253,7 +250,7 @@ export const useWizardStore = create<WizardState & WizardActions>()(
       reset: () => set(initialState),
     }),
     {
-      name: "doost:wizard-v2",
+      name: "doost:wizard-v3",
       partialize: (state) => ({
         step: state.step,
         url: state.url,
@@ -267,17 +264,24 @@ export const useWizardStore = create<WizardState & WizardActions>()(
       }),
       onRehydrateStorage: () => (state) => {
         if (!state) return;
+        // Migrate from old step names (v2 compat)
+        const s = state.step as string;
+        if (s === "budget" || s === "targeting") {
+          state.step = "configure";
+        }
         // If user refreshes during transient steps, reset to safe state
         if (state.step === "loading" || state.step === "done") {
           state.step = state.brand ? "brand" : "url";
         }
-        // If returning to review/targeting/budget but ads were not persisted, go back to platforms
+        // If returning to review/configure but ads were not persisted, go back to platforms
         if (
-          (state.step === "review" || state.step === "targeting" || state.step === "budget") &&
+          (state.step === "review" || state.step === "configure") &&
           (!state.ads || state.ads.length === 0)
         ) {
           state.step = state.selectedPlatforms?.length ? "platforms" : "brand";
         }
+        // Clean up old v2 storage
+        try { localStorage.removeItem("doost:wizard-v2"); } catch { /* noop */ }
       },
     }
   )

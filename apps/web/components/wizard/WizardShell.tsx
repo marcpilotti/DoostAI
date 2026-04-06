@@ -11,11 +11,10 @@ import { useWizardStore, WIZARD_STEPS } from "@/lib/stores/wizard-store";
 import { AdViewSlide } from "./slides/AdViewSlide";
 import { AudienceSlide } from "./slides/AudienceSlide";
 import { BrandCardSlide } from "./slides/BrandCardSlide";
-import { BudgetSlide } from "./slides/BudgetSlide";
+import { ConfigureSlide } from "./slides/ConfigureSlide";
 import { LoadingSlide } from "./slides/LoadingSlide";
 import { PlatformSelectSlide } from "./slides/PlatformSelectSlide";
-import { ReviewPublishSlide } from "./slides/ReviewPublishSlide";
-import { TargetingSlide } from "./slides/TargetingSlide";
+import { ReviewSlide } from "./slides/ReviewSlide";
 import { UrlInputSlide } from "./slides/UrlInputSlide";
 
 const CTA_LABELS: Record<string, string> = {
@@ -23,9 +22,8 @@ const CTA_LABELS: Record<string, string> = {
   brand: "Definiera målgrupp →",
   audience: "Välj plattformar →",
   platforms: "Skapa annonser →",
-  ads: "Nästa: budget & publicering →",
-  budget: "Fortsätt →",
-  targeting: "Granska kampanj →",
+  ads: "Nästa: konfigurera kampanj →",
+  configure: "Granska kampanj →",
   review: "",
 };
 
@@ -43,12 +41,10 @@ function SlideContent({ step }: { step: string }) {
       return <PlatformSelectSlide />;
     case "ads":
       return <AdViewSlide />;
-    case "budget":
-      return <BudgetSlide />;
-    case "targeting":
-      return <TargetingSlide />;
+    case "configure":
+      return <ConfigureSlide />;
     case "review":
-      return <ReviewPublishSlide />;
+      return <ReviewSlide />;
     default:
       return null;
   }
