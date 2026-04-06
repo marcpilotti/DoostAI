@@ -1,5 +1,13 @@
-import { join } from "path";
 import type { NextConfig } from "next";
+import { join } from "path";
+
+const securityHeaders = [
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "X-XSS-Protection", value: "1; mode=block" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+];
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: join(__dirname, "../../"),
@@ -10,6 +18,7 @@ const nextConfig: NextConfig = {
     "@doost/brand",
     "@doost/templates",
     "@doost/intelligence",
+    "@doost/triggers",
   ],
   images: {
     remotePatterns: [
@@ -28,6 +37,14 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: false,
   },
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: securityHeaders,
+      },
+    ];
+  },
   webpack: (config) => {
     config.module.rules.push({
       test: /\.node$/,
@@ -42,6 +59,7 @@ const nextConfig: NextConfig = {
 let exportedConfig = nextConfig;
 try {
   if (process.env.SENTRY_DSN && !process.env.SENTRY_DSN.startsWith("https://...")) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { withSentryConfig } = require("@sentry/nextjs");
     exportedConfig = withSentryConfig(nextConfig, {
       silent: true,

@@ -76,7 +76,7 @@ export const googleDeployCampaign = inngest.createFunction(
         dailyBudgetMicros: dailyBudget * 1_000_000, // SEK to micros
         headlines: ["Headline 1", "Headline 2", "Headline 3"], // from ad_creatives in real flow
         descriptions: ["Description 1", "Description 2"],
-        finalUrl: "https://doost.tech", // TODO: use brand profile URL from campaign
+        finalUrl: (event.data as Record<string, unknown>).brandUrl as string ?? "https://doost.tech",
         locations: campaign.targeting?.locations?.includes("SE")
           ? ["2752"]
           : undefined,

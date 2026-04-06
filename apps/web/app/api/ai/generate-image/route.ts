@@ -18,28 +18,25 @@ const inputSchema = z.object({
 });
 
 export async function POST(req: Request) {
-  const { userId } = await auth();
+  const { userId, orgId: clerkOrgId } = await auth();
   if (!userId) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } });
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
   const { allowed } = await rateLimit(`img:${userId}`, 10, 60_000);
   if (!allowed) {
-    return NextResponse.json({ error: "Rate limited" }, { status: 429 });
+    return NextResponse.json({ success: false, error: "Rate limited" }, { status: 429 });
   }
 
   const body = await req.json();
   const parsed = inputSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Invalid input", details: parsed.error.flatten() },
-      { status: 400 },
-    );
+    return NextResponse.json({ success: false, error: "Invalid input" }, { status: 400 });
   }
 
   const { model, prompt, size, referenceImages, organizationId } = parsed.data;
-  const orgId = organizationId ?? "demo";
+  const orgId = organizationId ?? clerkOrgId ?? "demo";
   const cost = getCreditCost(model);
 
   // Check balance

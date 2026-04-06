@@ -3,6 +3,14 @@ import type { CompanyEnrichment } from "./types";
 const ROARING_API_URL =
   process.env.ROARING_API_URL ?? "https://api.roaring.io";
 
+function hashCode(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
+}
+
 function useMock(): boolean {
   return (
     process.env.ROARING_MOCK === "true" || !process.env.ROARING_API_KEY?.length
@@ -20,6 +28,7 @@ async function roaringFetch(path: string): Promise<unknown> {
       Authorization: `Bearer ${apiKey}`,
       Accept: "application/json",
     },
+    signal: AbortSignal.timeout(5_000),
   });
 
   if (!res.ok) {
@@ -156,10 +165,10 @@ function enrichFromMock(domain: string): CompanyEnrichment | null {
 
   return {
     name: `${capitalized} AB`,
-    orgNumber: `5592${Math.floor(10 + Math.random() * 90)}-${Math.floor(1000 + Math.random() * 9000)}`,
+    orgNumber: `5592${String(hashCode(normalized) % 90 + 10)}-${String(hashCode(normalized + "salt") % 9000 + 1000)}`,
     // industry intentionally omitted — AI will infer from website content
-    employeeCount: Math.floor(10 + Math.random() * 200),
-    revenue: `${Math.floor(5 + Math.random() * 100)} MSEK`,
+    employeeCount: (hashCode(normalized) % 200) + 10,
+    revenue: `${(hashCode(normalized + "rev") % 100) + 5} MSEK`,
     location: "Stockholm",
   };
 }

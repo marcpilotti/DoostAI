@@ -94,7 +94,9 @@ export default function ActionsPage() {
         const data = await res.json();
         setActions((prev) => prev.map((a) => a.id === action.id ? { ...a, status: "done" } : a));
         toast.success("Action executed", data.message ?? action.title);
-        try { (window as unknown as { posthog?: { capture: (event: string, props: Record<string, unknown>) => void } }).posthog?.capture("action_executed", { type: action.type, target: action.target }); } catch {}
+        if (typeof window !== "undefined" && "posthog" in window) {
+          (window as { posthog?: { capture: (event: string, props: Record<string, unknown>) => void } }).posthog?.capture("action_executed", { type: action.type, target: action.target });
+        }
       } else {
         setActions((prev) => prev.map((a) => a.id === action.id ? { ...a, status: "failed" } : a));
         toast.error("Action failed", `Could not execute: ${action.title}`);

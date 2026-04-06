@@ -1,8 +1,9 @@
 "use client";
 
-import { Check, CreditCard, ExternalLink, Sparkles } from "lucide-react";
+import { useOrganization } from "@clerk/nextjs";
+import { Check, CreditCard, ExternalLink, Loader2, Sparkles } from "lucide-react";
+import { useState } from "react";
 
-// TODO: Wire orgId from Clerk user/org when DB is connected
 import { Button } from "@/components/ui/button";
 import {
   getPlanDisplayName,
@@ -34,25 +35,31 @@ const PLAN_FEATURES: Record<Plan, string[]> = {
 function PlanCard({
   plan,
   currentPlan,
+  orgId,
 }: {
   plan: Plan;
   currentPlan: Plan;
+  orgId: string | undefined;
 }) {
   const isCurrent = plan === currentPlan;
   const price = PLAN_PRICES[plan];
   const features = PLAN_FEATURES[plan];
   const isPopular = plan === "pro";
 
+  const [loading, setLoading] = useState(false);
+
   async function handleUpgrade() {
-    if (plan === "free" || isCurrent) return;
+    if (plan === "free" || isCurrent || !orgId || loading) return;
+    setLoading(true);
 
     const res = await fetch("/api/stripe/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan, orgId: "pending" }),
+      body: JSON.stringify({ plan, orgId }),
     });
     const data = await res.json();
     if (data.url) window.location.href = data.url;
+    else setLoading(false);
   }
 
   return (
@@ -99,22 +106,25 @@ function PlanCard({
         onClick={handleUpgrade}
         variant={isCurrent ? "outline" : isPopular ? "default" : "outline"}
         className={isPopular && !isCurrent ? "bg-indigo-500 hover:bg-indigo-600" : ""}
-        disabled={isCurrent}
+        disabled={isCurrent || !orgId || loading}
       >
-        {isCurrent ? "Nuvarande plan" : plan === "free" ? "Gratis" : "Uppgradera"}
+        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : isCurrent ? "Nuvarande plan" : plan === "free" ? "Gratis" : "Uppgradera"}
       </Button>
     </div>
   );
 }
 
 export default function BillingPage() {
+  const { organization } = useOrganization();
+  const orgId = organization?.id;
   const currentPlan: Plan = "free";
 
   async function handlePortal() {
+    if (!orgId) return;
     const res = await fetch("/api/stripe/portal", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ orgId: "demo-org" }),
+      body: JSON.stringify({ orgId }),
     });
     const data = await res.json();
     if (data.url) window.location.href = data.url;
@@ -132,7 +142,7 @@ export default function BillingPage() {
       {/* Plan cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {PLANS.map((plan) => (
-          <PlanCard key={plan} plan={plan} currentPlan={currentPlan} />
+          <PlanCard key={plan} plan={plan} currentPlan={currentPlan} orgId={orgId} />
         ))}
       </div>
 
@@ -148,6 +158,7 @@ export default function BillingPage() {
           onClick={handlePortal}
           variant="outline"
           className="mt-4"
+          disabled={!orgId}
         >
           <CreditCard className="mr-2 h-4 w-4" />
           Öppna kundportal

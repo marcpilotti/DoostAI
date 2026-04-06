@@ -1,30 +1,20 @@
-import { safeQuery,supabase } from "@/lib/supabase";
-
-let mockBalance = 2500;
+import { creditLedger, db, desc, eq } from "@doost/db";
 
 /**
- * Get credit balance. Tries Supabase first, falls back to in-memory.
+ * Get credit balance for an organization.
+ * Reads the most recent ledger entry's balance_after.
  */
 export async function getBalance(orgId: string): Promise<number> {
-  // Try real DB
-  const data = await safeQuery(() =>
-    supabase
-      .from("credit_ledger")
-      .select("balance_after")
-      .eq("organization_id", orgId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single(),
-  );
+  try {
+    const [latest] = await db
+      .select({ balanceAfter: creditLedger.balanceAfter })
+      .from(creditLedger)
+      .where(eq(creditLedger.orgId, orgId))
+      .orderBy(desc(creditLedger.createdAt))
+      .limit(1);
 
-  if (data && typeof (data as { balance_after?: number }).balance_after === "number") {
-    return (data as { balance_after: number }).balance_after;
+    return latest?.balanceAfter ?? 0;
+  } catch {
+    return 0;
   }
-
-  // Fallback to mock
-  return mockBalance;
-}
-
-export function _setMockBalance(balance: number) {
-  mockBalance = balance;
 }

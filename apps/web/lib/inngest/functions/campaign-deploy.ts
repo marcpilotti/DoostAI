@@ -27,14 +27,16 @@ export const campaignDeploy = inngest.createFunction(
     triggers: [{ event: "campaign/deploy" }],
   },
   async ({ event, step }) => {
-    const { orgId, campaignName, platforms, budget, targeting } =
+    const { orgId, campaignName, platforms, budget, targeting, brandUrl } =
       event.data as {
         orgId: string;
         campaignName: string;
         platforms: string[];
         budget: { daily: number; currency: string };
         targeting: { locations?: string[] };
+        brandUrl?: string;
       };
+    const destinationUrl = brandUrl || "https://doost.tech";
 
     // Fan out: deploy all platforms in parallel
     const results = await Promise.allSettled(
@@ -120,7 +122,7 @@ export const campaignDeploy = inngest.createFunction(
                   "Upptäck hur vi kan hjälpa ditt företag växa.",
                   "Professionella lösningar för nordiska företag.",
                 ],
-                finalUrl: "https://doost.tech",
+                finalUrl: destinationUrl,
                 locations: targeting.locations?.includes("SE")
                   ? ["2752"]
                   : undefined,
@@ -145,7 +147,7 @@ export const campaignDeploy = inngest.createFunction(
                   headline: campaignName,
                   bodyCopy: "",
                   cta: "Läs mer",
-                  destinationUrl: "https://doost.tech",
+                  destinationUrl,
                 },
               });
               return {

@@ -1,7 +1,7 @@
-import { db, campaigns, eq, sql } from "@doost/db";
+import { db, campaigns, campaignEvents, eq, asc } from "@doost/db";
 
 import type { CampaignEvent, CampaignState } from "../machines/campaign-machine";
-import { canTransition, getNextState } from "../machines/campaign-machine";
+import { canTransition, getAvailableEvents, getNextState } from "../machines/campaign-machine";
 
 type CampaignEventRecord = {
   campaignId: string;
@@ -37,10 +37,16 @@ export async function transitionCampaign(
   const currentState = campaign.status as CampaignState;
 
   if (!canTransition(currentState, event.type)) {
+    const available = getAvailableEvents(currentState);
+    console.error("[campaign-state] Invalid transition attempted", {
+      campaignId,
+      currentState,
+      attemptedEvent: event.type,
+      allowedEvents: available,
+      actor,
+    });
     throw new Error(
-      `Invalid transition: ${currentState} → ${event.type}. Allowed: ${Object.keys(
-        {} /* getAvailableEvents would go here */,
-      ).join(", ")}`,
+      `Invalid transition: ${currentState} → ${event.type}. Allowed: ${available.join(", ")}`,
     );
   }
 
@@ -49,21 +55,16 @@ export async function transitionCampaign(
     throw new Error(`No target state for ${currentState} + ${event.type}`);
   }
 
-  // Insert event record into campaign_events table
-  // Using raw SQL since the table isn't in Drizzle schema yet
-  await db.execute(sql`
-    INSERT INTO campaign_events (id, campaign_id, org_id, event_type, from_state, to_state, payload, actor)
-    VALUES (
-      gen_random_uuid(),
-      ${campaignId},
-      ${campaign.orgId},
-      ${event.type},
-      ${currentState},
-      ${nextState},
-      ${JSON.stringify(event)}::jsonb,
-      ${actor}
-    )
-  `);
+  // Insert event record
+  await db.insert(campaignEvents).values({
+    campaignId,
+    orgId: campaign.orgId,
+    eventType: event.type,
+    fromState: currentState,
+    toState: nextState,
+    payload: event as unknown as Record<string, unknown>,
+    actor,
+  });
 
   // Update campaign status
   await db
@@ -83,14 +84,25 @@ export async function transitionCampaign(
 export async function getCampaignHistory(
   campaignId: string,
 ): Promise<CampaignEventRecord[]> {
-  const rows = await db.execute(sql`
-    SELECT campaign_id, org_id, event_type, from_state, to_state, payload, actor, created_at
-    FROM campaign_events
-    WHERE campaign_id = ${campaignId}
-    ORDER BY created_at ASC
-  `);
+  const rows = await db
+    .select({
+      campaignId: campaignEvents.campaignId,
+      orgId: campaignEvents.orgId,
+      eventType: campaignEvents.eventType,
+      fromState: campaignEvents.fromState,
+      toState: campaignEvents.toState,
+      payload: campaignEvents.payload,
+      actor: campaignEvents.actor,
+    })
+    .from(campaignEvents)
+    .where(eq(campaignEvents.campaignId, campaignId))
+    .orderBy(asc(campaignEvents.createdAt));
 
-  return (rows ?? []) as unknown as CampaignEventRecord[];
+  return rows.map((r) => ({
+    ...r,
+    payload: (r.payload ?? {}) as Record<string, unknown>,
+    actor: r.actor ?? "system",
+  }));
 }
 
 /**

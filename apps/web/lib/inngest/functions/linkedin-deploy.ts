@@ -60,7 +60,7 @@ export const linkedinDeployCampaign = inngest.createFunction(
           headline: campaign.name,
           bodyCopy: "",
           cta: "Läs mer",
-          destinationUrl: "https://doost.tech", // TODO: use brand profile URL from campaign
+          destinationUrl: (event.data as Record<string, unknown>).brandUrl as string ?? "https://doost.tech",
         },
       });
     });

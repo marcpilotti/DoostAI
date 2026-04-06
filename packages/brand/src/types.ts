@@ -84,6 +84,7 @@ export const brandProfileSchema = z.object({
   competitors: z.array(z.string()),
   rawScrapeData: z.unknown().optional(),
   rawEnrichmentData: z.unknown().optional(),
+  profileCompleteness: z.number().min(0).max(100).optional(),
 });
 
 export type BrandProfile = z.infer<typeof brandProfileSchema>;

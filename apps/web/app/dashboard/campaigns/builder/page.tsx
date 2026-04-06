@@ -2,7 +2,7 @@
 
 import { ReactFlowProvider } from "@xyflow/react";
 import dynamic from "next/dynamic";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { useCampaignBuilderStore } from "@/lib/stores/campaign-builder";
 
@@ -28,14 +28,15 @@ const CampaignCanvas = dynamic(
 
 export default function CampaignBuilderPage() {
   const { nodes, loadTemplate } = useCampaignBuilderStore();
+  const initialized = useRef(false);
 
-  // Load quick-ad template if canvas is empty
+  // Load quick-ad template if canvas is empty (once on mount)
   useEffect(() => {
-    if (nodes.length === 0) {
+    if (!initialized.current && nodes.length === 0) {
+      initialized.current = true;
       loadTemplate("quick-ad");
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [nodes.length, loadTemplate]);
 
   return (
     <ReactFlowProvider>

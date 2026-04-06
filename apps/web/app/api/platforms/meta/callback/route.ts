@@ -29,6 +29,11 @@ export async function GET(req: Request) {
   const { verifyOAuthState } = await import("@/lib/auth/oauth-state");
   const verified = verifyOAuthState(state);
   if (!verified) {
+    console.error("[oauth:meta] State verification failed", {
+      userId,
+      ip: req.headers.get("x-forwarded-for") ?? "unknown",
+      timestamp: new Date().toISOString(),
+    });
     redirect("/chat?meta_error=invalid_state");
   }
   const orgId = verified.orgId;

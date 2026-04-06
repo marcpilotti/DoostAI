@@ -54,7 +54,7 @@ export const platformAccountSetup = inngest.createFunction(
             }
 
             // Create account record (actual API call would go here)
-            const accountId = `act_${Date.now()}`;
+            const accountId = `act_${crypto.randomUUID().replace(/-/g, "")}`;
             await db.insert(adAccounts).values({
               orgId,
               platform: "meta",
@@ -78,7 +78,7 @@ export const platformAccountSetup = inngest.createFunction(
               return;
             }
 
-            const customerId = `cust_${Date.now()}`;
+            const customerId = `cust_${crypto.randomUUID().replace(/-/g, "")}`;
             await db.insert(adAccounts).values({
               orgId,
               platform: "google",

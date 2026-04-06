@@ -239,10 +239,42 @@ class LinkedInAdapterImpl implements AdPlatformAdapter {
     return { campaignId: result.campaignId, platformName: "linkedin", status: "paused" };
   }
 
-  async pauseCampaign() {}
-  async resumeCampaign() {}
-  async uploadCreative(): Promise<PlatformCreativeResult> { return { creativeId: "pending" }; }
-  async getCampaignInsights(): Promise<CampaignInsights> { return { impressions: 0, clicks: 0, spend: 0, ctr: 0, cpc: 0, conversions: 0 }; }
+  async pauseCampaign(campaignId: string): Promise<void> {
+    const { LinkedInAdsClient, pauseLinkedInCampaign } = await import("./linkedin");
+    const client = new LinkedInAdsClient(this.creds.accessToken as string);
+    await pauseLinkedInCampaign(client, campaignId);
+  }
+
+  async resumeCampaign(campaignId: string): Promise<void> {
+    const { LinkedInAdsClient, resumeLinkedInCampaign } = await import("./linkedin");
+    const client = new LinkedInAdsClient(this.creds.accessToken as string);
+    await resumeLinkedInCampaign(client, campaignId);
+  }
+
+  async uploadCreative(): Promise<PlatformCreativeResult> {
+    return { creativeId: "pending" };
+  }
+
+  async getCampaignInsights(campaignId: string, dateRange: DateRange): Promise<CampaignInsights> {
+    const { LinkedInAdsClient, getLinkedInCampaignAnalytics } = await import("./linkedin");
+    const client = new LinkedInAdsClient(this.creds.accessToken as string);
+    const results = await getLinkedInCampaignAnalytics(client, campaignId, dateRange.since, dateRange.until);
+    if (results.length === 0) return { impressions: 0, clicks: 0, spend: 0, ctr: 0, cpc: 0, conversions: 0 };
+    const totals = results.reduce(
+      (acc: { impressions: number; clicks: number; spend: number }, r) => ({
+        impressions: acc.impressions + r.impressions,
+        clicks: acc.clicks + r.clicks,
+        spend: acc.spend + r.spend,
+      }),
+      { impressions: 0, clicks: 0, spend: 0 },
+    );
+    return {
+      ...totals,
+      ctr: totals.impressions > 0 ? totals.clicks / totals.impressions : 0,
+      cpc: totals.clicks > 0 ? totals.spend / totals.clicks : 0,
+      conversions: 0,
+    };
+  }
 
   getOAuthUrl(redirectUri: string, state?: string): string {
     const { linkedinGetOAuthUrl } = require("./linkedin") as typeof import("./linkedin");

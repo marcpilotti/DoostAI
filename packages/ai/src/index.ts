@@ -60,3 +60,5 @@ export {
   replayCampaignState,
   transitionCampaign,
 } from "./services/campaign-state";
+export { buildAIContext } from "./context-builder";
+export type { AIContextInput } from "./context-builder";

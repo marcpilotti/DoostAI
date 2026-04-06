@@ -29,6 +29,16 @@ const MODELS = [
   { id: "claude-opus-4-6", label: "Opus", cost: 5 },
 ];
 
+// ── Trigger notification type ────────────────────────────────────
+
+type TriggerNotification = {
+  id: string;
+  title: string;
+  body: string;
+  type: string;
+  priority: "low" | "medium" | "high";
+};
+
 // ── Page context builder ─────────────────────────────────────────
 
 function getPageContext(pathname: string): PageContext {
@@ -37,9 +47,9 @@ function getPageContext(pathname: string): PageContext {
       page: "home",
       summary: "User is on the Home dashboard viewing KPIs (clicks, views, ROAS, ad spend, revenue), a performance chart, and campaign activity feed.",
       suggestedPrompts: [
-        "What should I focus on today?",
-        "Summarize this week's performance",
-        "Any underperforming campaigns?",
+        "Vad bör jag fokusera på idag?",
+        "Sammanfatta veckans resultat",
+        "Har jag underpresterande kampanjer?",
       ],
     };
   }
@@ -48,9 +58,9 @@ function getPageContext(pathname: string): PageContext {
       page: "creatives",
       summary: "User is on the Creatives page viewing a grid of ad creatives with ROAS, Spend, and CTR metrics. They can sort and filter creatives.",
       suggestedPrompts: [
-        "Which creatives should I scale?",
-        "Compare my top performers",
-        "Generate new ad variants",
+        "Vilka kreativ bör jag skala upp?",
+        "Jämför mina toppkreativ",
+        "Generera nya annonsvarianter",
       ],
     };
   }
@@ -59,9 +69,9 @@ function getPageContext(pathname: string): PageContext {
       page: "campaigns",
       summary: "User is on the Campaigns page viewing their active and past campaigns.",
       suggestedPrompts: [
-        "How are my campaigns performing?",
-        "Which campaign should I pause?",
-        "Suggest budget optimizations",
+        "Hur presterar mina kampanjer?",
+        "Vilken kampanj bör jag pausa?",
+        "Föreslå budgetoptimeringar",
       ],
     };
   }
@@ -70,9 +80,9 @@ function getPageContext(pathname: string): PageContext {
       page: "analytics",
       summary: "User is on the Analytics page viewing detailed performance data.",
       suggestedPrompts: [
-        "What are the key trends?",
-        "Compare channels",
-        "Where am I wasting budget?",
+        "Vilka är de viktigaste trenderna?",
+        "Jämför kanaler",
+        "Var slösar jag budget?",
       ],
     };
   }
@@ -80,8 +90,8 @@ function getPageContext(pathname: string): PageContext {
     page: "other",
     summary: "User is browsing the dashboard.",
     suggestedPrompts: [
-      "What should I focus on?",
-      "Give me an overview",
+      "Vad bör jag fokusera på?",
+      "Ge mig en översikt",
     ],
   };
 }
@@ -163,6 +173,43 @@ function ActionBlock({ type, target }: { type: string; target: string }) {
       )}
       Execute: {target}
     </button>
+  );
+}
+
+// ── Trigger notification card ────────────────────────────────────
+
+function TriggerCard({
+  notification,
+  onAct,
+}: {
+  notification: TriggerNotification;
+  onAct: (text: string) => void;
+}) {
+  const priorityStyles = {
+    high: "border-[var(--color-error,#DC2626)]/30 bg-red-50/50",
+    medium: "border-[var(--color-warning,#F59E0B)]/30 bg-amber-50/50",
+    low: "border-[var(--doost-border)] bg-[var(--doost-bg)]",
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`my-2 rounded-xl border p-3 ${priorityStyles[notification.priority]}`}
+    >
+      <p className="text-[12px] font-semibold text-[var(--doost-text)]">
+        {notification.title}
+      </p>
+      <p className="mt-1 text-[11px] text-[var(--doost-text-secondary)]">
+        {notification.body}
+      </p>
+      <button
+        onClick={() => onAct(notification.title)}
+        className="mt-2 rounded-lg bg-[var(--doost-bg-active)] px-3 py-1.5 text-[11px] font-medium text-white hover:opacity-90"
+      >
+        Ja, hjälp mig
+      </button>
+    </motion.div>
   );
 }
 
@@ -251,8 +298,10 @@ export function AIPanel({ open, onClose }: { open: boolean; onClose: () => void 
   const [isStreaming, setIsStreaming] = useState(false);
   const [selectedModel, setSelectedModel] = useState("claude-sonnet-4-6");
   const [showModelPicker, setShowModelPicker] = useState(false);
+  const [triggerNotifications, setTriggerNotifications] = useState<TriggerNotification[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   // Keep ref in sync so callbacks always have fresh messages
   useEffect(() => { messagesRef.current = messages; }, [messages]);
@@ -267,6 +316,29 @@ export function AIPanel({ open, onClose }: { open: boolean; onClose: () => void 
     if (!open) return;
     const timer = setTimeout(() => inputRef.current?.focus(), 300);
     return () => clearTimeout(timer);
+  }, [open]);
+
+  // Abort inflight request on unmount
+  useEffect(() => {
+    return () => { abortRef.current?.abort(); };
+  }, []);
+
+  // Fetch trigger notifications when panel opens
+  useEffect(() => {
+    if (!open) return;
+    (async () => {
+      try {
+        const res = await fetch("/api/dashboard/triggers");
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.triggers)) {
+            setTriggerNotifications(data.triggers);
+          }
+        }
+      } catch {
+        // Triggers are best-effort
+      }
+    })();
   }, [open]);
 
   // Unique ID counter
@@ -285,9 +357,13 @@ export function AIPanel({ open, onClose }: { open: boolean; onClose: () => void 
     const systemContext = `You are the Doost AI marketing assistant. The user is on the ${ctx.page} page. Context: ${ctx.summary}. Respond in the same language as the user. Be concise and actionable. Use markdown for formatting.`;
 
     try {
+      abortRef.current?.abort();
+      abortRef.current = new AbortController();
+
       const res = await fetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: abortRef.current.signal,
         body: JSON.stringify({
           messages: [
             { role: "system", content: systemContext },
@@ -423,6 +499,20 @@ export function AIPanel({ open, onClose }: { open: boolean; onClose: () => void 
                   <p className="mt-1 text-[12px] text-[var(--doost-text-muted)]">
                     Fråga om kampanjer, kreativ eller resultat.
                   </p>
+
+                  {/* Proactive trigger notifications */}
+                  {triggerNotifications.length > 0 && (
+                    <div className="mt-4 w-full space-y-2">
+                      {triggerNotifications.slice(0, 3).map((n) => (
+                        <TriggerCard
+                          key={n.id}
+                          notification={n}
+                          onAct={(text) => sendMessage(`Hjälp mig med: ${text}`)}
+                        />
+                      ))}
+                    </div>
+                  )}
+
                   <div className="mt-4 w-full space-y-2">
                     {[
                       { q: "Vilka kreativ presterar bäst?", desc: "Analysera toppresterande annonser" },

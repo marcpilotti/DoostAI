@@ -3,6 +3,7 @@ import { generateAdCopy } from "@doost/ai";
 import { z } from "zod";
 
 import { type AdImageInput, generateCompleteAdImage } from "@/lib/ads/ad-image-pipeline";
+import { apiError } from "@/lib/api-response";
 import { rateLimit } from "@/lib/rate-limit";
 
 export const maxDuration = 90;
@@ -53,7 +54,7 @@ export async function POST(req: Request) {
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     const { allowed } = await rateLimit(`adgen:${ip}`, 5, 60_000);
     if (!allowed) {
-      return new Response(JSON.stringify({ error: "Rate limited" }), { status: 429, headers: { "Content-Type": "application/json" } });
+      return apiError("Rate limited", 429);
     }
   } catch {
     // Rate limiting should never block ad generation
@@ -61,15 +62,12 @@ export async function POST(req: Request) {
 
   let body: unknown;
   try { body = await req.json(); } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400, headers: { "Content-Type": "application/json" } });
+    return apiError("Invalid JSON", 400);
   }
   const parsed = inputSchema.safeParse(body);
 
   if (!parsed.success) {
-    return new Response(
-      JSON.stringify({ error: "Invalid input", details: parsed.error.flatten() }),
-      { status: 400, headers: { "Content-Type": "application/json" } },
-    );
+    return apiError("Invalid input", 400);
   }
 
   const { brand, platform, objective, audience, language, preGeneratedImageUrl } = parsed.data;
@@ -78,8 +76,14 @@ export async function POST(req: Request) {
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
+      let closed = false;
       function send(data: Record<string, unknown>) {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+        if (closed) return;
+        try {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+        } catch {
+          closed = true; // Client disconnected
+        }
       }
 
       try {

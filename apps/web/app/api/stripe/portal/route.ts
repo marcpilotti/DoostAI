@@ -4,9 +4,9 @@ import { db, eq, organizations } from "@doost/db";
 import { getStripe } from "@/lib/stripe/client";
 
 export async function POST(req: Request) {
-  const { userId } = await auth();
+  const { userId, orgId: clerkOrgId } = await auth();
   if (!userId) {
-    return new Response("Unauthorized", { status: 401 });
+    return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
   let body: unknown;
@@ -24,11 +24,17 @@ export async function POST(req: Request) {
     .where(eq(organizations.id, orgId))
     .limit(1);
 
-  if (!org?.stripeCustomerId) {
-    return Response.json(
-      { error: "No Stripe customer found" },
-      { status: 400 },
-    );
+  if (!org) {
+    return Response.json({ success: false, error: "Organization not found" }, { status: 404 });
+  }
+
+  // Verify the authenticated user owns this organization
+  if (clerkOrgId && org.clerkOrgId !== clerkOrgId) {
+    return Response.json({ success: false, error: "Not authorized for this organization" }, { status: 403 });
+  }
+
+  if (!org.stripeCustomerId) {
+    return Response.json({ success: false, error: "No Stripe customer found" }, { status: 400 });
   }
 
   try {

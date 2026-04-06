@@ -549,6 +549,53 @@ export const websiteAudits = pgTable(
   (t) => [index("audit_brand_idx").on(t.brandProfileId)],
 );
 
+// --- Credit Ledger ---
+
+export const creditLedger = pgTable(
+  "credit_ledger",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    orgId: uuid("org_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    amount: integer("amount").notNull(),
+    balanceAfter: integer("balance_after").notNull(),
+    type: text("type").notNull(),
+    modelUsed: text("model_used"),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [
+    index("credit_org_idx").on(t.orgId),
+    index("credit_org_date_idx").on(t.orgId, t.createdAt),
+  ],
+);
+
+// --- Campaign Events (event sourcing) ---
+
+export const campaignEvents = pgTable(
+  "campaign_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    campaignId: uuid("campaign_id")
+      .notNull()
+      .references(() => campaigns.id, { onDelete: "cascade" }),
+    orgId: uuid("org_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    eventType: text("event_type").notNull(),
+    fromState: text("from_state").notNull(),
+    toState: text("to_state").notNull(),
+    payload: jsonb("payload").$type<Record<string, unknown>>().default({}),
+    actor: text("actor").default("system"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [
+    index("campaign_events_campaign_idx").on(t.campaignId, t.createdAt),
+    index("campaign_events_org_idx").on(t.orgId, t.createdAt),
+  ],
+);
+
 // --- Relations ---
 
 export const organizationRelations = relations(organizations, ({ many }) => ({
@@ -585,6 +632,18 @@ export const campaignRelations = relations(campaigns, ({ one, many }) => ({
     references: [brandProfiles.id],
   }),
   creatives: many(adCreatives),
+  events: many(campaignEvents),
+}));
+
+export const campaignEventRelations = relations(campaignEvents, ({ one }) => ({
+  campaign: one(campaigns, {
+    fields: [campaignEvents.campaignId],
+    references: [campaigns.id],
+  }),
+  organization: one(organizations, {
+    fields: [campaignEvents.orgId],
+    references: [organizations.id],
+  }),
 }));
 
 export const adCreativeRelations = relations(adCreatives, ({ one, many }) => ({

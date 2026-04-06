@@ -58,6 +58,7 @@ const TRANSITIONS: Record<CampaignState, Record<string, Transition>> = {
   partially_live: {
     RETRY_FAILED: { target: "partially_live" },
     ALL_DEPLOYED: { target: "live" },
+    DEPLOY_FAILED: { target: "review" },
     PAUSE: { target: "paused" },
   },
   paused: {

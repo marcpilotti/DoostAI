@@ -76,7 +76,7 @@ function detectContent(html: string, links: string[]): {
     hasBlog: allLinks.some((l) => l.includes("/blog") || l.includes("/nyheter") || l.includes("/aktuellt")),
     hasContactForm: lower.includes("<form") && (lower.includes("kontakt") || lower.includes("contact") || lower.includes("email")),
     hasPricingPage: allLinks.some((l) => l.includes("/pris") || l.includes("/pricing") || l.includes("/priser")),
-    hasSitemap: false, // Would need a HEAD request to /sitemap.xml
+    hasSitemap: allLinks.some((l) => l.includes("sitemap")) || lower.includes("sitemap.xml"),
   };
 }
 

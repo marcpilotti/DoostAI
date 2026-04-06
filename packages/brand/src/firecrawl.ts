@@ -68,12 +68,34 @@ function resolveUrl(base: string, relative: string): string {
   try { return new URL(relative, base).href; } catch { return relative; }
 }
 
+function isPrivateHostname(hostname: string): boolean {
+  return /^(localhost|127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+|169\.254\.\d+\.\d+|0\.0\.0\.0|::1|\[::1\]|fc[0-9a-f]{2}:|fd[0-9a-f]{2}:|fe80:)/.test(hostname)
+    || hostname.endsWith(".internal")
+    || hostname.endsWith(".local")
+    || hostname.endsWith(".localhost")
+    || hostname === "[::1]";
+}
+
 async function scrapeFallback(url: string): Promise<BrandScrapeResult> {
   const normalizedUrl = url.startsWith("http") ? url : `https://${url}`;
+
+  // Validate initial hostname
+  if (isPrivateHostname(new URL(normalizedUrl).hostname.toLowerCase())) {
+    throw new Error("URL resolves to private network");
+  }
+
   const res = await fetch(normalizedUrl, {
     signal: AbortSignal.timeout(10_000),
+    redirect: "follow",
     headers: { "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" },
   });
+
+  // Validate final URL after redirects to prevent SSRF via redirect chains
+  const finalUrl = res.url;
+  if (finalUrl && isPrivateHostname(new URL(finalUrl).hostname.toLowerCase())) {
+    throw new Error("URL redirected to private network");
+  }
+
   const html = await res.text();
 
   const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);

@@ -1,9 +1,10 @@
 import { db, sql } from "@doost/db";
 
 export async function GET() {
-  const checks: Record<string, "ok" | "error"> = {
+  const checks: Record<string, "ok" | "error" | "unconfigured"> = {
     db: "error",
     redis: "error",
+    inngest: "unconfigured",
   };
 
   // Check database
@@ -33,7 +34,17 @@ export async function GET() {
     // redis unreachable or timed out
   }
 
-  const allOk = Object.values(checks).every((v) => v === "ok");
+  // Check Inngest
+  try {
+    const inngestUrl = process.env.INNGEST_BASE_URL ?? process.env.INNGEST_EVENT_KEY;
+    if (inngestUrl) {
+      checks.inngest = "ok"; // If configured, assume functional (no public health endpoint)
+    }
+  } catch {
+    // inngest unreachable
+  }
+
+  const allOk = Object.values(checks).every((v) => v === "ok" || v === "unconfigured");
 
   return Response.json(
     {

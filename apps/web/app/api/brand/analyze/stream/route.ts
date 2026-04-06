@@ -10,7 +10,7 @@ import { runBrandIntelligencePipeline } from "@doost/intelligence";
 import { z } from "zod";
 
 import { getCachedAnalysis, setCachedAnalysis } from "@/lib/cache/domain-cache";
-
+import { rateLimit } from "@/lib/rate-limit";
 
 export const maxDuration = 90;
 
@@ -85,17 +85,25 @@ function guaranteeMinimumProfile(result: Record<string, unknown>): void {
 }
 
 export async function POST(req: Request) {
+  // Rate limit by IP — this is a public, expensive endpoint
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  try {
+    const { allowed } = await rateLimit(`brand-analyze:${ip}`, 5, 60_000);
+    if (!allowed) {
+      return Response.json({ success: false, error: "Rate limited" }, { status: 429 });
+    }
+  } catch {
+    // Rate limiting should never block analysis
+  }
+
   let body: unknown;
   try { body = await req.json(); } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400, headers: { "Content-Type": "application/json" } });
+    return Response.json({ success: false, error: "Invalid JSON" }, { status: 400 });
   }
   const parsed = inputSchema.safeParse(body);
 
   if (!parsed.success) {
-    return new Response(JSON.stringify({ error: "Invalid URL" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return Response.json({ success: false, error: "Invalid URL" }, { status: 400 });
   }
 
   let { url } = parsed.data;
@@ -103,8 +111,16 @@ export async function POST(req: Request) {
     url = `https://${url}`;
   }
 
+  // Validate URL structure before parsing
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(url);
+  } catch {
+    return Response.json({ success: false, error: "Invalid URL format" }, { status: 400 });
+  }
+
   // Server-side SSRF protection — block private, loopback, and link-local ranges
-  const hostname = new URL(url).hostname.toLowerCase();
+  const hostname = parsedUrl.hostname.toLowerCase();
   const isPrivate =
     /^(localhost|127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+|169\.254\.\d+\.\d+|0\.0\.0\.0|::1|\[::1\]|fc[0-9a-f]{2}:|fd[0-9a-f]{2}:|fe80:)/.test(hostname)
     || hostname.endsWith(".internal")
@@ -113,10 +129,7 @@ export async function POST(req: Request) {
     || hostname === "[::1]"
     || /^\d+$/.test(hostname); // bare numbers (e.g. http://0)
   if (isPrivate) {
-    return new Response(JSON.stringify({ error: "URL not allowed" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return Response.json({ success: false, error: "URL not allowed" }, { status: 400 });
   }
 
   const domain = url.replace(/^https?:\/\//, "").replace(/\/$/, "");
@@ -140,8 +153,14 @@ export async function POST(req: Request) {
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
+      let closed = false;
       function send(data: Record<string, unknown>) {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+        if (closed) return;
+        try {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+        } catch {
+          closed = true; // Client disconnected
+        }
       }
 
       try {

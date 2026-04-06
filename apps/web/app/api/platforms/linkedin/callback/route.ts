@@ -25,6 +25,11 @@ export async function GET(req: Request) {
   const { verifyOAuthState } = await import("@/lib/auth/oauth-state");
   const verified = verifyOAuthState(state);
   if (!verified) {
+    console.error("[oauth:linkedin] State verification failed", {
+      userId,
+      ip: req.headers.get("x-forwarded-for") ?? "unknown",
+      timestamp: new Date().toISOString(),
+    });
     redirect("/chat?linkedin_error=invalid_state");
   }
   const orgId = verified.orgId;

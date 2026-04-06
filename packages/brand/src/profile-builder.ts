@@ -164,9 +164,10 @@ ${context}`,
     return true;
   });
   const finalFonts = { ...object.fonts };
-  // Post-process: reject CSS variables as font names
-  if (finalFonts.heading.startsWith("var(") || finalFonts.heading.startsWith("--")) finalFonts.heading = "Inter";
-  if (finalFonts.body.startsWith("var(") || finalFonts.body.startsWith("--")) finalFonts.body = "Inter";
+  // Post-process: reject CSS variables and sanitize font names
+  const isSafeFont = (f: string): boolean => /^[a-zA-Z0-9\s\-'.]+$/.test(f) && f.length <= 100;
+  if (!isSafeFont(finalFonts.heading) || finalFonts.heading.startsWith("var(") || finalFonts.heading.startsWith("--")) finalFonts.heading = "Inter";
+  if (!isSafeFont(finalFonts.body) || finalFonts.body.startsWith("var(") || finalFonts.body.startsWith("--")) finalFonts.body = "Inter";
   // Filter CSS variables from extracted fonts too — they're not real font names
   const validCssFonts = cssFonts.filter(f => !f.startsWith("var(") && !f.startsWith("--"));
   // Only override if CSS found specific named fonts (not system defaults)
@@ -189,7 +190,7 @@ ${context}`,
   const primaryLogo =
     scrapeResult.logoUrls[0] ?? scrapeResult.ogImage ?? undefined;
 
-  return {
+  const profile: BrandProfile = {
     url: scrapeResult.url,
     name: object.name, // AI reads actual website branding — more accurate than registry
     description: object.description,
@@ -214,4 +215,27 @@ ${context}`,
     rawScrapeData: scrapeResult,
     rawEnrichmentData: enrichment,
   };
+
+  // Calculate profile completeness score (0-100)
+  profile.profileCompleteness = calculateCompleteness(profile);
+
+  return profile;
+}
+
+function calculateCompleteness(profile: BrandProfile): number {
+  const checks = [
+    !!profile.name,
+    !!profile.description,
+    !!profile.industry,
+    !!profile.colors?.primary,
+    !!profile.fonts?.heading,
+    !!profile.logos?.primary,
+    !!profile.brandVoice,
+    !!profile.targetAudience,
+    (profile.valuePropositions?.length ?? 0) > 0,
+    !!profile.orgNumber,
+    !!profile.employeeCount,
+    !!profile.location,
+  ];
+  return Math.round((checks.filter(Boolean).length / checks.length) * 100);
 }

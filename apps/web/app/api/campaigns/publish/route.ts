@@ -1,7 +1,9 @@
 import { auth } from "@clerk/nextjs/server";
+import { db, eq, organizations } from "@doost/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { checkCampaignLimit, checkChannelLimit } from "@/lib/stripe/plan-limits";
 import { safeQuery,supabase } from "@/lib/supabase";
 
 export const maxDuration = 30;
@@ -26,11 +28,11 @@ const inputSchema = z.object({
   // Campaign settings
   dailyBudget: z.number(),
   duration: z.number(),
-  regions: z.array(z.string()),
-  channel: z.string(),
+  regions: z.array(z.string().max(100)).max(20),
+  channel: z.string().max(50),
 
   // Idempotency
-  idempotencyKey: z.string().optional(),
+  idempotencyKey: z.string().uuid().optional(),
 });
 
 /**
@@ -57,6 +59,47 @@ export async function POST(req: Request) {
   }
 
   const data = parsed.data;
+
+  // ── Plan limit enforcement ──
+  if (orgId) {
+    const [org] = await db
+      .select({ plan: organizations.plan })
+      .from(organizations)
+      .where(eq(organizations.clerkOrgId, orgId))
+      .limit(1);
+
+    if (org) {
+      // Count active campaigns for this org
+      const activeCount = await safeQuery(() =>
+        supabase
+          .from("campaigns")
+          .select("id", { count: "exact", head: true })
+          .eq("org_id", orgId)
+          .in("status", ["draft", "generating", "review", "publishing", "live", "paused"]),
+      );
+      const count = typeof activeCount === "object" && activeCount !== null && "count" in activeCount
+        ? (activeCount as { count: number }).count
+        : 0;
+
+      const campaignCheck = checkCampaignLimit(org.plan, count);
+      if (!campaignCheck.allowed) {
+        return NextResponse.json({
+          success: false,
+          error: campaignCheck.reason,
+          upgrade: { suggestedPlan: campaignCheck.suggestedPlan },
+        }, { status: 403 });
+      }
+
+      const channelCheck = checkChannelLimit(org.plan, 1);
+      if (!channelCheck.allowed) {
+        return NextResponse.json({
+          success: false,
+          error: channelCheck.reason,
+          upgrade: { suggestedPlan: channelCheck.suggestedPlan },
+        }, { status: 403 });
+      }
+    }
+  }
 
   // Idempotency: check for duplicate campaign (same brand + channel + budget) in last 5 minutes
   const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();

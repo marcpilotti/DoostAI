@@ -1,3 +1,3 @@
 export * from "./schema";
-export { db } from "./client";
-export { eq, and, or, lt, gt, gte, lte, ne, isNull, isNotNull, sql } from "drizzle-orm";
+export { db, setOrgContext } from "./client";
+export { eq, and, or, lt, gt, gte, lte, ne, isNull, isNotNull, asc, desc, sql } from "drizzle-orm";

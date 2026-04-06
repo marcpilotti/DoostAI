@@ -5,19 +5,19 @@ import { z } from "zod";
 const visionSchema = z.object({
   logo_description: z.string().describe("Description of the logo seen on the page"),
   dominant_colors: z.array(z.object({
-    hex: z.string().describe("Hex color code"),
+    hex: z.string().regex(/^#[0-9a-fA-F]{6}$/).describe("Hex color code (#RRGGBB)"),
     role: z.string().describe("Where this color is used: primary, accent, background, text, nav"),
   })).describe("Top 3-5 dominant brand colors visible on the page"),
   font_category: z.enum(["sans", "serif", "mono", "display"]).describe("Primary font category"),
   visual_style: z.enum(["modern", "classic", "playful", "premium", "neutral"]).describe("Overall visual style"),
   detected_fonts: z.array(z.object({
-    name: z.string().describe("Exact font name if recognizable (e.g. 'Montserrat', 'Playfair Display')"),
+    name: z.string().max(100).describe("Exact font name if recognizable (e.g. 'Montserrat', 'Playfair Display')"),
     role: z.enum(["heading", "body"]).describe("Whether this is used for headings or body text"),
-    confidence: z.number().describe("How confident 0-100 that this is the exact font"),
+    confidence: z.number().min(0).max(100).describe("How confident 0-100 that this is the exact font"),
   })).describe("Fonts detected visually from the page. Only include if you can identify the specific font."),
   industry_guess: z.string().describe("Best guess at the company's industry in Swedish"),
   tagline: z.string().optional().describe("Company tagline if visible"),
-  confidence: z.number().describe("Overall confidence 0-100"),
+  confidence: z.number().min(0).max(100).describe("Overall confidence 0-100"),
 });
 
 export type VisionAnalysis = z.infer<typeof visionSchema>;

@@ -1,6 +1,8 @@
 import { anthropic } from "@ai-sdk/anthropic";
 import { openai } from "@ai-sdk/openai";
 import { auth } from "@clerk/nextjs/server";
+import { buildAIContext } from "@doost/ai";
+import { db, eq, organizations } from "@doost/db";
 import { streamText, tool } from "ai";
 import { generateText } from "ai";
 import { z } from "zod";
@@ -51,7 +53,7 @@ const inputSchema = z.object({
 export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } });
+    return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
   // Rate limit by IP
@@ -59,20 +61,20 @@ export async function POST(req: Request) {
     ?? req.headers.get("x-real-ip")
     ?? "unknown";
   if (!checkRateLimit(ip)) {
-    return new Response(
-      JSON.stringify({ error: "Too many requests. Please wait a moment." }),
-      { status: 429, headers: { "Content-Type": "application/json", "Retry-After": "60" } },
+    return Response.json(
+      { success: false, error: "Too many requests. Please wait a moment." },
+      { status: 429, headers: { "Retry-After": "60" } },
     );
   }
 
   let body: unknown;
   try { body = await req.json(); } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400 });
+    return Response.json({ success: false, error: "Invalid JSON" }, { status: 400 });
   }
 
   const parsed = inputSchema.safeParse(body);
   if (!parsed.success) {
-    return new Response(JSON.stringify({ error: "Invalid input" }), { status: 400 });
+    return Response.json({ success: false, error: "Invalid input" }, { status: 400 });
   }
 
   const { messages, model: modelId } = parsed.data;
@@ -108,7 +110,25 @@ Available action types:
   const systemMessage = messages.find((m) => m.role === "system");
   const otherMessages = messages.filter((m) => m.role !== "system");
 
-  const fullSystem = (systemMessage?.content ?? "") + actionSystemPrompt;
+  // Build customer-aware AI context from the Living Profile
+  let profileContext = "";
+  const { orgId: clerkOrgId } = await auth();
+  if (clerkOrgId) {
+    try {
+      const [org] = await db
+        .select({ id: organizations.id })
+        .from(organizations)
+        .where(eq(organizations.clerkOrgId, clerkOrgId))
+        .limit(1);
+      if (org) {
+        profileContext = await buildAIContext({ orgId: org.id, clerkOrgId });
+      }
+    } catch {
+      // Profile context is best-effort — never block chat
+    }
+  }
+
+  const fullSystem = profileContext + "\n\n" + (systemMessage?.content ?? "") + actionSystemPrompt;
 
   const result = streamText({
     model: anthropic(resolvedModel),

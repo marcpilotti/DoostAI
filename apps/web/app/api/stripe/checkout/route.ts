@@ -4,19 +4,19 @@ import { db, eq, organizations } from "@doost/db";
 import { getStripe, PRICE_IDS } from "@/lib/stripe/client";
 
 export async function POST(req: Request) {
-  const { userId } = await auth();
+  const { userId, orgId: clerkOrgId } = await auth();
   if (!userId) {
-    return new Response("Unauthorized", { status: 401 });
+    return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
   let body: unknown;
   try { body = await req.json(); } catch {
-    return Response.json({ error: "Invalid JSON" }, { status: 400 });
+    return Response.json({ success: false, error: "Invalid JSON" }, { status: 400 });
   }
   const plan = (body as Record<string, unknown>)?.plan;
   const orgId = (body as Record<string, unknown>)?.orgId;
   if (typeof plan !== "string" || typeof orgId !== "string" || !["starter", "pro", "agency"].includes(plan)) {
-    return Response.json({ error: "Invalid plan or orgId" }, { status: 400 });
+    return Response.json({ success: false, error: "Invalid plan or orgId" }, { status: 400 });
   }
 
   const priceId = PRICE_IDS[plan as "starter" | "pro" | "agency"];
@@ -35,7 +35,12 @@ export async function POST(req: Request) {
     .limit(1);
 
   if (!org) {
-    return Response.json({ error: "Organization not found" }, { status: 404 });
+    return Response.json({ success: false, error: "Organization not found" }, { status: 404 });
+  }
+
+  // Verify the authenticated user owns this organization
+  if (clerkOrgId && org.clerkOrgId !== clerkOrgId) {
+    return Response.json({ success: false, error: "Not authorized for this organization" }, { status: 403 });
   }
 
   try {

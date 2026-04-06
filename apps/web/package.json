@@ -19,6 +19,7 @@
     "@doost/db": "workspace:*",
     "@doost/intelligence": "workspace:*",
     "@doost/platforms": "workspace:*",
+    "@doost/triggers": "workspace:*",
     "@doost/templates": "workspace:*",
     "@fal-ai/serverless-client": "^0.15.0",
     "@hookform/resolvers": "^5.2.2",

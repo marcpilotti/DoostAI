@@ -77,6 +77,16 @@ export async function POST(req: Request) {
             ? subscription.customer
             : subscription.customer.id;
 
+        // Idempotency: skip if plan already matches (prevents race on retries)
+        const [existingOrg] = await db
+          .select({ plan: organizations.plan, stripeSubscriptionId: organizations.stripeSubscriptionId })
+          .from(organizations)
+          .where(eq(organizations.stripeCustomerId, customerId))
+          .limit(1);
+        if (existingOrg?.plan === plan && existingOrg?.stripeSubscriptionId === subscription.id) {
+          break; // Already up to date
+        }
+
         await db
           .update(organizations)
           .set({

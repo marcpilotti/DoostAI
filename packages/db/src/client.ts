@@ -1,4 +1,5 @@
 import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { sql } from "drizzle-orm";
 import postgres from "postgres";
 
 import * as schema from "./schema";
@@ -32,3 +33,12 @@ export const db: Database = new Proxy({} as Database, {
     return value;
   },
 });
+
+/**
+ * Set the current org context for Supabase RLS policies.
+ * Uses `set_config` with `is_local = true` so the value is transaction-scoped.
+ * Call this before org-scoped Drizzle queries in API routes / server actions.
+ */
+export async function setOrgContext(orgId: string): Promise<void> {
+  await getDb().execute(sql`SELECT set_config('app.current_org_id', ${orgId}, true)`);
+}

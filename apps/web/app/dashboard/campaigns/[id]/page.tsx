@@ -35,16 +35,36 @@ export default function CampaignDetailPage() {
   const isLive = status === "live";
   const isPaused = status === "paused";
 
-  function handlePause() {
+  async function handlePause() {
+    const prev = status;
     setStatus("paused");
-    toast.success("Campaign paused", campaign!.name);
-    try { (window as unknown as { posthog?: { capture: (event: string, props: Record<string, unknown>) => void } }).posthog?.capture("campaign_paused", { campaign_id: id, campaign_name: campaign!.name }); } catch {}
+    try {
+      const res = await fetch(`/api/campaigns/${id}/pause`, { method: "POST" });
+      if (!res.ok) throw new Error("pause failed");
+      toast.success("Campaign paused", campaign!.name);
+      if (typeof window !== "undefined" && "posthog" in window) {
+        (window as { posthog?: { capture: (event: string, props: Record<string, unknown>) => void } }).posthog?.capture("campaign_paused", { campaign_id: id, campaign_name: campaign!.name });
+      }
+    } catch {
+      setStatus(prev);
+      toast.error("Could not pause campaign", campaign!.name);
+    }
   }
 
-  function handleResume() {
+  async function handleResume() {
+    const prev = status;
     setStatus("live");
-    toast.success("Campaign resumed", campaign!.name);
-    try { (window as unknown as { posthog?: { capture: (event: string, props: Record<string, unknown>) => void } }).posthog?.capture("campaign_resumed", { campaign_id: id, campaign_name: campaign!.name }); } catch {}
+    try {
+      const res = await fetch(`/api/campaigns/${id}/resume`, { method: "POST" });
+      if (!res.ok) throw new Error("resume failed");
+      toast.success("Campaign resumed", campaign!.name);
+      if (typeof window !== "undefined" && "posthog" in window) {
+        (window as { posthog?: { capture: (event: string, props: Record<string, unknown>) => void } }).posthog?.capture("campaign_resumed", { campaign_id: id, campaign_name: campaign!.name });
+      }
+    } catch {
+      setStatus(prev);
+      toast.error("Could not resume campaign", campaign!.name);
+    }
   }
 
   return (

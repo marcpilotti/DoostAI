@@ -9,7 +9,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useCallback,useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { getAvailableModels, getCreditCost } from "@/lib/providers/model-router";
 
@@ -60,6 +60,15 @@ export default function CreativeStudioPage() {
   const [balance, setBalance] = useState(2500);
   const [error, setError] = useState<string | null>(null);
   const [referenceImages, setReferenceImages] = useState<string[]>([]);
+
+  // Revoke blob URLs on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      referenceImages.forEach((url) => {
+        if (url.startsWith("blob:")) URL.revokeObjectURL(url);
+      });
+    };
+  }, [referenceImages]);
 
   const models = getAvailableModels("growth"); // TODO: get from user's plan
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -17,6 +17,8 @@ import {
   metaPollInsights,
   metaRefreshTokens,
   optimizerAnalyze,
+  profileTriggerEval,
+  profileWeeklyRefresh,
   weeklyDigest,
 } from "@/lib/inngest/functions";
 
@@ -39,5 +41,7 @@ export const { GET, POST, PUT } = serve({
     optimizerAnalyze,
     weeklyDigest,
     embeddingsUpdate,
+    profileTriggerEval,
+    profileWeeklyRefresh,
   ],
 });

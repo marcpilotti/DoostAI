@@ -10,7 +10,6 @@
  * so the user sees genuinely distinct options, not just word swaps.
  */
 
-import { anthropic } from "@ai-sdk/anthropic";
 import { generateObject } from "ai";
 import { z } from "zod";
 import type { BrandContext } from "../types";
@@ -141,8 +140,11 @@ Finally, recommend which variant to start with and why (one sentence).`;
     const cached = await getCachedStrategy(cacheKey);
     if (cached) return cached;
 
+    const { routeModel } = await import("../router");
+    const { model } = routeModel({ messageTokens: Math.ceil(prompt.length / 4), intent: "analysis", requiresTools: false, isRegeneration: false });
+
     const { object } = await generateObject({
-      model: anthropic("claude-haiku-4-5-20251001"),
+      model,
       schema: strategySchema,
       prompt,
       temperature: 0.7,

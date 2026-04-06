@@ -8,6 +8,9 @@ const isProtectedRoute = createRouteMatcher([
   "/api/brand/(.*)",
   "/api/campaigns(.*)",
   "/api/credits/(.*)",
+  "/api/dashboard/(.*)",
+  "/api/stripe/(.*)",
+  "/api/actions/(.*)",
 ]);
 
 const isPublicRoute = createRouteMatcher([
@@ -34,7 +37,7 @@ export default clerkMiddleware(async (auth, req) => {
 
   // Protected routes — require authentication
   if (isProtectedRoute(req)) {
-    const { userId } = await auth();
+    const { userId, orgId } = await auth();
     if (!userId) {
       // API routes get 401, pages get redirected
       if (req.nextUrl.pathname.startsWith("/api/")) {
@@ -47,6 +50,14 @@ export default clerkMiddleware(async (auth, req) => {
       redirect.headers.set("X-Request-Id", crypto.randomUUID());
       return redirect;
     }
+
+    // Pass org context downstream for Supabase RLS
+    const response = NextResponse.next();
+    response.headers.set("X-Request-Id", crypto.randomUUID());
+    if (orgId) {
+      response.headers.set("X-Org-Id", orgId);
+    }
+    return response;
   }
 
   // Default: add X-Request-Id to all responses

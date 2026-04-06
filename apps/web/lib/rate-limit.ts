@@ -6,11 +6,18 @@
 import { Redis } from "@upstash/redis";
 
 let redis: Redis | null = null;
+let warnedNoRedis = false;
 function getRedis(): Redis | null {
   if (redis) return redis;
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) return null;
+  if (!url || !token) {
+    if (!warnedNoRedis) {
+      warnedNoRedis = true;
+      console.warn("[rate-limit] Redis not configured — using in-memory fallback. Set UPSTASH_REDIS_* for production.");
+    }
+    return null;
+  }
   redis = new Redis({ url, token });
   return redis;
 }

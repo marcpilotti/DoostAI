@@ -11,7 +11,7 @@ import { safeQuery,supabase } from "@/lib/supabase";
 export async function GET() {
   const { userId } = await auth();
   if (!userId) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } });
+    return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
   const realData = await safeQuery(() =>

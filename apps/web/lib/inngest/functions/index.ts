@@ -14,4 +14,6 @@ export { metaPollInsights } from "./meta-insights";
 export { metaRefreshTokens } from "./meta-tokens";
 export { optimizerAnalyze } from "./optimizer-analyze";
 export { platformAccountSetup } from "./platform-account-setup";
+export { profileTriggerEval } from "./profile-triggers";
+export { profileWeeklyRefresh } from "./profile-weekly-refresh";
 export { weeklyDigest } from "./weekly-digest";

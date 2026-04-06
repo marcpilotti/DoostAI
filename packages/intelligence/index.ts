@@ -8,3 +8,5 @@ export { mergeIntelligence, type MergedBrandIntelligence, type ConfidenceField }
 export { extractSchemaOrg, type SchemaOrgData } from "./src/schema-org";
 export { clusterColors, type ClusteredColor } from "./src/color-clustering";
 export { analyzeCompetitorAds, type CompetitorAdInsight, type OwnAdInsight, type CompetitorPattern } from "./src/competitor-ads";
+export { trackSignal, aggregateBehaviorProfile, type BehaviorSignalType, type BehaviorSignalData } from "./src/behavior-tracker";
+export { updatePerformanceProfile } from "./src/performance-analyzer";

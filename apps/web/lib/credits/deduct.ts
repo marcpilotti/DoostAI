@@ -1,6 +1,6 @@
-import { safeQuery,supabase } from "@/lib/supabase";
+import { creditLedger, db } from "@doost/db";
 
-import { _setMockBalance,getBalance } from "./check";
+import { getBalance } from "./check";
 
 export type DeductResult = {
   success: boolean;
@@ -9,7 +9,8 @@ export type DeductResult = {
 };
 
 /**
- * Deduct credits. Tries Supabase first, falls back to in-memory.
+ * Deduct credits from an organization's balance.
+ * Inserts a negative ledger entry.
  */
 export async function deductCredits(
   orgId: string,
@@ -24,21 +25,18 @@ export async function deductCredits(
 
   const newBalance = balance - amount;
 
-  // Try real DB insert
-  const inserted = await safeQuery(() =>
-    supabase.from("credit_ledger").insert({
-      organization_id: orgId,
+  try {
+    await db.insert(creditLedger).values({
+      orgId,
       amount: -amount,
-      balance_after: newBalance,
+      balanceAfter: newBalance,
       type: metadata?.type ?? "adjustment",
-      model_used: metadata?.model,
+      modelUsed: metadata?.model,
       metadata: metadata as Record<string, unknown>,
-    }).select("id").single(),
-  );
-
-  if (!inserted) {
-    // Fallback to mock
-    _setMockBalance(newBalance);
+    });
+  } catch (err) {
+    console.error("[credits] Deduction failed:", err instanceof Error ? err.message : err);
+    return { success: false, balanceAfter: balance, error: "Credit deduction failed" };
   }
 
   return { success: true, balanceAfter: newBalance };

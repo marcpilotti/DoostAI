@@ -81,6 +81,10 @@ export function buildBrandCopyPrefix(brandProfileId: string): string {
   return `copy-brand:${brandProfileId}`;
 }
 
+export function buildBrandStrategyPrefix(brandProfileId: string): string {
+  return `strategy-brand:${brandProfileId}`;
+}
+
 /**
  * Get cached hero copy result.
  * Returns null on cache miss or Redis unavailable.
@@ -205,18 +209,26 @@ export async function setCachedStrategy(
   cacheKey: string,
   result: AdStrategySet,
   ttlSeconds: number = 3600,
+  brandProfileId?: string,
 ): Promise<void> {
   const redis = getRedis();
   if (!redis) return;
   try {
     await redis.setex(cacheKey, ttlSeconds, result);
+
+    // Track strategy key under the brand for bulk invalidation
+    if (brandProfileId) {
+      const setKey = buildBrandStrategyPrefix(brandProfileId);
+      await redis.sadd(setKey, cacheKey);
+      await redis.expire(setKey, ttlSeconds + 3600);
+    }
   } catch (err) {
     console.warn("[cache] Strategy write failure:", err instanceof Error ? err.message : err);
   }
 }
 
 /**
- * Invalidate all cached copy for a brand profile.
+ * Invalidate all cached copy AND strategy for a brand profile.
  * Called when brand profile is updated (colors, name, etc.).
  */
 export async function invalidateBrandCopy(
@@ -226,13 +238,19 @@ export async function invalidateBrandCopy(
   if (!redis) return 0;
 
   try {
-    const setKey = buildBrandCopyPrefix(brandProfileId);
-    const keys = await redis.smembers(setKey);
-    if (keys.length === 0) return 0;
+    const copySetKey = buildBrandCopyPrefix(brandProfileId);
+    const strategySetKey = buildBrandStrategyPrefix(brandProfileId);
 
-    // Delete all cached copy keys + the tracking set
-    await redis.del(...keys, setKey);
-    return keys.length;
+    const [copyKeys, strategyKeys] = await Promise.all([
+      redis.smembers(copySetKey),
+      redis.smembers(strategySetKey),
+    ]);
+
+    const allKeys = [...copyKeys, copySetKey, ...strategyKeys, strategySetKey].filter(Boolean);
+    if (allKeys.length === 0) return 0;
+
+    await redis.del(...allKeys);
+    return allKeys.length;
   } catch {
     return 0;
   }
