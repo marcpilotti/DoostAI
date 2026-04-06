@@ -329,7 +329,12 @@ async function downloadBestLogo(
       const scrapedDataUrl = await downloadAsDataUrl(scrapedUrl, 5000);
       if (scrapedDataUrl) {
         const check = validateLogoQuality(scrapedDataUrl);
-        if (check.valid) {
+        const hasLogoInPath = scrapedUrl.toLowerCase().includes("logo");
+        // Extra size check for non-logo-named images: >50KB is probably a photo, not a logo
+        const base64Size = Math.ceil((scrapedDataUrl.split(",")[1]?.length ?? 0) * 3 / 4);
+        if (!hasLogoInPath && base64Size > 50_000) {
+          console.log(`[L4 Download] ${domain} → Scraped image too large for logo (${Math.round(base64Size/1024)}KB, no "logo" in path), skipping: ${scrapedUrl.substring(0, 80)}`);
+        } else if (check.valid) {
           console.log(`[L4 Download] ${domain} → Scraped logo OK (${scrapedDataUrl.length} chars) from ${scrapedUrl.substring(0, 80)}`);
           const logo: DownloadedLogo = { dataUrl: scrapedDataUrl, source: "scraped", theme: "light", width: 200, quality: "high" };
           variants.push(logo);
