@@ -48,7 +48,21 @@ function findIndustryMatch<T>(map: Record<string, T>, industry: string): T | und
 
 function guaranteeMinimumProfile(result: Record<string, unknown>): void {
   const industry = (result.industry as string) || "";
+  const name = (result.name as string) || "";
 
+  // Logo: generate SVG initials if no logo at all
+  const logos = (result.logos || {}) as Record<string, unknown>;
+  if (!logos.primary || (typeof logos.primary === "string" && logos.primary.length < 10)) {
+    const initials = name ? name.split(/\s+/).map(w => w[0]).filter(Boolean).join("").toUpperCase().slice(0, 2) : "?";
+    const primaryColor = isValidHex((result.colors as Record<string, unknown>)?.primary)
+      ? (result.colors as Record<string, unknown>).primary as string
+      : "#6366F1";
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128"><rect width="128" height="128" rx="28" fill="${primaryColor}"/><text x="50%" y="54%" font-family="Inter,system-ui,sans-serif" font-size="56" font-weight="700" fill="white" text-anchor="middle" dominant-baseline="middle">${initials}</text></svg>`;
+    logos.primary = `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+    result.logos = logos;
+  }
+
+  // Colors: ensure all 5 slots are valid hex
   const colors = (result.colors || {}) as Record<string, unknown>;
   const fallbackPalette = findIndustryMatch(INDUSTRY_COLORS, industry)
     || { primary: "#6366F1", secondary: "#A5B4FC", accent: "#818CF8" };
@@ -60,6 +74,7 @@ function guaranteeMinimumProfile(result: Record<string, unknown>): void {
   if (!isValidHex(colors.text)) colors.text = "#1A1A1A";
   result.colors = colors;
 
+  // Fonts: ensure heading + body are set
   const fonts = (result.fonts || {}) as Record<string, unknown>;
   const fallbackFonts = findIndustryMatch(INDUSTRY_FONTS, industry) || { heading: "Inter", body: "Inter" };
 

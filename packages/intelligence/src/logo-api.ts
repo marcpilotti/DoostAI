@@ -293,11 +293,22 @@ async function downloadBestLogo(
     return Date.now() - startTime > TOTAL_TIMEOUT;
   }
 
-  /** Helper: build and cache the library from whatever we have so far */
-  function buildLibrary(variants: DownloadedLogo[], primary: DownloadedLogo | null): LogoLibrary {
+  /** Helper: build and cache the library from whatever we have so far.
+   *  Guarantees primary is NEVER null — generates SVG initials as last resort. */
+  function buildLibrary(variants: DownloadedLogo[], p: DownloadedLogo | null): LogoLibrary {
+    let primary = p;
+    if (!primary) {
+      const initials = companyName
+        ? companyName.split(/\s+/).map(w => w[0]).filter(Boolean).join("").toUpperCase().slice(0, 2)
+        : domain.charAt(0).toUpperCase();
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128"><rect width="128" height="128" rx="28" fill="#6366F1"/><text x="50%" y="54%" font-family="Inter,system-ui,sans-serif" font-size="56" font-weight="700" fill="white" text-anchor="middle" dominant-baseline="middle">${initials}</text></svg>`;
+      const dataUrl = `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+      primary = { dataUrl, source: "scraped", theme: "light", width: 128, quality: "low" };
+      variants.push(primary);
+      console.log(`[L4 Download] ${domain} → Generated SVG initials "${initials}" in buildLibrary (guaranteed fallback)`);
+    }
     const library: LogoLibrary = { primary, variants };
     if (variants.length > 0) {
-      // Fire-and-forget cache write (don't block return on timeout path)
       void setCachedLogoLibrary(domain, library);
     }
     return library;
