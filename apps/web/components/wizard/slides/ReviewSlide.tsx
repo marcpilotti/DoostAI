@@ -1,48 +1,34 @@
 "use client";
 
 /**
- * ReviewSlide — redesigned review + publish page.
- *
- * 9 components: step indicator, campaign summary, reach estimator,
- * cost breakdown, publish method, trust signals, reassurance,
- * primary CTA, inline success state.
+ * ReviewSlide — final review page before publishing.
+ * Clean, focused: cost breakdown + publishing method + CTA.
  */
 
 import { useAuth } from "@clerk/nextjs";
-import { Check, Lock, Shield, Star } from "lucide-react";
+import { Check, ChevronRight, Lock, Sparkles, Zap } from "lucide-react";
 import { motion } from "motion/react";
 import { useCallback, useState } from "react";
 
-import { cardVariants, transitions } from "@/lib/motion";
 import { useWizardStore } from "@/lib/stores/wizard-store";
 
-import { ConfigureStepIndicator } from "../shared/ConfigureStepIndicator";
-import { LiveReachEstimator } from "../shared/LiveReachEstimator";
-
 const SIGN_IN_PATH = "/sign-in";
-const DOOST_FEE_RATE = 0.10; // 10% — adjust to actual pricing
+const DOOST_FEE_RATE = 0.10;
 
 type PublishState = "idle" | "publishing" | "done";
 
 export function ReviewSlide() {
-  const { brand, ads, budget, targeting, selectedPlatforms, projections, publishMode, setPublishMode, goToStep, reset } = useWizardStore();
+  const { brand, ads, budget, targeting, selectedPlatforms, publishMode, setPublishMode, reset } = useWizardStore();
   const { isSignedIn } = useAuth();
   const [publishState, setPublishState] = useState<PublishState>("idle");
   const [publishError, setPublishError] = useState("");
   const [selectedMethod, setSelectedMethod] = useState<"managed" | "self">(publishMode || "managed");
 
   const selectedAds = ads.filter((a) => a.selected);
-  const locationStr = targeting?.locations?.join(", ") || "Hela Sverige";
-  const ageStr = targeting ? `${targeting.ageMin}–${targeting.ageMax} år` : "";
   const totalBudget = budget?.totalBudget || 0;
   const adSpend = Math.round(totalBudget * (1 - DOOST_FEE_RATE));
   const doostFee = totalBudget - adSpend;
   const platformStr = selectedPlatforms.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(" + ");
-
-  const startDate = budget?.startDate ? new Date(budget.startDate) : new Date();
-  const endDate = new Date(startDate);
-  endDate.setDate(endDate.getDate() + (budget?.durationDays || 30));
-  const periodStr = `${startDate.getDate()} ${startDate.toLocaleDateString("sv-SE", { month: "short" })} – ${endDate.getDate()} ${endDate.toLocaleDateString("sv-SE", { month: "short" })}`;
 
   const handlePublish = useCallback(async () => {
     if (!isSignedIn) {
@@ -94,229 +80,321 @@ export function ReviewSlide() {
   // ── Success state ─────────────────────────────────────────────
   if (publishState === "done") {
     return (
-      <motion.div variants={cardVariants} initial="hidden" animate="visible" transition={transitions.spring}
-        className="flex flex-col items-center gap-5 py-8 text-center">
+      <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
         <motion.div
-          initial={{ scale: 0 }} animate={{ scale: 1 }}
-          transition={{ type: "spring", damping: 12, stiffness: 300 }}
-          className="flex h-14 w-14 items-center justify-center rounded-full"
-          style={{ background: "var(--color-success-bg)" }}>
-          <Check className="h-7 w-7" style={{ color: "var(--color-success)" }} />
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", damping: 12, stiffness: 200 }}
+          className="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl"
+          style={{ background: "linear-gradient(135deg, var(--color-success), #10B981)" }}
+        >
+          <Check className="h-10 w-10 text-white" strokeWidth={3} />
         </motion.div>
-        <div>
-          <h2 className="text-text-h2" style={{ color: "var(--color-text-primary)" }}>Din kampanj granskas nu</h2>
-          <p className="mx-auto mt-2 max-w-[280px] text-[13px] leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
-            Meta och Google granskar vanligtvis annonser inom 1–24 timmar. Vi meddelar dig via e-post när kampanjen är live.
-          </p>
-        </div>
-        <motion.button onClick={() => (window.location.href = "/dashboard")}
-          whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-          className="mt-2 text-[13px] font-medium" style={{ color: "var(--color-primary-light)" }}>
-          Gå till dashboard →
-        </motion.button>
-        <motion.button onClick={() => reset()}
-          whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-          className="text-[12px]" style={{ color: "var(--color-text-muted)" }}>
-          Skapa ny kampanj
-        </motion.button>
-      </motion.div>
+        <motion.h2
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-[22px] font-semibold"
+          style={{ color: "var(--color-text-primary)" }}
+        >
+          Din kampanj granskas nu
+        </motion.h2>
+        <motion.p
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="mx-auto mt-3 max-w-[300px] text-[14px] leading-relaxed"
+          style={{ color: "var(--color-text-secondary)" }}
+        >
+          Meta och Google granskar vanligtvis annonser inom 1–24 timmar. Vi meddelar dig via e-post.
+        </motion.p>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="mt-8 flex flex-col gap-3"
+        >
+          <button
+            onClick={() => (window.location.href = "/dashboard")}
+            className="rounded-xl px-8 py-3 text-[14px] font-medium text-white"
+            style={{ background: "var(--color-primary)", boxShadow: "var(--shadow-glow-sm)" }}
+          >
+            Gå till dashboard
+          </button>
+          <button
+            onClick={() => reset()}
+            className="text-[13px]"
+            style={{ color: "var(--color-text-muted)" }}
+          >
+            Skapa ny kampanj
+          </button>
+        </motion.div>
+      </div>
     );
   }
 
   // ── Review page ───────────────────────────────────────────────
   return (
-    <motion.div variants={cardVariants} initial="hidden" animate="visible" transition={transitions.spring}
-      className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
 
-      {/* 1. Step indicator */}
-      <ConfigureStepIndicator activeStep="review" />
-
-      {/* 2. Campaign summary card */}
-      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-        transition={{ ...transitions.spring, delay: 0.05 }}
-        className="p-4" style={{ borderRadius: 14, background: "var(--color-bg-elevated)", border: "1px solid var(--color-border-default)" }}>
-        <div className="mb-3 flex items-center gap-3">
-          {brand?.logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={brand.logoUrl} alt="" className="h-9 w-9 rounded-lg object-contain" style={{ background: "var(--color-bg-raised)" }} />
-          ) : (
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg text-[15px] font-bold"
-              style={{ background: "var(--color-bg-raised)", color: "var(--color-text-primary)" }}>
-              {brand?.name?.charAt(0) || "D"}
-            </div>
-          )}
-          <div className="min-w-0 flex-1">
-            <div className="text-[15px] font-medium" style={{ color: "var(--color-text-primary)" }}>{brand?.name}</div>
-            <div className="text-[12px]" style={{ color: "var(--color-text-secondary)" }}>
-              {selectedAds.length} annons · {platformStr} · {budget?.durationDays}d
-            </div>
-          </div>
-        </div>
-
-        {/* 2x2 summary grid */}
-        <div className="grid grid-cols-2 gap-2">
-          {[
-            { label: "Budget", value: `${totalBudget.toLocaleString("sv-SE")} kr` },
-            { label: "Period", value: periodStr },
-            { label: "Målgrupp", value: ageStr },
-            { label: "Plats", value: locationStr.length > 20 ? locationStr.slice(0, 18) + "..." : locationStr },
-          ].map((item) => (
-            <button key={item.label} onClick={() => goToStep("configure")}
-              className="group cursor-pointer text-left transition-colors"
-              style={{ padding: "10px 12px", borderRadius: 10, background: "var(--color-bg-base)", border: "1px solid var(--color-border-subtle)" }}>
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>{item.label}</span>
-                <span className="text-[10px] opacity-0 transition-opacity group-hover:opacity-100" style={{ color: "var(--color-text-muted)" }}>✎</span>
-              </div>
-              <div className="mt-0.5 text-[14px] font-medium" style={{ color: "var(--color-text-primary)" }}>{item.value}</div>
-            </button>
-          ))}
-        </div>
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center"
+      >
+        <h2 className="text-[20px] font-semibold" style={{ color: "var(--color-text-primary)" }}>
+          Sista steget
+        </h2>
+        <p className="mt-1 text-[13px]" style={{ color: "var(--color-text-secondary)" }}>
+          Granska kostnad och välj hur du vill publicera.
+        </p>
       </motion.div>
 
-      {/* 3. Reach estimator (readonly) */}
-      {projections && (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...transitions.spring, delay: 0.1 }}>
-          <LiveReachEstimator projections={projections} variant="readonly" />
-        </motion.div>
-      )}
-
-      {/* 4. Cost breakdown */}
-      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-        transition={{ ...transitions.spring, delay: 0.15 }}
-        style={{ padding: "16px 20px", borderRadius: 14, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
-        <p className="mb-3 text-[11px] font-semibold uppercase" style={{ letterSpacing: "0.06em", color: "var(--color-text-muted)" }}>
+      {/* ── Cost breakdown ─────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05 }}
+        style={{
+          padding: "20px 24px",
+          borderRadius: 16,
+          background: "rgba(255,255,255,0.025)",
+          border: "1px solid rgba(255,255,255,0.08)",
+        }}
+      >
+        <p
+          className="mb-4 text-[11px] font-semibold uppercase tracking-widest"
+          style={{ color: "var(--color-text-muted)" }}
+        >
           Kostnadsöversikt
         </p>
-        <div className="flex items-center justify-between text-[13px]" style={{ color: "var(--color-text-secondary)" }}>
-          <span>Annonsbudget ({platformStr})</span>
-          <span>{adSpend.toLocaleString("sv-SE")} kr</span>
-        </div>
-        <div className="mt-1.5 flex items-center justify-between text-[13px]" style={{ color: "var(--color-text-secondary)" }}>
-          <span>Doost AI-optimering</span>
-          <span>{doostFee.toLocaleString("sv-SE")} kr</span>
-        </div>
-        <div className="mt-2 border-t pt-3" style={{ borderColor: "var(--color-border-subtle)" }}>
-          <div className="flex items-center justify-between text-[14px] font-medium" style={{ color: "var(--color-text-primary)" }}>
-            <span>Totalt</span>
-            <span>{totalBudget.toLocaleString("sv-SE")} kr</span>
+
+        {/* Line items */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[14px]" style={{ color: "var(--color-text-secondary)" }}>
+              Annonsbudget ({platformStr})
+            </span>
+            <span className="text-[14px] tabular-nums" style={{ color: "var(--color-text-secondary)" }}>
+              {adSpend.toLocaleString("sv-SE")} kr
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-[14px]" style={{ color: "var(--color-text-secondary)" }}>
+              Doost AI-optimering
+            </span>
+            <span className="text-[14px] tabular-nums" style={{ color: "var(--color-text-secondary)" }}>
+              {doostFee.toLocaleString("sv-SE")} kr
+            </span>
           </div>
         </div>
-        <div className="mt-2 flex items-center gap-1.5 text-[11px]" style={{ color: "var(--color-success)" }}>
-          <div className="flex h-3 w-3 items-center justify-center rounded-full" style={{ background: "var(--color-success-bg)" }}>
-            <Check className="h-2 w-2" />
+
+        {/* Divider */}
+        <div className="my-4" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }} />
+
+        {/* Total */}
+        <div className="flex items-center justify-between">
+          <span className="text-[16px] font-semibold" style={{ color: "var(--color-text-primary)" }}>
+            Totalt
+          </span>
+          <span className="text-[20px] font-bold tabular-nums" style={{ color: "var(--color-text-primary)" }}>
+            {totalBudget.toLocaleString("sv-SE")} kr
+          </span>
+        </div>
+
+        {/* Included badge */}
+        <div className="mt-3 flex items-center gap-2">
+          <div
+            className="flex h-4 w-4 items-center justify-center rounded-full"
+            style={{ background: "var(--color-success-bg)" }}
+          >
+            <Check className="h-2.5 w-2.5" style={{ color: "var(--color-success)" }} />
           </div>
-          Budgetoptimering ingår i din plan
+          <span className="text-[12px] font-medium" style={{ color: "var(--color-success)" }}>
+            Budgetoptimering ingår i din plan
+          </span>
         </div>
       </motion.div>
 
-      {/* 5. Publish method selector */}
-      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-        transition={{ ...transitions.spring, delay: 0.2 }}
-        style={{ padding: "16px 20px", borderRadius: 14, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
-        <p className="mb-3 text-[11px] font-semibold uppercase" style={{ letterSpacing: "0.06em", color: "var(--color-text-muted)" }}>
+      {/* ── Publishing method ──────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        style={{
+          padding: "20px 24px",
+          borderRadius: 16,
+          background: "rgba(255,255,255,0.025)",
+          border: "1px solid rgba(255,255,255,0.08)",
+        }}
+      >
+        <p
+          className="mb-4 text-[11px] font-semibold uppercase tracking-widest"
+          style={{ color: "var(--color-text-muted)" }}
+        >
           Publiceringsmetod
         </p>
 
         {/* Managed (primary) */}
-        <button onClick={() => setSelectedMethod("managed")} className="w-full text-left"
+        <motion.button
+          onClick={() => setSelectedMethod("managed")}
+          whileTap={{ scale: 0.99 }}
+          className="w-full text-left transition-all duration-200"
           style={{
-            padding: "12px", borderRadius: 10, background: "var(--color-bg-base)",
-            border: selectedMethod === "managed" ? "1.5px solid var(--color-primary)" : "1px solid var(--color-border-subtle)",
-          }}>
-          <div className="flex items-center gap-2">
-            <div className="flex h-[18px] w-[18px] items-center justify-center rounded-full"
-              style={{ border: selectedMethod === "managed" ? "none" : "1.5px solid var(--color-text-muted)", background: selectedMethod === "managed" ? "var(--color-primary)" : "transparent" }}>
+            padding: "16px",
+            borderRadius: 12,
+            background: selectedMethod === "managed" ? "rgba(99,102,241,0.06)" : "var(--color-bg-base)",
+            border: selectedMethod === "managed"
+              ? "1.5px solid var(--color-primary)"
+              : "1px solid var(--color-border-subtle)",
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-colors"
+              style={{
+                background: selectedMethod === "managed" ? "var(--color-primary)" : "transparent",
+                border: selectedMethod === "managed" ? "none" : "2px solid var(--color-text-muted)",
+              }}
+            >
               {selectedMethod === "managed" && <div className="h-2 w-2 rounded-full bg-white" />}
             </div>
-            <span className="text-[14px] font-medium" style={{ color: "var(--color-text-primary)" }}>Vi publicerar åt dig</span>
-            <span className="rounded-full px-2 py-0.5 text-[10px] font-medium"
-              style={{ background: "rgba(99,102,241,0.12)", color: "var(--color-primary-light)" }}>
+            <span className="text-[15px] font-semibold" style={{ color: "var(--color-text-primary)" }}>
+              Vi publicerar åt dig
+            </span>
+            <span
+              className="rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+              style={{ background: "rgba(99,102,241,0.15)", color: "var(--color-primary-light)" }}
+            >
               Enklast
             </span>
           </div>
-          <p className="mt-1 pl-[26px] text-[12px]" style={{ color: "var(--color-text-secondary)" }}>
+          <p className="mt-2 pl-8 text-[13px] leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
             Vi sköter allt — konton, publicering, optimering och rapportering.
           </p>
-          <div className="mt-2 flex flex-wrap gap-1.5 pl-[26px]">
+          <div className="mt-3 flex flex-wrap gap-2 pl-8">
             {["Kontoskapande", "Publicering", "A/B-test", "Optimering"].map((tag) => (
-              <span key={tag} className="text-[11px]"
-                style={{ padding: "3px 8px", borderRadius: 99, border: "0.5px solid var(--color-border-default)", color: "var(--color-text-secondary)" }}>
+              <span
+                key={tag}
+                className="text-[11px] font-medium"
+                style={{
+                  padding: "4px 10px",
+                  borderRadius: 99,
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  color: "var(--color-text-secondary)",
+                }}
+              >
                 {tag}
               </span>
             ))}
           </div>
-        </button>
-
-        {/* Divider */}
-        <div className="my-2" style={{ borderTop: "0.5px solid var(--color-border-subtle)" }} />
+        </motion.button>
 
         {/* Self-serve */}
-        <button onClick={() => setSelectedMethod("self")} className="w-full text-left"
-          style={{ padding: "10px 12px", borderRadius: 10, opacity: selectedMethod === "self" ? 0.85 : 0.55, transition: "opacity 200ms" }}>
-          <div className="flex items-center gap-2">
-            <div className="flex h-[18px] w-[18px] items-center justify-center rounded-full"
-              style={{ border: selectedMethod === "self" ? "none" : "1.5px solid var(--color-text-muted)", background: selectedMethod === "self" ? "var(--color-primary)" : "transparent" }}>
+        <motion.button
+          onClick={() => setSelectedMethod("self")}
+          whileTap={{ scale: 0.99 }}
+          className="mt-3 w-full text-left transition-all duration-200"
+          style={{
+            padding: "14px 16px",
+            borderRadius: 12,
+            background: selectedMethod === "self" ? "rgba(99,102,241,0.06)" : "transparent",
+            border: selectedMethod === "self"
+              ? "1.5px solid var(--color-primary)"
+              : "1px solid transparent",
+            opacity: selectedMethod === "self" ? 1 : 0.5,
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-colors"
+              style={{
+                background: selectedMethod === "self" ? "var(--color-primary)" : "transparent",
+                border: selectedMethod === "self" ? "none" : "2px solid var(--color-text-muted)",
+              }}
+            >
               {selectedMethod === "self" && <div className="h-2 w-2 rounded-full bg-white" />}
             </div>
-            <span className="text-[14px] font-medium" style={{ color: "var(--color-text-secondary)" }}>Anslut egna konton</span>
+            <span className="text-[14px] font-medium" style={{ color: "var(--color-text-secondary)" }}>
+              Anslut egna konton
+            </span>
           </div>
-          <p className="mt-0.5 pl-[26px] text-[12px]" style={{ color: "var(--color-text-muted)" }}>
+          <p className="mt-1 pl-8 text-[12px]" style={{ color: "var(--color-text-muted)" }}>
             Har du Meta Business Manager? Koppla och publicera direkt.
           </p>
-        </button>
+        </motion.button>
       </motion.div>
 
-      {/* 6. Trust signals */}
-      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-        transition={{ ...transitions.spring, delay: 0.25 }}
-        className="flex items-center justify-center gap-5 py-1">
-        {[
-          { icon: <Star className="h-2.5 w-2.5" />, text: "850+ kampanjer skapade" },
-          { icon: <Shield className="h-2.5 w-2.5" />, text: "Meta-verifierad partner" },
-          { icon: <Lock className="h-2.5 w-2.5" />, text: "Krypterad betalning" },
-        ].map(({ icon, text }) => (
-          <div key={text} className="flex items-center gap-1.5 text-[11px]" style={{ color: "var(--color-text-muted)" }}>
-            <div className="flex h-3.5 w-3.5 items-center justify-center rounded" style={{ background: "rgba(99,102,241,0.1)", color: "var(--color-primary-light)" }}>
-              {icon}
-            </div>
-            {text}
-          </div>
-        ))}
-      </motion.div>
-
-      {/* 7. Reassurance line */}
-      <p className="text-center text-[12px]" style={{ color: "var(--color-text-muted)" }}>
-        Du kan pausa, ändra eller avbryta din kampanj när som helst.
-      </p>
-
-      {/* Error */}
+      {/* ── Error ──────────────────────────────────────────────── */}
       {publishError && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-3 text-[14px]"
-          style={{ borderRadius: 10, background: "var(--color-error-bg)", border: "1px solid rgba(239,68,68,0.2)", color: "var(--color-error)" }}>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="p-4 text-[13px]"
+          style={{
+            borderRadius: 12,
+            background: "var(--color-error-bg)",
+            border: "1px solid rgba(239,68,68,0.2)",
+            color: "var(--color-error)",
+          }}
+        >
           {publishError}
         </motion.div>
       )}
 
-      {/* 8. Primary CTA */}
-      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-        transition={{ ...transitions.spring, delay: 0.3 }}>
+      {/* ── CTA ────────────────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="pt-1"
+      >
         <motion.button
           onClick={handlePublish}
           disabled={publishState === "publishing"}
-          whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-          className="w-full text-[15px] font-medium disabled:opacity-60"
+          whileHover={{ scale: 1.015 }}
+          whileTap={{ scale: 0.985 }}
+          className="group relative w-full overflow-hidden text-[15px] font-semibold text-white disabled:opacity-60"
           style={{
-            padding: "14px", borderRadius: 14,
-            background: "var(--color-primary)", color: "#fff",
-            boxShadow: "var(--shadow-glow-sm)",
-          }}>
-          {publishState === "publishing" ? "Publicerar..." : "Publicera kampanj →"}
+            padding: "16px",
+            borderRadius: 14,
+            background: "linear-gradient(135deg, var(--color-primary), #7C3AED)",
+            boxShadow: "0 4px 24px -4px rgba(99,102,241,0.4)",
+          }}
+        >
+          {/* Shimmer effect */}
+          <div
+            className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-1000 group-hover:translate-x-full"
+          />
+          <span className="relative flex items-center justify-center gap-2">
+            {publishState === "publishing" ? (
+              <>
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                Publicerar...
+              </>
+            ) : (
+              <>
+                <Zap className="h-4 w-4" />
+                Publicera kampanj
+                <ChevronRight className="h-4 w-4" />
+              </>
+            )}
+          </span>
         </motion.button>
-        <p className="mt-2 text-center text-[11px]" style={{ color: "var(--color-text-muted)" }}>
-          Genom att fortsätta godkänner du <span className="underline cursor-pointer">villkoren</span>
-        </p>
+
+        {/* Terms + security */}
+        <div className="mt-3 flex items-center justify-center gap-4">
+          <span className="flex items-center gap-1 text-[11px]" style={{ color: "var(--color-text-muted)" }}>
+            <Lock className="h-3 w-3" />
+            Krypterad betalning
+          </span>
+          <span className="flex items-center gap-1 text-[11px]" style={{ color: "var(--color-text-muted)" }}>
+            <Sparkles className="h-3 w-3" />
+            Avbryt när som helst
+          </span>
+        </div>
       </motion.div>
-    </motion.div>
+    </div>
   );
 }
