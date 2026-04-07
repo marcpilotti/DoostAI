@@ -61,10 +61,6 @@ export async function buildBrandProfile(
     enrichment?.name && `Company name: ${enrichment.name}`,
     enrichedIndustry && `Industry (from registry): ${enrichedIndustry}${isGenericIndustry ? " (generic — refine based on website content)" : ""}`,
     enrichment?.location && `Location: ${enrichment.location}`,
-    scrapeResult.colors.length > 0 &&
-      `Colors found in CSS (hints — may include text/border colors, identify BRAND colors only): ${scrapeResult.colors.join(", ")}`,
-    scrapeResult.fonts.length > 0 &&
-      `Fonts found in CSS (hints — may include system fonts): ${scrapeResult.fonts.join(", ")}`,
   ]
     .filter(Boolean)
     .join("\n");
@@ -127,64 +123,49 @@ ${context}`,
   });
   await flushTraces();
 
-  // Validate AI-selected colors — sometimes Haiku picks text/border colors
-  const finalColors = { ...object.colors };
+  // ── Colors: CSS-extracted colors are GROUND TRUTH ──────────────
+  // The scraper already filtered non-brand colors (grays, near-black/white).
+  // What remains are the actual brand colors sorted by saturation.
+  // The AI's color output is only used as fallback when CSS extraction fails.
+  const scrapedColors = scrapeResult.colors.filter((c) => c.length === 7);
+  const finalColors = scrapedColors.length >= 3
+    ? {
+        primary: scrapedColors[0]!,
+        secondary: scrapedColors[1]!,
+        accent: scrapedColors[2]!,
+        background: "#FFFFFF",
+        text: "#1A1A1A",
+      }
+    : scrapedColors.length >= 1
+      ? {
+          primary: scrapedColors[0]!,
+          secondary: scrapedColors[1] ?? object.colors.secondary,
+          accent: scrapedColors[2] ?? object.colors.accent,
+          background: "#FFFFFF",
+          text: "#1A1A1A",
+        }
+      : { ...object.colors }; // No CSS colors — trust the AI as last resort
 
-  // Check if primary color is actually distinctive (not near-gray/black/white)
-  function isDistinctiveColor(hex: string): boolean {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    const saturation = max === 0 ? 0 : (max - min) / max;
-    const lightness = (max + min) / (2 * 255);
-    // Reject near-black, near-white, or low-saturation (gray/muted)
-    if (lightness < 0.12 || lightness > 0.92) return false;
-    if (saturation < 0.15) return false;
-    return true;
-  }
-
-  if (!isDistinctiveColor(finalColors.primary) && scrapeResult.colors.length > 0) {
-    // AI picked a non-distinctive color — use the most saturated scraped color instead
-    const fallback = scrapeResult.colors.find((c) => c.length === 7 && isDistinctiveColor(c));
-    if (fallback) {
-      console.warn(`[profile-builder] AI primary ${finalColors.primary} is not distinctive, using scraped ${fallback}`);
-      finalColors.primary = fallback;
-    }
-  }
-
-  // Post-process: only override AI fonts if CSS found specific non-system fonts
-  const SYSTEM_FONTS = new Set(["arial", "helvetica", "verdana", "tahoma", "times new roman", "georgia", "segoe ui", "system-ui", "sans-serif", "serif", "monospace", "-apple-system", "blinkmacsystemfont", "ui-sans-serif", "ui-serif", "ui-monospace"]);
-  const cssFonts = scrapeResult.fonts.filter((f) => {
+  // ── Fonts: CSS-extracted fonts are GROUND TRUTH ───────────────
+  const SYSTEM_FONTS = new Set(["arial", "helvetica", "verdana", "tahoma", "times new roman", "georgia", "segoe ui", "system-ui", "sans-serif", "serif", "monospace", "-apple-system", "blinkmacsystemfont", "ui-sans-serif", "ui-serif", "ui-monospace", "inherit", "initial", "unset"]);
+  const validCssFonts = scrapeResult.fonts.filter((f) => {
     const lower = f.toLowerCase().trim();
+    if (lower.length < 3) return false;
     if (SYSTEM_FONTS.has(lower)) return false;
-    if (lower.startsWith("var(")) return false;  // Filter CSS variables like var(--_1s6etqh32)
-    if (lower.startsWith("--")) return false;     // Filter CSS custom properties
+    if (lower.startsWith("var(") || lower.startsWith("--") || lower.startsWith("&")) return false;
+    if (lower.startsWith("font awesome")) return false; // icon font, not text
+    if (!/^[a-zA-Z0-9\s\-'.]+$/.test(f)) return false; // only safe characters
     return true;
   });
-  const finalFonts = { ...object.fonts };
-  // Post-process: reject CSS variables and sanitize font names
-  const isSafeFont = (f: string): boolean => /^[a-zA-Z0-9\s\-'.]+$/.test(f) && f.length <= 100;
-  if (!isSafeFont(finalFonts.heading) || finalFonts.heading.startsWith("var(") || finalFonts.heading.startsWith("--")) finalFonts.heading = "Inter";
-  if (!isSafeFont(finalFonts.body) || finalFonts.body.startsWith("var(") || finalFonts.body.startsWith("--")) finalFonts.body = "Inter";
-  // Filter CSS variables from extracted fonts too — they're not real font names
-  const validCssFonts = cssFonts.filter(f => !f.startsWith("var(") && !f.startsWith("--"));
-  // Only override if CSS found specific named fonts (not system defaults)
-  if (validCssFonts.length >= 1 && validCssFonts[0]) finalFonts.heading = validCssFonts[0];
-  if (validCssFonts.length >= 2 && validCssFonts[1]) finalFonts.body = validCssFonts[1];
-  else if (validCssFonts.length === 1 && validCssFonts[0]) finalFonts.body = validCssFonts[0];
 
-  // Validate against known fonts — reject hallucinated or invalid names
-  if (finalFonts.heading && !KNOWN_FONTS.has(finalFonts.heading)) {
-    const industryKey = enrichedIndustry || object?.industry || "";
-    // Try exact match, then partial match on first word
-    const fallback = INDUSTRY_FONTS[industryKey]
-      || Object.entries(INDUSTRY_FONTS).find(([k]) => industryKey.toLowerCase().includes(k.toLowerCase().split(" ")[0] || ""))?.[1]
-      || { heading: "DM Sans", body: "DM Sans" };
-    console.log(`[profile-builder] Font "${finalFonts.heading}" not recognized, using fallback: ${fallback.heading}`);
-    finalFonts.heading = fallback.heading;
-    finalFonts.body = fallback.body;
+  // CSS fonts win. AI fonts are fallback. KNOWN_FONTS only validates AI output.
+  const finalFonts = { heading: "Inter", body: "Inter" };
+  if (validCssFonts.length >= 1 && validCssFonts[0]) {
+    finalFonts.heading = validCssFonts[0];
+    finalFonts.body = validCssFonts.length >= 2 ? validCssFonts[1]! : validCssFonts[0];
+  } else if (KNOWN_FONTS.has(object.fonts.heading)) {
+    finalFonts.heading = object.fonts.heading;
+    finalFonts.body = KNOWN_FONTS.has(object.fonts.body) ? object.fonts.body : object.fonts.heading;
   }
 
   // Pick logo — ONLY same-domain. Third-party logos are never used.
