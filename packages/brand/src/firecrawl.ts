@@ -108,9 +108,12 @@ async function scrapeFallback(url: string): Promise<BrandScrapeResult> {
   const fallbackDomain = new URL(normalizedUrl).hostname.replace(/^www\./, "");
   function isSameDomain(logoUrl: string): boolean {
     try {
-      const host = new URL(logoUrl, normalizedUrl).hostname.replace(/^www\./, "");
+      const resolved = resolveUrl(normalizedUrl, logoUrl);
+      const host = new URL(resolved).hostname.replace(/^www\./, "");
       return host === fallbackDomain || host.endsWith(`.${fallbackDomain}`);
-    } catch { return true; } // relative URLs are same-domain
+    } catch {
+      return !logoUrl.startsWith("http"); // relative URLs are same-domain
+    }
   }
 
   const logoUrls: string[] = [];
@@ -199,58 +202,79 @@ export async function scrapeBrand(url: string): Promise<BrandScrapeResult> {
     fonts = extractFontsFromHtml(html);
   }
 
-  // Extract logos — prefer same-domain, high-confidence sources
+  // Extract the site's OWN logo — not client/partner logos.
+  // Strategy: prioritize header/nav logos and favicons over random <img> tags.
   const logoUrls: string[] = [];
   const siteDomain = new URL(normalizedUrl).hostname.replace(/^www\./, "");
-  const sameDomain: string[] = [];
-  const otherDomain: string[] = [];
 
-  function isSameSite(url: string): boolean {
+  function isSameSite(rawUrl: string): boolean {
     try {
-      const host = new URL(url).hostname.replace(/^www\./, "");
-      // Exact match or subdomain (host ends with .siteDomain)
+      const resolved = resolveUrl(normalizedUrl, rawUrl);
+      const host = new URL(resolved).hostname.replace(/^www\./, "");
       return host === siteDomain || host.endsWith(`.${siteDomain}`);
     } catch {
-      return false;
+      return !rawUrl.startsWith("http");
     }
-  }
-
-  function addLogo(url: string) {
-    if (isSameSite(url)) {
-      sameDomain.push(url);
-    }
-    // Third-party logos are silently dropped
   }
 
   if (html) {
     const seen = new Set<string>();
-    // 1. Any <img> src containing "logo" or "brand" in the URL path
-    const imgSrcRe = /<img[^>]+src=["']([^"']+)["']/gi;
+    function tryAdd(rawUrl: string): boolean {
+      if (!rawUrl || rawUrl.startsWith("data:")) return false;
+      const resolved = resolveUrl(normalizedUrl, rawUrl);
+      if (seen.has(resolved)) return false;
+      seen.add(resolved);
+      if (!isSameSite(resolved)) return false;
+      logoUrls.push(resolved);
+      return true;
+    }
+
+    // Priority 1: Favicon / apple-touch-icon — always the site's own brand
+    const iconRe = /<link[^>]+rel=["'](?:icon|shortcut icon|apple-touch-icon)[^"']*["'][^>]+href=["']([^"']+)["']/gi;
     let m;
-    while ((m = imgSrcRe.exec(html)) !== null) {
-      if (m[1] && !m[1].startsWith("data:")) {
-        const lower = m[1].toLowerCase();
-        if (lower.includes("logo") || lower.includes("brand-mark") || lower.includes("brandmark")) {
-          const resolved = resolveUrl(normalizedUrl, m[1]);
-          if (!seen.has(resolved)) { seen.add(resolved); addLogo(resolved); }
+    while ((m = iconRe.exec(html)) !== null) {
+      if (m[1]) tryAdd(m[1]);
+    }
+
+    // Priority 2: Logo inside <header> or <nav> — the site's own logo
+    const headerMatch = html.match(/<header[\s>][\s\S]*?<\/header>/i);
+    const navMatch = html.match(/<nav[\s>][\s\S]*?<\/nav>/i);
+    const headerHtml = (headerMatch?.[0] ?? "") + (navMatch?.[0] ?? "");
+    if (headerHtml) {
+      const headerImgRe = /<img[^>]+src=["']([^"']+)["']/gi;
+      while ((m = headerImgRe.exec(headerHtml)) !== null) {
+        if (m[1] && !m[1].startsWith("data:")) {
+          tryAdd(m[1]);
         }
       }
-    }
-    // 2. Favicon and apple-touch-icon links (these are brand icons)
-    const iconRe = /<link[^>]+rel=["'](?:icon|shortcut icon|apple-touch-icon)[^"']*["'][^>]+href=["']([^"']+)["']/gi;
-    while ((m = iconRe.exec(html)) !== null) {
-      if (m[1] && !m[1].startsWith("data:")) {
-        const resolved = resolveUrl(normalizedUrl, m[1]);
-        if (!seen.has(resolved)) { seen.add(resolved); addLogo(resolved); }
+      // Also SVGs with class containing "logo"
+      const headerSvgRe = /<(?:img|svg)[^>]*class=["'][^"']*logo[^"']*["'][^>]*(?:src=["']([^"']+)["'])?/gi;
+      while ((m = headerSvgRe.exec(headerHtml)) !== null) {
+        if (m[1]) tryAdd(m[1]);
       }
+    }
+
+    // Priority 3: Any <img> with "logo" in class/id/alt within first 20% of HTML
+    // (site logo is almost always near the top, client logos are further down)
+    const topHtml = html.slice(0, Math.ceil(html.length * 0.2));
+    const topLogoRe = /<img[^>]*(?:class|id|alt)=["'][^"']*logo[^"']*["'][^>]*src=["']([^"']+)["']/gi;
+    while ((m = topLogoRe.exec(topHtml)) !== null) {
+      if (m[1]) tryAdd(m[1]);
+    }
+    // Reverse attr order
+    const topLogoRe2 = /<img[^>]+src=["']([^"']+)["'][^>]*(?:class|id|alt)=["'][^"']*logo[^"']*["']/gi;
+    while ((m = topLogoRe2.exec(topHtml)) !== null) {
+      if (m[1]) tryAdd(m[1]);
     }
   }
 
-  // Firecrawl's pre-extracted branding logo (if any)
-  if (branding?.logo) addLogo(branding.logo);
-
-  // ONLY same-domain logos — never use third-party/client logos
-  logoUrls.push(...sameDomain);
+  // Firecrawl branding logo (high confidence)
+  if (branding?.logo) {
+    const resolved = resolveUrl(normalizedUrl, branding.logo);
+    if (!logoUrls.includes(resolved) && isSameSite(resolved)) {
+      logoUrls.unshift(resolved); // highest priority
+    }
+  }
 
   return {
     url: normalizedUrl,
@@ -272,37 +296,42 @@ export async function scrapeBrand(url: string): Promise<BrandScrapeResult> {
 const HEX_RE = /#(?:[0-9a-fA-F]{3,4}){1,2}\b/g;
 const FONT_RE = /font-family\s*:\s*([^;}"]+)/gi;
 
+function expandShortHex(hex: string): string {
+  // #abc → #aabbcc, #abcd → #aabbccdd
+  if (hex.length === 4) return `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`;
+  if (hex.length === 5) return `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}${hex[4]}${hex[4]}`;
+  if (hex.length === 9) return hex.slice(0, 7); // strip alpha channel
+  return hex;
+}
+
 function extractColorsFromHtml(html: string): string[] {
   const matches = html.match(HEX_RE) ?? [];
   const unique = new Set<string>();
 
-  // Common text/UI colors that are NEVER brand colors
   const BLACKLIST = new Set([
-    "#fff", "#ffffff", "#fafafa", "#f5f5f5", "#f0f0f0", "#eee", "#eeeeee",
-    "#e5e5e5", "#e0e0e0", "#ddd", "#dddddd", "#d5d5d5", "#ccc", "#cccccc",
-    "#bbb", "#bbbbbb", "#aaa", "#aaaaaa", "#999", "#999999", "#888", "#888888",
-    "#777", "#777777", "#666", "#666666", "#555", "#555555", "#444", "#444444",
-    "#333", "#333333", "#222", "#222222", "#111", "#111111",
-    "#000", "#000000", "#1a1a1a", "#231f20", "#2c2c2c", "#212121",
+    "#ffffff", "#fafafa", "#f5f5f5", "#f0f0f0", "#eeeeee",
+    "#e5e5e5", "#e0e0e0", "#dddddd", "#d5d5d5", "#cccccc",
+    "#bbbbbb", "#aaaaaa", "#999999", "#888888",
+    "#777777", "#666666", "#555555", "#444444",
+    "#333333", "#222222", "#111111",
+    "#000000", "#1a1a1a", "#231f20", "#2c2c2c", "#212121",
     "#f8f9fa", "#e9ecef", "#dee2e6", "#ced4da", "#adb5bd", "#6c757d",
-    "#495057", "#343a40", "#212529", // Bootstrap grays
+    "#495057", "#343a40", "#212529",
   ]);
 
   for (const c of matches) {
-    const n = c.toLowerCase();
+    const n = expandShortHex(c.toLowerCase());
+    if (n.length !== 7) continue; // only 6-digit hex after expansion
     if (BLACKLIST.has(n)) continue;
 
-    if (n.length === 7) {
-      const r = parseInt(n.slice(1, 3), 16);
-      const g = parseInt(n.slice(3, 5), 16);
-      const b = parseInt(n.slice(5, 7), 16);
-      if (r < 0x35 && g < 0x35 && b < 0x35) continue; // near-black
-      if (r > 0xd8 && g > 0xd8 && b > 0xd8) continue; // near-white
-      // Filter grays (low saturation)
-      const max = Math.max(r, g, b);
-      const min = Math.min(r, g, b);
-      if (max - min < 25) continue; // gray — no saturation
-    }
+    const r = parseInt(n.slice(1, 3), 16);
+    const g = parseInt(n.slice(3, 5), 16);
+    const b = parseInt(n.slice(5, 7), 16);
+    if (r < 0x35 && g < 0x35 && b < 0x35) continue; // near-black
+    if (r > 0xd8 && g > 0xd8 && b > 0xd8) continue; // near-white
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    if (max - min < 25) continue; // gray
 
     unique.add(n);
   }
@@ -328,7 +357,14 @@ function extractFontsFromHtml(html: string): string[] {
   let m: RegExpExecArray | null;
   while ((m = FONT_RE.exec(html)) !== null) {
     const first = m[1]!.split(",")[0]!.trim().replace(/['"]/g, "");
-    if (first && !first.startsWith("-") && first.length < 60) {
+    if (
+      first &&
+      first.length > 2 &&
+      first.length < 60 &&
+      !first.startsWith("-") &&
+      !first.startsWith("var(") &&
+      !first.startsWith("&")
+    ) {
       fonts.add(first);
     }
   }

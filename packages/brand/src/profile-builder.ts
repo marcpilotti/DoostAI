@@ -206,8 +206,6 @@ ${context}`,
     fonts: finalFonts,
     logos: {
       primary: primaryLogo,
-      icon: scrapeResult.logoUrls[1],
-      dark: scrapeResult.logoUrls[2],
     },
     brandVoice: object.brandVoice,
     targetAudience: object.targetAudience,
