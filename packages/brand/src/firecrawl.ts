@@ -105,8 +105,17 @@ async function scrapeFallback(url: string): Promise<BrandScrapeResult> {
 
   const colors = extractColorsFromHtml(html);
   const fonts = extractFontsFromHtml(html);
+  const fallbackDomain = new URL(normalizedUrl).hostname.replace(/^www\./, "");
+  function isSameDomain(logoUrl: string): boolean {
+    try {
+      const host = new URL(logoUrl, normalizedUrl).hostname.replace(/^www\./, "");
+      return host.includes(fallbackDomain) || fallbackDomain.includes(host);
+    } catch { return true; } // relative URLs are same-domain
+  }
+
   const logoUrls: string[] = [];
-  if (ogImageMatch?.[1]) logoUrls.push(ogImageMatch[1]);
+
+  // Favicons are always same-domain
   if (faviconMatch?.[1]) {
     const fav = faviconMatch[1].startsWith("http") ? faviconMatch[1] : new URL(faviconMatch[1], normalizedUrl).href;
     logoUrls.push(fav);
@@ -116,20 +125,33 @@ async function scrapeFallback(url: string): Promise<BrandScrapeResult> {
   const iconRegex = /<link[^>]+rel=["'](?:icon|shortcut icon|apple-touch-icon)[^"']*["'][^>]+href=["']([^"']+)["']/gi;
   let iconMatch;
   while ((iconMatch = iconRegex.exec(html)) !== null) {
-    if (iconMatch[1]) logoUrls.push(resolveUrl(url, iconMatch[1]));
+    if (iconMatch[1]) {
+      const resolved = resolveUrl(normalizedUrl, iconMatch[1]);
+      if (isSameDomain(resolved)) logoUrls.push(resolved);
+    }
   }
 
-  // Extract img elements with "logo" in attributes
+  // Extract img elements with "logo" in attributes — ONLY same-domain
   const logoImgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*(?:alt|class|id)=["'][^"']*logo[^"']*["']/gi;
   let logoImgMatch;
   while ((logoImgMatch = logoImgRegex.exec(html)) !== null) {
-    if (logoImgMatch[1]) logoUrls.push(resolveUrl(url, logoImgMatch[1]));
+    if (logoImgMatch[1]) {
+      const resolved = resolveUrl(normalizedUrl, logoImgMatch[1]);
+      if (isSameDomain(resolved)) logoUrls.push(resolved);
+    }
   }
-  // Also try reverse order: logo attr first, then src
   const logoImgRegex2 = /<img[^>]*(?:alt|class|id)=["'][^"']*logo[^"']*["'][^>]+src=["']([^"']+)["']/gi;
   let logoImgMatch2;
   while ((logoImgMatch2 = logoImgRegex2.exec(html)) !== null) {
-    if (logoImgMatch2[1]) logoUrls.push(resolveUrl(url, logoImgMatch2[1]));
+    if (logoImgMatch2[1]) {
+      const resolved = resolveUrl(normalizedUrl, logoImgMatch2[1]);
+      if (isSameDomain(resolved)) logoUrls.push(resolved);
+    }
+  }
+
+  // OG image only if same-domain (avoid social preview images from CDNs that aren't logos)
+  if (ogImageMatch?.[1] && isSameDomain(ogImageMatch[1])) {
+    logoUrls.push(ogImageMatch[1]);
   }
 
   return {
@@ -223,8 +245,8 @@ export async function scrapeBrand(url: string): Promise<BrandScrapeResult> {
   // Firecrawl's pre-extracted branding logo (if any)
   if (branding?.logo) addLogo(branding.logo);
 
-  // Same-domain logos first, then third-party as fallback
-  logoUrls.push(...sameDomain, ...otherDomain);
+  // ONLY same-domain logos — never use third-party/client logos
+  logoUrls.push(...sameDomain);
 
   return {
     url: normalizedUrl,

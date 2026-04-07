@@ -187,13 +187,9 @@ ${context}`,
     finalFonts.body = fallback.body;
   }
 
-  // Pick the best logo — prefer same-domain URLs over third-party logos
-  const siteDomain = new URL(scrapeResult.url).hostname.replace(/^www\./, "");
-  const sameDomainLogos = scrapeResult.logoUrls.filter((url) => {
-    try { return new URL(url).hostname.replace(/^www\./, "").includes(siteDomain); } catch { return false; }
-  });
-  const primaryLogo =
-    sameDomainLogos[0] ?? scrapeResult.logoUrls[0] ?? scrapeResult.ogImage ?? undefined;
+  // Pick logo — ONLY same-domain. Third-party logos are never used.
+  // If no same-domain logo exists, guaranteeMinimumProfile() generates SVG initials.
+  const primaryLogo = scrapeResult.logoUrls[0] ?? undefined;
 
   const profile: BrandProfile = {
     url: scrapeResult.url,
