@@ -437,8 +437,7 @@ export function AIPanel({ open, onClose }: { open: boolean; onClose: () => void 
           animate={{ width: "var(--doost-ai-panel-w)", opacity: 1 }}
           exit={{ width: 0, opacity: 0 }}
           transition={{ duration: 0.25, ease: "easeOut" }}
-          className="shrink-0 overflow-hidden border-l bg-[var(--doost-bg-secondary)] max-md:fixed max-md:inset-y-0 max-md:right-0 max-md:z-50 max-md:shadow-xl"
-          style={{ borderColor: "var(--doost-border)" }}
+          className="shrink-0 overflow-hidden glass-surface border-l-0 max-md:fixed max-md:inset-y-0 max-md:right-0 max-md:z-50 max-md:shadow-xl"
         >
           <div className="flex h-full flex-col w-[var(--doost-ai-panel-w)] max-md:w-[min(var(--doost-ai-panel-w),calc(100vw-48px))]">
             {/* Header */}

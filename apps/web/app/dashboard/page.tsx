@@ -70,34 +70,29 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-lg sm:text-[22px] font-semibold text-[var(--doost-text)]">Hem</h1>
-
-      {/* Welcome back quick actions */}
-      <div className="mt-3 mb-2 flex flex-wrap gap-2">
-        <Link
-          href="/"
-          className="rounded-full bg-primary px-3.5 py-1.5 text-[12px] font-medium text-primary-foreground hover:opacity-90"
-        >
-          Ny kampanj
-        </Link>
-        <Link
-          href="/dashboard/analytics"
-          className="rounded-full px-3.5 py-1.5 text-[12px] font-medium text-[var(--doost-text-secondary)] hover:bg-[var(--doost-bg)]"
-          style={{ border: "1px solid var(--doost-border)" }}
-        >
-          Se resultat
-        </Link>
-        <Link
-          href="/?new=true"
-          className="rounded-full px-3.5 py-1.5 text-[12px] font-medium text-[var(--doost-text-secondary)] hover:bg-[var(--doost-bg)]"
-          style={{ border: "1px solid var(--doost-border)" }}
-        >
-          Analysera ny URL
-        </Link>
+    <div className="relative z-10 p-6 lg:p-8">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-[20px] font-semibold tracking-tight text-[var(--doost-text)]">Hem</h1>
+        <div className="flex gap-2">
+          <Link
+            href="/"
+            className="rounded-full px-4 py-2 text-[12px] font-semibold text-white transition-all hover:opacity-90"
+            style={{ background: "linear-gradient(135deg, var(--doost-bg-active), #7C3AED)", boxShadow: "0 2px 12px -2px rgba(99,102,241,0.4)" }}
+          >
+            Ny kampanj
+          </Link>
+          <Link
+            href="/dashboard/analytics"
+            className="glass-card rounded-full px-4 py-2 text-[12px] font-medium text-[var(--doost-text-secondary)]"
+          >
+            Se resultat
+          </Link>
+        </div>
       </div>
 
-      <div className="mt-4 mb-6">
+      {/* Filters */}
+      <div className="mt-5 mb-6">
         <ChannelFilter
           timeRange={timeRange}
           channel={channel}
@@ -106,8 +101,9 @@ export default function DashboardPage() {
         />
       </div>
 
+      {/* KPI Cards */}
       <div>
-        <p className="mb-3 text-[12px] font-medium text-[var(--doost-text-muted)]">Översikt</p>
+        <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-[var(--doost-text-muted)]">Översikt</p>
         <KPICards
           kpis={kpis}
           selectedId={selectedKPI}
@@ -115,11 +111,13 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div className="mt-8">
+      {/* Chart */}
+      <div className="mt-8 glass-card rounded-2xl p-5">
         <PerformanceChart data={chartData} metricSuffix={metricSuffix} />
       </div>
 
-      <div className="mt-8">
+      {/* Activity */}
+      <div className="mt-8 glass-card rounded-2xl p-5">
         <ActivityFeed items={activityItems} />
       </div>
     </div>

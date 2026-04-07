@@ -33,7 +33,7 @@ export function TopBar({ onToggleAI }: { onToggleAI?: () => void }) {
   const { dark, toggle: toggleDark } = useDarkMode();
 
   return (
-    <div className="flex h-14 shrink-0 items-center justify-between border-b px-6" style={{ borderColor: "var(--doost-border)" }}>
+    <div className="flex h-14 shrink-0 items-center justify-between px-6 glass-surface gradient-border-bottom">
       <p className="text-[15px] font-medium text-[var(--doost-text-secondary)]">
         {firstName ? `Välkommen tillbaka, ${firstName}` : "Doost AI"}
       </p>

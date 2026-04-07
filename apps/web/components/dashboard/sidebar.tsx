@@ -143,8 +143,8 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
 
   return (
     <aside
-      className="flex h-full flex-col bg-[var(--doost-bg)] border-r"
-      style={{ width: "var(--doost-sidebar-w)", borderColor: "var(--doost-border)" }}
+      className="flex h-full flex-col bg-[var(--doost-bg-sidebar)] glass-surface border-r-0"
+      style={{ width: "var(--doost-sidebar-w)" }}
     >
       {/* Logo + Search */}
       <div className="flex items-center justify-between px-4 pt-5 pb-4">
@@ -187,12 +187,12 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
               onClick={onClose}
               aria-current={active && !parentOnly ? "page" : undefined}
               className={cn(
-                "flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] font-medium transition-colors",
+                "glass-nav-item flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] font-medium transition-all duration-200",
                 active && !parentOnly
-                  ? "bg-[var(--doost-bg-active)] text-white"
+                  ? "bg-[rgba(99,102,241,0.12)] text-white"
                   : parentOnly
-                    ? "text-[var(--doost-text)] hover:bg-[var(--doost-bg-secondary)]"
-                    : "text-[var(--doost-text-secondary)] hover:bg-[var(--doost-bg-secondary)] hover:text-[var(--doost-text)]",
+                    ? "text-[var(--doost-text)] hover:text-white"
+                    : "text-[var(--doost-text-secondary)] hover:text-[var(--doost-text)]",
               )}
             >
               <item.icon className="h-4 w-4" />
@@ -217,10 +217,10 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
               onClick={onClose}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] font-medium transition-colors",
+                "glass-nav-item flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] font-medium transition-all duration-200",
                 active
-                  ? "bg-[var(--doost-bg-active)] text-white"
-                  : "text-[var(--doost-text-secondary)] hover:bg-[var(--doost-bg-secondary)] hover:text-[var(--doost-text)]",
+                  ? "bg-[rgba(99,102,241,0.12)] text-white"
+                  : "text-[var(--doost-text-secondary)] hover:text-[var(--doost-text)]",
               )}
             >
               <item.icon className="h-4 w-4" />

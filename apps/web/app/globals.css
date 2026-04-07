@@ -126,28 +126,37 @@
   }
 
   .dark {
-    --doost-bg: #0F0F12;
-    --doost-bg-secondary: #18181B;
-    --doost-bg-card: #1C1C22;
-    --doost-bg-sidebar: #13131A;
+    /* Ethereal Glass — OLED-deep blacks */
+    --doost-bg: #050507;
+    --doost-bg-secondary: #0A0A0F;
+    --doost-bg-card: #0F0F14;
+    --doost-bg-sidebar: #08080C;
     --doost-bg-active: #6366F1;
-    --doost-bg-ai-panel: #18181B;
-    --doost-bg-user-msg: #2A2A35;
-    --doost-bg-kpi-highlight: rgba(34, 197, 94, 0.08);
-    --doost-bg-badge-review: rgba(245, 158, 11, 0.12);
-    --doost-bg-badge-ready: rgba(34, 197, 94, 0.12);
-    --doost-text: #F0F0F5;
-    --doost-text-secondary: #A1A1AA;
-    --doost-text-muted: #63636E;
+    --doost-bg-ai-panel: #0A0A0F;
+    --doost-bg-user-msg: #1A1A25;
+    --doost-bg-kpi-highlight: rgba(34, 197, 94, 0.06);
+    --doost-bg-badge-review: rgba(245, 158, 11, 0.1);
+    --doost-bg-badge-ready: rgba(34, 197, 94, 0.1);
+    --doost-text: #EDEDF0;
+    --doost-text-secondary: #9090A0;
+    --doost-text-muted: #55556A;
     --doost-text-on-dark: #FFFFFF;
     --doost-text-positive: #4ADE80;
     --doost-text-negative: #F87171;
-    --doost-border: #27272F;
-    --doost-border-card: #2A2A35;
-    --doost-border-input: #3F3F4A;
+    --doost-border: #1A1A25;
+    --doost-border-card: #1E1E2A;
+    --doost-border-input: #2A2A3A;
     --doost-border-active: #6366F1;
     --doost-chart-current: #4ADE80;
-    --doost-chart-previous: #3F3F4A;
+    --doost-chart-previous: #2A2A3A;
+
+    /* Glass surfaces */
+    --glass-bg: rgba(255, 255, 255, 0.02);
+    --glass-bg-hover: rgba(255, 255, 255, 0.04);
+    --glass-border: rgba(255, 255, 255, 0.06);
+    --glass-border-hover: rgba(99, 102, 241, 0.2);
+    --glass-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.5);
+    --glass-glow: 0 0 20px rgba(99, 102, 241, 0.08);
   }
 
   .theme {
@@ -512,6 +521,100 @@
   pointer-events: none;
 }
 
+
+/* ═══════════════════════════════════════════════════════════
+   ETHEREAL GLASS — Dashboard premium layer
+   ═══════════════════════════════════════════════════════════ */
+
+@keyframes mesh-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -20px) scale(1.05); }
+  50% { transform: translate(-10px, 20px) scale(0.98); }
+  75% { transform: translate(-30px, -10px) scale(1.02); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+.dark .glass-surface {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.dark .glass-surface:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+}
+
+.dark .glass-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--glass-shadow);
+  transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+}
+.dark .glass-card:hover {
+  border-color: var(--glass-border-hover);
+  box-shadow: var(--glass-shadow), var(--glass-glow);
+  transform: translateY(-1px);
+}
+
+.dark .glass-nav-item {
+  position: relative;
+  transition: background 0.2s, color 0.2s;
+}
+.dark .glass-nav-item:hover {
+  background: rgba(99, 102, 241, 0.06);
+}
+.dark .glass-nav-item[aria-current="page"] {
+  background: rgba(99, 102, 241, 0.1);
+}
+.dark .glass-nav-item[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 25%;
+  bottom: 25%;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--doost-bg-active);
+  box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+}
+
+.dark .mesh-bg {
+  position: relative;
+  overflow: hidden;
+}
+.dark .mesh-bg::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(600px circle at 20% 30%, rgba(99, 102, 241, 0.04), transparent 60%),
+    radial-gradient(500px circle at 80% 70%, rgba(124, 58, 237, 0.03), transparent 60%),
+    radial-gradient(400px circle at 50% 50%, rgba(6, 182, 212, 0.02), transparent 60%);
+  animation: mesh-drift 30s ease-in-out infinite;
+}
+
+.dark .gradient-border-bottom {
+  border-bottom: none;
+  position: relative;
+}
+.dark .gradient-border-bottom::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.2), transparent);
+}
 
 /* ═══════════════════════════════════════════════════════════
    REDUCED MOTION

@@ -18,7 +18,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   return (
     <ToastProvider>
-    <div className="flex h-screen bg-[var(--doost-bg-secondary)]">
+    <div className="flex min-h-[100dvh] bg-[var(--doost-bg-secondary)] mesh-bg">
       {sidebarOpen && (
         <button
           className="fixed inset-0 z-40 bg-black/30 md:hidden"
