@@ -123,8 +123,9 @@ export function ConfigureSlide() {
         style={{
           padding: "28px 24px 24px",
           borderRadius: 16,
-          background: "linear-gradient(135deg, rgba(99,102,241,0.08), rgba(124,58,237,0.04))",
-          border: "1px solid rgba(99,102,241,0.15)",
+          background: "linear-gradient(135deg, rgba(99,102,241,0.06), rgba(124,58,237,0.03))",
+          border: "1px solid rgba(99,102,241,0.12)",
+          boxShadow: "0 4px 30px rgba(0,0,0,0.3), 0 0 40px rgba(99,102,241,0.06)",
         }}
       >
         <p className="mb-1 text-center text-[11px] font-semibold uppercase tracking-widest"

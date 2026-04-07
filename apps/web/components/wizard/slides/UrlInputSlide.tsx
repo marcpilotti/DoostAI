@@ -191,9 +191,10 @@ export function UrlInputSlide() {
             maxWidth: 520,
             minHeight: 56,
             borderRadius: 14,
-            background: "var(--color-bg-elevated)",
-            border: "1px solid rgba(255,255,255,0.12)",
-            boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
+            background: "linear-gradient(135deg, var(--color-bg-elevated), rgba(99,102,241,0.03))",
+            border: "1px solid rgba(255,255,255,0.1)",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.4), 0 0 40px rgba(99,102,241,0.06)",
+            backdropFilter: "blur(12px)",
           }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -226,7 +227,7 @@ export function UrlInputSlide() {
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
             className="flex flex-shrink-0 items-center justify-center gap-2 font-semibold transition-all disabled:opacity-[0.4]"
             style={{
-              background: "linear-gradient(135deg, #818CF8, #6366F1)",
+              background: "linear-gradient(135deg, #818CF8, #6366F1, #7C3AED)",
               color: "#fff",
               padding: "12px 28px",
               margin: "6px",
@@ -234,7 +235,7 @@ export function UrlInputSlide() {
               fontSize: 14,
               border: "none",
               cursor: !input.trim() || isLoading ? "not-allowed" : "pointer",
-              boxShadow: "0 2px 16px rgba(99, 102, 241, 0.35)",
+              boxShadow: "0 2px 16px rgba(99, 102, 241, 0.4), 0 0 30px rgba(99, 102, 241, 0.15)",
             }}
           >
             {isLoading ? (

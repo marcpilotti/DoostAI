@@ -194,16 +194,17 @@ function PlatformCard({
         padding: compact ? "8px 12px" : "14px 16px",
         borderRadius: 12,
         background: selected
-          ? "rgba(99,102,241,0.1)"
+          ? "rgba(99,102,241,0.08)"
           : "rgba(255,255,255,0.02)",
         border: selected
-          ? "1px solid var(--color-primary)"
+          ? "1.5px solid var(--color-primary)"
           : isSoon
             ? "1px solid transparent"
-            : "1px solid rgba(255,255,255,0.08)",
+            : "1px solid rgba(255,255,255,0.06)",
         cursor: isSoon ? "not-allowed" : "pointer",
         opacity: isSoon ? 0.4 : 1,
-        transition: "border-color 200ms, background-color 200ms",
+        boxShadow: selected ? "0 0 24px rgba(99,102,241,0.12), inset 0 1px 0 rgba(255,255,255,0.04)" : "none",
+        transition: "border-color 200ms, background-color 200ms, box-shadow 300ms",
       }}
     >
       {/* Icon */}

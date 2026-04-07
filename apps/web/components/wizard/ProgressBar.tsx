@@ -61,6 +61,7 @@ export function ProgressBar() {
             style={{
               borderRadius: "var(--radius-full)",
               background: "linear-gradient(90deg, var(--color-primary), var(--color-primary-light))",
+              boxShadow: "0 0 12px rgba(99, 102, 241, 0.4), 0 0 4px rgba(99, 102, 241, 0.6)",
             }}
             initial={false}
             animate={{ width: `${progress}%` }}

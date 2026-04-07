@@ -131,7 +131,7 @@ export function BrandCardSlide() {
           borderRadius: "var(--radius-xl)",
           background:
             "linear-gradient(135deg, var(--color-bg-elevated) 0%, rgba(99, 102, 241, 0.03) 100%)",
-          boxShadow: "var(--shadow-lg), var(--shadow-glow-sm)",
+          boxShadow: "var(--shadow-lg), 0 0 40px rgba(99, 102, 241, 0.08), 0 0 80px rgba(99, 102, 241, 0.04)",
           padding: 0,
           overflow: "hidden",
         }}
