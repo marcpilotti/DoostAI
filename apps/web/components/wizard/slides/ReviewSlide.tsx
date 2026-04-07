@@ -240,7 +240,7 @@ export function ReviewSlide() {
         <motion.button
           onClick={() => setSelectedMethod("managed")}
           whileTap={{ scale: 0.99 }}
-          className="w-full text-left transition-all duration-200"
+          className="w-full text-left transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]/30 focus-visible:outline-none"
           style={{
             padding: "16px",
             borderRadius: 12,
@@ -295,7 +295,7 @@ export function ReviewSlide() {
         <motion.button
           onClick={() => setSelectedMethod("self")}
           whileTap={{ scale: 0.99 }}
-          className="mt-3 w-full text-left transition-all duration-200"
+          className="mt-3 w-full text-left transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]/30 focus-visible:outline-none"
           style={{
             padding: "14px 16px",
             borderRadius: 12,
@@ -355,7 +355,7 @@ export function ReviewSlide() {
           disabled={publishState === "publishing"}
           whileHover={{ scale: 1.015 }}
           whileTap={{ scale: 0.985 }}
-          className="group relative w-full overflow-hidden text-[15px] font-semibold text-white disabled:opacity-60"
+          className="group relative w-full overflow-hidden text-[15px] font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:outline-none"
           style={{
             padding: "16px",
             borderRadius: 14,
@@ -365,7 +365,7 @@ export function ReviewSlide() {
         >
           {/* Shimmer effect */}
           <div
-            className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-1000 group-hover:translate-x-full"
+            className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-500 group-hover:translate-x-full"
           />
           <span className="relative flex items-center justify-center gap-2">
             {publishState === "publishing" ? (

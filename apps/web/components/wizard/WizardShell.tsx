@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowLeft } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useMemo, useRef } from "react";
@@ -127,7 +128,7 @@ export function WizardShell() {
             x: progress * orb.speed * 60,
             y: progress * orb.speed * -40,
           }}
-          transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+          transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
         />
       ))}
 
@@ -138,7 +139,7 @@ export function WizardShell() {
             className="h-full"
             style={{ background: "var(--color-primary)" }}
             animate={{ width: `${progress * 100}%` }}
-            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+            transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
           />
         </div>
       )}
@@ -150,7 +151,7 @@ export function WizardShell() {
         <motion.div
           className="w-full"
           animate={{ maxWidth: step === "ads" ? 1080 : 640 }}
-          transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+          transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
         >
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
@@ -179,9 +180,9 @@ export function WizardShell() {
           whileTap={{ scale: 0.9 }}
           transition={{ type: "spring", damping: 20, stiffness: 300 }}
           aria-label="Tillbaka"
-          className="floating-back absolute bottom-4 left-4 md:bottom-6 md:left-6 z-30"
+          className="floating-back absolute bottom-4 left-4 md:bottom-6 md:left-6 z-30 focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:outline-none"
         >
-          ←
+          <ArrowLeft className="h-4 w-4" />
         </motion.button>
       )}
       {showFooter && ctaLabel && (
@@ -195,7 +196,7 @@ export function WizardShell() {
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
           transition={{ type: "spring", damping: 20, stiffness: 300 }}
-          className="cta-primary absolute bottom-4 right-4 md:bottom-6 md:right-6 z-30"
+          className="cta-primary absolute bottom-4 right-4 md:bottom-6 md:right-6 z-30 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:outline-none"
         >
           <AnimatePresence mode="wait">
             <motion.span

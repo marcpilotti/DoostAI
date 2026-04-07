@@ -167,7 +167,7 @@ export function UrlInputSlide() {
           }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
         >
           Skippa byrån.
         </motion.h1>
@@ -225,7 +225,7 @@ export function UrlInputSlide() {
             whileHover={{ scale: 1.02, filter: "brightness(1.15)" }}
             whileTap={{ scale: 0.98 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            className="flex flex-shrink-0 items-center justify-center gap-2 font-semibold transition-all disabled:opacity-[0.4]"
+            className="flex flex-shrink-0 items-center justify-center gap-2 font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:outline-none"
             style={{
               background: "linear-gradient(135deg, #818CF8, #6366F1, #7C3AED)",
               color: "#fff",

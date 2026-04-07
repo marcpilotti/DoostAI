@@ -189,7 +189,7 @@ function PlatformCard({
       }
       whileTap={isSoon ? {} : { scale: 0.98 }}
       transition={transitions.snappy}
-      className="relative flex w-full items-center gap-3 text-left"
+      className="relative flex w-full items-center gap-3 text-left focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]/30 focus-visible:outline-none"
       style={{
         padding: compact ? "8px 12px" : "14px 16px",
         borderRadius: 12,

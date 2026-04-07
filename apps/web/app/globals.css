@@ -628,10 +628,12 @@
   .animate-spin,
   .typing-dot,
   .ai-breathe,
-  .skeleton {
+  .skeleton,
+  .mesh-bg::before {
     animation: none !important;
   }
-  .wizard-grain::before {
+  .wizard-grain::before,
+  .mesh-bg::before {
     display: none;
   }
   * {

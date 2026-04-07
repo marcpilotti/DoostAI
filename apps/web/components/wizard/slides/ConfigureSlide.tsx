@@ -192,9 +192,9 @@ export function ConfigureSlide() {
               key={opt.days}
               onClick={() => setDurationDays(opt.days)}
               whileTap={{ scale: 0.97 }}
-              className="flex-1 text-center text-[13px] font-semibold transition-all duration-200"
+              className="flex-1 text-center text-[13px] font-semibold transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]/30 focus-visible:outline-none"
               style={{
-                padding: "12px 0", borderRadius: 10,
+                padding: "14px 0", borderRadius: 10,
                 background: durationDays === opt.days ? "rgba(99,102,241,0.1)" : "transparent",
                 color: durationDays === opt.days ? "var(--color-primary-light)" : "var(--color-text-muted)",
                 border: durationDays === opt.days ? "1.5px solid var(--color-primary)" : "1px solid rgba(255,255,255,0.06)",
@@ -289,9 +289,9 @@ export function ConfigureSlide() {
                   key={val}
                   onClick={() => setGender(val)}
                   whileTap={{ scale: 0.97 }}
-                  className="flex-1 text-[12px] font-medium transition-all duration-200"
+                  className="flex-1 text-[12px] font-medium transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]/30 focus-visible:outline-none"
                   style={{
-                    padding: "10px 0", borderRadius: 10,
+                    padding: "12px 0", borderRadius: 10,
                     background: gender === val ? "rgba(99,102,241,0.1)" : "rgba(255,255,255,0.04)",
                     border: gender === val ? "1.5px solid var(--color-primary)" : "1px solid rgba(255,255,255,0.08)",
                     color: gender === val ? "var(--color-primary-light)" : "var(--color-text-muted)",
