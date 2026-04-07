@@ -105,55 +105,39 @@ async function scrapeFallback(url: string): Promise<BrandScrapeResult> {
 
   const colors = extractColorsFromHtml(html);
   const fonts = extractFontsFromHtml(html);
-  const fallbackDomain = new URL(normalizedUrl).hostname.replace(/^www\./, "");
-  function isSameDomain(logoUrl: string): boolean {
-    try {
-      const resolved = resolveUrl(normalizedUrl, logoUrl);
-      const host = new URL(resolved).hostname.replace(/^www\./, "");
-      return host === fallbackDomain || host.endsWith(`.${fallbackDomain}`);
-    } catch {
-      return !logoUrl.startsWith("http"); // relative URLs are same-domain
-    }
-  }
 
   const logoUrls: string[] = [];
+  const logoPattern = /logo|logga|logotyp|brand-?mark/i;
 
-  // Priority 1: Logo in <header> or <nav>
-  const fallbackHeaderMatch = html.match(/<header[\s>][\s\S]*?<\/header>/i);
-  const fallbackNavMatch = html.match(/<nav[\s>][\s\S]*?<\/nav>/i);
-  const fallbackHeaderHtml = (fallbackHeaderMatch?.[0] ?? "") + (fallbackNavMatch?.[0] ?? "");
-  if (fallbackHeaderHtml) {
-    const headerImgRe = /<img[^>]+src=["']([^"']+)["']/gi;
-    let hm;
-    while ((hm = headerImgRe.exec(fallbackHeaderHtml)) !== null) {
-      if (hm[1] && !hm[1].startsWith("data:")) {
-        const resolved = resolveUrl(normalizedUrl, hm[1]);
-        if (isSameDomain(resolved)) logoUrls.push(resolved);
+  // Collect all images with position
+  const fallbackImgs: Array<{ src: string; pos: number; tag: string }> = [];
+  const fallbackImgRe = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
+  let fim;
+  while ((fim = fallbackImgRe.exec(html)) !== null) {
+    if (fim[1] && !fim[1].startsWith("data:")) {
+      fallbackImgs.push({ src: fim[1], pos: fim.index, tag: fim[0] });
+    }
+  }
+  fallbackImgs.sort((a, b) => a.pos - b.pos);
+
+  // Priority 1: First img with logo/logga/brand in URL or attributes
+  for (const img of fallbackImgs) {
+    if (logoPattern.test(img.src.toLowerCase()) || logoPattern.test(img.tag.toLowerCase())) {
+      logoUrls.push(resolveUrl(normalizedUrl, img.src));
+      break;
+    }
+  }
+
+  // Priority 2: First image on the page
+  if (logoUrls.length === 0) {
+    for (const img of fallbackImgs) {
+      if (img.pos < 2000) {
+        const srcLower = img.src.toLowerCase();
+        if (srcLower.includes("pixel") || srcLower.includes("track") || srcLower.includes("spacer")) continue;
+        logoUrls.push(resolveUrl(normalizedUrl, img.src));
+        break;
       }
     }
-  }
-
-  // Priority 2: <img> with "logo" in attributes — ONLY same-domain
-  const logoImgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*(?:alt|class|id)=["'][^"']*logo[^"']*["']/gi;
-  let logoImgMatch;
-  while ((logoImgMatch = logoImgRegex.exec(html)) !== null) {
-    if (logoImgMatch[1]) {
-      const resolved = resolveUrl(normalizedUrl, logoImgMatch[1]);
-      if (isSameDomain(resolved)) logoUrls.push(resolved);
-    }
-  }
-  const logoImgRegex2 = /<img[^>]*(?:alt|class|id)=["'][^"']*logo[^"']*["'][^>]+src=["']([^"']+)["']/gi;
-  let logoImgMatch2;
-  while ((logoImgMatch2 = logoImgRegex2.exec(html)) !== null) {
-    if (logoImgMatch2[1]) {
-      const resolved = resolveUrl(normalizedUrl, logoImgMatch2[1]);
-      if (isSameDomain(resolved)) logoUrls.push(resolved);
-    }
-  }
-
-  // OG image only if same-domain (avoid social preview images from CDNs that aren't logos)
-  if (ogImageMatch?.[1] && isSameDomain(ogImageMatch[1])) {
-    logoUrls.push(ogImageMatch[1]);
   }
 
   return {
@@ -201,20 +185,12 @@ export async function scrapeBrand(url: string): Promise<BrandScrapeResult> {
     fonts = extractFontsFromHtml(html);
   }
 
-  // Extract the site's OWN logo — not client/partner logos.
-  // Strategy: prioritize header/nav logos and favicons over random <img> tags.
+  // ── Logo extraction ─────────────────────────────────────────
+  // The site's logo is almost always the first image on the page.
+  // Semantic <header>/<nav> tags are unreliable (most sites use divs).
+  // Strategy: first img with logo/logga/brand in URL or attributes,
+  // then first img in top of page, then Firecrawl branding.
   const logoUrls: string[] = [];
-  const siteDomain = new URL(normalizedUrl).hostname.replace(/^www\./, "");
-
-  function isSameSite(rawUrl: string): boolean {
-    try {
-      const resolved = resolveUrl(normalizedUrl, rawUrl);
-      const host = new URL(resolved).hostname.replace(/^www\./, "");
-      return host === siteDomain || host.endsWith(`.${siteDomain}`);
-    } catch {
-      return !rawUrl.startsWith("http");
-    }
-  }
 
   if (html) {
     const seen = new Set<string>();
@@ -223,49 +199,60 @@ export async function scrapeBrand(url: string): Promise<BrandScrapeResult> {
       const resolved = resolveUrl(normalizedUrl, rawUrl);
       if (seen.has(resolved)) return false;
       seen.add(resolved);
-      if (!isSameSite(resolved)) return false;
       logoUrls.push(resolved);
       return true;
     }
 
-    // Priority 1: Logo inside <header> or <nav> — the site's main logo
-    const headerMatch = html.match(/<header[\s>][\s\S]*?<\/header>/i);
-    const navMatch = html.match(/<nav[\s>][\s\S]*?<\/nav>/i);
-    const headerHtml = (headerMatch?.[0] ?? "") + (navMatch?.[0] ?? "");
+    // Collect ALL images with their position in the HTML
+    const allImgs: Array<{ src: string; pos: number; tag: string }> = [];
+    const imgRe = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
     let m;
-    if (headerHtml) {
-      const headerImgRe = /<img[^>]+src=["']([^"']+)["']/gi;
-      while ((m = headerImgRe.exec(headerHtml)) !== null) {
-        if (m[1] && !m[1].startsWith("data:")) {
-          tryAdd(m[1]);
-        }
+    while ((m = imgRe.exec(html)) !== null) {
+      if (m[1] && !m[1].startsWith("data:")) {
+        allImgs.push({ src: m[1], pos: m.index, tag: m[0] });
       }
-      // Also SVGs with class containing "logo"
-      const headerSvgRe = /<(?:img|svg)[^>]*class=["'][^"']*logo[^"']*["'][^>]*(?:src=["']([^"']+)["'])?/gi;
-      while ((m = headerSvgRe.exec(headerHtml)) !== null) {
-        if (m[1]) tryAdd(m[1]);
+    }
+    // Also reverse order (src after other attrs)
+    const imgRe2 = /<img[^>]*src=["']([^"']+)["'][^>]*>/gi;
+    while ((m = imgRe2.exec(html)) !== null) {
+      if (m[1] && !m[1].startsWith("data:") && !allImgs.some((i) => i.src === m![1])) {
+        allImgs.push({ src: m[1], pos: m.index, tag: m[0] });
       }
     }
 
-    // Priority 3: Any <img> with "logo" in class/id/alt within first 20% of HTML
-    // (site logo is almost always near the top, client logos are further down)
-    const topHtml = html.slice(0, Math.ceil(html.length * 0.2));
-    const topLogoRe = /<img[^>]*(?:class|id|alt)=["'][^"']*logo[^"']*["'][^>]*src=["']([^"']+)["']/gi;
-    while ((m = topLogoRe.exec(topHtml)) !== null) {
-      if (m[1]) tryAdd(m[1]);
+    // Sort by position (top of page first)
+    allImgs.sort((a, b) => a.pos - b.pos);
+
+    // Priority 1: Images with logo/logga/logotyp/brand in src URL or tag attributes
+    const logoPattern = /logo|logga|logotyp|brand-?mark/i;
+    for (const img of allImgs) {
+      const srcLower = img.src.toLowerCase();
+      const tagLower = img.tag.toLowerCase();
+      if (logoPattern.test(srcLower) || logoPattern.test(tagLower)) {
+        if (tryAdd(img.src)) break; // take the FIRST match only (topmost on page)
+      }
     }
-    // Reverse attr order
-    const topLogoRe2 = /<img[^>]+src=["']([^"']+)["'][^>]*(?:class|id|alt)=["'][^"']*logo[^"']*["']/gi;
-    while ((m = topLogoRe2.exec(topHtml)) !== null) {
-      if (m[1]) tryAdd(m[1]);
+
+    // Priority 2: First image on the page (top 2000 chars) — almost always the logo
+    if (logoUrls.length === 0) {
+      for (const img of allImgs) {
+        if (img.pos < 2000) {
+          // Skip tiny tracking pixels (src often contains "pixel", "track", "1x1")
+          const srcLower = img.src.toLowerCase();
+          if (srcLower.includes("pixel") || srcLower.includes("track") || srcLower.includes("1x1")) continue;
+          if (srcLower.includes("spacer") || srcLower.includes("blank")) continue;
+          tryAdd(img.src);
+          break;
+        }
+      }
     }
   }
 
-  // Firecrawl branding logo (high confidence)
+  // Firecrawl branding logo (high confidence — prepend if we have it)
   if (branding?.logo) {
     const resolved = resolveUrl(normalizedUrl, branding.logo);
-    if (!logoUrls.includes(resolved) && isSameSite(resolved)) {
-      logoUrls.unshift(resolved); // highest priority
+    if (!logoUrls.includes(resolved)) {
+      logoUrls.unshift(resolved);
     }
   }
 
