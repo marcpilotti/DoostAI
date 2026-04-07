@@ -109,7 +109,7 @@ async function scrapeFallback(url: string): Promise<BrandScrapeResult> {
   function isSameDomain(logoUrl: string): boolean {
     try {
       const host = new URL(logoUrl, normalizedUrl).hostname.replace(/^www\./, "");
-      return host.includes(fallbackDomain) || fallbackDomain.includes(host);
+      return host === fallbackDomain || host.endsWith(`.${fallbackDomain}`);
     } catch { return true; } // relative URLs are same-domain
   }
 
@@ -205,17 +205,21 @@ export async function scrapeBrand(url: string): Promise<BrandScrapeResult> {
   const sameDomain: string[] = [];
   const otherDomain: string[] = [];
 
-  function addLogo(url: string) {
+  function isSameSite(url: string): boolean {
     try {
       const host = new URL(url).hostname.replace(/^www\./, "");
-      if (host.includes(siteDomain) || siteDomain.includes(host)) {
-        sameDomain.push(url);
-      } else {
-        otherDomain.push(url);
-      }
+      // Exact match or subdomain (host ends with .siteDomain)
+      return host === siteDomain || host.endsWith(`.${siteDomain}`);
     } catch {
-      otherDomain.push(url);
+      return false;
     }
+  }
+
+  function addLogo(url: string) {
+    if (isSameSite(url)) {
+      sameDomain.push(url);
+    }
+    // Third-party logos are silently dropped
   }
 
   if (html) {
