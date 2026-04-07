@@ -177,10 +177,24 @@ export async function scrapeBrand(url: string): Promise<BrandScrapeResult> {
     fonts = extractFontsFromHtml(html);
   }
 
-  // Extract logos — ONLY high-confidence sources
-  // Rule: only include URLs where the path/filename contains "logo" or "brand"
-  // This avoids hero photos, product shots, and OG images being mistaken for logos
+  // Extract logos — prefer same-domain, high-confidence sources
   const logoUrls: string[] = [];
+  const siteDomain = new URL(normalizedUrl).hostname.replace(/^www\./, "");
+  const sameDomain: string[] = [];
+  const otherDomain: string[] = [];
+
+  function addLogo(url: string) {
+    try {
+      const host = new URL(url).hostname.replace(/^www\./, "");
+      if (host.includes(siteDomain) || siteDomain.includes(host)) {
+        sameDomain.push(url);
+      } else {
+        otherDomain.push(url);
+      }
+    } catch {
+      otherDomain.push(url);
+    }
+  }
 
   if (html) {
     const seen = new Set<string>();
@@ -192,7 +206,7 @@ export async function scrapeBrand(url: string): Promise<BrandScrapeResult> {
         const lower = m[1].toLowerCase();
         if (lower.includes("logo") || lower.includes("brand-mark") || lower.includes("brandmark")) {
           const resolved = resolveUrl(normalizedUrl, m[1]);
-          if (!seen.has(resolved)) { seen.add(resolved); logoUrls.push(resolved); }
+          if (!seen.has(resolved)) { seen.add(resolved); addLogo(resolved); }
         }
       }
     }
@@ -201,13 +215,16 @@ export async function scrapeBrand(url: string): Promise<BrandScrapeResult> {
     while ((m = iconRe.exec(html)) !== null) {
       if (m[1] && !m[1].startsWith("data:")) {
         const resolved = resolveUrl(normalizedUrl, m[1]);
-        if (!seen.has(resolved)) { seen.add(resolved); logoUrls.push(resolved); }
+        if (!seen.has(resolved)) { seen.add(resolved); addLogo(resolved); }
       }
     }
   }
 
   // Firecrawl's pre-extracted branding logo (if any)
-  if (branding?.logo) logoUrls.push(branding.logo);
+  if (branding?.logo) addLogo(branding.logo);
+
+  // Same-domain logos first, then third-party as fallback
+  logoUrls.push(...sameDomain, ...otherDomain);
 
   return {
     url: normalizedUrl,

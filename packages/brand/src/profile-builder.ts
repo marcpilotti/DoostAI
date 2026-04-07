@@ -187,8 +187,13 @@ ${context}`,
     finalFonts.body = fallback.body;
   }
 
+  // Pick the best logo — prefer same-domain URLs over third-party logos
+  const siteDomain = new URL(scrapeResult.url).hostname.replace(/^www\./, "");
+  const sameDomainLogos = scrapeResult.logoUrls.filter((url) => {
+    try { return new URL(url).hostname.replace(/^www\./, "").includes(siteDomain); } catch { return false; }
+  });
   const primaryLogo =
-    scrapeResult.logoUrls[0] ?? scrapeResult.ogImage ?? undefined;
+    sameDomainLogos[0] ?? scrapeResult.logoUrls[0] ?? scrapeResult.ogImage ?? undefined;
 
   const profile: BrandProfile = {
     url: scrapeResult.url,
