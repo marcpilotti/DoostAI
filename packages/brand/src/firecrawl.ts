@@ -118,23 +118,22 @@ async function scrapeFallback(url: string): Promise<BrandScrapeResult> {
 
   const logoUrls: string[] = [];
 
-  // Favicons are always same-domain
-  if (faviconMatch?.[1]) {
-    const fav = faviconMatch[1].startsWith("http") ? faviconMatch[1] : new URL(faviconMatch[1], normalizedUrl).href;
-    logoUrls.push(fav);
-  }
-
-  // Extract favicon and apple-touch-icon links
-  const iconRegex = /<link[^>]+rel=["'](?:icon|shortcut icon|apple-touch-icon)[^"']*["'][^>]+href=["']([^"']+)["']/gi;
-  let iconMatch;
-  while ((iconMatch = iconRegex.exec(html)) !== null) {
-    if (iconMatch[1]) {
-      const resolved = resolveUrl(normalizedUrl, iconMatch[1]);
-      if (isSameDomain(resolved)) logoUrls.push(resolved);
+  // Priority 1: Logo in <header> or <nav>
+  const fallbackHeaderMatch = html.match(/<header[\s>][\s\S]*?<\/header>/i);
+  const fallbackNavMatch = html.match(/<nav[\s>][\s\S]*?<\/nav>/i);
+  const fallbackHeaderHtml = (fallbackHeaderMatch?.[0] ?? "") + (fallbackNavMatch?.[0] ?? "");
+  if (fallbackHeaderHtml) {
+    const headerImgRe = /<img[^>]+src=["']([^"']+)["']/gi;
+    let hm;
+    while ((hm = headerImgRe.exec(fallbackHeaderHtml)) !== null) {
+      if (hm[1] && !hm[1].startsWith("data:")) {
+        const resolved = resolveUrl(normalizedUrl, hm[1]);
+        if (isSameDomain(resolved)) logoUrls.push(resolved);
+      }
     }
   }
 
-  // Extract img elements with "logo" in attributes — ONLY same-domain
+  // Priority 2: <img> with "logo" in attributes — ONLY same-domain
   const logoImgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*(?:alt|class|id)=["'][^"']*logo[^"']*["']/gi;
   let logoImgMatch;
   while ((logoImgMatch = logoImgRegex.exec(html)) !== null) {
@@ -229,17 +228,11 @@ export async function scrapeBrand(url: string): Promise<BrandScrapeResult> {
       return true;
     }
 
-    // Priority 1: Favicon / apple-touch-icon — always the site's own brand
-    const iconRe = /<link[^>]+rel=["'](?:icon|shortcut icon|apple-touch-icon)[^"']*["'][^>]+href=["']([^"']+)["']/gi;
-    let m;
-    while ((m = iconRe.exec(html)) !== null) {
-      if (m[1]) tryAdd(m[1]);
-    }
-
-    // Priority 2: Logo inside <header> or <nav> — the site's own logo
+    // Priority 1: Logo inside <header> or <nav> — the site's main logo
     const headerMatch = html.match(/<header[\s>][\s\S]*?<\/header>/i);
     const navMatch = html.match(/<nav[\s>][\s\S]*?<\/nav>/i);
     const headerHtml = (headerMatch?.[0] ?? "") + (navMatch?.[0] ?? "");
+    let m;
     if (headerHtml) {
       const headerImgRe = /<img[^>]+src=["']([^"']+)["']/gi;
       while ((m = headerImgRe.exec(headerHtml)) !== null) {
