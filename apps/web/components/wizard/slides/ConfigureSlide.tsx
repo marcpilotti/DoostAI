@@ -1,16 +1,16 @@
 "use client";
 
 /**
- * ConfigureSlide — budget + targeting configuration.
- * Premium, focused design with live projections.
+ * ConfigureSlide — budget + targeting + duration.
+ * Uses the same accent-line + section-dot design language as AudienceSlide.
  */
 
-import { MapPin, Users, X } from "lucide-react";
+import { Calendar, Link2, MapPin, Sparkles, Users, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useWizardNavigation } from "@/hooks/use-wizard-navigation";
-import { cardVariants, transitions } from "@/lib/motion";
+import { cardVariants, listItemVariants, transitions } from "@/lib/motion";
 import { useWizardStore } from "@/lib/stores/wizard-store";
 
 import { ConfigureStepIndicator } from "../shared/ConfigureStepIndicator";
@@ -61,13 +61,26 @@ function estimateProjections(budget: number, days: number, locationCount: number
   };
 }
 
+// ── Section dot (matches AudienceSlide) ─────────────────────────
+
+function SectionDot() {
+  return (
+    <div
+      className="absolute -left-[19px] top-1.5 h-2 w-2 rounded-full"
+      style={{
+        background: "var(--color-primary)",
+        boxShadow: "0 0 8px var(--color-primary-glow)",
+      }}
+    />
+  );
+}
+
 // ── Component ────────────────────────────────────────────────────
 
 export function ConfigureSlide() {
   const { brand, budget, targeting, selectedPlatforms, setBudget, setTargeting, setProjections, setFooterAction } = useWizardStore();
   const { handleNext } = useWizardNavigation();
 
-  // Budget state
   const [totalBudget, setTotalBudget] = useState(budget?.totalBudget || 5000);
   const [durationDays, setDurationDays] = useState(budget?.durationDays || 30);
   const [landingUrl, setLandingUrl] = useState(budget?.landingUrl || brand?.url || "");
@@ -79,7 +92,6 @@ export function ConfigureSlide() {
   }, [startDate, durationDays]);
   const dailyBudget = Math.round(totalBudget / durationDays);
 
-  // Targeting state
   const detectedLocation = brand?.detectedLocation || "Hela Sverige";
   const [locations, setLocations] = useState<string[]>(targeting?.locations || [detectedLocation]);
   const [ageMin, setAgeMin] = useState(targeting?.ageMin || 25);
@@ -89,7 +101,6 @@ export function ConfigureSlide() {
   const [linkedinRoles, setLinkedInRoles] = useState<string[]>(targeting?.linkedinRoles || []);
   const hasLinkedIn = selectedPlatforms.includes("linkedin");
 
-  // Live projections
   const projections = useMemo(
     () => estimateProjections(totalBudget, durationDays, locations.length),
     [totalBudget, durationDays, locations.length],
@@ -111,283 +122,310 @@ export function ConfigureSlide() {
   }, [handleContinue, setFooterAction]);
 
   return (
-    <motion.div variants={cardVariants} initial="hidden" animate="visible" transition={transitions.spring}
-      className="flex flex-col gap-5">
+    <motion.div
+      variants={cardVariants}
+      initial="hidden"
+      animate="visible"
+      transition={transitions.spring}
+      className="flex flex-col gap-4"
+    >
+      {/* Header */}
+      <div>
+        <h2 className="text-text-h1" style={{ color: "var(--color-text-primary)" }}>
+          Konfigurera kampanjen
+        </h2>
+        <p className="mt-1 text-[13px]" style={{ color: "var(--color-text-muted)" }}>
+          Ställ in budget, period och målgrupp.
+        </p>
+      </div>
 
       <ConfigureStepIndicator activeStep="configure" />
 
-      {/* ── Budget hero ───────────────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        style={{
-          padding: "28px 24px 24px",
-          borderRadius: 16,
-          background: "linear-gradient(135deg, rgba(99,102,241,0.06), rgba(124,58,237,0.03))",
-          border: "1px solid rgba(99,102,241,0.12)",
-          boxShadow: "0 4px 30px rgba(0,0,0,0.3), 0 0 40px rgba(99,102,241,0.06)",
-        }}
-      >
-        <p className="mb-1 text-center text-[11px] font-semibold uppercase tracking-widest"
-          style={{ color: "var(--color-text-muted)" }}>
-          Total budget
-        </p>
-        <div className="mb-5 text-center">
-          <span className="text-[42px] font-bold tracking-tight" style={{ color: "var(--color-text-primary)" }}>
-            <NumberTicker value={totalBudget} format={formatKr} />
-          </span>
-        </div>
-
-        <input
-          type="range" min={500} max={50000} step={500} value={totalBudget}
-          onChange={(e) => setTotalBudget(Number(e.target.value))}
-          className="mb-2 w-full"
-          style={{ accentColor: "var(--color-primary)" }}
+      {/* Sections with left accent line — same pattern as AudienceSlide */}
+      <div className="relative pl-6">
+        {/* Vertical accent line */}
+        <div
+          className="absolute left-[7px] top-2 bottom-2 w-px"
+          style={{
+            background: "linear-gradient(to bottom, rgba(99,102,241,0.3), rgba(99,102,241,0.05))",
+          }}
         />
-        <div className="flex justify-between text-[10px]" style={{ color: "var(--color-text-muted)" }}>
-          <span>500 kr</span>
-          <span>50 000 kr</span>
-        </div>
 
-        {/* Stats row */}
-        <div className="mt-5 grid grid-cols-3 gap-3">
-          <div className="text-center">
-            <div className="text-[10px] uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Per dag</div>
-            <div className="mt-1 text-[16px] font-bold" style={{ color: "var(--color-text-primary)" }}>
-              <NumberTicker value={dailyBudget} format={formatKr} />
+        <motion.div
+          className="flex flex-col gap-8"
+          variants={{ visible: { transition: { staggerChildren: 0.06 } } }}
+          initial="hidden"
+          animate="visible"
+        >
+          {/* ── Section 1: Budget ── */}
+          <motion.div variants={listItemVariants} className="relative">
+            <SectionDot />
+            <span className="text-[13px] font-medium" style={{ color: "var(--color-text-muted)" }}>
+              Budget
+            </span>
+
+            <div className="mt-3 text-center">
+              <span className="text-[38px] font-bold tracking-tight" style={{ color: "var(--color-text-primary)" }}>
+                <NumberTicker value={totalBudget} format={formatKr} />
+              </span>
             </div>
-          </div>
-          <div className="text-center">
-            <div className="text-[10px] uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Räckvidd</div>
-            <div className="mt-1 text-[16px] font-bold" style={{ color: "var(--color-text-primary)" }}>
-              <NumberTicker value={projections.reachMin} format={(n) => `${Math.round(n / 1000)}K`} />
-              <span className="font-normal" style={{ color: "var(--color-text-muted)" }}> – </span>
-              <NumberTicker value={projections.reachMax} format={(n) => `${Math.round(n / 1000)}K`} />
+
+            <input
+              type="range" min={500} max={50000} step={500} value={totalBudget}
+              onChange={(e) => setTotalBudget(Number(e.target.value))}
+              className="mt-3 mb-1 w-full"
+              style={{ accentColor: "var(--color-primary)" }}
+            />
+            <div className="flex justify-between text-[10px]" style={{ color: "var(--color-text-muted)" }}>
+              <span>500 kr</span>
+              <span>50 000 kr</span>
             </div>
-          </div>
-          <div className="text-center">
-            <div className="text-[10px] uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Klick</div>
-            <div className="mt-1 text-[16px] font-bold" style={{ color: "var(--color-text-primary)" }}>
-              <NumberTicker value={projections.clicksMin} format={(n) => `${Math.round(n / 100) * 100}`} />
-              <span className="font-normal" style={{ color: "var(--color-text-muted)" }}> – </span>
-              <NumberTicker value={projections.clicksMax} format={(n) => `${Math.round(n / 100) * 100}`} />
-            </div>
-          </div>
-        </div>
-      </motion.div>
 
-      {/* ── Duration ──────────────────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.05 }}
-        style={{ padding: "20px 24px", borderRadius: 16, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.08)" }}
-      >
-        <p className="mb-4 text-[11px] font-semibold uppercase tracking-widest" style={{ color: "var(--color-text-muted)" }}>
-          Kampanjperiod
-        </p>
-        <div className="flex gap-2">
-          {DURATION_OPTIONS.map((opt) => (
-            <motion.button
-              key={opt.days}
-              onClick={() => setDurationDays(opt.days)}
-              whileTap={{ scale: 0.97 }}
-              className="flex-1 text-center text-[13px] font-semibold transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]/30 focus-visible:outline-none"
-              style={{
-                padding: "14px 0", borderRadius: 10,
-                background: durationDays === opt.days ? "rgba(99,102,241,0.1)" : "transparent",
-                color: durationDays === opt.days ? "var(--color-primary-light)" : "var(--color-text-muted)",
-                border: durationDays === opt.days ? "1.5px solid var(--color-primary)" : "1px solid rgba(255,255,255,0.06)",
-              }}
-            >
-              {opt.label}
-            </motion.button>
-          ))}
-        </div>
-        <p className="mt-3 text-[12px]" style={{ color: "var(--color-text-muted)" }}>
-          {formatDate(startDate)} → {formatDate(endDate)}
-        </p>
-      </motion.div>
-
-      {/* ── Location + Demographics combined ───────────── */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        style={{ padding: "20px 24px", borderRadius: 16, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.08)" }}
-      >
-        <p className="mb-4 text-[11px] font-semibold uppercase tracking-widest" style={{ color: "var(--color-text-muted)" }}>
-          Målgrupp
-        </p>
-
-        {/* Locations */}
-        <div className="mb-5">
-          <div className="mb-2 flex items-center gap-1.5 text-[12px] font-medium" style={{ color: "var(--color-text-secondary)" }}>
-            <MapPin className="h-3.5 w-3.5" style={{ color: "var(--color-primary-light)" }} />
-            Plats
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <AnimatePresence>
-              {locations.map((loc) => (
-                <motion.span
-                  key={loc} layout
-                  initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }}
-                  className="flex items-center gap-1.5 text-[12px] font-medium"
-                  style={{ padding: "6px 10px", borderRadius: 8, background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)", color: "var(--color-primary-light)" }}
-                >
-                  {loc}
-                  <button onClick={() => removeLocation(loc)}><X className="h-3 w-3" style={{ color: "var(--color-text-muted)" }} /></button>
-                </motion.span>
-              ))}
-            </AnimatePresence>
-            {QUICK_LOCATIONS.filter((l) => !locations.includes(l)).map((loc) => (
-              <motion.button
-                key={loc}
-                onClick={() => addLocation(loc)}
-                whileTap={{ scale: 0.97 }}
-                className="text-[12px] font-medium transition-colors"
-                style={{ padding: "6px 10px", borderRadius: 8, border: "1px dashed rgba(255,255,255,0.1)", color: "var(--color-text-muted)" }}
-              >
-                + {loc}
-              </motion.button>
-            ))}
-          </div>
-        </div>
-
-        {/* Divider */}
-        <div className="mb-5" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }} />
-
-        {/* Age + Gender row */}
-        <div className="flex items-end gap-5">
-          <div>
-            <div className="mb-2 flex items-center gap-1.5 text-[12px] font-medium" style={{ color: "var(--color-text-secondary)" }}>
-              <Users className="h-3.5 w-3.5" style={{ color: "var(--color-primary-light)" }} />
-              Ålder
-            </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="number" min={18} max={65} value={ageMin}
-                onChange={(e) => setAgeMin(Number(e.target.value))}
-                className="w-16 text-center text-[15px] font-semibold outline-none"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "10px 8px", color: "var(--color-text-primary)" }}
-              />
-              <span className="text-[13px]" style={{ color: "var(--color-text-muted)" }}>–</span>
-              <input
-                type="number" min={18} max={65} value={ageMax}
-                onChange={(e) => setAgeMax(Number(e.target.value))}
-                onBlur={() => { if (ageMin > ageMax) { const tmp = ageMin; setAgeMin(ageMax); setAgeMax(tmp); } }}
-                className="w-16 text-center text-[15px] font-semibold outline-none"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "10px 8px", color: "var(--color-text-primary)" }}
-              />
-            </div>
-          </div>
-          <div className="flex-1">
-            <div className="mb-2 text-[12px] font-medium" style={{ color: "var(--color-text-secondary)" }}>Kön</div>
-            <div className="flex gap-1.5">
-              {([["all", "Alla"], ["male", "Män"], ["female", "Kvinnor"]] as const).map(([val, label]) => (
-                <motion.button
-                  key={val}
-                  onClick={() => setGender(val)}
-                  whileTap={{ scale: 0.97 }}
-                  className="flex-1 text-[12px] font-medium transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]/30 focus-visible:outline-none"
+            {/* Live stats */}
+            <div className="mt-4 flex gap-3">
+              {[
+                { label: "Per dag", value: formatKr(dailyBudget) },
+                { label: "Räckvidd", value: `${Math.round(projections.reachMin / 1000)}K – ${Math.round(projections.reachMax / 1000)}K` },
+                { label: "Klick", value: `${Math.round(projections.clicksMin / 100) * 100} – ${Math.round(projections.clicksMax / 100) * 100}` },
+              ].map((stat) => (
+                <div
+                  key={stat.label}
+                  className="flex-1 text-center"
                   style={{
-                    padding: "12px 0", borderRadius: 10,
-                    background: gender === val ? "rgba(99,102,241,0.1)" : "rgba(255,255,255,0.04)",
-                    border: gender === val ? "1.5px solid var(--color-primary)" : "1px solid rgba(255,255,255,0.08)",
-                    color: gender === val ? "var(--color-primary-light)" : "var(--color-text-muted)",
+                    padding: "10px 8px",
+                    borderRadius: 10,
+                    background: "rgba(99,102,241,0.04)",
+                    border: "1px solid rgba(99,102,241,0.08)",
                   }}
                 >
-                  {label}
+                  <div className="text-[10px] uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>{stat.label}</div>
+                  <div className="mt-0.5 text-[14px] font-semibold" style={{ color: "var(--color-text-primary)" }}>{stat.value}</div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* ── Section 2: Duration ── */}
+          <motion.div variants={listItemVariants} className="relative">
+            <SectionDot />
+            <div className="flex items-center gap-1.5">
+              <Calendar className="h-3.5 w-3.5" style={{ color: "var(--color-primary-light)" }} />
+              <span className="text-[13px] font-medium" style={{ color: "var(--color-text-muted)" }}>
+                Kampanjperiod
+              </span>
+            </div>
+
+            <div className="mt-3 flex gap-2">
+              {DURATION_OPTIONS.map((opt) => (
+                <motion.button
+                  key={opt.days}
+                  onClick={() => setDurationDays(opt.days)}
+                  whileTap={{ scale: 0.97 }}
+                  className="flex-1 text-center text-[13px] font-semibold transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]/30 focus-visible:outline-none"
+                  style={{
+                    padding: "12px 0",
+                    borderRadius: 10,
+                    background: durationDays === opt.days ? "rgba(99,102,241,0.08)" : "transparent",
+                    color: durationDays === opt.days ? "var(--color-primary-light)" : "var(--color-text-muted)",
+                    border: durationDays === opt.days ? "1.5px solid var(--color-primary)" : "1px solid rgba(255,255,255,0.06)",
+                  }}
+                >
+                  {opt.label}
                 </motion.button>
               ))}
             </div>
-          </div>
-        </div>
-      </motion.div>
+            <p className="mt-2 text-[12px]" style={{ color: "var(--color-text-muted)" }}>
+              {formatDate(startDate)} → {formatDate(endDate)}
+            </p>
+          </motion.div>
 
-      {/* ── LinkedIn roles (conditional) ───────────────── */}
-      {hasLinkedIn && (
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          style={{ padding: "20px 24px", borderRadius: 16, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.08)" }}
-        >
-          <button
-            onClick={() => setShowLinkedIn(!showLinkedIn)}
-            className="flex w-full items-center gap-2 text-[11px] font-semibold uppercase tracking-widest"
-            style={{ color: "var(--color-text-muted)" }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="#0A66C2"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg>
-            LinkedIn-roller
-            <span className="ml-auto text-[10px]">{showLinkedIn ? "▾" : "▸"}</span>
-          </button>
-          {showLinkedIn && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }}
-              transition={transitions.spring}
-              className="mt-3 flex flex-wrap gap-1.5"
-            >
+          {/* ── Section 3: Location ── */}
+          <motion.div variants={listItemVariants} className="relative">
+            <SectionDot />
+            <div className="flex items-center gap-1.5">
+              <MapPin className="h-3.5 w-3.5" style={{ color: "var(--color-primary-light)" }} />
+              <span className="text-[13px] font-medium" style={{ color: "var(--color-text-muted)" }}>
+                Plats
+              </span>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
               <AnimatePresence>
-                {linkedinRoles.map((role) => (
+                {locations.map((loc) => (
                   <motion.span
-                    key={role} layout
-                    initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
+                    key={loc} layout
+                    initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }}
+                    transition={{ type: "spring", damping: 20, stiffness: 300 }}
                     className="flex items-center gap-1.5 text-[12px] font-medium"
-                    style={{ padding: "6px 10px", borderRadius: 8, background: "rgba(10,102,194,0.08)", border: "1px solid rgba(10,102,194,0.2)", color: "#0A66C2" }}
+                    style={{ padding: "5px 12px", borderRadius: 99, background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)", color: "var(--color-primary-light)" }}
                   >
-                    {role}
-                    <button onClick={() => setLinkedInRoles(linkedinRoles.filter((r) => r !== role))}><X className="h-3 w-3" style={{ color: "var(--color-text-muted)" }} /></button>
+                    {loc}
+                    <button onClick={() => removeLocation(loc)} className="transition-colors hover:text-white">
+                      <X className="h-3 w-3" />
+                    </button>
                   </motion.span>
                 ))}
               </AnimatePresence>
-              {["VD", "Marknadschef", "CTO", "CFO"].filter((r) => !linkedinRoles.includes(r)).map((role) => (
+              {QUICK_LOCATIONS.filter((l) => !locations.includes(l)).map((loc) => (
                 <motion.button
-                  key={role}
-                  onClick={() => setLinkedInRoles([...linkedinRoles, role])}
+                  key={loc}
+                  onClick={() => addLocation(loc)}
                   whileTap={{ scale: 0.97 }}
-                  className="text-[12px]"
-                  style={{ padding: "6px 10px", borderRadius: 8, border: "1px dashed rgba(10,102,194,0.2)", color: "var(--color-text-muted)" }}
+                  className="text-[12px] font-medium transition-colors hover:text-[var(--color-text-secondary)]"
+                  style={{ padding: "5px 12px", borderRadius: 99, border: "1px dashed rgba(255,255,255,0.1)", color: "var(--color-text-muted)" }}
                 >
-                  + {role}
+                  + {loc}
                 </motion.button>
               ))}
+            </div>
+          </motion.div>
+
+          {/* ── Section 4: Demographics ── */}
+          <motion.div variants={listItemVariants} className="relative">
+            <SectionDot />
+            <div className="flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5" style={{ color: "var(--color-primary-light)" }} />
+              <span className="text-[13px] font-medium" style={{ color: "var(--color-text-muted)" }}>
+                Demografi
+              </span>
+            </div>
+
+            <div className="mt-3 flex items-end gap-4">
+              {/* Age */}
+              <div>
+                <div className="mb-1.5 text-[11px] font-medium" style={{ color: "var(--color-text-muted)" }}>Ålder</div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number" min={18} max={65} value={ageMin}
+                    onChange={(e) => setAgeMin(Number(e.target.value))}
+                    className="w-14 text-center text-[14px] font-semibold outline-none transition-all focus:border-[var(--color-primary)] focus:shadow-[0_0_0_3px_var(--color-primary-glow)]"
+                    style={{ background: "var(--color-bg-raised)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "10px 6px", color: "var(--color-text-primary)" }}
+                  />
+                  <span className="text-[12px]" style={{ color: "var(--color-text-muted)" }}>–</span>
+                  <input
+                    type="number" min={18} max={65} value={ageMax}
+                    onChange={(e) => setAgeMax(Number(e.target.value))}
+                    onBlur={() => { if (ageMin > ageMax) { const tmp = ageMin; setAgeMin(ageMax); setAgeMax(tmp); } }}
+                    className="w-14 text-center text-[14px] font-semibold outline-none transition-all focus:border-[var(--color-primary)] focus:shadow-[0_0_0_3px_var(--color-primary-glow)]"
+                    style={{ background: "var(--color-bg-raised)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "10px 6px", color: "var(--color-text-primary)" }}
+                  />
+                </div>
+              </div>
+              {/* Gender */}
+              <div className="flex-1">
+                <div className="mb-1.5 text-[11px] font-medium" style={{ color: "var(--color-text-muted)" }}>Kön</div>
+                <div className="flex gap-1.5">
+                  {([["all", "Alla"], ["male", "Män"], ["female", "Kvinnor"]] as const).map(([val, label]) => (
+                    <motion.button
+                      key={val}
+                      onClick={() => setGender(val)}
+                      whileTap={{ scale: 0.97 }}
+                      className="flex-1 text-[12px] font-medium transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]/30 focus-visible:outline-none"
+                      style={{
+                        padding: "10px 0", borderRadius: 10,
+                        background: gender === val ? "rgba(99,102,241,0.08)" : "transparent",
+                        border: gender === val ? "1.5px solid var(--color-primary)" : "1px solid rgba(255,255,255,0.06)",
+                        color: gender === val ? "var(--color-primary-light)" : "var(--color-text-muted)",
+                      }}
+                    >
+                      {label}
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* ── Section 5: LinkedIn roles (conditional) ── */}
+          {hasLinkedIn && (
+            <motion.div variants={listItemVariants} className="relative">
+              <SectionDot />
+              <button
+                onClick={() => setShowLinkedIn(!showLinkedIn)}
+                className="flex w-full items-center gap-2 text-[13px] font-medium focus-visible:outline-none"
+                style={{ color: "var(--color-text-muted)" }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--color-linkedin)"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg>
+                LinkedIn-roller
+                <span className="ml-auto text-[10px]">{showLinkedIn ? "▾" : "▸"}</span>
+              </button>
+              {showLinkedIn && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }}
+                  transition={transitions.spring}
+                  className="mt-3 flex flex-wrap gap-1.5"
+                >
+                  <AnimatePresence>
+                    {linkedinRoles.map((role) => (
+                      <motion.span
+                        key={role} layout
+                        initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
+                        className="flex items-center gap-1.5 text-[12px] font-medium"
+                        style={{ padding: "5px 12px", borderRadius: 99, background: "rgba(10,102,194,0.08)", border: "1px solid rgba(10,102,194,0.2)", color: "var(--color-linkedin)" }}
+                      >
+                        {role}
+                        <button onClick={() => setLinkedInRoles(linkedinRoles.filter((r) => r !== role))}>
+                          <X className="h-3 w-3" style={{ color: "var(--color-text-muted)" }} />
+                        </button>
+                      </motion.span>
+                    ))}
+                  </AnimatePresence>
+                  {["VD", "Marknadschef", "CTO", "CFO"].filter((r) => !linkedinRoles.includes(r)).map((role) => (
+                    <motion.button
+                      key={role}
+                      onClick={() => setLinkedInRoles([...linkedinRoles, role])}
+                      whileTap={{ scale: 0.97 }}
+                      className="text-[12px] font-medium transition-colors hover:text-[var(--color-text-secondary)]"
+                      style={{ padding: "5px 12px", borderRadius: 99, border: "1px dashed rgba(10,102,194,0.15)", color: "var(--color-text-muted)" }}
+                    >
+                      + {role}
+                    </motion.button>
+                  ))}
+                </motion.div>
+              )}
             </motion.div>
           )}
-        </motion.div>
-      )}
 
-      {/* ── Landing URL (compact) ─────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="flex items-center gap-3"
-        style={{ padding: "14px 20px", borderRadius: 12, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.08)" }}
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ color: "var(--color-text-muted)", flexShrink: 0 }}>
-          <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
-          <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
-        </svg>
-        <input
-          value={landingUrl}
-          onChange={(e) => setLandingUrl(e.target.value)}
-          placeholder="Landningssida — https://..."
-          className="w-full bg-transparent text-[13px] outline-none"
-          style={{ color: "var(--color-text-primary)" }}
-        />
-      </motion.div>
+          {/* ── Section 6: Landing URL ── */}
+          <motion.div variants={listItemVariants} className="relative">
+            <SectionDot />
+            <div className="flex items-center gap-1.5">
+              <Link2 className="h-3.5 w-3.5" style={{ color: "var(--color-primary-light)" }} />
+              <span className="text-[13px] font-medium" style={{ color: "var(--color-text-muted)" }}>
+                Landningssida
+              </span>
+            </div>
+            <div
+              className="mt-2 flex items-center"
+              style={{
+                background: "var(--color-bg-raised)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: 10,
+                transition: "border-color 200ms, box-shadow 200ms",
+              }}
+            >
+              <input
+                value={landingUrl}
+                onChange={(e) => setLandingUrl(e.target.value)}
+                placeholder="https://..."
+                className="w-full bg-transparent text-[13px] outline-none"
+                style={{ padding: "10px 14px", color: "var(--color-text-primary)" }}
+              />
+            </div>
+          </motion.div>
+        </motion.div>
+      </div>
 
       {/* AI note */}
-      <motion.p
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="text-center text-[12px]"
+        transition={{ delay: 0.25 }}
+        className="flex items-center justify-center gap-1.5 text-[12px]"
         style={{ color: "var(--color-primary-light)" }}
       >
+        <Sparkles className="h-3 w-3" />
         Vi optimerar budgetfördelningen automatiskt med AI
-      </motion.p>
+      </motion.div>
     </motion.div>
   );
 }
